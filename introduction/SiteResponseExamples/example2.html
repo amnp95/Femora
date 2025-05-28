@@ -346,8 +346,8 @@
 <span class="n">region</span> <span class="o">=</span> <span class="n">fm</span><span class="o">.</span><span class="n">region</span><span class="o">.</span><span class="n">elementRegion</span><span class="p">(</span><span class="n">damping</span><span class="o">=</span><span class="n">uniformDamp</span><span class="p">)</span>
 
 <span class="c1"># defining the mesh parts</span>
-<span class="n">Xmin</span> <span class="o">=</span> <span class="o">-</span><span class="mf">5.0</span> <span class="p">;</span><span class="n">Xmax</span> <span class="o">=</span> <span class="mf">5.0</span>
-<span class="n">Ymin</span> <span class="o">=</span> <span class="o">-</span><span class="mf">5.0</span> <span class="p">;</span><span class="n">Ymax</span> <span class="o">=</span> <span class="mf">5.0</span>
+<span class="n">Xmin</span> <span class="o">=</span> <span class="mf">0.0</span> <span class="p">;</span><span class="n">Xmax</span> <span class="o">=</span> <span class="mf">1.0</span>
+<span class="n">Ymin</span> <span class="o">=</span> <span class="mf">0.0</span> <span class="p">;</span><span class="n">Ymax</span> <span class="o">=</span> <span class="mf">1.0</span>
 <span class="n">Zmin</span> <span class="o">=</span> <span class="o">-</span><span class="mf">18.</span><span class="p">;</span><span class="n">Zmax</span> <span class="o">=</span> <span class="mf">0.0</span>
 <span class="n">dx</span>   <span class="o">=</span> <span class="mf">1.0</span><span class="p">;</span> <span class="n">dy</span>   <span class="o">=</span> <span class="mf">1.0</span>
 <span class="n">Nx</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="n">Xmax</span> <span class="o">-</span> <span class="n">Xmin</span><span class="p">)</span><span class="o">/</span><span class="n">dx</span><span class="p">)</span>
@@ -393,7 +393,7 @@
 
 
 <span class="c1"># #  Create assembly Sections</span>
-<span class="n">fm</span><span class="o">.</span><span class="n">assembler</span><span class="o">.</span><span class="n">create_section</span><span class="p">(</span><span class="n">meshparts</span><span class="o">=</span><span class="p">[</span><span class="n">layer</span><span class="p">[</span><span class="s2">&quot;user_name&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">layer</span> <span class="ow">in</span> <span class="n">layers_properties</span><span class="p">],</span> <span class="n">num_partitions</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
+<span class="n">fm</span><span class="o">.</span><span class="n">assembler</span><span class="o">.</span><span class="n">create_section</span><span class="p">(</span><span class="n">meshparts</span><span class="o">=</span><span class="p">[</span><span class="n">layer</span><span class="p">[</span><span class="s2">&quot;user_name&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">layer</span> <span class="ow">in</span> <span class="n">layers_properties</span><span class="p">],</span> <span class="n">num_partitions</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
 
 
 <span class="c1"># Assemble the mesh parts</span>
@@ -432,7 +432,7 @@
 
 <span class="c1"># dynamic analysis</span>
 <span class="n">dynamic</span> <span class="o">=</span> <span class="n">fm</span><span class="o">.</span><span class="n">analysis</span><span class="o">.</span><span class="n">create_default_transient_analysis</span><span class="p">(</span><span class="n">username</span><span class="o">=</span><span class="s2">&quot;dynamic&quot;</span><span class="p">,</span> 
-                                                        <span class="n">final_time</span><span class="o">=</span><span class="mf">40.0</span><span class="p">,</span> <span class="n">dt</span><span class="o">=</span><span class="mf">0.001</span><span class="p">,</span>
+                                                        <span class="n">final_time</span><span class="o">=</span><span class="mf">50.0</span><span class="p">,</span> <span class="n">dt</span><span class="o">=</span><span class="mf">0.001</span><span class="p">,</span>
                                                         <span class="n">options</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;system&quot;</span><span class="p">:</span> <span class="n">system</span><span class="p">,</span>
                                                                  <span class="s2">&quot;numberer&quot;</span><span class="p">:</span> <span class="n">numberer</span><span class="p">})</span>
 
