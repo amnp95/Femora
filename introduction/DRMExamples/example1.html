@@ -1,0 +1,553 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Example 1: Domain Reduction Method (DRM) Site Response Analysis &mdash; Femora (Fast Efficient Meshing for OpenSees-based Resilience Analysis) 0.5.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/custom.css?v=bbbd0671" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=1dd76d02"></script>
+      <script src="../../_static/doctools.js?v=9a2dae69"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../../_static/js/copy-button.js?v=47d38097"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Example 2: Multi-layer Soil Model with Absorbing Boundaries" href="example2.html" />
+    <link rel="prev" title="Domain Reduction Method (DRM) Examples" href="DRM.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html">
+            
+              <img src="../../_static/Femoralogo.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Introduction:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../getting_started.html">Getting Started with Femora</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quick_start.html">Quick Start Guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../examples.html">Examples and Tutorials</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../quick_start.html">Quick Start Example (Layered Soil Profile)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../SiteResponseExamples/SiteResponse.html">Site Response Examples</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="DRM.html">Domain Reduction Method (DRM) Examples</a><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Example 1: Domain Reduction Method (DRM) Site Response Analysis</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#overview">Overview</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#model-description">Model Description</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#domain-reduction-method-implementation">Domain Reduction Method Implementation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#results-and-analysis">Results and Analysis</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#advantages-of-drm-over-uniform-excitation">Advantages of DRM Over Uniform Excitation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#relationship-to-site-response-examples">Relationship to Site Response Examples</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#practical-applications">Practical Applications</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#conclusion">Conclusion</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#code-access">Code Access</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="example2.html">Example 2: Multi-layer Soil Model with Absorbing Boundaries</a></li>
+<li class="toctree-l3"><a class="reference internal" href="example3.html">Example 3: Seismic Wave Basin Effects Model with External Mesh</a></li>
+<li class="toctree-l3"><a class="reference internal" href="DRM.html#references">References</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Technical Guide:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../technical/index.html">Technical Documentation</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer Documentation:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../developer/index.html">Developer Documentation</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Femora (Fast Efficient Meshing for OpenSees-based Resilience Analysis)</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../examples.html">Examples and Tutorials</a></li>
+          <li class="breadcrumb-item"><a href="DRM.html">Domain Reduction Method (DRM) Examples</a></li>
+      <li class="breadcrumb-item active">Example 1: Domain Reduction Method (DRM) Site Response Analysis</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/introduction/DRMExamples/example1.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="example-1-domain-reduction-method-drm-site-response-analysis">
+<h1>Example 1: Domain Reduction Method (DRM) Site Response Analysis<a class="headerlink" href="#example-1-domain-reduction-method-drm-site-response-analysis" title="Link to this heading"></a></h1>
+<section id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Link to this heading"></a></h2>
+<p>This example demonstrates the Domain Reduction Method (DRM) implementation in Femora for site response analysis. Building upon the foundation established in Site Response Examples 3 and 4, this example shows how to:</p>
+<ol class="arabic simple">
+<li><p>Use the deconvolved bedrock motion from Site Response Example 4 as DRM input</p></li>
+<li><p>Apply the 3D mesh configuration from Site Response Example 3 for DRM analysis</p></li>
+<li><p>Create and apply DRM load patterns using the <code class="docutils literal notranslate"><span class="pre">TransferFunction</span></code> tool</p></li>
+<li><p>Configure absorbing boundary layers for realistic wave absorption</p></li>
+<li><p>Compare DRM results with analytical solutions and previous site response analyses</p></li>
+</ol>
+<p>The DRM approach provides a more realistic representation of seismic wave propagation by applying motion at interior boundaries rather than uniform base excitation, making it particularly valuable for complex site response and soil-structure interaction problems.</p>
+<figure class="align-center" id="id1">
+<a class="reference internal image-reference" href="../../_images/bedrock_acceleration.png"><img alt="Bedrock and Expected Surface Acceleration" src="../../_images/bedrock_acceleration.png" style="width: 600px;" />
+</a>
+<figcaption>
+<p><span class="caption-text">Bedrock acceleration input (computed via deconvolution in Site Response Example 4) and expected surface response</span><a class="headerlink" href="#id1" title="Link to this image"></a></p>
+</figcaption>
+</figure>
+</section>
+<section id="model-description">
+<h2>Model Description<a class="headerlink" href="#model-description" title="Link to this heading"></a></h2>
+<p><strong>Relationship to Previous Examples:</strong></p>
+<p>This example combines key elements from two previous site response examples:</p>
+<ul class="simple">
+<li><p><strong>From Site Response Example 3:</strong> The 3D mesh configuration (10m × 10m × 18m domain) with multi-layer soil profile</p></li>
+<li><p><strong>From Site Response Example 4:</strong> The deconvolved bedrock motion (Ricker wavelet) obtained through transfer function analysis</p></li>
+</ul>
+<p><strong>Soil Profile:</strong></p>
+<p>The model uses the same three-layer soil profile as Examples 2-4:</p>
+<ul class="simple">
+<li><p><strong>Layer 1 (Top):</strong> 2.6m thick - Dense Ottawa sand (Vs = 262.5 m/s)</p></li>
+<li><p><strong>Layer 2 (Middle):</strong> 8.0m thick - Medium density material (Vs = 196.3 m/s)</p></li>
+<li><p><strong>Layer 3 (Bottom):</strong> 7.4m thick - Loose Ottawa sand (Vs = 144.3 m/s)</p></li>
+</ul>
+<p>All layers include frequency-dependent Rayleigh damping with the same parameters as previous examples (f1 = 2.76 Hz, f2 = 13.84 Hz, ζ = 3%).</p>
+<p><strong>Domain Configuration:</strong></p>
+<ul class="simple">
+<li><p><strong>Horizontal dimensions:</strong> 10m × 10m (identical to Site Response Example 3)</p></li>
+<li><p><strong>Vertical extent:</strong> 18m depth (same as all site response examples)</p></li>
+<li><p><strong>Mesh discretization:</strong> 1m × 1m horizontal elements with variable vertical spacing</p></li>
+<li><p><strong>Parallel processing:</strong> 4 partitions for distributed computation</p></li>
+</ul>
+</section>
+<section id="domain-reduction-method-implementation">
+<h2>Domain Reduction Method Implementation<a class="headerlink" href="#domain-reduction-method-implementation" title="Link to this heading"></a></h2>
+<p>The DRM implementation in this example introduces several new concepts not covered in the site response examples:</p>
+<section id="creating-the-drm-load-pattern">
+<h3>Creating the DRM Load Pattern<a class="headerlink" href="#creating-the-drm-load-pattern" title="Link to this heading"></a></h3>
+<p>The key innovation in this example is the creation of DRM load patterns using the <code class="docutils literal notranslate"><span class="pre">TransferFunction</span></code> class. This process involves several steps that are unique to DRM analysis:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">femora.tools.transferFunction</span><span class="w"> </span><span class="kn">import</span> <span class="n">TransferFunction</span><span class="p">,</span> <span class="n">TimeHistory</span>
+
+<span class="c1"># Load the deconvolved bedrock motion from Site Response Example 4</span>
+<span class="n">record</span> <span class="o">=</span> <span class="n">TimeHistory</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">acc_file</span><span class="o">=</span><span class="s2">&quot;ricker_base.acc&quot;</span><span class="p">,</span>
+                          <span class="n">time_file</span><span class="o">=</span><span class="s2">&quot;ricker_base.time&quot;</span><span class="p">,</span>
+                          <span class="n">unit_in_g</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                          <span class="n">gravity</span><span class="o">=</span><span class="mf">9.81</span><span class="p">)</span>
+
+<span class="c1"># Create transfer function instance with soil profile</span>
+<span class="n">tf</span> <span class="o">=</span> <span class="n">TransferFunction</span><span class="p">(</span><span class="n">soil</span><span class="p">,</span> <span class="n">rock</span><span class="p">,</span> <span class="n">f_max</span><span class="o">=</span><span class="mf">50.0</span><span class="p">)</span>
+
+<span class="c1"># Extract the assembled mesh for DRM pattern creation</span>
+<span class="n">mesh</span> <span class="o">=</span> <span class="n">fm</span><span class="o">.</span><span class="n">assembler</span><span class="o">.</span><span class="n">get_mesh</span><span class="p">()</span>
+
+<span class="c1"># Create DRM pattern - this is the key new functionality</span>
+<span class="n">tf</span><span class="o">.</span><span class="n">createDRM</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="n">props</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;shape&quot;</span><span class="p">:</span><span class="s2">&quot;box&quot;</span><span class="p">},</span>
+             <span class="n">time_history</span><span class="o">=</span><span class="n">record</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="s2">&quot;drmload.h5drm&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">createDRM</span></code> method performs several critical operations:</p>
+<ol class="arabic simple">
+<li><p><strong>Mesh Analysis:</strong> Identifies boundary nodes that will receive DRM forces</p></li>
+<li><p><strong>Wave Field Computation:</strong> Calculates the theoretical wave field throughout the domain</p></li>
+<li><p><strong>Force Calculation:</strong> Computes equivalent nodal forces for DRM implementation</p></li>
+<li><p><strong>HDF5 Output:</strong> Writes the DRM load pattern to an HDF5 file for efficient loading</p></li>
+</ol>
+</section>
+<section id="applying-the-drm-pattern">
+<h3>Applying the DRM Pattern<a class="headerlink" href="#applying-the-drm-pattern" title="Link to this heading"></a></h3>
+<p>Once the DRM load pattern is created, it’s applied to the model using Femora’s pattern system:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create H5DRM pattern object</span>
+<span class="n">h5pattern</span> <span class="o">=</span> <span class="n">fm</span><span class="o">.</span><span class="n">pattern</span><span class="o">.</span><span class="n">create_pattern</span><span class="p">(</span><span class="s1">&#39;h5drm&#39;</span><span class="p">,</span>
+                                     <span class="n">filepath</span><span class="o">=</span><span class="s1">&#39;drmload.h5drm&#39;</span><span class="p">,</span>
+                                     <span class="n">factor</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+                                     <span class="n">crd_scale</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+                                     <span class="n">distance_tolerance</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span>
+                                     <span class="n">do_coordinate_transformation</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                                     <span class="n">transform_matrix</span><span class="o">=</span><span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">],</span>
+                                     <span class="n">origin</span><span class="o">=</span><span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>This creates a specialized pattern that can read and apply the HDF5-based DRM loads throughout the analysis.</p>
+</section>
+<section id="absorbing-boundary-configuration">
+<h3>Absorbing Boundary Configuration<a class="headerlink" href="#absorbing-boundary-configuration" title="Link to this heading"></a></h3>
+<p>A critical component of DRM analysis is the proper configuration of absorbing boundaries to prevent artificial wave reflections:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Add absorbing layers around the domain</span>
+<span class="n">fm</span><span class="o">.</span><span class="n">drm</span><span class="o">.</span><span class="n">addAbsorbingLayer</span><span class="p">(</span><span class="n">numLayers</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+                        <span class="n">numPartitions</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                        <span class="n">partitionAlgo</span><span class="o">=</span><span class="s2">&quot;kd-tree&quot;</span><span class="p">,</span>
+                        <span class="n">geometry</span><span class="o">=</span><span class="s2">&quot;Rectangular&quot;</span><span class="p">,</span>
+                        <span class="n">rayleighDamping</span><span class="o">=</span><span class="mf">0.95</span><span class="p">,</span>
+                        <span class="n">matchDamping</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                        <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;Rayleigh&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>This configuration:</p>
+<ul class="simple">
+<li><p><strong>numLayers=2:</strong> Creates a two-layer absorbing boundary</p></li>
+<li><p><strong>rayleighDamping=0.95:</strong> Applies high damping (95%) in the absorbing region</p></li>
+<li><p><strong>geometry=”Rectangular”:</strong> Configures absorbing boundaries for box-shaped domains</p></li>
+<li><p><strong>partitionAlgo=”kd-tree”:</strong> Uses k-d tree algorithm for efficient boundary identification</p></li>
+</ul>
+</section>
+<section id="drm-process-configuration">
+<h3>DRM Process Configuration<a class="headerlink" href="#drm-process-configuration" title="Link to this heading"></a></h3>
+<p>The DRM analysis requires specific process configuration that differs from standard site response analysis:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Set the DRM pattern</span>
+<span class="n">fm</span><span class="o">.</span><span class="n">drm</span><span class="o">.</span><span class="n">set_pattern</span><span class="p">(</span><span class="n">h5pattern</span><span class="p">)</span>
+
+<span class="c1"># Create DRM-specific analysis process</span>
+<span class="n">fm</span><span class="o">.</span><span class="n">drm</span><span class="o">.</span><span class="n">createDefaultProcess</span><span class="p">(</span><span class="n">finalTime</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">dT</span><span class="o">=</span><span class="mf">0.005</span><span class="p">,</span>
+                           <span class="n">vtkhdfrecorder_delta_t</span><span class="o">=</span><span class="mf">0.005</span><span class="p">,</span>
+                           <span class="n">vtkhdfrecorder_file</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">resultdirectoryname</span><span class="si">}</span><span class="s2">/result&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>This creates a complete analysis process specifically configured for DRM analysis, including:</p>
+<ul class="simple">
+<li><p>Time integration parameters optimized for DRM</p></li>
+<li><p>Output recorders configured for DRM visualization</p></li>
+<li><p>Proper sequencing of DRM load application</p></li>
+</ul>
+</section>
+</section>
+<section id="results-and-analysis">
+<h2>Results and Analysis<a class="headerlink" href="#results-and-analysis" title="Link to this heading"></a></h2>
+<section id="transfer-function-validation">
+<h3>Transfer Function Validation<a class="headerlink" href="#transfer-function-validation" title="Link to this heading"></a></h3>
+<p>The transfer function comparison demonstrates that the DRM method accurately reproduces the expected site response:</p>
+<figure class="align-center" id="id2">
+<a class="reference internal image-reference" href="../../_images/TFCompare.png"><img alt="Transfer Function Comparison" src="../../_images/TFCompare.png" style="width: 600px;" />
+</a>
+<figcaption>
+<p><span class="caption-text">Comparison of analytical transfer function with DRM numerical results</span><a class="headerlink" href="#id2" title="Link to this image"></a></p>
+</figcaption>
+</figure>
+<p>The excellent agreement between the analytical and DRM numerical results validates:</p>
+<ol class="arabic simple">
+<li><p>The accuracy of the DRM load pattern generation</p></li>
+<li><p>The proper implementation of absorbing boundaries</p></li>
+<li><p>The consistency with previous site response analyses</p></li>
+</ol>
+</section>
+<section id="time-history-comparison">
+<h3>Time History Comparison<a class="headerlink" href="#time-history-comparison" title="Link to this heading"></a></h3>
+<p>The most comprehensive validation comes from comparing time histories of acceleration, velocity, and displacement:</p>
+<figure class="align-center" id="id3">
+<a class="reference internal image-reference" href="../../_images/numericalTimeHistories.png"><img alt="Numerical Time Histories Comparison" src="../../_images/numericalTimeHistories.png" style="width: 600px;" />
+</a>
+<figcaption>
+<p><span class="caption-text">Comparison of numerical DRM results with analytical solutions for acceleration, velocity, and displacement</span><a class="headerlink" href="#id3" title="Link to this image"></a></p>
+</figcaption>
+</figure>
+<p>This comparison shows:</p>
+<ul class="simple">
+<li><p><strong>Acceleration:</strong> Excellent agreement in both amplitude and phase</p></li>
+<li><p><strong>Velocity:</strong> Consistent integration from acceleration with proper baseline correction</p></li>
+<li><p><strong>Displacement:</strong> Accurate representation of permanent deformation patterns</p></li>
+</ul>
+<p>The close agreement across all response quantities demonstrates the robustness of the DRM implementation.</p>
+</section>
+<section id="d-wave-propagation-visualization">
+<h3>3D Wave Propagation Visualization<a class="headerlink" href="#d-wave-propagation-visualization" title="Link to this heading"></a></h3>
+<p>The DRM method provides detailed insight into wave propagation through the 3D domain:</p>
+<video width="600" controls>
+  <source src="../images/DRM/Example1/movieRickter.mp4" type="video/mp4">
+  Your browser does not support the video tag.
+</video><p>This animation shows:</p>
+<ol class="arabic simple">
+<li><p><strong>Shear Stress Contours:</strong> Distribution of shear stress throughout the deformed domain</p></li>
+<li><p><strong>Wave Propagation:</strong> Realistic wave fronts propagating from the DRM boundary</p></li>
+<li><p><strong>Layer Effects:</strong> Amplification and attenuation effects at layer interfaces</p></li>
+<li><p><strong>Absorbing Boundaries:</strong> Effective wave absorption at domain boundaries</p></li>
+</ol>
+</section>
+</section>
+<section id="advantages-of-drm-over-uniform-excitation">
+<h2>Advantages of DRM Over Uniform Excitation<a class="headerlink" href="#advantages-of-drm-over-uniform-excitation" title="Link to this heading"></a></h2>
+<p>This example demonstrates several key advantages of the DRM approach compared to the uniform base excitation used in Site Response Examples 1-3:</p>
+<p><strong>Physical Realism:</strong></p>
+<ul class="simple">
+<li><p>DRM applies motion at interior boundaries, mimicking actual wave propagation</p></li>
+<li><p>Allows for more complex wave fields including oblique incidence</p></li>
+<li><p>Enables modeling of finite fault sources and complex source mechanisms</p></li>
+</ul>
+<p><strong>Computational Efficiency:</strong></p>
+<ul class="simple">
+<li><p>Smaller computational domains due to effective absorbing boundaries</p></li>
+<li><p>Reduced artificial reflections from domain boundaries</p></li>
+<li><p>Better representation of far-field conditions</p></li>
+</ul>
+<p><strong>Flexibility:</strong></p>
+<ul class="simple">
+<li><p>Can accommodate complex geometries and topography</p></li>
+<li><p>Suitable for soil-structure interaction problems</p></li>
+<li><p>Enables coupling with regional wave propagation models</p></li>
+</ul>
+</section>
+<section id="relationship-to-site-response-examples">
+<h2>Relationship to Site Response Examples<a class="headerlink" href="#relationship-to-site-response-examples" title="Link to this heading"></a></h2>
+<p>This DRM example builds directly on the foundation established in the site response series:</p>
+<p><strong>From Site Response Example 3:</strong>
+* 3D mesh configuration and parallel processing setup
+* Multi-layer soil profile definition and material properties
+* Visualization and post-processing techniques</p>
+<p><strong>From Site Response Example 4:</strong>
+* Deconvolution methodology using the <code class="docutils literal notranslate"><span class="pre">TransferFunction</span></code> class
+* Bedrock motion calculation from surface recordings
+* Time history validation approaches</p>
+<p><strong>New Concepts Introduced:</strong>
+* DRM load pattern generation and application
+* Absorbing boundary layer configuration
+* HDF5-based load pattern management
+* DRM-specific analysis process setup</p>
+<p>The seamless integration of these concepts demonstrates the modular design of Femora and the consistency of the analysis framework across different seismic analysis methods.</p>
+</section>
+<section id="practical-applications">
+<h2>Practical Applications<a class="headerlink" href="#practical-applications" title="Link to this heading"></a></h2>
+<p>The DRM methodology demonstrated in this example is particularly valuable for:</p>
+<p><strong>Regional Seismic Analysis:</strong>
+* Coupling site-specific models with regional wave propagation simulations
+* Modeling earthquake scenarios with realistic source mechanisms
+* Analyzing basin effects and complex 3D wave propagation</p>
+<p><strong>Soil-Structure Interaction:</strong>
+* More realistic representation of free-field motion around structures
+* Reduced computational domain size for large structural systems
+* Better modeling of structure-induced wave scattering</p>
+<p><strong>Advanced Site Response:</strong>
+* Incorporation of topographic effects on site amplification
+* Modeling of complex layering and lateral variations
+* Analysis of slope stability under seismic loading</p>
+</section>
+<section id="conclusion">
+<h2>Conclusion<a class="headerlink" href="#conclusion" title="Link to this heading"></a></h2>
+<p>This example demonstrates:</p>
+<ol class="arabic simple">
+<li><p>The successful implementation of the Domain Reduction Method in Femora</p></li>
+<li><p>Integration of deconvolution tools with DRM load pattern generation</p></li>
+<li><p>Effective use of absorbing boundaries for realistic wave propagation modeling</p></li>
+<li><p>Validation of DRM results against analytical solutions and previous examples</p></li>
+</ol>
+<p>The DRM approach provides a powerful extension to the site response analysis capabilities demonstrated in the previous examples, offering greater physical realism and computational flexibility for complex seismic analysis problems.</p>
+</section>
+<section id="code-access">
+<h2>Code Access<a class="headerlink" href="#code-access" title="Link to this heading"></a></h2>
+<p>The full source code for this example is available in the Femora repository:</p>
+<ul class="simple">
+<li><p>Example directory: <code class="docutils literal notranslate"><span class="pre">examples/DRM/Example1/</span></code></p></li>
+<li><p>DRM model script: <code class="docutils literal notranslate"><span class="pre">examples/DRM/Example1/femoramodel.py</span></code></p></li>
+<li><p>Post-processing script: <code class="docutils literal notranslate"><span class="pre">examples/DRM/Example1/plot.py</span></code></p></li>
+<li><p>Animation script: <code class="docutils literal notranslate"><span class="pre">examples/DRM/Example1/movie.py</span></code></p></li>
+</ul>
+<p>The complete model setup code is shown below:</p>
+<div class="literal-block-wrapper docutils container" id="drm-example1-code">
+<div class="code-block-caption"><span class="caption-text">Example 1 - Domain Reduction Method Site Response Analysis</span><a class="headerlink" href="#drm-example1-code" title="Link to this code"></a></div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">femora</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">fm</span>
+<span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">))</span>
+
+
+
+<span class="c1"># create one damping for all the meshParts</span>
+<span class="n">uniformDamp</span> <span class="o">=</span> <span class="n">fm</span><span class="o">.</span><span class="n">damping</span><span class="o">.</span><span class="n">frequencyRayleigh</span><span class="p">(</span><span class="n">f1</span> <span class="o">=</span> <span class="mf">2.76</span><span class="p">,</span> <span class="n">f2</span> <span class="o">=</span> <span class="mf">13.84</span><span class="p">,</span> <span class="n">dampingFactor</span><span class="o">=</span><span class="mf">0.03</span><span class="p">)</span>
+<span class="n">region</span> <span class="o">=</span> <span class="n">fm</span><span class="o">.</span><span class="n">region</span><span class="o">.</span><span class="n">elementRegion</span><span class="p">(</span><span class="n">damping</span><span class="o">=</span><span class="n">uniformDamp</span><span class="p">)</span>
+
+<span class="c1"># defining the mesh parts</span>
+<span class="n">Xmin</span> <span class="o">=</span> <span class="o">-</span><span class="mf">5.0</span> <span class="p">;</span><span class="n">Xmax</span> <span class="o">=</span> <span class="mf">5.0</span>
+<span class="n">Ymin</span> <span class="o">=</span> <span class="o">-</span><span class="mf">5.0</span> <span class="p">;</span><span class="n">Ymax</span> <span class="o">=</span> <span class="mf">5.0</span>
+<span class="n">Zmin</span> <span class="o">=</span> <span class="o">-</span><span class="mf">18.</span><span class="p">;</span><span class="n">Zmax</span> <span class="o">=</span> <span class="mf">0.0</span>
+<span class="n">dx</span>   <span class="o">=</span> <span class="mf">1.0</span><span class="p">;</span> <span class="n">dy</span>   <span class="o">=</span> <span class="mf">1.0</span>
+<span class="n">Nx</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="n">Xmax</span> <span class="o">-</span> <span class="n">Xmin</span><span class="p">)</span><span class="o">/</span><span class="n">dx</span><span class="p">)</span>
+<span class="n">Ny</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="n">Ymax</span> <span class="o">-</span> <span class="n">Ymin</span><span class="p">)</span><span class="o">/</span><span class="n">dy</span><span class="p">)</span>
+
+
+<span class="n">layers_properties</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">{</span><span class="s2">&quot;user_name&quot;</span><span class="p">:</span> <span class="s2">&quot;Dense Ottawa1&quot;</span><span class="p">,</span>  <span class="s2">&quot;G&quot;</span><span class="p">:</span> <span class="mf">145.0e6</span><span class="p">,</span> <span class="s2">&quot;gamma&quot;</span><span class="p">:</span> <span class="mf">19.9</span><span class="p">,</span>  <span class="s2">&quot;nu&quot;</span><span class="p">:</span> <span class="mf">0.3</span><span class="p">,</span> <span class="s2">&quot;thickness&quot;</span><span class="p">:</span> <span class="mf">2.6</span><span class="p">,</span> <span class="s2">&quot;dz&quot;</span><span class="p">:</span> <span class="mf">1.3</span><span class="p">},</span> 
+    <span class="p">{</span><span class="s2">&quot;user_name&quot;</span><span class="p">:</span> <span class="s2">&quot;Dense Ottawa2&quot;</span><span class="p">,</span>  <span class="s2">&quot;G&quot;</span><span class="p">:</span> <span class="mf">145.0e6</span><span class="p">,</span> <span class="s2">&quot;gamma&quot;</span><span class="p">:</span> <span class="mf">19.9</span><span class="p">,</span>  <span class="s2">&quot;nu&quot;</span><span class="p">:</span> <span class="mf">0.3</span><span class="p">,</span> <span class="s2">&quot;thickness&quot;</span><span class="p">:</span> <span class="mf">2.4</span><span class="p">,</span> <span class="s2">&quot;dz&quot;</span><span class="p">:</span> <span class="mf">1.2</span><span class="p">},</span>
+    <span class="p">{</span><span class="s2">&quot;user_name&quot;</span><span class="p">:</span> <span class="s2">&quot;Dense Ottawa3&quot;</span><span class="p">,</span>  <span class="s2">&quot;G&quot;</span><span class="p">:</span> <span class="mf">145.0e6</span><span class="p">,</span> <span class="s2">&quot;gamma&quot;</span><span class="p">:</span> <span class="mf">19.9</span><span class="p">,</span>  <span class="s2">&quot;nu&quot;</span><span class="p">:</span> <span class="mf">0.3</span><span class="p">,</span> <span class="s2">&quot;thickness&quot;</span><span class="p">:</span> <span class="mf">5.0</span><span class="p">,</span> <span class="s2">&quot;dz&quot;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">},</span>
+    <span class="p">{</span><span class="s2">&quot;user_name&quot;</span><span class="p">:</span> <span class="s2">&quot;Loose Ottawa&quot;</span><span class="p">,</span>   <span class="s2">&quot;G&quot;</span><span class="p">:</span> <span class="mf">75.0e6</span><span class="p">,</span>  <span class="s2">&quot;gamma&quot;</span><span class="p">:</span> <span class="mf">19.1</span><span class="p">,</span>  <span class="s2">&quot;nu&quot;</span><span class="p">:</span> <span class="mf">0.3</span><span class="p">,</span> <span class="s2">&quot;thickness&quot;</span><span class="p">:</span> <span class="mf">6.0</span><span class="p">,</span> <span class="s2">&quot;dz&quot;</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">},</span> 
+    <span class="p">{</span><span class="s2">&quot;user_name&quot;</span><span class="p">:</span> <span class="s2">&quot;Dense Montrey&quot;</span><span class="p">,</span>  <span class="s2">&quot;G&quot;</span><span class="p">:</span> <span class="mf">42.0e6</span><span class="p">,</span>  <span class="s2">&quot;gamma&quot;</span><span class="p">:</span> <span class="mf">19.8</span><span class="p">,</span>  <span class="s2">&quot;nu&quot;</span><span class="p">:</span> <span class="mf">0.3</span><span class="p">,</span> <span class="s2">&quot;thickness&quot;</span><span class="p">:</span> <span class="mf">2.0</span><span class="p">,</span> <span class="s2">&quot;dz&quot;</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">}</span> 
+<span class="p">]</span>
+
+
+<span class="k">for</span> <span class="n">layer</span> <span class="ow">in</span> <span class="n">layers_properties</span><span class="p">:</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">layer</span><span class="p">[</span><span class="s2">&quot;user_name&quot;</span><span class="p">]</span>
+    <span class="n">nu</span>   <span class="o">=</span> <span class="n">layer</span><span class="p">[</span><span class="s2">&quot;nu&quot;</span><span class="p">]</span>
+    <span class="n">rho</span>  <span class="o">=</span> <span class="n">layer</span><span class="p">[</span><span class="s2">&quot;gamma&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="mi">1000</span> <span class="o">/</span> <span class="mf">9.81</span>        <span class="c1"># Density in kg/m^3</span>
+    <span class="n">Vs</span>   <span class="o">=</span> <span class="p">(</span><span class="n">layer</span><span class="p">[</span><span class="s2">&quot;G&quot;</span><span class="p">]</span> <span class="o">/</span> <span class="n">rho</span><span class="p">)</span> <span class="o">**</span> <span class="mf">0.5</span>           <span class="c1"># Shear wave velocity in m/s</span>
+    <span class="n">E</span>    <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">layer</span><span class="p">[</span><span class="s2">&quot;G&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">layer</span><span class="p">[</span><span class="s2">&quot;nu&quot;</span><span class="p">])</span>  <span class="c1"># Young&#39;s modulus in Pa</span>
+    <span class="n">E</span>    <span class="o">=</span> <span class="n">E</span> <span class="o">/</span> <span class="mf">1000.</span>                           <span class="c1"># Convert to kPa</span>
+    <span class="n">rho</span>  <span class="o">=</span> <span class="n">rho</span> <span class="o">/</span> <span class="mf">1000.</span>                         <span class="c1"># Convert to kg/m^3</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Layer: </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">, Vs: </span><span class="si">{</span><span class="n">Vs</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+
+    <span class="c1"># Define the material</span>
+    <span class="n">fm</span><span class="o">.</span><span class="n">material</span><span class="o">.</span><span class="n">create_material</span><span class="p">(</span><span class="n">material_category</span><span class="o">=</span><span class="s2">&quot;nDMaterial&quot;</span><span class="p">,</span> <span class="n">material_type</span><span class="o">=</span><span class="s2">&quot;ElasticIsotropic&quot;</span><span class="p">,</span> <span class="n">user_name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">E</span><span class="o">=</span><span class="n">E</span><span class="p">,</span> <span class="n">nu</span><span class="o">=</span><span class="n">nu</span><span class="p">,</span> <span class="n">rho</span><span class="o">=</span><span class="n">rho</span><span class="p">)</span>
+
+    <span class="c1"># Define the element</span>
+    <span class="n">ele</span> <span class="o">=</span> <span class="n">fm</span><span class="o">.</span><span class="n">element</span><span class="o">.</span><span class="n">create_element</span><span class="p">(</span><span class="n">element_type</span><span class="o">=</span><span class="s2">&quot;stdBrick&quot;</span><span class="p">,</span> <span class="n">ndof</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">material</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">b1</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">b2</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">b3</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span>
+
+    <span class="n">fm</span><span class="o">.</span><span class="n">meshPart</span><span class="o">.</span><span class="n">create_mesh_part</span><span class="p">(</span><span class="n">category</span><span class="o">=</span><span class="s2">&quot;Volume mesh&quot;</span><span class="p">,</span> <span class="n">mesh_part_type</span><span class="o">=</span><span class="s2">&quot;Uniform Rectangular Grid&quot;</span><span class="p">,</span> 
+                                 <span class="n">user_name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">element</span><span class="o">=</span><span class="n">ele</span><span class="p">,</span> <span class="n">region</span><span class="o">=</span><span class="n">region</span><span class="p">,</span>
+                                <span class="o">**</span><span class="p">{</span>
+                                    <span class="s1">&#39;X Min&#39;</span><span class="p">:</span> <span class="n">Xmin</span><span class="p">,</span> <span class="s1">&#39;X Max&#39;</span><span class="p">:</span> <span class="n">Xmax</span><span class="p">,</span>
+                                    <span class="s1">&#39;Y Min&#39;</span><span class="p">:</span> <span class="n">Ymin</span><span class="p">,</span> <span class="s1">&#39;Y Max&#39;</span><span class="p">:</span> <span class="n">Ymax</span><span class="p">,</span>
+                                    <span class="s1">&#39;Z Min&#39;</span><span class="p">:</span> <span class="n">Zmin</span><span class="p">,</span> <span class="s1">&#39;Z Max&#39;</span><span class="p">:</span> <span class="n">Zmin</span> <span class="o">+</span> <span class="n">layer</span><span class="p">[</span><span class="s2">&quot;thickness&quot;</span><span class="p">],</span>
+                                    <span class="s1">&#39;Nx Cells&#39;</span><span class="p">:</span> <span class="n">Nx</span><span class="p">,</span> <span class="s1">&#39;Ny Cells&#39;</span><span class="p">:</span> <span class="n">Ny</span><span class="p">,</span> <span class="s1">&#39;Nz Cells&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">layer</span><span class="p">[</span><span class="s2">&quot;thickness&quot;</span><span class="p">]</span> <span class="o">/</span> <span class="n">layer</span><span class="p">[</span><span class="s2">&quot;dz&quot;</span><span class="p">])</span>
+                                <span class="p">})</span>
+    <span class="n">Zmin</span> <span class="o">+=</span> <span class="n">layer</span><span class="p">[</span><span class="s2">&quot;thickness&quot;</span><span class="p">]</span>
+
+
+<span class="c1">#  Create assembly Sections</span>
+<span class="n">fm</span><span class="o">.</span><span class="n">assembler</span><span class="o">.</span><span class="n">create_section</span><span class="p">(</span><span class="n">meshparts</span><span class="o">=</span><span class="p">[</span><span class="n">layer</span><span class="p">[</span><span class="s2">&quot;user_name&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">layer</span> <span class="ow">in</span> <span class="n">layers_properties</span><span class="p">],</span> <span class="n">num_partitions</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+
+
+<span class="c1"># Assemble the mesh parts</span>
+<span class="n">fm</span><span class="o">.</span><span class="n">assembler</span><span class="o">.</span><span class="n">Assemble</span><span class="p">()</span>
+
+<span class="c1"># ===================================================================</span>
+<span class="c1"># creating the DRM pattern</span>
+<span class="c1"># ===================================================================</span>
+
+<span class="c1"># the soil layers is equivalent to the mesh parts defined above</span>
+<span class="c1"># this is baisc format that the transfer function will use</span>
+<span class="n">soil</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">{</span><span class="s2">&quot;h&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>  <span class="s2">&quot;vs&quot;</span><span class="p">:</span> <span class="mf">144.2535646321813</span><span class="p">,</span> <span class="s2">&quot;rho&quot;</span><span class="p">:</span> <span class="mf">19.8</span><span class="o">*</span><span class="mi">1000</span><span class="o">/</span><span class="mf">9.81</span><span class="p">,</span> <span class="s2">&quot;damping&quot;</span><span class="p">:</span> <span class="mf">0.03</span><span class="p">,</span> <span class="s2">&quot;damping_type&quot;</span><span class="p">:</span><span class="s2">&quot;rayleigh&quot;</span><span class="p">,</span> <span class="s2">&quot;f1&quot;</span><span class="p">:</span> <span class="mf">2.76</span><span class="p">,</span> <span class="s2">&quot;f2&quot;</span><span class="p">:</span> <span class="mf">13.84</span><span class="p">},</span>
+    <span class="p">{</span><span class="s2">&quot;h&quot;</span><span class="p">:</span> <span class="mi">6</span><span class="p">,</span>  <span class="s2">&quot;vs&quot;</span><span class="p">:</span> <span class="mf">196.2675276462639</span><span class="p">,</span> <span class="s2">&quot;rho&quot;</span><span class="p">:</span> <span class="mf">19.1</span><span class="o">*</span><span class="mi">1000</span><span class="o">/</span><span class="mf">9.81</span><span class="p">,</span> <span class="s2">&quot;damping&quot;</span><span class="p">:</span> <span class="mf">0.03</span><span class="p">,</span> <span class="s2">&quot;damping_type&quot;</span><span class="p">:</span><span class="s2">&quot;rayleigh&quot;</span><span class="p">,</span> <span class="s2">&quot;f1&quot;</span><span class="p">:</span> <span class="mf">2.76</span><span class="p">,</span> <span class="s2">&quot;f2&quot;</span><span class="p">:</span> <span class="mf">13.84</span><span class="p">},</span>
+    <span class="p">{</span><span class="s2">&quot;h&quot;</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span> <span class="s2">&quot;vs&quot;</span><span class="p">:</span> <span class="mf">262.5199305117452</span><span class="p">,</span> <span class="s2">&quot;rho&quot;</span><span class="p">:</span> <span class="mf">19.9</span><span class="o">*</span><span class="mi">1000</span><span class="o">/</span><span class="mf">9.81</span><span class="p">,</span> <span class="s2">&quot;damping&quot;</span><span class="p">:</span> <span class="mf">0.03</span><span class="p">,</span> <span class="s2">&quot;damping_type&quot;</span><span class="p">:</span><span class="s2">&quot;rayleigh&quot;</span><span class="p">,</span> <span class="s2">&quot;f1&quot;</span><span class="p">:</span> <span class="mf">2.76</span><span class="p">,</span> <span class="s2">&quot;f2&quot;</span><span class="p">:</span> <span class="mf">13.84</span><span class="p">},</span>
+<span class="p">]</span>
+
+<span class="c1"># the rock layer is defined as a single layer with the properties below</span>
+<span class="c1"># we just assume a hard rock layer with high shear wave velocity and density</span>
+<span class="c1"># to represent the rigid base condition to create a high impedance contrast</span>
+<span class="n">rock</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;vs&quot;</span><span class="p">:</span> <span class="mi">8000</span><span class="p">,</span> <span class="s2">&quot;rho&quot;</span><span class="p">:</span> <span class="mf">2000.0</span><span class="p">,</span> <span class="s2">&quot;damping&quot;</span><span class="p">:</span> <span class="mf">0.00</span><span class="p">}</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">femora.tools.transferFunction</span><span class="w"> </span><span class="kn">import</span> <span class="n">TransferFunction</span><span class="p">,</span> <span class="n">TimeHistory</span>
+
+
+<span class="c1"># Create TimeHistory instance</span>
+<span class="c1"># for the DRM pattern we need to provide a time history of the ground motion</span>
+<span class="c1"># in this case we use a Ricker wavelet based ground motion that we calculate using deconvolution of ricker wavelet</span>
+<span class="c1"># at the surface of the soil layers to compute the time history of the base motion</span>
+<span class="n">record</span> <span class="o">=</span> <span class="n">TimeHistory</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">acc_file</span><span class="o">=</span><span class="s2">&quot;ricker_base.acc&quot;</span><span class="p">,</span>
+                            <span class="n">time_file</span><span class="o">=</span><span class="s2">&quot;ricker_base.time&quot;</span><span class="p">,</span>
+                            <span class="n">unit_in_g</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                            <span class="n">gravity</span><span class="o">=</span><span class="mf">9.81</span><span class="p">)</span>
+
+
+<span class="c1"># Create transfer function instance</span>
+<span class="c1"># initialize the transfer function with the soil layers and rock properties</span>
+<span class="c1"># the f_max is the maximum frequency of the transfer function</span>
+<span class="n">tf</span> <span class="o">=</span> <span class="n">TransferFunction</span><span class="p">(</span><span class="n">soil</span><span class="p">,</span> <span class="n">rock</span><span class="p">,</span> <span class="n">f_max</span><span class="o">=</span><span class="mf">50.0</span><span class="p">)</span>
+
+
+<span class="c1"># Create DRM pattern</span>
+<span class="c1"># for creating the DRM pattern we need to provide the mesh (pyvista mesh),</span>
+<span class="c1"># the properties of the DRM pattern (shape, time history, filename)</span>
+<span class="c1"># the mesh is the final that we assembled above lest extraxted mesh from the assembled model</span>
+<span class="n">mesh</span> <span class="o">=</span> <span class="n">fm</span><span class="o">.</span><span class="n">assembler</span><span class="o">.</span><span class="n">get_mesh</span><span class="p">()</span>
+
+<span class="c1"># now we can create the DRM pattern using the transfer function and the mesh</span>
+<span class="c1"># since we our mesh is box shaped we can use the box shape for the DRM pattern</span>
+<span class="c1"># to the date of this writing the DRM pattern is only supported for box shaped meshes</span>
+<span class="c1"># the box shape mesh should be representation of the soil box should start at z=0 and extend to the depth  with negative z values</span>
+<span class="n">tf</span><span class="o">.</span><span class="n">createDRM</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="n">props</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;shape&quot;</span><span class="p">:</span><span class="s2">&quot;box&quot;</span><span class="p">},</span> <span class="n">time_history</span><span class="o">=</span><span class="n">record</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="s2">&quot;drmload.h5drm&quot;</span><span class="p">)</span>
+
+<span class="n">h5pattern</span> <span class="o">=</span> <span class="n">fm</span><span class="o">.</span><span class="n">pattern</span><span class="o">.</span><span class="n">create_pattern</span><span class="p">(</span> <span class="s1">&#39;h5drm&#39;</span><span class="p">,</span>
+                                        <span class="n">filepath</span><span class="o">=</span><span class="s1">&#39;drmload.h5drm&#39;</span><span class="p">,</span>
+                                        <span class="n">factor</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+                                        <span class="n">crd_scale</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+                                        <span class="n">distance_tolerance</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span>
+                                        <span class="n">do_coordinate_transformation</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                                        <span class="n">transform_matrix</span><span class="o">=</span><span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">],</span>
+                                        <span class="n">origin</span><span class="o">=</span><span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">])</span>
+<span class="c1"># ===================================================================</span>
+<span class="c1"># ===================================================================</span>
+<span class="n">fm</span><span class="o">.</span><span class="n">drm</span><span class="o">.</span><span class="n">addAbsorbingLayer</span><span class="p">(</span><span class="n">numLayers</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+                        <span class="n">numPartitions</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                        <span class="n">partitionAlgo</span><span class="o">=</span><span class="s2">&quot;kd-tree&quot;</span><span class="p">,</span>
+                        <span class="n">geometry</span><span class="o">=</span><span class="s2">&quot;Rectangular&quot;</span><span class="p">,</span>
+                        <span class="n">rayleighDamping</span><span class="o">=</span><span class="mf">0.95</span><span class="p">,</span>
+                        <span class="n">matchDamping</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                        <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;Rayleigh&quot;</span><span class="p">,</span>
+                        <span class="p">)</span>
+<span class="n">fm</span><span class="o">.</span><span class="n">drm</span><span class="o">.</span><span class="n">set_pattern</span><span class="p">(</span><span class="n">h5pattern</span><span class="p">)</span>
+<span class="n">fm</span><span class="o">.</span><span class="n">drm</span><span class="o">.</span><span class="n">createDefaultProcess</span><span class="p">(</span><span class="n">finalTime</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span> <span class="n">dT</span><span class="o">=</span><span class="mf">0.01</span><span class="p">)</span>
+
+<span class="n">resultdirectoryname</span> <span class="o">=</span> <span class="s2">&quot;Results&quot;</span>
+<span class="n">fm</span><span class="o">.</span><span class="n">process</span><span class="o">.</span><span class="n">insert_step</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">component</span><span class="o">=</span><span class="n">fm</span><span class="o">.</span><span class="n">actions</span><span class="o">.</span><span class="n">tcl</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;file mkdir </span><span class="si">{</span><span class="n">resultdirectoryname</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">),</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;making result directory&quot;</span><span class="p">)</span>
+
+<span class="n">fm</span><span class="o">.</span><span class="n">export_to_tcl</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="s2">&quot;model.tcl&quot;</span><span class="p">)</span>
+
+</pre></div>
+</div>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="DRM.html" class="btn btn-neutral float-left" title="Domain Reduction Method (DRM) Examples" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="example2.html" class="btn btn-neutral float-right" title="Example 2: Multi-layer Soil Model with Absorbing Boundaries" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Amin Pakzad.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

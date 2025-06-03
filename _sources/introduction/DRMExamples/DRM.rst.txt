@@ -33,6 +33,7 @@ This section includes multiple examples demonstrating DRM applications of increa
 .. toctree::
    :maxdepth: 1
 
+   example1
    example2
    example3
 
