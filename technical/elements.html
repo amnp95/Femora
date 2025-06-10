@@ -193,18 +193,22 @@
 <dl class="py class">
 <dt class="sig sig-object py" id="femora.components.Element.elementBase.ElementRegistry">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">femora.components.Element.elementBase.</span></span><span class="sig-name descname"><span class="pre">ElementRegistry</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/femora/components/Element/elementBase.html#ElementRegistry"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#femora.components.Element.elementBase.ElementRegistry" title="Link to this definition"></a></dt>
-<dd><p>A singleton registry to manage element types and their creation.</p>
+<dd><p>A singleton registry to manage element types and their creation with full dependency resolution.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="femora.components.Element.elementBase.ElementRegistry.clear_all_elements">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">clear_all_elements</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/femora/components/Element/elementBase.html#ElementRegistry.clear_all_elements"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#femora.components.Element.elementBase.ElementRegistry.clear_all_elements" title="Link to this definition"></a></dt>
+<dd><p>Clear all elements.</p>
+</dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="femora.components.Element.elementBase.ElementRegistry.create_element">
-<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">create_element</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">element_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ndof</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">material</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/femora/components/Element/elementBase.html#ElementRegistry.create_element"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#femora.components.Element.elementBase.ElementRegistry.create_element" title="Link to this definition"></a></dt>
-<dd><p>Create a new element of a specific type.</p>
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">create_element</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">element_type</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/femora/components/Element/elementBase.html#ElementRegistry.create_element"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#femora.components.Element.elementBase.ElementRegistry.create_element" title="Link to this definition"></a></dt>
+<dd><p>Create a new element of a specific type with full dependency resolution.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>element_type</strong> (<em>str</em>) – Type of element to create</p></li>
-<li><p><strong>ndof</strong> (<em>int</em>) – Number of degrees of freedom for the element</p></li>
-<li><p><strong>material</strong> (<em>Union</em><em>[</em><em>str</em><em>, </em><em>int</em><em>, </em><em>Material</em><em>]</em>) – Name, tag, or object of the material</p></li>
-<li><p><strong>**kwargs</strong> – Parameters for element initialization</p></li>
+<li><p><strong>**kwargs</strong> – All element parameters including ndof, material, section, transformation</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -216,7 +220,7 @@
 <dt class="field-even">Raises<span class="colon">:</span></dt>
 <dd class="field-even"><ul class="simple">
 <li><p><strong>KeyError</strong> – If the element type is not registered</p></li>
-<li><p><strong>ValueError</strong> – If the material is invalid</p></li>
+<li><p><strong>ValueError</strong> – If dependencies cannot be resolved</p></li>
 </ul>
 </dd>
 </dl>
@@ -224,7 +228,7 @@
 
 <dl class="py method">
 <dt class="sig sig-object py" id="femora.components.Element.elementBase.ElementRegistry.get_element">
-<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_element</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tag</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/femora/components/Element/elementBase.html#ElementRegistry.get_element"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#femora.components.Element.elementBase.ElementRegistry.get_element" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_element</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tag</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/femora/components/Element/elementBase.html#ElementRegistry.get_element"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#femora.components.Element.elementBase.ElementRegistry.get_element" title="Link to this definition"></a></dt>
 <dd><p>Get an element by its tag.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -235,6 +239,20 @@
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>Optional[Element]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="femora.components.Element.elementBase.ElementRegistry.get_element_count">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_element_count</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/femora/components/Element/elementBase.html#ElementRegistry.get_element_count"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#femora.components.Element.elementBase.ElementRegistry.get_element_count" title="Link to this definition"></a></dt>
+<dd><p>Get the total number of registered elements.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Number of elements</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>int</p>
 </dd>
 </dl>
 </dd></dl>
@@ -254,6 +272,23 @@
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="femora.components.Element.elementBase.ElementRegistry.is_element_type_registered">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">is_element_type_registered</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/femora/components/Element/elementBase.html#ElementRegistry.is_element_type_registered"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#femora.components.Element.elementBase.ElementRegistry.is_element_type_registered" title="Link to this definition"></a></dt>
+<dd><p>Check if an element type is registered.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>name</strong> (<em>str</em>) – The element type name to check</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>True if registered, False otherwise</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="femora.components.Element.elementBase.ElementRegistry.register_element_type">
 <em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">register_element_type</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">element_class</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/femora/components/Element/elementBase.html#ElementRegistry.register_element_type"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#femora.components.Element.elementBase.ElementRegistry.register_element_type" title="Link to this definition"></a></dt>
 <dd><p>Register a new element type for easy creation.</p>
@@ -263,6 +298,17 @@
 <li><p><strong>name</strong> (<em>str</em>) – The name of the element type</p></li>
 <li><p><strong>element_class</strong> (<em>Type</em><em>[</em><em>Element</em><em>]</em>) – The class of the element</p></li>
 </ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="femora.components.Element.elementBase.ElementRegistry.unregister_element_type">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">unregister_element_type</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/femora/components/Element/elementBase.html#ElementRegistry.unregister_element_type"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#femora.components.Element.elementBase.ElementRegistry.unregister_element_type" title="Link to this definition"></a></dt>
+<dd><p>Unregister an element type.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>name</strong> (<em>str</em>) – The name of the element type to remove</p>
 </dd>
 </dl>
 </dd></dl>

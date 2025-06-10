@@ -84,34 +84,55 @@
              
   <h1>Source code for femora.components.Element.elementBase</h1><div class="highlight"><pre>
 <span></span><span class="kn">from</span><span class="w"> </span><span class="nn">abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">ABC</span><span class="p">,</span> <span class="n">abstractmethod</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Type</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Type</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Any</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">femora.components.Material.materialBase</span><span class="w"> </span><span class="kn">import</span> <span class="n">Material</span><span class="p">,</span> <span class="n">MaterialManager</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">femora.components.section.section_base</span><span class="w"> </span><span class="kn">import</span> <span class="n">Section</span><span class="p">,</span> <span class="n">SectionManager</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">femora.components.transformation.transformation</span><span class="w"> </span><span class="kn">import</span> <span class="n">GeometricTransformation</span><span class="p">,</span> <span class="n">GeometricTransformationManager</span>
 
 
 <span class="k">class</span><span class="w"> </span><span class="nc">Element</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Base abstract class for all elements with material association</span>
+<span class="sd">    Base abstract class for all OpenSees elements</span>
+<span class="sd">    Material, section, and transformation validation is handled by child classes</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">_elements</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># Dictionary mapping tags to elements</span>
     <span class="n">_element_to_tag</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># Dictionary mapping elements to their tags</span>
     <span class="n">_next_tag</span> <span class="o">=</span> <span class="mi">1</span>  <span class="c1"># Track the next available tag</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">element_type</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">ndof</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">material</span><span class="p">:</span> <span class="n">Material</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">element_type</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> 
+                 <span class="n">ndof</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> 
+                 <span class="n">material</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Material</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">Material</span><span class="p">],</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                 <span class="n">section</span><span class="p">:</span> <span class="n">Section</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                 <span class="n">transformation</span><span class="p">:</span> <span class="n">GeometricTransformation</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                 <span class="o">**</span><span class="n">element_params</span>
+                 <span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Initialize a new element with a unique integer tag, material, and DOF.</span>
+<span class="sd">        Initialize a new element with flexible dependency support.</span>
+<span class="sd">        Child classes handle validation of materials, sections, and transformations.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            element_type (str): The type of element (e.g., &#39;quad&#39;, &#39;truss&#39;)</span>
 <span class="sd">            ndof (int): Number of degrees of freedom for the element</span>
-<span class="sd">            material (Material): Material to assign to this element</span>
+<span class="sd">            material (Union[Material, List[Material], None]): Material(s) for the element</span>
+<span class="sd">            section (Section, optional): Section for section-based elements</span>
+<span class="sd">            transformation (GeometricTransformation, optional): Transformation for beam elements</span>
+<span class="sd">            **element_params: Element-specific parameters (thickness, body forces, etc.)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">element_type</span> <span class="o">=</span> <span class="n">element_type</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_ndof</span> <span class="o">=</span> <span class="n">ndof</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">element_params</span> <span class="o">=</span> <span class="n">element_params</span>
 
-        <span class="c1"># Assign and validate the material</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_material_compatible</span><span class="p">(</span><span class="n">material</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Material </span><span class="si">{</span><span class="n">material</span><span class="si">}</span><span class="s2"> is not compatible with </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">element_type</span><span class="si">}</span><span class="s2"> element&quot;</span><span class="p">)</span>
+        <span class="c1"># Store dependencies without validation (child classes handle validation)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_material</span> <span class="o">=</span> <span class="n">material</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_section</span> <span class="o">=</span> <span class="n">section</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_transformation</span> <span class="o">=</span> <span class="n">transformation</span>
+
+        <span class="c1"># Handle multiple materials for list case</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">material</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_materials</span> <span class="o">=</span> <span class="n">material</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_material</span> <span class="o">=</span> <span class="n">material</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="n">material</span> <span class="k">else</span> <span class="kc">None</span>  <span class="c1"># Primary material</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_materials</span> <span class="o">=</span> <span class="p">[</span><span class="n">material</span><span class="p">]</span> <span class="k">if</span> <span class="n">material</span> <span class="k">else</span> <span class="p">[]</span>
 
         <span class="c1"># Assign the next available tag</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">tag</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_next_tag</span>
@@ -210,62 +231,6 @@
             <span class="bp">cls</span><span class="o">.</span><span class="n">_element_to_tag</span> <span class="o">=</span> <span class="n">new_element_to_tag</span>
             <span class="bp">cls</span><span class="o">.</span><span class="n">_next_tag</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">_elements</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">+</span> <span class="mi">1</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">assign_material</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">material</span><span class="p">:</span> <span class="n">Material</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Assign a material to the element</span>
-<span class="sd">        </span>
-<span class="sd">        Args:</span>
-<span class="sd">            material (Material): The material to assign to this element</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># Validate material type compatibility </span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_material_compatible</span><span class="p">(</span><span class="n">material</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Material </span><span class="si">{</span><span class="n">material</span><span class="si">}</span><span class="s2"> is not compatible with </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">element_type</span><span class="si">}</span><span class="s2"> element&quot;</span><span class="p">)</span>
-        
-        <span class="bp">self</span><span class="o">.</span><span class="n">_material</span> <span class="o">=</span> <span class="n">material</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="nf">assign_ndof</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ndof</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Assign the number of DOFs for the element</span>
-<span class="sd">        </span>
-<span class="sd">        Args:</span>
-<span class="sd">            ndof (int): Number of DOFs for the element</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_ndof</span> <span class="o">=</span> <span class="n">ndof</span>
-
-
-    <span class="k">def</span><span class="w"> </span><span class="nf">get_material</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Material</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Retrieve the assigned material</span>
-<span class="sd">        </span>
-<span class="sd">        Returns:</span>
-<span class="sd">            Optional[Material]: The material assigned to this element, or None</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_material</span>
-
-    <span class="nd">@classmethod</span>
-    <span class="nd">@abstractmethod</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">_is_material_compatible</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">material</span><span class="p">:</span> <span class="n">Material</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Check if the given material is compatible with this element type</span>
-<span class="sd">        </span>
-<span class="sd">        Args:</span>
-<span class="sd">            material (Material): Material to check for compatibility</span>
-<span class="sd">        </span>
-<span class="sd">        Returns:</span>
-<span class="sd">            bool: Whether the material is compatible</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">pass</span>
-
-    <span class="nd">@classmethod</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">set_tag_start</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">start_number</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Set the starting number for element tags globally</span>
-<span class="sd">        </span>
-<span class="sd">        Args:</span>
-<span class="sd">            start_number (int): The first tag number to use</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">cls</span><span class="o">.</span><span class="n">_class_tag_manager</span><span class="o">.</span><span class="n">set_start_tag</span><span class="p">(</span><span class="n">start_number</span><span class="p">)</span>
-
     <span class="nd">@classmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_all_elements</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="s1">&#39;Element&#39;</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
@@ -277,18 +242,120 @@
         <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_elements</span>
 
     <span class="nd">@classmethod</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">delete_element</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">tag</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">clear_all_elements</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Clear all elements and reset tag counter.&quot;&quot;&quot;</span>
+        <span class="bp">cls</span><span class="o">.</span><span class="n">_elements</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+        <span class="bp">cls</span><span class="o">.</span><span class="n">_element_to_tag</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+        <span class="bp">cls</span><span class="o">.</span><span class="n">_next_tag</span> <span class="o">=</span> <span class="mi">1</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">assign_material</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">material</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Material</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">Material</span><span class="p">]]):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Delete an element by its tag.</span>
+<span class="sd">        Assign a material to the element.</span>
+<span class="sd">        Note: Child classes may override this to add validation.</span>
 <span class="sd">        </span>
 <span class="sd">        Args:</span>
-<span class="sd">            tag (int): The tag of the element to delete</span>
+<span class="sd">            material (Union[Material, List[Material]]): The material(s) to assign</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="n">tag</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_elements</span><span class="p">:</span>
-            <span class="bp">cls</span><span class="o">.</span><span class="n">_elementTags</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">_elements</span><span class="p">[</span><span class="n">tag</span><span class="p">])</span>
-            <span class="bp">cls</span><span class="o">.</span><span class="n">_elements</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">tag</span><span class="p">)</span>
-            <span class="bp">cls</span><span class="o">.</span><span class="n">_class_tag_manager</span><span class="o">.</span><span class="n">release_tag</span><span class="p">(</span><span class="n">tag</span><span class="p">)</span>
-    
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">material</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_materials</span> <span class="o">=</span> <span class="n">material</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_material</span> <span class="o">=</span> <span class="n">material</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="n">material</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_material</span> <span class="o">=</span> <span class="n">material</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_materials</span> <span class="o">=</span> <span class="p">[</span><span class="n">material</span><span class="p">]</span> <span class="k">if</span> <span class="n">material</span> <span class="k">else</span> <span class="p">[]</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">assign_section</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">section</span><span class="p">:</span> <span class="n">Section</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Assign a section to the element.</span>
+<span class="sd">        Note: Child classes may override this to add validation.</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            section (Section): The section to assign</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_section</span> <span class="o">=</span> <span class="n">section</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">assign_transformation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">transformation</span><span class="p">:</span> <span class="n">GeometricTransformation</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Assign a geometric transformation to the element.</span>
+<span class="sd">        Note: Child classes may override this to add validation.</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            transformation (GeometricTransformation): The transformation to assign</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_transformation</span> <span class="o">=</span> <span class="n">transformation</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">assign_ndof</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ndof</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Assign the number of DOFs for the element</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            ndof (int): Number of DOFs for the element</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ndof</span> <span class="o">=</span> <span class="n">ndof</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_material</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Material</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Retrieve the primary assigned material</span>
+<span class="sd">        </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            Optional[Material]: The primary material assigned to this element, or None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_material</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_materials</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Material</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Retrieve all assigned materials</span>
+<span class="sd">        </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            List[Material]: List of all materials assigned to this element</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_materials</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_section</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Section</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Retrieve the assigned section</span>
+<span class="sd">        </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            Optional[Section]: The section assigned to this element, or None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_section</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_transformation</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">GeometricTransformation</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Retrieve the assigned geometric transformation</span>
+<span class="sd">        </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            Optional[GeometricTransformation]: The transformation assigned to this element, or None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_transformation</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_element_params</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Retrieve element-specific parameters</span>
+<span class="sd">        </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            Dict[str, Any]: Dictionary of element-specific parameters</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">element_params</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">update_element_params</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">new_params</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Update element-specific parameters</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            **new_params: New parameter values to update</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">element_params</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">new_params</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_ndof</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the number of degrees of freedom for this element</span>
+<span class="sd">        </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            int: Number of DOFs</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ndof</span>
+
+    <span class="c1"># Abstract methods for element implementation</span>
     <span class="nd">@classmethod</span>  
     <span class="nd">@abstractmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_parameters</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
@@ -324,17 +391,20 @@
 
     <span class="nd">@classmethod</span>
     <span class="nd">@abstractmethod</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">validate_element_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">validate_element_parameters</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Check if the element input parameters are valid.</span>
 <span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            **kwargs: Element parameters to validate</span>
+<span class="sd">        </span>
 <span class="sd">        Returns:</span>
-<span class="sd">            Dict[str, Union[int, float, str]]: Dictionary of parmaeters with valid values</span>
+<span class="sd">            Dict[str, Union[int, float, str]]: Dictionary of parameters with valid values</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">pass</span>
 
     <span class="nd">@abstractmethod</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">get_values</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">keys</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span>  <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_values</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">keys</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Retrieve values for specific parameters.</span>
 <span class="sd">        </span>
@@ -359,15 +429,27 @@
     <span class="nd">@abstractmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">to_tcl</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tag</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">nodes</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Convert the element to a string representation.</span>
+<span class="sd">        Convert the element to a TCL command string.</span>
 <span class="sd">        </span>
 <span class="sd">        Args:</span>
 <span class="sd">            tag (int): The tag of the element</span>
+<span class="sd">            nodes (List[int]): List of node tags for the element</span>
 <span class="sd">        </span>
 <span class="sd">        Returns:</span>
-<span class="sd">            str: String representation of the element</span>
+<span class="sd">            str: TCL command string representation of the element</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">pass</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;String representation of the element&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">element_type</span><span class="si">}</span><span class="s2"> Element (Tag: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">tag</span><span class="si">}</span><span class="s2">, DOF: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_ndof</span><span class="si">}</span><span class="s2">)&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Detailed string representation of the element&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;Element(type=&#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">element_type</span><span class="si">}</span><span class="s2">&#39;, tag=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">tag</span><span class="si">}</span><span class="s2">, ndof=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_ndof</span><span class="si">}</span><span class="s2">, &quot;</span> \
+               <span class="sa">f</span><span class="s2">&quot;material=</span><span class="si">{</span><span class="s1">&#39;Yes&#39;</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="bp">self</span><span class="o">.</span><span class="n">_material</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">&#39;No&#39;</span><span class="si">}</span><span class="s2">, &quot;</span> \
+               <span class="sa">f</span><span class="s2">&quot;section=</span><span class="si">{</span><span class="s1">&#39;Yes&#39;</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="bp">self</span><span class="o">.</span><span class="n">_section</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">&#39;No&#39;</span><span class="si">}</span><span class="s2">, &quot;</span> \
+               <span class="sa">f</span><span class="s2">&quot;transformation=</span><span class="si">{</span><span class="s1">&#39;Yes&#39;</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="bp">self</span><span class="o">.</span><span class="n">_transformation</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">&#39;No&#39;</span><span class="si">}</span><span class="s2">)&quot;</span>
 
 
 
@@ -375,7 +457,7 @@
 <a class="viewcode-back" href="../../../../technical/elements.html#femora.components.Element.elementBase.ElementRegistry">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">ElementRegistry</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    A singleton registry to manage element types and their creation.</span>
+<span class="sd">    A singleton registry to manage element types and their creation with full dependency resolution.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">_instance</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">_element_types</span> <span class="o">=</span> <span class="p">{}</span>
@@ -399,10 +481,24 @@
         <span class="bp">cls</span><span class="o">.</span><span class="n">_element_types</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">element_class</span></div>
 
 
+<div class="viewcode-block" id="ElementRegistry.unregister_element_type">
+<a class="viewcode-back" href="../../../../technical/elements.html#femora.components.Element.elementBase.ElementRegistry.unregister_element_type">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">unregister_element_type</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Unregister an element type.</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            name (str): The name of the element type to remove</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_element_types</span><span class="p">:</span>
+            <span class="k">del</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_element_types</span><span class="p">[</span><span class="n">name</span><span class="p">]</span></div>
+
+
 <div class="viewcode-block" id="ElementRegistry.get_element_types">
 <a class="viewcode-back" href="../../../../technical/elements.html#femora.components.Element.elementBase.ElementRegistry.get_element_types">[docs]</a>
     <span class="nd">@classmethod</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">get_element_types</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_element_types</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Get available element types.</span>
 <span class="sd">        </span>
@@ -412,45 +508,156 @@
         <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">_element_types</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span></div>
 
 
+<div class="viewcode-block" id="ElementRegistry.is_element_type_registered">
+<a class="viewcode-back" href="../../../../technical/elements.html#femora.components.Element.elementBase.ElementRegistry.is_element_type_registered">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">is_element_type_registered</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Check if an element type is registered.</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            name (str): The element type name to check</span>
+<span class="sd">            </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            bool: True if registered, False otherwise</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_element_types</span></div>
+
+
 <div class="viewcode-block" id="ElementRegistry.create_element">
 <a class="viewcode-back" href="../../../../technical/elements.html#femora.components.Element.elementBase.ElementRegistry.create_element">[docs]</a>
     <span class="nd">@classmethod</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">create_element</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">element_type</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">ndof</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">material</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="n">Material</span><span class="p">],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Element</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">create_element</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> 
+                       <span class="n">element_type</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> 
+                       <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Element</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Create a new element of a specific type.</span>
+<span class="sd">        Create a new element of a specific type with full dependency resolution.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            element_type (str): Type of element to create</span>
-<span class="sd">            ndof (int): Number of degrees of freedom for the element</span>
-<span class="sd">            material (Union[str, int, Material]): Name, tag, or object of the material</span>
-<span class="sd">            **kwargs: Parameters for element initialization</span>
+<span class="sd">            **kwargs: All element parameters including ndof, material, section, transformation</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            Element: A new element instance</span>
 
 <span class="sd">        Raises:</span>
 <span class="sd">            KeyError: If the element type is not registered</span>
-<span class="sd">            ValueError: If the material is invalid</span>
+<span class="sd">            ValueError: If dependencies cannot be resolved</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">element_type</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_element_types</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Element type </span><span class="si">{</span><span class="n">element_type</span><span class="si">}</span><span class="s2"> not registered&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Element type &#39;</span><span class="si">{</span><span class="n">element_type</span><span class="si">}</span><span class="s2">&#39; not registered. &quot;</span>
+                          <span class="sa">f</span><span class="s2">&quot;Available types: </span><span class="si">{</span><span class="nb">list</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">_element_types</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
-        <span class="c1"># Resolve material if it&#39;s a string or integer</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">material</span><span class="p">,</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">)):</span>
-            <span class="n">material</span> <span class="o">=</span> <span class="n">MaterialManager</span><span class="o">.</span><span class="n">get_material</span><span class="p">(</span><span class="n">material</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">material</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Material </span><span class="si">{</span><span class="n">material</span><span class="si">}</span><span class="s2"> not found&quot;</span><span class="p">)</span>
+        <span class="c1"># Resolve dependencies</span>
+        <span class="n">resolved_kwargs</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        
+        <span class="k">if</span> <span class="s1">&#39;material&#39;</span> <span class="ow">in</span> <span class="n">resolved_kwargs</span><span class="p">:</span>
+            <span class="n">resolved_kwargs</span><span class="p">[</span><span class="s1">&#39;material&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_resolve_materials</span><span class="p">(</span><span class="n">resolved_kwargs</span><span class="p">[</span><span class="s1">&#39;material&#39;</span><span class="p">])</span>
+        
+        <span class="k">if</span> <span class="s1">&#39;section&#39;</span> <span class="ow">in</span> <span class="n">resolved_kwargs</span><span class="p">:</span>
+            <span class="n">resolved_kwargs</span><span class="p">[</span><span class="s1">&#39;section&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_resolve_section</span><span class="p">(</span><span class="n">resolved_kwargs</span><span class="p">[</span><span class="s1">&#39;section&#39;</span><span class="p">])</span>
+            
+        <span class="k">if</span> <span class="s1">&#39;transformation&#39;</span> <span class="ow">in</span> <span class="n">resolved_kwargs</span><span class="p">:</span>
+            <span class="n">resolved_kwargs</span><span class="p">[</span><span class="s1">&#39;transformation&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_resolve_transformation</span><span class="p">(</span><span class="n">resolved_kwargs</span><span class="p">[</span><span class="s1">&#39;transformation&#39;</span><span class="p">])</span>
+        
+        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_element_types</span><span class="p">[</span><span class="n">element_type</span><span class="p">](</span><span class="o">**</span><span class="n">resolved_kwargs</span><span class="p">)</span></div>
 
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">material</span><span class="p">,</span> <span class="n">Material</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Material must be a valid Material instance, name, or tag&quot;</span><span class="p">)</span>
-
-        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_element_types</span><span class="p">[</span><span class="n">element_type</span><span class="p">](</span><span class="n">ndof</span><span class="p">,</span> <span class="n">material</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
-
+    
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_resolve_materials</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">material</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Resolve material references to actual Material objects</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            material: Material reference (str, int, Material, or list of these)</span>
+<span class="sd">            </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            Resolved material object(s) or None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">material</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">material</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="c1"># List of materials</span>
+            <span class="n">resolved_materials</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">mat</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">material</span><span class="p">):</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">mat</span><span class="p">,</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">)):</span>
+                    <span class="n">resolved_mat</span> <span class="o">=</span> <span class="n">MaterialManager</span><span class="o">.</span><span class="n">get_material</span><span class="p">(</span><span class="n">mat</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">resolved_mat</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Material </span><span class="si">{</span><span class="n">mat</span><span class="si">}</span><span class="s2"> at index </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2"> not found&quot;</span><span class="p">)</span>
+                    <span class="n">resolved_materials</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">resolved_mat</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">mat</span><span class="p">,</span> <span class="n">Material</span><span class="p">):</span>
+                    <span class="n">resolved_materials</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mat</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Invalid material type at index </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">mat</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">resolved_materials</span>
+        
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">material</span><span class="p">,</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">)):</span>
+            <span class="c1"># Single material by reference</span>
+            <span class="n">resolved_material</span> <span class="o">=</span> <span class="n">MaterialManager</span><span class="o">.</span><span class="n">get_material</span><span class="p">(</span><span class="n">material</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">resolved_material</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Material &#39;</span><span class="si">{</span><span class="n">material</span><span class="si">}</span><span class="s2">&#39; not found&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">resolved_material</span>
+        
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">material</span><span class="p">,</span> <span class="n">Material</span><span class="p">):</span>
+            <span class="c1"># Already a Material object</span>
+            <span class="k">return</span> <span class="n">material</span>
+        
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Invalid material type: </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">material</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_resolve_section</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">section</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Resolve section references to actual Section objects</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            section: Section reference (str, int, Section, or None)</span>
+<span class="sd">            </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            Resolved section object or None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">section</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">section</span><span class="p">,</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">)):</span>
+            <span class="n">resolved_section</span> <span class="o">=</span> <span class="n">SectionManager</span><span class="o">.</span><span class="n">get_section</span><span class="p">(</span><span class="n">section</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">resolved_section</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Section &#39;</span><span class="si">{</span><span class="n">section</span><span class="si">}</span><span class="s2">&#39; not found&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">resolved_section</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">section</span><span class="p">,</span> <span class="n">Section</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">section</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Invalid section type: </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">section</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_resolve_transformation</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">transformation</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Resolve transformation references to actual GeometricTransformation objects</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            transformation: Transformation reference (str, int, GeometricTransformation, or None)</span>
+<span class="sd">            </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            Resolved transformation object or None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">transformation</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">transformation</span><span class="p">,</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">)):</span>
+            <span class="n">resolved_transformation</span> <span class="o">=</span> <span class="n">GeometricTransformationManager</span><span class="o">.</span><span class="n">get_transformation</span><span class="p">(</span><span class="n">transformation</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">resolved_transformation</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Transformation &#39;</span><span class="si">{</span><span class="n">transformation</span><span class="si">}</span><span class="s2">&#39; not found&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">resolved_transformation</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">transformation</span><span class="p">,</span> <span class="n">GeometricTransformation</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">transformation</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Invalid transformation type: </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">transformation</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
     
 <div class="viewcode-block" id="ElementRegistry.get_element">
 <a class="viewcode-back" href="../../../../technical/elements.html#femora.components.Element.elementBase.ElementRegistry.get_element">[docs]</a>
-    <span class="nd">@staticmethod</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">get_element</span><span class="p">(</span><span class="n">tag</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Element</span><span class="p">]:</span>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_element</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">tag</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Element</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Get an element by its tag.</span>
 <span class="sd">        </span>
@@ -461,22 +668,33 @@
 <span class="sd">            Optional[Element]: The element with the given tag, or None if not found</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">Element</span><span class="o">.</span><span class="n">get_element_by_tag</span><span class="p">(</span><span class="n">tag</span><span class="p">)</span></div>
+
+    
+<div class="viewcode-block" id="ElementRegistry.get_element_count">
+<a class="viewcode-back" href="../../../../technical/elements.html#femora.components.Element.elementBase.ElementRegistry.get_element_count">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_element_count</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the total number of registered elements.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            int: Number of elements</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="n">Element</span><span class="o">.</span><span class="n">get_all_elements</span><span class="p">())</span></div>
+
+    
+<div class="viewcode-block" id="ElementRegistry.clear_all_elements">
+<a class="viewcode-back" href="../../../../technical/elements.html#femora.components.Element.elementBase.ElementRegistry.clear_all_elements">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">clear_all_elements</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Clear all elements.&quot;&quot;&quot;</span>
+        <span class="n">Element</span><span class="o">.</span><span class="n">clear_all_elements</span><span class="p">()</span></div>
 </div>
 
-    
-    
 
+
+<span class="c1"># Import existing element implementations</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">femora.components.Element.elementsOpenSees</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
-
-    
-
-        
-        
-
-
-
-
-
 </pre></div>
 
            </div>
