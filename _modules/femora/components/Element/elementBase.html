@@ -485,6 +485,20 @@
             <span class="bp">cls</span><span class="o">.</span><span class="n">_instance</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">ElementRegistry</span><span class="p">,</span> <span class="bp">cls</span><span class="p">)</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_instance</span>
 
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">beam</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">.element_class_manager</span><span class="w"> </span><span class="kn">import</span> <span class="n">_BeamElements</span>
+        <span class="k">return</span> <span class="n">_BeamElements</span>
+    
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">brick</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">.element_class_manager</span><span class="w"> </span><span class="kn">import</span> <span class="n">_BrickElements</span>
+        <span class="k">return</span> <span class="n">_BrickElements</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">quad</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">.element_class_manager</span><span class="w"> </span><span class="kn">import</span> <span class="n">_QuadElements</span>
+        <span class="k">return</span> <span class="n">_QuadElements</span>
+    
 <div class="viewcode-block" id="ElementRegistry.register_element_type">
 <a class="viewcode-back" href="../../../../technical/elements.html#femora.components.Element.elementBase.ElementRegistry.register_element_type">[docs]</a>
     <span class="nd">@classmethod</span>
