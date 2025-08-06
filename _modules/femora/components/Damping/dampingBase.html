@@ -101,6 +101,7 @@
 <span class="sd">        _dampings (dict): Class-level registry of all damping instances</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">_dampings</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">_start_tag</span> <span class="o">=</span> <span class="mi">1</span>
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Initialize a new damping instance.</span>
@@ -123,7 +124,7 @@
 <span class="sd">        Returns:</span>
 <span class="sd">            int: The next available tag number</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">_dampings</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">_dampings</span><span class="p">)</span> <span class="o">+</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_start_tag</span>
     
     <span class="nd">@classmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">remove_damping</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">tag</span><span class="p">):</span>
@@ -181,14 +182,35 @@
 <span class="sd">        a damping has been removed. It renumbers all tags and updates</span>
 <span class="sd">        the corresponding damping names.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">tags</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_dampings</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
-        <span class="n">tags</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">tags</span><span class="p">)</span>
+        <span class="bp">cls</span><span class="o">.</span><span class="n">_reassign_tags</span><span class="p">()</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_reassign_tags</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Reassign tags to all dampings sequentially starting from _start_tag.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">new_dampings</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">tag</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">tags</span><span class="p">):</span>
-            <span class="bp">cls</span><span class="o">.</span><span class="n">_dampings</span><span class="p">[</span><span class="n">tag</span><span class="p">]</span><span class="o">.</span><span class="n">tag</span> <span class="o">=</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span>
-            <span class="bp">cls</span><span class="o">.</span><span class="n">_dampings</span><span class="p">[</span><span class="n">tag</span><span class="p">]</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;damping</span><span class="si">{</span><span class="n">i</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">&quot;</span>
-            <span class="n">new_dampings</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_dampings</span><span class="p">[</span><span class="n">tag</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">damping</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">_dampings</span><span class="o">.</span><span class="n">values</span><span class="p">(),</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">d</span><span class="p">:</span> <span class="n">d</span><span class="o">.</span><span class="n">tag</span><span class="p">),</span> <span class="n">start</span><span class="o">=</span><span class="bp">cls</span><span class="o">.</span><span class="n">_start_tag</span><span class="p">):</span>
+            <span class="n">damping</span><span class="o">.</span><span class="n">tag</span> <span class="o">=</span> <span class="n">idx</span>
+            <span class="n">damping</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;damping</span><span class="si">{</span><span class="n">idx</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="n">new_dampings</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">damping</span>
         <span class="bp">cls</span><span class="o">.</span><span class="n">_dampings</span> <span class="o">=</span> <span class="n">new_dampings</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">reset</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+        <span class="bp">cls</span><span class="o">.</span><span class="n">_dampings</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+        <span class="bp">cls</span><span class="o">.</span><span class="n">_start_tag</span> <span class="o">=</span> <span class="mi">1</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_tag_start</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">start_tag</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="bp">cls</span><span class="o">.</span><span class="n">_start_tag</span> <span class="o">=</span> <span class="n">start_tag</span>
+        <span class="bp">cls</span><span class="o">.</span><span class="n">_reassign_tags</span><span class="p">()</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">clear_all</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+        <span class="bp">cls</span><span class="o">.</span><span class="n">_dampings</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+        <span class="bp">cls</span><span class="o">.</span><span class="n">_reassign_tags</span><span class="p">()</span>
+
         
     <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
