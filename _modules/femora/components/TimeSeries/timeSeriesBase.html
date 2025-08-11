@@ -1036,6 +1036,27 @@
 <span class="k">class</span><span class="w"> </span><span class="nc">PathTimeSeries</span><span class="p">(</span><span class="n">TimeSeries</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    TimeSeries object that interpolates between defined time and load factor points</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        dt (float): Time increment for path</span>
+<span class="sd">        values (list): List of force values</span>
+<span class="sd">        filePath (str): Path to file containing force values</span>
+<span class="sd">        factor (float): Scale factor for force values</span>
+<span class="sd">        useLast (bool): Use last force value beyond the last time point if true</span>
+<span class="sd">        prependZero (bool): Prepend a zero value at the start</span>
+<span class="sd">        startTime (float): Start time of the time series</span>
+<span class="sd">        time (list): List of time points</span>
+<span class="sd">        fileTime (str): Path to file containing time points</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        timeseries = fm.timeSeries.path(</span>
+<span class="sd">            dt=0.02,</span>
+<span class="sd">            values=[0.0, 1.0, 0.0],</span>
+<span class="sd">            filePath=&quot;CFG2_ax_base_02g_avg.acc&quot;,</span>
+<span class="sd">            factor=9.81,</span>
+<span class="sd">        )</span>
+
+<span class="sd">    </span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
@@ -1330,6 +1351,19 @@
         <span class="k">if</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_instance</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">cls</span><span class="o">.</span><span class="n">_instance</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">TimeSeriesManager</span><span class="p">,</span> <span class="bp">cls</span><span class="p">)</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_instance</span>
+
+<div class="viewcode-block" id="TimeSeriesManager.__init__">
+<a class="viewcode-back" href="../../../../technical/timeseries.html#femora.components.TimeSeries.timeSeriesBase.TimeSeriesManager.__init__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">path</span> <span class="o">=</span> <span class="n">PathTimeSeries</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">constant</span> <span class="o">=</span> <span class="n">ConstantTimeSeries</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">linear</span> <span class="o">=</span> <span class="n">LinearTimeSeries</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">trig</span> <span class="o">=</span> <span class="n">TrigTimeSeries</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ramp</span> <span class="o">=</span> <span class="n">RampTimeSeries</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">triangular</span> <span class="o">=</span> <span class="n">TriangularTimeSeries</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rectangular</span> <span class="o">=</span> <span class="n">RectangularTimeSeries</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pulse</span> <span class="o">=</span> <span class="n">PulseTimeSeries</span></div>
+
     
     <span class="k">def</span><span class="w"> </span><span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
