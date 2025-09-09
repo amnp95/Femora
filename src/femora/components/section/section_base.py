@@ -177,7 +177,7 @@ class Section(ABC):
         cls._next_tag = cls._start_tag
 
     @classmethod
-    def set_tag_start(cls, start_number: int):
+    def set_start_tag(cls, start_number: int):
         """
         Set the starting tag number for section tagging.
         Args:
@@ -332,3 +332,11 @@ class SectionManager:
         if cls._instance is None:
             cls._instance = cls()
         return cls._instance
+    
+    def set_start_tag(self, start_number: int):
+        """
+        Set the starting tag number for section tagging.
+        Args:
+            start_number (int): The tag number to start from.
+        """
+        Section.set_start_tag(start_number)
