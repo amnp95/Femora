@@ -134,6 +134,8 @@ class EmbeddedBeamSolidInterface(InterfaceBase, HandlesDecompositionMixin):
         assembled_mesh = assembled_mesh.copy()
         beam_core_array = assembled_mesh.cell_data["Core"][beam_cells_idx]
         unique_cores = np.unique(beam_core_array)
+        # sort the unique cores from smallest to largest
+        unique_cores = np.sort(unique_cores)
         if unique_cores.size > 1:
             # print(f"[EmbeddedBeamSolidInterface:{self.name}] Multiple cores found for beam cells: {unique_cores}.")
             # print("Moving all beam cells to the first core for consistency.")
@@ -183,7 +185,24 @@ class EmbeddedBeamSolidInterface(InterfaceBase, HandlesDecompositionMixin):
         ).point_data["implicit_distance"] <= 0
         # print(f"--- Time for initial implicit_distance: {time.time() - t_start_section:.4f}s")
 
+        # find the cells that intersects with the beam line
+        intersect_ind = assembled_mesh.find_cells_intersecting_line(beam_tail,
+                                                                     beam_head, 
+                                                                     tolerance=self.radius)
+        if len(intersect_ind) > 0:
+            intersect_ind_point_ids = []
+            for ind in intersect_ind:
+                intersect_ind_point_ids.append(assembled_mesh.get_cell(ind).point_ids)
+        
+            intersect_ind_point_ids = np.array(intersect_ind_point_ids)
+            # make it 1D array and unique
+            intersect_ind_point_ids = intersect_ind_point_ids.flatten()
+            intersect_ind_point_ids = np.unique(intersect_ind_point_ids)
 
+
+            inner_ind[intersect_ind_point_ids] = True
+
+                
 
         # t_start_section = time.time()
         inner = assembled_mesh.extract_points(
@@ -231,18 +250,33 @@ class EmbeddedBeamSolidInterface(InterfaceBase, HandlesDecompositionMixin):
                 if solid_mesh_largest.n_cells < 1:
                     raise ValueError("No beams and solids found in the solid mesh.")
                 else:
-                    raise ValueError("No beams found in the solid mesh, but solids are present. This is unexpected. \
-                                     probably the beam mesh size is too small. please increase the number of points in the beam mesh.")
+                    # # plot for debugging
+                    # pl = pv.Plotter()
+                    # pl.add_mesh(solid_mesh_largest, color="blue", opacity=0.5, show_edges=True)
+                    # pl.add_mesh(beam_mesh, color="red", opacity=1.0, line_width=5)
+                    # # beam tail and head as points
+                    # pl.add_mesh(pv.PolyData(beam_tail), color="green", point_size=20, render_points_as_spheres=True)
+                    # pl.add_mesh(pv.PolyData(beam_head), color="yellow", point_size=20, render_points_as_spheres=True)
+                    # pl.show()
+                    # check if the beam is even going through the solid mesh
+                    ind = solid_mesh_largest.find_cells_intersecting_line(beam_tail, beam_head, tolerance=0)
+                    if len(ind) < 1:
+                        pass
+                    else:
+                        raise ValueError(f"[EmbeddedBeamSolidInterface:{self.name}]: No beams found in the solid mesh, but solids are present. This is unexpected. \
+                        probably the beam mesh size is too small. \
+                        please increase the number of points in the beam mesh.")
             else:
                 if solid_mesh_largest.n_cells < 1:
                     raise ValueError("No solids found in the solid mesh, but beams are present. This is unexpected. contact the developers.")
                 
-            
-            beams = beams.cell_data["mesh_ind"]
-            solids = solid_mesh_largest.cell_data["mesh_ind"]
 
-            if len(beams) > 0 and len(solids) > 0:
-                beams_solids.append((beams, solids))
+            if beams.n_cells > 0 and solid_mesh_largest.n_cells > 0:
+                beams = beams.cell_data["mesh_ind"]
+                solids = solid_mesh_largest.cell_data["mesh_ind"]
+
+                if len(beams) > 0 and len(solids) > 0:
+                    beams_solids.append((beams, solids))
 
             # now remove the largset solid mesh from the solid_mesh
             solid_mesh = solid_mesh.extract_values(solid_mesh_largest.cell_data["mesh_ind"] , invert=True, scalars="mesh_ind")
@@ -507,13 +541,16 @@ class EmbeddedBeamSolidInterface(InterfaceBase, HandlesDecompositionMixin):
         crd_transf_tag = self.beam_part.element.get_transformation().tag
         file_handle.write("set Femora_embeddedBeamSolidStartTag [getFemoraMax eleTag]\n")
         file_handle.write("set Femora_embeddedBeamSolidStartTag [expr $Femora_embeddedBeamSolidStartTag + 1]\n")
+        ele_start_tag = kwargs.get("ele_start_tag", 1)
+        core_start_tag = kwargs.get("core_start_tag", 1)
         for ii, info in enumerate(self._instance_embeddedinfo_list):
-            file_handle.write("if {$pid == %d} {\n" % info.core_number)
+            core = info.core_number + core_start_tag
+            file_handle.write("if {$pid == %d} {\n" % core)
             # for beams, solids in info.beams_solids:
             for jj, (beams, solids) in enumerate(info.beams_solids):
-                # TODO: need to handle if elements tags are not starting from 1
-                beams_str = " -beamEle ".join(str(b + 1) for b in beams)
-                solids_str = " -solidEle ".join(str(s + 1) for s in solids)
+                # handle if elements tags are not starting from 1
+                beams_str = " -beamEle ".join(str(b + ele_start_tag) for b in beams)
+                solids_str = " -solidEle ".join(str(s + ele_start_tag) for s in solids)
                 connect_file = f"EmbeddedBeamSolidConnect_{self.name}_beam{ii}_part{jj}.dat"
                 interface_file = f"EmbeddedBeamSolidInterface_{self.name}_beam{ii}_part{jj}.dat"
                 connect_file = MeshMaker.get_results_folder() + "/" + connect_file
@@ -577,9 +614,13 @@ class EmbeddedBeamSolidInterface(InterfaceBase, HandlesDecompositionMixin):
         ValueError
             If the res_type is not supported.
         """
+        from femora import MeshMaker    
+        core_start_tag = MeshMaker()._start_core_tag
+
         cmd = ""
         for ii, info in enumerate(self._instance_embeddedinfo_list):
-            cmd += "if {$pid == %d} {\n" % info.core_number
+            core = info.core_number + core_start_tag
+            cmd += "if {$pid == %d} {\n" % core
             for jj, (beams, solids) in enumerate(info.beams_solids):
                 startEle = f"EmbeddedBeamSolid_{self.name}_beam{ii}_part{jj}_startTag"
                 endEle = f"EmbeddedBeamSolid_{self.name}_beam{ii}_part{jj}_endTag"
