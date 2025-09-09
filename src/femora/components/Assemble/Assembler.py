@@ -484,6 +484,14 @@ class Assembler:
         add_axes=True,
         add_bounding_box=False,
         show_grid= False,
+        explode=False,
+        explode_factor=0.1,
+        sperate_beams_solid=False,
+        opacity_beams=1.,
+        opacity_solids=.5,
+        tube_radius=0.05,
+        show_cells_by_type = False,
+        cells_to_show: Optional[List[int]] = None,
         **kwargs
     ) -> None:
         """
@@ -601,6 +609,16 @@ class Assembler:
             Render external surface vertices. See vertex_* kwargs.
         edge_opacity : float, optional
             Edge opacity (0-1).
+        explode : bool, optional
+            Whether to explode blocks apart when style="explode".
+        explode_factor : float, optional
+            Factor to explode blocks apart when style="explode".
+        sperate_beams_solid : bool, optional
+            Whether to render beams and solids seperately. 
+        opacity_beams : float, optional
+            Opacity of beams when sperate_beams_solid=True.
+        opacity_solids : float, optional
+            Opacity of solids when sperate_beams_solid=True.
         **kwargs : dict, optional
             Additional keyword arguments for PyVista add_mesh.
 
@@ -611,12 +629,88 @@ class Assembler:
         """
         if self.AssembeledMesh is None:
             raise ValueError("No assembled mesh exists to plot")
+        
+        # remove the options that are not part of pyvista
+        options = locals().copy()
+        del options["self"]
+        del options["show_cells_by_type"]
+        del options["cells_to_show"]
+        del options["tube_radius"]
+        del options["kwargs"]
+        del options["opacity_solids"]
+        del options["opacity_beams"]
+        del options["sperate_beams_solid"]
+        del options["explode"]
+        del options["explode_factor"]
+        del options["add_axes"]
+        del options["add_bounding_box"]
+        del options["show_grid"]
+
+        if show_cells_by_type:
+            if cells_to_show is None:
+                raise ValueError("cells_to_show must be provided when show_cells_by_type is True")
+            mesh = self.AssembeledMesh.copy()
+            mesh = pv.UnstructuredGrid(mesh)
+            mesh = mesh.extract_cells_by_type(cells_to_show)
+            pl = pv.Plotter()
+            pl.add_mesh(mesh, **options)
+            if add_axes:
+                pl.add_axes()
+            if add_bounding_box:
+                pl.add_bounding_box()
+            if show_grid:
+                pl.show_grid()
+            pl.show()
+            return
+        
+        # create a dict from all the inputs
+        if sperate_beams_solid:
+            mesh = self.AssembeledMesh.copy()
+            mesh = pv.UnstructuredGrid(mesh)
+            beams = mesh.extract_cells_by_type([pv.CellType.LINE, pv.CellType.POLY_LINE])
+            mesh_solids = mesh.extract_cells_by_type([pv.CellType.TETRA, 
+                                                      pv.CellType.HEXAHEDRON,
+                                                      pv.CellType.QUAD, 
+                                                      pv.CellType.WEDGE, 
+                                                      pv.CellType.TRIANGLE, 
+                                                      pv.CellType.VOXEL, 
+                                                      pv.CellType.PIXEL])
+
+            pl = pv.Plotter()
+            del options["opacity"]
+            if beams.n_cells > 0:
+                op = options.copy()
+                op["show_edges"] = False
+                op["line_width"] = tube_radius
+                pl.add_mesh(beams, **op, opacity=opacity_beams, )
+                del op
+            if mesh_solids.n_cells > 0:
+                options["render_lines_as_tubes"] = False
+                pl.add_mesh(mesh_solids, **options, opacity=opacity_solids)
+            if add_axes:
+                pl.add_axes()
+            if add_bounding_box:
+                pl.add_bounding_box()
+            if show_grid:
+                pl.show_grid()
+            pl.show()
+            return
+
+        
+            
         if scalars=="Core":
-            cores = self.AssembeledMesh.cell_data["Core"]
+            scalars = None
+            Mesh = self.AssembeledMesh.copy()
+
+            if explode:
+                Mesh = Mesh.explode(factor=explode_factor)
+
+            cores = Mesh.cell_data["Core"]
             mesh = pv.MultiBlock()
             for core in np.unique(cores):
-                core_mesh = self.AssembeledMesh.extract_cells(cores==core)
+                core_mesh = Mesh.extract_cells(cores==core)
                 mesh.append(core_mesh)
+
             pl = pv.Plotter()
             pl.add_mesh(mesh,
                 color=color,
@@ -684,8 +778,12 @@ class Assembler:
 
         else:
             pl = pv.Plotter()
+            mesh = self.AssembeledMesh.copy()
+            if explode:
+                mesh = mesh.explode(factor=explode_factor)
+
             pl.add_mesh(
-                self.AssembeledMesh,
+                mesh,
                 color=color,
                 style=style,
                 scalars=scalars,
