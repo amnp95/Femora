@@ -1410,6 +1410,27 @@
 <span class="sd">            List[str]: A list of damping type names that can be used with create_damping()</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">DampingRegistry</span><span class="o">.</span><span class="n">get_available_types</span><span class="p">()</span></div>
+
+    
+<div class="viewcode-block" id="DampingManager.set_start_tag">
+<a class="viewcode-back" href="../../../../technical/damping.html#femora.components.Damping.dampingBase.DampingManager.set_start_tag">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_start_tag</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">start_tag</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set the starting tag number for new damping instances.</span>
+<span class="sd">        </span>
+<span class="sd">        This method allows customization of the initial tag number assigned to</span>
+<span class="sd">        newly created damping instances. By default, tags start from 1 and</span>
+<span class="sd">        increment sequentially with each new instance.</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            start_tag (int): The starting tag number for new damping instances</span>
+<span class="sd">            </span>
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If start_tag is not a positive integer</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">start_tag</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="ow">or</span> <span class="n">start_tag</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;start_tag must be a positive integer&quot;</span><span class="p">)</span>
+        <span class="n">DampingBase</span><span class="o">.</span><span class="n">set_tag_start</span><span class="p">(</span><span class="n">start_tag</span><span class="p">)</span></div>
 </div>
 
 
