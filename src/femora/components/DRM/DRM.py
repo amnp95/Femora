@@ -762,21 +762,25 @@ class DRM:
                 raise ValueError("The PML layer mesh points are not matching with the original mesh points")
             
             # create the equal dof
+            from femora import MeshMaker
+            start_node_tag = MeshMaker()._start_nodetag
             for i, index in enumerate(indices):
                 # check that the index 1 is always has 9 dof and index 0 has 3 dof
                 ndf1 = self.meshmaker.assembler.AssembeledMesh.point_data["ndf"][index[0]]
                 ndf2 = self.meshmaker.assembler.AssembeledMesh.point_data["ndf"][index[1]]
 
                 if ndf1 == 9 and ndf2 == 3:
-                    masterNode = index[1] + 1
-                    slaveNode  = index[0] + 1
+                    masterNode = index[1] + start_node_tag
+                    slaveNode  = index[0] + start_node_tag
                 elif ndf1 == 3 and ndf2 == 9:
-                    masterNode = index[0] + 1
-                    slaveNode  = index[1] + 1   
+                    masterNode = index[0] + start_node_tag
+                    slaveNode  = index[1] + start_node_tag   
                 else:
                     raise ValueError("The PML layer node should have 9 dof and the original mesh should have at least 3 dof")
                 
-                self.meshmaker.constraint.mp.create_equal_dof(masterNode, [slaveNode],[1,2,3])
+                self.meshmaker.constraint.mp.create_equal_dof(masterNode, 
+                                                              [slaveNode],
+                                                              [1,2,3])
 
         else:
             raise NotImplementedError("ASDA absorbing layer is not implemented yet")
