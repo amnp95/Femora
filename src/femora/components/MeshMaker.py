@@ -83,6 +83,7 @@ class MeshMaker:
         # These control only exported OpenSees node/element tags (not Material/Element class tags)
         self._start_nodetag: int = 1
         self._start_ele_tag: int = 1
+        self._start_core_tag: int = 0
         
         @property
         def mesh_part(self):
@@ -120,6 +121,17 @@ class MeshMaker:
         if not isinstance(start_tag, int) or start_tag < 1:
             raise ValueError("Element tag start must be an integer >= 1")
         self._start_ele_tag = start_tag
+
+    def set_start_core_tag(self, start_tag: int) -> None:
+        """
+        Set the starting tag number for cores in exported TCL.
+
+        Args:
+            start_tag (int): First core tag to use (must be >= 0)
+        """
+        if not isinstance(start_tag, int) or start_tag < 0:
+            raise ValueError("Core tag start must be an integer >= 0")
+        self._start_core_tag = start_tag
 
     def _progress_callback(self, value: float, message: str):
         """Default progress reporter that uses the shared Progress utility."""
