@@ -213,6 +213,8 @@ class mpConstraintManager:
         Returns:
             None
         """
+        from femora.components.MeshMaker import MeshMaker
+
         assembler = Assembler()
         # check if the AssembeledMesh is not None
         if assembler.AssembeledMesh is None:
@@ -254,7 +256,7 @@ class mpConstraintManager:
 
         kdtree = KDTree(mesh.points)
         distances, indices = kdtree.query(points, k=1)
-        nodeTags = indices + 1
+        nodeTags = indices + MeshMaker()._start_nodetag
         
         # attach the nodeTags to the points at the first column
         z = points[:, direction-1]
