@@ -1300,6 +1300,24 @@ class DampingManager:
             List[str]: A list of damping type names that can be used with create_damping()
         """
         return DampingRegistry.get_available_types()
+    
+    def set_start_tag(self, start_tag: int) -> None:
+        """
+        Set the starting tag number for new damping instances.
+        
+        This method allows customization of the initial tag number assigned to
+        newly created damping instances. By default, tags start from 1 and
+        increment sequentially with each new instance.
+        
+        Args:
+            start_tag (int): The starting tag number for new damping instances
+            
+        Raises:
+            ValueError: If start_tag is not a positive integer
+        """
+        if not isinstance(start_tag, int) or start_tag < 1:
+            raise ValueError("start_tag must be a positive integer")
+        DampingBase.set_tag_start(start_tag)
 
 
 class DampingRegistry:
