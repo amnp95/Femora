@@ -59,12 +59,13 @@ class GeometricTransformation(ABC):
         cls._start_tag = start_tag
         cls._retag_all_instances()
 
-    def __init__(self, transf_type, dimension):
+    def __init__(self, transf_type, dimension, description=""):
         self._transformation_type = transf_type
         self._dimension = dimension
         self._transf_tag = self._assign_tag()
         self.__class__._instances.append(self)
         self.eps = 1e-12 
+        self.description = description
 
     @classmethod
     def _assign_tag(cls):
@@ -142,8 +143,8 @@ class GeometricTransformation2D(GeometricTransformation):
         has_joint_offsets: Returns True if any joint offset is nonzero.
         to_tcl: Returns the TCL command string for this transformation.
     """
-    def __init__(self, transf_type, d_xi=0.0, d_yi=0.0, d_xj=0.0, d_yj=0.0):
-        super().__init__(transf_type, 2)
+    def __init__(self, transf_type, d_xi=0.0, d_yi=0.0, d_xj=0.0, d_yj=0.0, description=""):
+        super().__init__(transf_type, 2, description=description)
         self.d_xi = float(d_xi)
         self.d_yi = float(d_yi)
         self.d_xj = float(d_xj)
@@ -159,6 +160,8 @@ class GeometricTransformation2D(GeometricTransformation):
         if self.has_joint_offsets():
             cmd += f" -jntOffset {self.d_xi} {self.d_yi} {self.d_xj} {self.d_yj}"
         return cmd
+        if self.description != "":
+            cmd += f"; # {self.description}"
 
 
 
@@ -178,8 +181,8 @@ class GeometricTransformation3D(GeometricTransformation):
         has_joint_offsets: Returns True if any joint offset is nonzero.
         to_tcl: Returns the TCL command string for this transformation.
     """
-    def __init__(self, transf_type, vecxz_x:'float|str', vecxz_y:'float|str', vecxz_z:'float|str', d_xi='0.0', d_yi='0.0', d_zi='0.0', d_xj='0.0', d_yj='0.0', d_zj='0.0'):
-        super().__init__(transf_type, 3)
+    def __init__(self, transf_type, vecxz_x:'float|str', vecxz_y:'float|str', vecxz_z:'float|str', d_xi='0.0', d_yi='0.0', d_zi='0.0', d_xj='0.0', d_yj='0.0', d_zj='0.0', description=""):
+        super().__init__(transf_type, 3, description=description)
         self.vecxz_x = float(vecxz_x)
         self.vecxz_y = float(vecxz_y)
         self.vecxz_z = float(vecxz_z)
@@ -206,6 +209,8 @@ class GeometricTransformation3D(GeometricTransformation):
         cmd = f"geomTransf {self.transformation_type} {self.transf_tag} {self.vecxz_x} {self.vecxz_y} {self.vecxz_z}"
         if self.has_joint_offsets():
             cmd += f" -jntOffset {self.d_xi} {self.d_yi} {self.d_zi} {self.d_xj} {self.d_yj} {self.d_zj}"
+        if self.description != "":
+            cmd += f"; # {self.description}"
         return cmd
 
 
