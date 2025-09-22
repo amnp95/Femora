@@ -164,7 +164,6 @@ class MeshMaker:
 			set local_max $tag
 		}
 	}
-	puts "local_max: $local_max from pid $::pid"
 	# send the max ele tag form each pid to the master
 	if {$::pid == 0} {
 		for {set i 1 } {$i < $::np} {incr i 1} { 
