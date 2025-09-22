@@ -541,8 +541,8 @@ class EmbeddedBeamSolidInterface(InterfaceBase, HandlesDecompositionMixin):
         crd_transf_tag = self.beam_part.element.get_transformation().tag
         file_handle.write("set Femora_embeddedBeamSolidStartTag [getFemoraMax eleTag]\n")
         file_handle.write("set Femora_embeddedBeamSolidStartTag [expr $Femora_embeddedBeamSolidStartTag + 1]\n")
-        ele_start_tag = kwargs.get("ele_start_tag", 1)
-        core_start_tag = kwargs.get("core_start_tag", 1)
+        ele_start_tag = MeshMaker()._start_ele_tag
+        core_start_tag = MeshMaker()._start_core_tag
         for ii, info in enumerate(self._instance_embeddedinfo_list):
             core = info.core_number + core_start_tag
             file_handle.write("if {$pid == %d} {\n" % core)
