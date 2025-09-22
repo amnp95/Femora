@@ -684,9 +684,10 @@ class DRM:
             distances, indices = tree.query(cellCentersCoords, k=1)
             
 
+        # mesh.plot(show_edges=True)
+        # Absorbing.plot(show_edges=True)
 
-
-        self.meshmaker.assembler.AssembeledMesh = Absorbing.merge(mesh, 
+        self.meshmaker.assembler.AssembeledMesh = mesh.merge(Absorbing, 
                                                   merge_points = False, 
                                                   tolerance = 1e-6, 
                                                   inplace = False, 
