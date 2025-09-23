@@ -1,5 +1,11 @@
 
-def soil_foundation_type_one(structure_info, soil_info, foundation_info, pile_info):
+def soil_foundation_type_one(model_filename, 
+                             structure_info=None, 
+                             soil_info=None, 
+                             foundation_info=None, 
+                             pile_info=None,
+                             info_file=None,
+                             EEUQ=False):
     # This model creates a soil profile and foundation for a custom building,
     # designed for use in the EE-UQ application.
     # Developed by Amin Pakzad, University of Washington.
@@ -10,6 +16,32 @@ def soil_foundation_type_one(structure_info, soil_info, foundation_info, pile_in
     #   1 - all the materials for the soil profile are linear elastic
     #   2 - the soil profile is layerd horizontally
     #   3 - the custom building bays should be in x and y direction and the height should be in z direction
+    # ========================================================================
+    # input parameters
+    if info_file is not None:
+        import json
+        with open(info_file, 'r') as f:
+            info = json.load(f)
+            structure_info = info.get("structure_info", None)
+            soil_foundation_info = info.get("soil_foundation_info", None)
+            if soil_foundation_info is None:
+                print("Error: soil_foundation_info is not defined in the info file")
+                sys.exit(1)
+            if structure_info is None:
+                print("Error: structure_info is not defined in the info file")
+                sys.exit(1)
+            soil_info = soil_foundation_info.get("soil_info", None)
+            foundation_info = soil_foundation_info.get("foundation_info", None)
+            pile_info = soil_foundation_info.get("pile_info", None)
+            if soil_info is None:
+                print("Error: soil_info is not defined in the info file")
+                sys.exit(1)
+            if foundation_info is None:
+                print("Error: foundation_info is not defined in the info file")
+                sys.exit(1)
+            if pile_info is None:
+                print("Error: pile_info is not defined in the info file")
+                sys.exit(1)
 
     # ==========================================================================
     # Soil materials properties for this code
@@ -374,7 +406,7 @@ def soil_foundation_type_one(structure_info, soil_info, foundation_info, pile_in
         sys.exit(1)
 
     for col_index, col in enumerate(structure_info["columns_base"]):
-        z = col["z"] - structure_info.get("column_embedment_depth")
+        z = col["z"] - foundation_info.get("column_embedment_depth")
         x = col["x"]
         y = col["y"]
         foundation_found = False
@@ -1013,7 +1045,7 @@ def soil_foundation_type_one(structure_info, soil_info, foundation_info, pile_in
         y = col["y"]
         z = col["z"]
         z_top = z
-        z_bot = z - structure_info.get("column_embedment_depth")
+        z_bot = z - foundation_info.get("column_embedment_depth")
         transformation = ["Linear", 0.0, 1.0, 0.0]
         transf = fm.transformation.transformation3d(
                     transf_type=transformation[0],
@@ -1022,12 +1054,12 @@ def soil_foundation_type_one(structure_info, soil_info, foundation_info, pile_in
                     vecxz_z=transformation[3],
                     description="ColumnBaseTransformation_" + str(col_index+1)  
                 )
-        E  = structure_info["column_section_props"]["E"]
-        A  = structure_info["column_section_props"]["A"]
-        Iy = structure_info["column_section_props"]["Iy"]
-        Iz = structure_info["column_section_props"]["Iz"]
-        G  = structure_info["column_section_props"]["G"]
-        J  = structure_info["column_section_props"]["J"]
+        E  = foundation_info["column_section_props"]["E"]
+        A  = foundation_info["column_section_props"]["A"]
+        Iy = foundation_info["column_section_props"]["Iy"]
+        Iz = foundation_info["column_section_props"]["Iz"]
+        G  = foundation_info["column_section_props"]["G"]
+        J  = foundation_info["column_section_props"]["J"]
         try:
             assert E > 0 and A > 0 and Iy > 0 and Iz > 0 and G > 0 and J > 0
         except:
@@ -1195,6 +1227,7 @@ while { $AnalysisStep < 10} {
 	incr AnalysisStep 1
 }
 wipeAnalysis
+setTime 0.0
 """)
 
 
@@ -1321,6 +1354,9 @@ proc Femora_getNodeCoordFrom {structureCores embeddedCore nTag secTag eleTag enT
     # strucutre tcl 
     # ============================================================================
     structure_file = structure_info.get("model_file", None)
+    if EEUQ:
+        print(os.getcwd())
+        structure_file = os.path.basename(structure_file) 
     structure_numpartitions = structure_info.get("num_partitions")
     if structure_file is not None:
         try:
@@ -1402,7 +1438,7 @@ while {[getTime] < $endTime} {
     fm.process.add_step(plastic_update,  description="Update material to plastic")
     fm.process.add_step(gravity_plastic, description="Gravity analysis in plastic regime")
     # fm.process.add_step(recorder,        description="Recorder")
-    fm.process.add_step(tmptcl,          description="Dynamic analysis with ground motion")
+    # fm.process.add_step(tmptcl,          description="Dynamic analysis with ground motion")
     fm.process.add_step(fm.actions.tcl("exit"), description="Exit")
 
 
@@ -1412,7 +1448,7 @@ while {[getTime] < $endTime} {
     # =============================================================================
     # exporting the model to tcl
     # =============================================================================
-    model_filename = "tmpmodel.tcl"
+    # model_filename = "tmpmodel.tcl"
     import tqdm
     bar = tqdm.tqdm(total=100, 
                     desc="Exporting model to tcl", 
@@ -1444,7 +1480,7 @@ while {[getTime] < $endTime} {
                     file_handle=f, 
                     assembled_mesh=fm.assembler.AssembeledMesh)
 
-        f.write("wipe\n")
+        # f.write("wipe\n")
         f.write("model BasicBuilder -ndm 3\n")
         f.write("set pid [getPID]\n")
         f.write("set np [getNP]\n")
@@ -1701,7 +1737,14 @@ while {[getTime] < $endTime} {
 
         if progress_callback:
             progress_callback(100, "finished exporting model")
-    # %%
+
+
+    # return the number of cores the mode needs
+    num_cores = max(self.assembler.AssembeledMesh.cell_data["Core"])
+    num_cores += structure_info.get("num_partitions", 1)
+    num_cores += 1  # to account for zero indexing
+    print(f"Model requires at least {num_cores} cores to run.")
+    return num_cores
 
 
 
@@ -1709,70 +1752,70 @@ while {[getTime] < $endTime} {
 
 
 
-    # ============================================================================
-    # ploting each core separately
-    # ============================================================================
-    mesh = fm.assembler.get_mesh()
-    cores = np.unique(mesh.cell_data["Core"])
-    print("Number of cores: ", len(cores))
-    print("Number of cells: ", mesh.n_cells)
-    print("Number of points: ", mesh.n_points)
+    # # ============================================================================
+    # # ploting each core separately
+    # # ============================================================================
+    # mesh = fm.assembler.get_mesh()
+    # cores = np.unique(mesh.cell_data["Core"])
+    # print("Number of cores: ", len(cores))
+    # print("Number of cells: ", mesh.n_cells)
+    # print("Number of points: ", mesh.n_points)
+    # # for core in cores:
+    # #     pl = pv.Plotter()
+    # #     part = mesh.extract_cells(mesh.cell_data["Core"] == core)
+    # #     pl.add_mesh(part, show_edges=True, opacity=1.0, scalars="Core", multi_colors=True)
+    # #     pl.add_mesh(mesh, style='wireframe', color="black", line_width=1, opacity=0.1)
+    # #     pl.show(title="Core " + str(core))
+
+    # center = np.array(mesh.center)
+    # assmesh = fm.assembler.get_mesh()
+    # mesh = pv.MultiBlock()
     # for core in cores:
+    #     part = assmesh.extract_cells(assmesh.cell_data["Core"] == core)
+    #     # Move points away from the part center to create an exploded view (previous repeat caused shape mismatch)
+    #     vec = (part.center - center) * 2
+    #     vec = vec / np.linalg.norm(vec) * 10  # Normalize and scale
+    #     # vec[:2] = 0  # Only move in the Z direction
+    #     part.points += vec
+    #     mesh.append(part)
+
+    # mesh.plot(show_edges=True, 
+    #         opacity=1.0, 
+    #         scalars="Core",
+    #         multi_colors=True, 
+    #         style="surface", 
+    # )
+
+
+    # strucure_mesh   = structure_info.get("mesh_file", None)
+    # if strucure_mesh is not None:
+    #     structure_part = pv.read(strucure_mesh)
     #     pl = pv.Plotter()
-    #     part = mesh.extract_cells(mesh.cell_data["Core"] == core)
-    #     pl.add_mesh(part, show_edges=True, opacity=1.0, scalars="Core", multi_colors=True)
-    #     pl.add_mesh(mesh, style='wireframe', color="black", line_width=1, opacity=0.1)
-    #     pl.show(title="Core " + str(core))
-
-    center = np.array(mesh.center)
-    assmesh = fm.assembler.get_mesh()
-    mesh = pv.MultiBlock()
-    for core in cores:
-        part = assmesh.extract_cells(assmesh.cell_data["Core"] == core)
-        # Move points away from the part center to create an exploded view (previous repeat caused shape mismatch)
-        vec = (part.center - center) * 2
-        vec = vec / np.linalg.norm(vec) * 10  # Normalize and scale
-        # vec[:2] = 0  # Only move in the Z direction
-        part.points += vec
-        mesh.append(part)
-
-    mesh.plot(show_edges=True, 
-            opacity=1.0, 
-            scalars="Core",
-            multi_colors=True, 
-            style="surface", 
-    )
-
-
-    strucure_mesh   = structure_info.get("mesh_file", None)
-    if strucure_mesh is not None:
-        structure_part = pv.read(strucure_mesh)
-        pl = pv.Plotter()
-        pl.add_mesh(structure_part, style='wireframe', color="black", line_width=3, opacity=1.0)
-        pl.add_mesh(fm.assembler.AssembeledMesh, show_edges=True, opacity=1.0, scalars="Core", multi_colors=True)
-        pl.show(title="Structure and Soil")
+    #     pl.add_mesh(structure_part, style='wireframe', color="black", line_width=3, opacity=1.0)
+    #     pl.add_mesh(fm.assembler.AssembeledMesh, show_edges=True, opacity=1.0, scalars="Core", multi_colors=True)
+    #     pl.show(title="Structure and Soil")
     
 
 
 
 
 
-    fm.assembler.plot(show_edges=True, 
-                    opacity=1.0, 
-                    scalars="Core",
-                    multi_colors=True, 
-                    style="surface", 
-                    explode=False, 
-                    explode_factor=0.3,
-                    render_lines_as_tubes=False,
-                    sperate_beams_solid=True,
-                    opacity_beams=1.0, 
-                    opacity_solids=0.7,
-                    tube_radius=5.0,
-                    show_cells_by_type=False,
-                    cells_to_show=[pv.CellType.LINE],
-                    show_grid=True
-                    )
+    # fm.assembler.plot(show_edges=True, 
+    #                 opacity=1.0, 
+    #                 scalars="Core",
+    #                 multi_colors=True, 
+    #                 style="surface", 
+    #                 explode=False, 
+    #                 explode_factor=0.3,
+    #                 render_lines_as_tubes=False,
+    #                 sperate_beams_solid=True,
+    #                 opacity_beams=1.0, 
+    #                 opacity_solids=0.7,
+    #                 tube_radius=5.0,
+    #                 show_cells_by_type=False,
+    #                 cells_to_show=[pv.CellType.LINE],
+    #                 show_grid=True
+    #                 )
 
 
 if __name__ == "__main__":
@@ -1982,6 +2025,5 @@ if __name__ == "__main__":
         },
     }
 
-    custom_building(structure_info, soil_info, foundation_info, pile_info)
 
 
