@@ -1,5 +1,5 @@
 
-def soil_foundation_type_one(model_filename, 
+def soil_foundation_type_one(model_filename="model.tcl", 
                              structure_info=None, 
                              soil_info=None, 
                              foundation_info=None, 
@@ -1221,7 +1221,7 @@ test EnergyIncr 0.001 20 2
 integrator Newmark 0.6 0.30250000000000005
 analysis Transient
 set AnalysisStep 0
-while { $AnalysisStep < 10} {
+while { $AnalysisStep < 100} {
 	if {$pid==0} {puts "$AnalysisStep/100"}
 	set Ok [analyze 1 0.01]
 	incr AnalysisStep 1
@@ -1439,7 +1439,7 @@ while {[getTime] < $endTime} {
     fm.process.add_step(gravity_plastic, description="Gravity analysis in plastic regime")
     # fm.process.add_step(recorder,        description="Recorder")
     # fm.process.add_step(tmptcl,          description="Dynamic analysis with ground motion")
-    fm.process.add_step(fm.actions.tcl("exit"), description="Exit")
+    # fm.process.add_step(fm.actions.tcl("exit"), description="Exit")
 
 
 
