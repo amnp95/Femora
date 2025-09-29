@@ -66,6 +66,20 @@ all = [
     "jinja2>=3.0.3,<3.1.0"
 ]
 
+simcenter = [
+    "h5py>=3.13.0",
+    "pykdtree>=1.4.1",
+    "pyvista>=0.45.0",
+    "tapipy>=1.8.2",
+    "vtk>=9.5.0",
+    "tqdm",
+    "scipy",
+    "meshlib",
+    "trame",
+    "trame-vtk",
+    "trame-vuetify"
+]
+
 [project.urls]
 Homepage = "https://github.com/amnp95/Femora"
 Documentation = "https://amnp95.github.io/Femora"
