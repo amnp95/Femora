@@ -5,7 +5,8 @@ def soil_foundation_type_one(model_filename="model.tcl",
                              foundation_info=None, 
                              pile_info=None,
                              info_file=None,
-                             EEUQ=False):
+                             EEUQ=False,
+                             plotting=False):
     # This model creates a soil profile and foundation for a custom building,
     # designed for use in the EE-UQ application.
     # Developed by Amin Pakzad, University of Washington.
@@ -1179,6 +1180,21 @@ def soil_foundation_type_one(model_filename="model.tcl",
         fm.constraint.sp.fixMacroZmin(dofs=dofsVals)
 
 
+    # ============================================================================
+    # plotting
+    # ============================================================================
+    # if plotting true retun the soil, foundation and pile mesh
+    if plotting:
+        mesh =fm.assembler.get_mesh()
+        pile_mesh_tags = [fm.meshPart.get_mesh_part(name).tag for name in pile_sections]
+        foundation_mesh_tags = [fm.meshPart.get_mesh_part(name).tag for name in foundation_sections]
+        soil_mesh_tags = [fm.meshPart.get_mesh_part(name).tag for name in soil_sections]
+        MeshTag = fm.assembler.AssembeledMesh.cell_data["MeshTag_cell"]
+        pile_mesh = mesh.extract_cells(np.isin(MeshTag, pile_mesh_tags))
+        foundation_mesh = mesh.extract_cells(np.isin(MeshTag, foundation_mesh_tags))
+        soil_mesh = mesh.extract_cells(np.isin(MeshTag, soil_mesh_tags))
+        return pile_mesh, foundation_mesh, soil_mesh
+        # return pile_mesh, foundation_mesh, soil_mesh
 
     # ============================================================================
     # actions and analysis

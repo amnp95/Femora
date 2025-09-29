@@ -49,15 +49,26 @@ class SoilFoundationPlotter:
             self.pile_info,
         ) = self._load_infos(structure_info, soil_info, foundation_info, pile_info, info_file)
         
+        # In-memory cached actual meshes (no disk persistence)
+        self._actual_soil = None
+        self._actual_pile = None
+        self._actual_foundation = None
+        self._scalars = ["Mesh", "Core", "Region", "ElementTag", "MaterialTag"]
+        # Optional public aliases
+        # self.actual_soil = None
+        # self.actual_pile = None
+        # self.actual_foundation = None
+        self._discretized_exists = False
+        # Extra actors toggled from UI
+        self._axes_actor = None
+        self._grid_actor = None
+
         # Handle mesh file
         mesh_file = self.structure_info.get("mesh_file", None) if self.structure_info else None
-        print("mesh_file: ", mesh_file) 
-        print(self.structure_info)
         if mesh_file == "" or (mesh_file and not os.path.isfile(mesh_file)):
             mesh_file = None
             print("Warning: mesh file is not a valid file")
         self._mesh_file = mesh_file
-        print("mesh_file: ", mesh_file)
 
         # Configure PyVista for web rendering
         pv.OFF_SCREEN = True
@@ -83,7 +94,11 @@ class SoilFoundationPlotter:
             "show_piles": True,
             "piles_opacity": 1.0,
             "show_mesh": bool(mesh_file),
-            "mesh_opacity": 0.3,
+            "mesh_opacity": 1.0,
+            "discretized": self._discretized_exists,
+            "show_axes": False,
+            "show_grid": False,
+            "selected_scalar": "Mesh",
         }
 
         # Setup server
@@ -126,11 +141,32 @@ class SoilFoundationPlotter:
         
         # Initialize state variables
         state.update(self.state_defaults)
+        # Provide scalar items via state to avoid string-splitting in VSelect
+        try:
+            state.scalars = list(self._scalars)
+        except Exception:
+            state.scalars = ["None", "Core", "Region", "ElementTag", "MaterialTag"]
+        # Visual styles for toggle buttons
+        try:
+            state.show_axes_variant = "text"
+            state.show_axes_color = "grey"
+            state.show_grid_variant = "text"
+            state.show_grid_color = "grey"
+        except Exception:
+            pass
         
         # Define controller methods
         @ctrl.set("quick_plot")
         def quick_plot_handler():
             self.quick_plot()
+            
+        @ctrl.set("actual_plot")
+        def actual_plot_handler():
+            self.actual_plot()
+            
+        @ctrl.set("discretize")
+        def discretize_handler():
+            self.discretize_and_save()
             
         @ctrl.set("clear_all")
         def clear_all_handler():
@@ -140,6 +176,70 @@ class SoilFoundationPlotter:
         def reset_camera_handler():
             self.reset_camera()
 
+        # Camera view helpers
+        @ctrl.set("view_iso")
+        def view_iso_handler():
+            try:
+                self.plotter.camera_position = "iso"
+            except Exception:
+                try:
+                    self.plotter.view_isometric()
+                except Exception:
+                    pass
+            self.update_view()
+
+        @ctrl.set("view_xy")
+        def view_xy_handler():
+            try:
+                self.plotter.view_xy()
+            except Exception:
+                try:
+                    self.plotter.camera_position = "xy"
+                except Exception:
+                    pass
+            self.update_view()
+
+        @ctrl.set("view_xz")
+        def view_xz_handler():
+            try:
+                self.plotter.view_xz()
+            except Exception:
+                try:
+                    self.plotter.camera_position = "xz"
+                except Exception:
+                    pass
+            self.update_view()
+
+        @ctrl.set("view_yz")
+        def view_yz_handler():
+            try:
+                self.plotter.view_yz()
+            except Exception:
+                try:
+                    self.plotter.camera_position = "yz"
+                except Exception:
+                    pass
+            self.update_view()
+
+        # Simple toggle helpers for small icon buttons
+        @ctrl.set("toggle_axes")
+        def toggle_axes_handler():
+            try:
+                self.server.state.show_axes = not bool(getattr(self.server.state, "show_axes", False))
+                if hasattr(self.server.state, "flush"):
+                    self.server.state.flush("show_axes")
+            except Exception:
+                pass
+
+        @ctrl.set("toggle_grid")
+        def toggle_grid_handler():
+            try:
+                self.server.state.show_grid = not bool(getattr(self.server.state, "show_grid", False))
+                if hasattr(self.server.state, "flush"):
+                    self.server.state.flush("show_grid")
+            except Exception:
+                pass
+
         # State change handlers
         @state.change("show_soil", "show_foundation", "show_piles", "show_mesh")
         def on_visibility_change(**kwargs):
@@ -148,6 +248,112 @@ class SoilFoundationPlotter:
         @state.change("soil_opacity", "foundation_opacity", "piles_opacity", "mesh_opacity")
         def on_opacity_change(**kwargs):
             self._apply_opacity()
+
+        @state.change("selected_scalar")
+        def on_scalar_change(selected_scalar, **kwargs):
+            if self._discretized_exists:
+                try:
+                    self.actual_plot(selected_scalar)
+                except Exception as e:
+                    print(f"Scalar change error: {e}")
+
+        @state.change("show_axes")
+        def on_show_axes_change(show_axes, **kwargs):
+            try:
+                if bool(show_axes):
+                    try:
+                        # Prefer explicit boolean toggle if supported
+                        self.plotter.show_axes(True)
+                    except TypeError:
+                        # Older versions: calling without args enables
+                        self.plotter.show_axes()
+                    except Exception:
+                        # Fallback to adding an axes actor in-scene
+                        if self._axes_actor is None:
+                            self._axes_actor = self.plotter.add_axes()
+                    # update styles
+                    if hasattr(self.server, 'state'):
+                        self.server.state.show_axes_variant = "elevated"
+                        self.server.state.show_axes_color = "primary"
+                else:
+                    hid_ok = False
+                    try:
+                        # Prefer explicit boolean toggle off
+                        self.plotter.show_axes(False)
+                        hid_ok = True
+                    except Exception:
+                        pass
+                    if not hid_ok:
+                        try:
+                            # Some versions expose hide_axes()
+                            self.plotter.hide_axes()
+                            hid_ok = True
+                        except Exception:
+                            pass
+                    if not hid_ok and self._axes_actor is not None:
+                        # Last resort: try removing stored actor
+                        try:
+                            self.plotter.remove_actor(self._axes_actor)
+                        except Exception:
+                            pass
+                        self._axes_actor = None
+                    # update styles
+                    if hasattr(self.server, 'state'):
+                        self.server.state.show_axes_variant = "text"
+                        self.server.state.show_axes_color = "grey"
+            except Exception as e:
+                print(f"Axes toggle error: {e}")
+            self.update_view()
+
+        @state.change("show_grid")
+        def on_show_grid_change(show_grid, **kwargs):
+            try:
+                if bool(show_grid):
+                    try:
+                        # Most versions simply enable with no args
+                        self.plotter.show_grid()
+                    except TypeError:
+                        # Some versions allow explicit boolean
+                        self.plotter.show_grid(True)
+                    except Exception:
+                        # Fallback try returning actor
+                        try:
+                            self._grid_actor = self.plotter.show_grid(return_actor=True)
+                        except Exception:
+                            self._grid_actor = None
+                    # update styles
+                    if hasattr(self.server, 'state'):
+                        self.server.state.show_grid_variant = "elevated"
+                        self.server.state.show_grid_color = "primary"
+                else:
+                    removed = False
+                    try:
+                        # Proper API to remove bounds axes grid
+                        self.plotter.remove_bounds_axes()
+                        removed = True
+                    except Exception:
+                        pass
+                    if not removed:
+                        try:
+                            # Some versions allow disabling grid this way
+                            self.plotter.show_grid(False)
+                            removed = True
+                        except Exception:
+                            pass
+                    if not removed and self._grid_actor is not None:
+                        try:
+                            self.plotter.remove_actor(self._grid_actor)
+                            removed = True
+                        except Exception:
+                            pass
+                        self._grid_actor = None
+                    # update styles
+                    if hasattr(self.server, 'state'):
+                        self.server.state.show_grid_variant = "text"
+                        self.server.state.show_grid_color = "grey"
+            except Exception as e:
+                print(f"Grid toggle error: {e}")
+            self.update_view()
 
         # Create the layout
         with SinglePageWithDrawerLayout(self.server) as layout:
@@ -163,6 +369,23 @@ class SoilFoundationPlotter:
                     click=ctrl.quick_plot, 
                     block=True,
                     prepend_icon="mdi-chart-scatter-plot" if _tv_major >= 3 else None
+                )
+                vuetify.VBtn(
+                    "Discretize",
+                    color="success",
+                    click=ctrl.discretize,
+                    block=True,
+                    classes="mt-2",
+                    disabled=("discretized", self._discretized_exists),
+                    prepend_icon="mdi-cube-scan" if _tv_major >= 3 else None
+                )
+                vuetify.VBtn(
+                    "Actual Plot",
+                    color="success",
+                    click=ctrl.actual_plot,
+                    block=True,
+                    classes="mt-2",
+                    prepend_icon="mdi-cube-outline" if _tv_major >= 3 else None
                 )
                 vuetify.VBtn(
                     "Reset Camera",
@@ -241,6 +464,17 @@ class SoilFoundationPlotter:
                     hide_details=True
                 )
 
+                # Scalar selection
+                vuetify.VDivider(classes="my-3")
+                html.Div("Scalar coloring", classes="text-subtitle-2 mt-1 mb-1")
+                vuetify.VSelect(
+                    v_model=("selected_scalar", self.state_defaults["selected_scalar"]),
+                    label="Scalars",
+                    items=("scalars", self._scalars),
+                    dense=True,
+                    clearable=True,
+                )
+
                 # Object count display
                 vuetify.VDivider(classes="my-3")
                 vuetify.VChip(
@@ -249,6 +483,97 @@ class SoilFoundationPlotter:
                     variant="elevated" if _tv_major >= 3 else "default",
                     classes="ma-1"
                 )
+
+                # Bottom-left compact tools (axes/grid toggles and camera views)
+                from trame.widgets import html as _html  # local alias to avoid confusion
+                with _html.Div(style="position: absolute; left: 12px; bottom: 12px; z-index: 10;"):
+                    # Grid container for two rows, spaced buttons
+                    with _html.Div(style="display: grid; grid-template-columns: repeat(3, max-content); gap: 10px 12px;"):
+                        if _tv_major >= 3:
+                            vuetify.VBtn(
+                                icon="mdi-axis-arrow",
+                                size="large",
+                                variant=("show_axes_variant", "text"),
+                                color=("show_axes_color", "grey"),
+                                click=ctrl.toggle_axes,
+                            )
+                            vuetify.VBtn(
+                                icon="mdi-grid",
+                                size="large",
+                                variant=("show_grid_variant", "text"),
+                                color=("show_grid_color", "grey"),
+                                click=ctrl.toggle_grid,
+                            )
+                            vuetify.VBtn(
+                                icon="mdi-cube-scan",
+                                size="large",
+                                color="secondary",
+                                click=ctrl.view_iso,
+                            )
+                            vuetify.VBtn(
+                                icon="mdi-axis-z-arrow",
+                                size="large",
+                                color="secondary",
+                                click=ctrl.view_xy,
+                            )
+                            vuetify.VBtn(
+                                icon="mdi-axis-y-arrow",
+                                size="large",
+                                color="secondary",
+                                click=ctrl.view_xz,
+                            )
+                            vuetify.VBtn(
+                                icon="mdi-axis-x-arrow",
+                                size="large",
+                                color="secondary",
+                                click=ctrl.view_yz,
+                            )
+                        else:
+                            # Vuetify v2 buttons, larger and spaced
+                            vuetify.VBtn(
+                                icon=True,
+                                large=True,
+                                depressed=("show_axes", False),
+                                color=("show_axes_color", "grey"),
+                                click=ctrl.toggle_axes,
+                                children=[vuetify.VIcon("mdi-axis-arrow")] 
+                            )
+                            vuetify.VBtn(
+                                icon=True,
+                                large=True,
+                                depressed=("show_grid", False),
+                                color=("show_grid_color", "grey"),
+                                click=ctrl.toggle_grid,
+                                children=[vuetify.VIcon("mdi-grid")] 
+                            )
+                            vuetify.VBtn(
+                                icon=True,
+                                large=True,
+                                color="secondary",
+                                click=ctrl.view_iso,
+                                children=[vuetify.VIcon("mdi-cube-scan")] 
+                            )
+                            vuetify.VBtn(
+                                icon=True,
+                                large=True,
+                                color="secondary",
+                                click=ctrl.view_xy,
+                                children=[vuetify.VIcon("mdi-axis-z-arrow")] 
+                            )
+                            vuetify.VBtn(
+                                icon=True,
+                                large=True,
+                                color="secondary",
+                                click=ctrl.view_xz,
+                                children=[vuetify.VIcon("mdi-axis-y-arrow")] 
+                            )
+                            vuetify.VBtn(
+                                icon=True,
+                                large=True,
+                                color="secondary",
+                                click=ctrl.view_yz,
+                                children=[vuetify.VIcon("mdi-axis-x-arrow")] 
+                            )
 
             with layout.content:
                 with vuetify.VContainer(fluid=True, classes="pa-0 fill-height"):
@@ -498,6 +823,8 @@ class SoilFoundationPlotter:
                 color="#333333",
                 opacity=self.state_defaults["mesh_opacity"],
                 show_edges=True,
+                render_lines_as_tubes=True,
+                line_width=2.0,
             )
             self.objects[name] = {
                 "mesh": mesh, 
@@ -622,6 +949,158 @@ class SoilFoundationPlotter:
             self.update_view()
             print(f"Removed object: {name}")
 
+
+    def actual_plot(self, scalar = None):
+        """Build and render the actual meshes returned by the model builder."""
+        # Clear existing scene
+        self.clear_all()
+        if scalar == "Mesh" or scalar == "None":
+            scalar = None
+
+        # If already computed, reuse in-memory cached meshes; otherwise compute once
+        pile_mesh, foundation_mesh, soil_mesh = None, None, None
+        if self._discretized_exists and self._actual_soil is not None:
+            pile_mesh = self._actual_pile
+            foundation_mesh = self._actual_foundation
+            soil_mesh = self._actual_soil
+        else:
+            pile_mesh, foundation_mesh, soil_mesh = self._compute_actual_meshes()
+            if pile_mesh is None and foundation_mesh is None and soil_mesh is None:
+                return
+            # Cache in memory and mark as discretized
+            self._actual_pile = pile_mesh
+            self._actual_foundation = foundation_mesh
+            self._actual_soil = soil_mesh
+            # self.actual_pile = pile_mesh
+            # self.actual_foundation = foundation_mesh
+            # self.actual_soil = soil_mesh
+            self._discretized_exists = True
+            try:
+                if hasattr(self, 'server'):
+                    self.server.state.discretized = True
+                    if hasattr(self.server.state, 'flush'):
+                        self.server.state.flush()
+            except Exception:
+                pass
+
+        # Add meshes to the scene with appropriate types
+        try:
+            if soil_mesh is not None and soil_mesh.n_cells > 0:
+                soil_actor = self.plotter.add_mesh(
+                    soil_mesh,
+                    name="soil_mesh",
+                    color="#C2B280",  # khaki-like
+                    opacity=self.state_defaults["soil_opacity"],
+                    show_edges=True,
+                    scalars=scalar,
+                )
+                self.objects["soil_mesh"] = {
+                    "mesh": soil_mesh,
+                    "actor": soil_actor,
+                    "type": "soil",
+                }
+
+            if foundation_mesh is not None and foundation_mesh.n_cells > 0:
+                foundation_actor = self.plotter.add_mesh(
+                    foundation_mesh,
+                    name="foundation_mesh",
+                    color="grey",
+                    opacity=self.state_defaults["foundation_opacity"],
+                    show_edges=True,
+                    scalars=scalar,
+                )
+                self.objects["foundation_mesh"] = {
+                    "mesh": foundation_mesh,
+                    "actor": foundation_actor,
+                    "type": "foundation",
+                }
+
+            if pile_mesh is not None and pile_mesh.n_cells > 0:
+                pile_actor = self.plotter.add_mesh(
+                    pile_mesh,
+                    name="pile_mesh",
+                    color="#55AA66",
+                    opacity=self.state_defaults["piles_opacity"],
+                    show_edges=True,
+                    scalars=scalar,
+                    render_lines_as_tubes=True,
+                    line_width=6.0,
+                )
+                self.objects["pile_mesh"] = {
+                    "mesh": pile_mesh,
+                    "actor": pile_actor,
+                    "type": "pile",
+                }
+        except Exception as exc:
+            print(f"Error adding actual meshes: {exc}")
+
+        # Optional building mesh from file
+        if self._mesh_file:
+            self._add_mesh_file()
+
+        # Apply current toggles and opacities
+        self._apply_visibility()
+        self._apply_opacity()
+
+        # Reset camera and update
+        self.reset_camera()
+        self.update_view()
+
+    
+
+
+    def _compute_actual_meshes(self):
+        """Compute the actual meshes using the model builder."""
+        try:
+            from femora.components.simcenter.eeuq.soil_foundation_type_one import soil_foundation_type_one
+            return soil_foundation_type_one(
+                structure_info=self.structure_info,
+                soil_info=self.soil_info,
+                foundation_info=self.foundation_info,
+                pile_info=self.pile_info,
+                plotting=True,
+            )
+            
+            
+        except Exception as exc:
+            print(f"Discretization failed: {exc}")
+            return None, None, None
+
+    def _check_discretized_exists(self) -> bool:
+        """Check if meshes are cached in memory (no disk)."""
+        return self._actual_soil is not None and self._actual_pile is not None and self._actual_foundation is not None
+
+    def _save_discretized(self, pile_mesh, foundation_mesh, soil_mesh):
+        """No-op: we keep meshes in memory only based on user request."""
+        self._actual_pile = pile_mesh
+        self._actual_foundation = foundation_mesh
+        self._actual_soil = soil_mesh
+        # self.actual_pile = pile_mesh
+        # self.actual_foundation = foundation_mesh
+        # self.actual_soil = soil_mesh
+
+    def _load_discretized(self):
+        """Return already-cached meshes from memory."""
+        return self._actual_pile, self._actual_foundation, self._actual_soil
+
+    def discretize_and_save(self):
+        """One-time discretization: compute and cache in memory, then disable the button forever."""
+        if self._discretized_exists:
+            print("Discretized meshes already exist. Skipping.")
+            return
+        pile_mesh, foundation_mesh, soil_mesh = self._compute_actual_meshes()
+        if pile_mesh is None and foundation_mesh is None and soil_mesh is None:
+            return
+        self._save_discretized(pile_mesh, foundation_mesh, soil_mesh)
+        self._discretized_exists = True
+        try:
+            if hasattr(self, 'server'):
+                self.server.state.discretized = True
+                if hasattr(self.server.state, 'flush'):
+                    self.server.state.flush()
+        except Exception:
+            pass
+                                
 
 # Example usage
 if __name__ == "__main__":
@@ -781,3 +1260,4 @@ if __name__ == "__main__":
     )
     
     plotter.start_server()
+
