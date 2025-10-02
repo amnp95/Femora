@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "femora"
-version = "0.1.0.4"
+version = "0.1.0.6"
 description = "Fast Efficient Meshing for OpenSees-based Resilience Analysis"
 readme = "README.md"
 authors = [
@@ -29,6 +29,9 @@ dependencies = [
     "tqdm",
     "scipy",
     "meshlib",
+    "trame",
+    "trame-vtk",
+    "trame-vuetify"
 ]
 
 [project.optional-dependencies]
