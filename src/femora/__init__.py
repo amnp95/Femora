@@ -37,8 +37,12 @@ _action_manager = ActionManager()
 
 # Export all attributes from the MeshMaker instance to the module level
 for attr_name in dir(_instance):
-    if not attr_name.startswith('_'):  # Skip private attributes
-        globals()[attr_name] = getattr(_instance, attr_name)
+    if attr_name.startswith('_'):
+        continue
+    # Avoid evaluating lazy properties at import time (e.g., mask)
+    if attr_name == 'mask':
+        continue
+    globals()[attr_name] = getattr(_instance, attr_name)
 
 # Make the instance's properties directly accessible from the module level
 material = _instance.material
@@ -71,3 +75,14 @@ actions = _action_manager
 # Also expose the underlying MeshMaker class and instance
 MeshMaker = MeshMaker
 get_instance = MeshMaker.get_instance
+
+
+def __getattr__(name):
+    """
+    Lazy attribute access for module-level conveniences.
+
+    This avoids evaluating certain properties (like `mask`) at import time.
+    """
+    if name == 'mask':
+        return _instance.mask
+    raise AttributeError(f"module 'femora' has no attribute {name!r}")
