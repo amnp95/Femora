@@ -47,23 +47,23 @@ class StructuredRectangular3D(MeshPart):
         Associated element.
     region : RegionBase, optional
         Associated region.
-    X Min : float
+    X Min or x_min : float
         Minimum X coordinate.
-    X Max : float
+    X Max or x_max : float
         Maximum X coordinate.
-    Y Min : float
+    Y Min or y_min : float
         Minimum Y coordinate.
-    Y Max : float
+    Y Max or y_max : float
         Maximum Y coordinate.
-    Z Min : float
+    Z Min or z_min : float
         Minimum Z coordinate.
-    Z Max : float
+    Z Max or z_max : float
         Maximum Z coordinate.
-    Nx Cells : int
+    Nx Cells or nx : int
         Number of cells in X direction.
-    Ny Cells : int
+    Ny Cells or ny : int
         Number of cells in Y direction.
-    Nz Cells : int
+    Nz Cells or nz : int
         Number of cells in Z direction.
     """
     _compatible_elements = ["stdBrick", "bbarBrick", "SSPbrick", "PML3D"]
@@ -79,23 +79,23 @@ class StructuredRectangular3D(MeshPart):
             Associated element.
         region : RegionBase, optional
             Associated region.
-        X Min : float
+        X Min or x_min : float
             Minimum X coordinate.
-        X Max : float
+        X Max or x_max : float
             Maximum X coordinate.
-        Y Min : float
+        Y Min or y_min : float
             Minimum Y coordinate.
-        Y Max : float
+        Y Max or y_max : float
             Maximum Y coordinate.
-        Z Min : float
+        Z Min or z_min : float
             Minimum Z coordinate.
-        Z Max : float
+        Z Max or z_max : float
             Maximum Z coordinate.
-        Nx Cells : int
+        Nx Cells or nx : int
             Number of cells in X direction.
-        Ny Cells : int
+        Ny Cells or ny : int
             Number of cells in Y direction.
-        Nz Cells : int
+        Nz Cells or nz : int
             Number of cells in Z direction.
         """
         super().__init__(
@@ -118,16 +118,16 @@ class StructuredRectangular3D(MeshPart):
             pv.UnstructuredGrid: Generated mesh
         """
         
-        # Extract parameters
-        x_min = self.params.get('X Min', 0)
-        x_max = self.params.get('X Max', 1)
-        y_min = self.params.get('Y Min', 0)
-        y_max = self.params.get('Y Max', 1)
-        z_min = self.params.get('Z Min', 0)
-        z_max = self.params.get('Z Max', 1)
-        nx = self.params.get('Nx Cells', 10)
-        ny = self.params.get('Ny Cells', 10)
-        nz = self.params.get('Nz Cells', 10)
+        # Extract parameters - support both old and new naming conventions
+        x_min = self.params.get('X Min', self.params.get('x_min', 0))
+        x_max = self.params.get('X Max', self.params.get('x_max', 1))
+        y_min = self.params.get('Y Min', self.params.get('y_min', 0))
+        y_max = self.params.get('Y Max', self.params.get('y_max', 1))
+        z_min = self.params.get('Z Min', self.params.get('z_min', 0))
+        z_max = self.params.get('Z Max', self.params.get('z_max', 1))
+        nx = self.params.get('Nx Cells', self.params.get('nx', 10))
+        ny = self.params.get('Ny Cells', self.params.get('ny', 10))
+        nz = self.params.get('Nz Cells', self.params.get('nz', 10))
         X = np.linspace(x_min, x_max, nx + 1)
         Y = np.linspace(y_min, y_max, ny + 1)
         Z = np.linspace(z_min, z_max, nz + 1)
@@ -166,19 +166,41 @@ class StructuredRectangular3D(MeshPart):
             Dict[str, Union[int, float, str]]: Dictionary of parmaeters with valid values
         """
         valid_params = {}
+        
+        # Parameter mapping for backward compatibility
+        param_mapping = {
+            'x_min': 'X Min',
+            'x_max': 'X Max', 
+            'y_min': 'Y Min',
+            'y_max': 'Y Max',
+            'z_min': 'Z Min',
+            'z_max': 'Z Max',
+            'nx': 'Nx Cells',
+            'ny': 'Ny Cells',
+            'nz': 'Nz Cells'
+        }
+        
+        # Normalize parameter names - convert new format to old format for consistency
+        normalized_kwargs = {}
+        for key, value in kwargs.items():
+            if key in param_mapping:
+                normalized_kwargs[param_mapping[key]] = value
+            else:
+                normalized_kwargs[key] = value
+        
         for param_name in ['X Min', 'X Max', 'Y Min', 'Y Max', 'Z Min', 'Z Max']:
-            if param_name in kwargs:
+            if param_name in normalized_kwargs:
                 try:
-                    valid_params[param_name] = float(kwargs[param_name])
+                    valid_params[param_name] = float(normalized_kwargs[param_name])
                 except ValueError:
                     raise ValueError(f"{param_name} must be a float number")
             else:
                 raise ValueError(f"{param_name} parameter is required")
         
         for param_name in ['Nx Cells', 'Ny Cells', 'Nz Cells']:
-            if param_name in kwargs:
+            if param_name in normalized_kwargs:
                 try:
-                    valid_params[param_name] = int(kwargs[param_name])
+                    valid_params[param_name] = int(normalized_kwargs[param_name])
                 except ValueError:
                     raise ValueError(f"{param_name} must be an integer number")
             else:
