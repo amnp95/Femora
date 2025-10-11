@@ -300,6 +300,79 @@ class mpConstraintManager:
     
 
 
+    def create_equal_dof_between_meshparts(self, meshpart_master: str, meshpart_slave: str, dofs: List[int], tol: float = 1e-5) -> None:
+        """
+        Create equalDOF constraints between two mesh parts by matching coincident points.
+
+        The master nodes are taken from the first mesh part and the slave nodes from the second.
+        For each master point, the nearest slave point within the specified tolerance is paired
+        and an equalDOF constraint is created for the requested DOFs.
+
+        Args:
+            meshpart_master: User name of the master mesh part.
+            meshpart_slave: User name of the slave mesh part.
+            dofs: List of 1-based DOF indices to constrain.
+            tol: Spatial tolerance for coincidence detection.
+
+        Raises:
+            ValueError: If the assembled mesh is missing, mesh parts are not found, or DOFs invalid.
+        """
+        # Local imports to avoid circular dependencies
+        from femora.components.Mesh.meshPartBase import MeshPart
+        from femora.components.MeshMaker import MeshMaker
+
+        assembler = Assembler()
+        if assembler.AssembeledMesh is None:
+            raise ValueError("AssembeledMesh is not created yet")
+
+        master_part = MeshPart.get_mesh_parts().get(meshpart_master)
+        slave_part = MeshPart.get_mesh_parts().get(meshpart_slave)
+        if master_part is None:
+            raise ValueError(f"MeshPart '{meshpart_master}' not found")
+        if slave_part is None:
+            raise ValueError(f"MeshPart '{meshpart_slave}' not found")
+
+        # Validate DOFs against both parts' ndf
+        ndf_master = master_part.element._ndof
+        ndf_slave = slave_part.element._ndof
+        max_common = min(ndf_master, ndf_slave)
+        if any((d < 1 or d > max_common) for d in dofs):
+            raise ValueError(f"Requested DOFs {dofs} invalid for master ndf={ndf_master} and slave ndf={ndf_slave}")
+
+        assembled = assembler.get_mesh()
+        points = assembled.points
+        master_idx = assembled.extract_values(values = master_part.tag ,scalars= "MeshTag_cell", preference="cell")
+        slave_idx = assembled.extract_values(values = slave_part.tag ,scalars= "MeshTag_cell", preference="cell")
+        master_idx = master_idx.point_data["vtkOriginalPointIds"]
+        slave_idx = slave_idx.point_data["vtkOriginalPointIds"]
+
+        # check that length of master_idx is equal to number of points in master_part
+        if len(master_idx) != master_part.mesh.n_points:
+            print(f"Warning: Number of points in master mesh part '{meshpart_master}' ({master_part.number_of_points}) does not match points found in assembled mesh ({len(master_idx)}).")
+        if len(slave_idx) != slave_part.mesh.n_points:
+            print(f"Warning: Number of points in slave mesh part '{meshpart_slave}' ({slave_part.number_of_points}) does not match points found in assembled mesh ({len(slave_idx)}).")
+        
+        if master_idx.size == 0:
+            raise ValueError(f"No points found for master mesh part '{meshpart_master}' in assembled mesh")
+        if slave_idx.size == 0:
+            raise ValueError(f"No points found for slave mesh part '{meshpart_slave}' in assembled mesh")
+
+        master_pts = points[master_idx]
+        slave_pts = points[slave_idx]
+
+        tree = KDTree(slave_pts)
+        distances, nearest = tree.query(master_pts, k=1)
+
+        start_node_tag = MeshMaker()._start_nodetag
+
+        for i, (dist, j) in enumerate(zip(distances, nearest)):
+            if dist <= tol:
+                master_point_idx = int(master_idx[i])
+                slave_point_idx = int(slave_idx[j])
+                master_node_tag = master_point_idx + start_node_tag
+                slave_node_tag = slave_point_idx + start_node_tag
+                self.create_equal_dof(master_node=master_node_tag, slave_nodes=[slave_node_tag], dofs=dofs)
+
     def create_constraint(self, constraint_type: str, *args) -> mpConstraint:
         """
         Create a constraint based on the specified type.
