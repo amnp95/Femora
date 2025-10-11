@@ -207,6 +207,21 @@ class MeshPart(ABC):
             n_pts = self.mesh.n_points
             self.mesh.point_data["Mass"] = np.zeros((n_pts, FEMORA_MAX_NDF), dtype=np.float32)
 
+    def plot(self, **kwargs) -> None:
+        """
+        Plot the mesh part using pyvista
+        
+        Args:
+            **kwargs: Additional keyword arguments for pyvista plotter
+        """
+        if self.mesh is None:
+            raise ValueError("Mesh not generated yet. Call generate_mesh() first.")
+        
+        self._ensure_mass_array()
+        
+        plotter = pv.Plotter()
+        plotter.add_mesh(self.mesh, **kwargs)
+        plotter.show()
 
 # Optional: Add to registry if needed
 class MeshPartRegistry:
