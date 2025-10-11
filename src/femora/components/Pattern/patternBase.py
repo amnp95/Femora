@@ -2,6 +2,16 @@ from abc import ABC, abstractmethod
 from typing import List, Dict, Optional, Union, Type
 import numpy as np
 from femora.components.TimeSeries.timeSeriesBase import TimeSeries
+from femora.components.load.load_base import Load, LoadManager
+try:
+    # For docstring forwarding in _AddLoadProxy
+    from femora.components.load.node_load import NodeLoad
+    from femora.components.load.element_load import ElementLoad
+    from femora.components.load.sp_load import SpLoad
+except Exception:
+    NodeLoad = None  # type: ignore
+    ElementLoad = None  # type: ignore
+    SpLoad = None  # type: ignore
 
 class Pattern(ABC):
     """
@@ -448,13 +458,312 @@ class H5DRMPattern(Pattern):
             setattr(self, key, value)
 
 
+class PlainPattern(Pattern):
+    """
+    Plain load pattern with a shared TimeSeries and contained loads.
+
+    The Plain pattern associates a single :class:`TimeSeries` with a collection
+    of loads (nodal, elemental, and single-point) and emits a TCL block using
+    OpenSees' Plain pattern syntax.
+
+    TCL form:
+        pattern Plain <patternTag> <tsTag> <-fact cFactor> {
+            <load commands>
+        }
+
+    Attributes:
+        time_series (TimeSeries): The time series used by this pattern.
+        factor (float): Constant factor applied to all loads in this pattern.
+        _loads (List[Load]): Internal list of loads attached to this pattern.
+
+    Examples:
+        Create a plain pattern and add loads via the factory proxy::
+
+            plain = PatternManager().create_pattern('plain', time_series=ts, factor=1.0)
+            plain.add_load.node(node_tag=3, values=[0.0, -50.0, 0.0])
+            plain.add_load.sp(node_mask=mm.nodes.along_axis('z', 9.0, 10.0), dof=2, value=-0.01)
+            plain.add_load.ele(kind='beamUniform', element_mask=mm.elements.by_material(3), params={'Wy': -200.0})
+    """
+
+    def __init__(self, **kwargs):
+        super().__init__("Plain")
+        validated = self.validate(**kwargs)
+        self.time_series: TimeSeries = validated["time_series"]
+        self.factor: float = validated.get("factor", 1.0)
+        self._loads: List[Load] = []
+
+    @staticmethod
+    def validate(**kwargs) -> Dict[str, Union[TimeSeries, float]]:
+        """
+        Validate constructor or update parameters.
+
+        Args:
+            **kwargs: Supported keys are:
+                - time_series (TimeSeries): Required time series instance.
+                - factor (float, optional): Constant factor (default 1.0).
+
+        Returns:
+            Dict[str, Union[TimeSeries, float]]: Normalized values.
+
+        Raises:
+            ValueError: If required parameters are missing or invalid.
+        """
+        if "time_series" not in kwargs:
+            raise ValueError("time_series must be specified")
+        ts = kwargs["time_series"]
+        if not isinstance(ts, TimeSeries):
+            raise ValueError("time_series must be a TimeSeries object")
+        out: Dict[str, Union[TimeSeries, float]] = {"time_series": ts}
+        if "factor" in kwargs:
+            try:
+                out["factor"] = float(kwargs["factor"])
+            except Exception:
+                raise ValueError("factor must be numeric")
+        return out
+
+    @staticmethod
+    def get_parameters() -> List[tuple]:
+        """
+        Get the parameters that define this pattern (for UI/metadata).
+
+        Returns:
+            List[tuple]: Tuples of (name, description).
+        """
+        return [
+            ("time_series", "TimeSeries used by the load pattern"),
+            ("factor", "Constant factor (optional, default=1.0)"),
+        ]
+
+    def get_values(self) -> Dict[str, Union[str, int, float, list]]:
+        """
+        Return a serializable dictionary of the current pattern state.
+
+        Returns:
+            Dict[str, Union[str, int, float, list]]
+        """
+        return {
+            "time_series": self.time_series,
+            "factor": self.factor,
+            "loads": [l.tag for l in self._loads],
+        }
+
+    def update_values(self, **kwargs) -> None:
+        """
+        Update the pattern's values.
+
+        Args:
+            **kwargs: Same keys as :meth:`validate`.
+
+        Raises:
+            ValueError: If validation fails.
+        """
+        validated = self.validate(
+            time_series=kwargs.get("time_series", self.time_series),
+            factor=kwargs.get("factor", self.factor),
+        )
+        self.time_series = validated["time_series"]  # type: ignore[index]
+        self.factor = float(validated.get("factor", self.factor))
+
+    # -------------------------------
+    # Load management (direct)
+    # -------------------------------
+    def add_load_instance(self, load: Load) -> None:
+        """
+        Attach a load instance to this pattern.
+
+        Args:
+            load (Load): The load to attach.
+
+        Notes:
+            Sets ``load.pattern_tag`` to this pattern's tag.
+        """
+        if not isinstance(load, Load):
+            raise ValueError("load must be an instance of Load")
+        if load in self._loads:
+            return
+        load.pattern_tag = self.tag
+        self._loads.append(load)
+
+    def remove_load(self, load: Load) -> None:
+        """
+        Remove a previously attached load instance.
+
+        Args:
+            load (Load): The load to remove.
+        """
+        if load in self._loads:
+            self._loads.remove(load)
+            load.pattern_tag = None
+
+    def clear_loads(self) -> None:
+        """
+        Remove all loads attached to this pattern.
+        """
+        for l in self._loads:
+            l.pattern_tag = None
+        self._loads.clear()
+
+    def get_loads(self) -> List[Load]:
+        """
+        Get a copy of the attached loads list.
+
+        Returns:
+            List[Load]: Loads currently attached to this pattern.
+        """
+        return list(self._loads)
+
+    def to_tcl(self) -> str:
+        """
+        Convert the pattern to a TCL Plain pattern block.
+
+        Returns:
+            str: TCL block string for OpenSees.
+        """
+        fact = f" -fact {self.factor}" if self.factor != 1.0 else ""
+        lines: List[str] = [f"pattern Plain {self.tag} {self.time_series.tag} {fact} {{"]
+        for l in self._loads:
+            lines.append(f"\t{l.to_tcl()}")
+        lines.append("}")
+        return "\n".join(lines)
+
+    # -------------------------------
+    # Load management (factory proxy)
+    # -------------------------------
+    class _AddLoadProxy:
+        """
+        Factory proxy to create loads and attach them to the pattern.
+
+        Methods mirror :class:`LoadManager` and return the created load after
+        automatically attaching it to the owning pattern.
+        """
+        def __init__(self, pattern: 'PlainPattern'):
+            self._pattern = pattern
+            self._manager = LoadManager()
+
+        def node(self, **kwargs) -> Load:
+            """
+            Add a nodal load to THIS PlainPattern and return the created NodeLoad.
+
+            Purpose:
+                Creates a NodeLoad and immediately attaches it to this pattern so
+                it is emitted inside this pattern's TCL block.
+
+            OpenSees form:
+                ``load <nodeTag> <values...>``
+
+            Parameters (kwargs):
+                - node_tag (int, optional): Target node tag when applying to a single node.
+                  Mutually exclusive with ``node_mask``.
+                - node_mask (NodeMask, optional): Selects multiple nodes. Mutually
+                  exclusive with ``node_tag``. When provided, one ``load`` line is
+                  emitted per node tag.
+                - values (List[float], required): Reference load vector. When using a
+                  mask, this vector is padded/truncated to each node's DOF.
+                - pids (List[int], optional): Core ids. If omitted and a mask is used,
+                  cores are derived per node from the assembled mesh; otherwise defaults
+                  to ``[0]``.
+
+            Returns:
+                Load: The created NodeLoad instance (already attached to this pattern).
+            """
+            load = self._manager.node(**kwargs)
+            self._pattern.add_load_instance(load)
+            return load
+
+        def element(self, **kwargs) -> Load:
+            """
+            Add an element load to THIS PlainPattern and return the created ElementLoad.
+
+            Purpose:
+                Creates an ElementLoad and immediately attaches it to this pattern so
+                it is emitted inside this pattern's TCL block.
+
+            OpenSees forms:
+                - 2D uniform: ``eleLoad -ele/-range ... -type -beamUniform Wy [Wx]``
+                - 3D uniform: ``eleLoad -ele/-range ... -type -beamUniform Wy Wz [Wx]``
+                - 2D point:   ``eleLoad -ele/-range ... -type -beamPoint   Py xL [Px]``
+                - 3D point:   ``eleLoad -ele/-range ... -type -beamPoint   Py Pz xL [Px]``
+
+            Parameters (kwargs):
+                - kind (str, required): ``'beamUniform'`` or ``'beamPoint'``.
+                - element_mask (ElementMask, optional): Selects elements; preferred.
+                  Alternatively specify exactly one of:
+                    - ele_tags (List[int]): Explicit element tags list
+                    - ele_range (Tuple[int,int]): Inclusive tag range ``(start, end)``
+                - params (Dict[str,float], required):
+                    For ``beamUniform``: ``Wy`` (required), optional ``Wz``, ``Wx``.
+                    For ``beamPoint``: ``Py`` and ``xL`` (required), optional ``Pz``, ``Px``.
+                - pid (int, optional): Core id. If omitted and a mask is used, pid is
+                  derived from the first selected element's core; otherwise defaults to 0.
+
+            Returns:
+                Load: The created ElementLoad instance (already attached to this pattern).
+            """
+            load = self._manager.element(**kwargs)
+            self._pattern.add_load_instance(load)
+            return load
+
+        def ele(self, **kwargs) -> Load:
+            """
+            Alias of ``element``: adds an element load to THIS PlainPattern.
+
+            See :meth:`element` for parameters and behavior.
+
+            Returns:
+                Load: The created ElementLoad instance (attached to this pattern).
+            """
+            return self.element(**kwargs)
+
+        def sp(self, **kwargs) -> Load:
+            """
+            Add a single-point constraint to THIS PlainPattern and return the created SpLoad.
+
+            Purpose:
+                Creates an SpLoad and immediately attaches it to this pattern so it is
+                emitted inside this pattern's TCL block.
+
+            OpenSees form:
+                ``sp <nodeTag> <dof> <value>``
+
+            Parameters (kwargs):
+                - node_tag (int, optional): Target node tag when applying to a single node.
+                  Mutually exclusive with ``node_mask``.
+                - node_mask (NodeMask, optional): Selects multiple nodes. Mutually
+                  exclusive with ``node_tag``. When provided, one ``sp`` line is emitted
+                  per node tag.
+                - dof (int, required): 1-based DOF index.
+                - value (float, required): Prescribed value.
+                - pids (List[int], optional): Core ids. If omitted and a mask is used,
+                  cores are derived per node from the assembled mesh; otherwise defaults
+                  to ``[0]``.
+
+            Returns:
+                Load: The created SpLoad instance (already attached to this pattern).
+            """
+            load = self._manager.sp(**kwargs)
+            self._pattern.add_load_instance(load)
+            return load
+
+    @property
+    def add_load(self) -> '_AddLoadProxy':
+        """
+        Access a proxy that can create and attach loads to this pattern.
+
+        Examples:
+            plain.add_load.node(node_tag=3, values=[0.0, -50.0, 0.0])
+            plain.add_load.sp(node_tag=4, dof=2, value=-100.0)
+            plain.add_load.ele(kind="beamUniform", ele_tags=[3], params={"Wy": -200.0})
+        """
+        return PlainPattern._AddLoadProxy(self)
+
 class PatternRegistry:
     """
     A registry to manage pattern types and their creation.
     """
     _pattern_types = {
         'uniformexcitation': UniformExcitation,
-        'h5drm': H5DRMPattern
+        'h5drm': H5DRMPattern,
+        'plain': PlainPattern,
     }
 
     @classmethod
@@ -505,6 +814,11 @@ class PatternManager:
     """
     _instance = None
 
+    def __init__(self):
+        self.uniformexcitation = UniformExcitation
+        self.h5drm = H5DRMPattern
+        self.plain = PlainPattern
+
     def __new__(cls):
         if cls._instance is None:
             cls._instance = super(PatternManager, cls).__new__(cls)
@@ -533,3 +847,6 @@ class PatternManager:
     def clear_all(self):
         """Clear all patterns"""  
         Pattern.clear_all()
+
+
+
