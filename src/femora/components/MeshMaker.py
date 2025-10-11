@@ -17,6 +17,7 @@ from femora.components.interface.interface_base import InterfaceManager
 from femora.components.section.section_base import SectionManager
 from femora.components.mass.mass_manager import MassManager
 from femora.components.geometry_ops.spatial_transform_manager import SpatialTransformManager
+from femora.components.mask.mask_manager import MaskManager
 import os
 from numpy import unique, zeros, arange, array, abs, concatenate, meshgrid, ones, full, uint16, repeat, where, isin
 from pyvista import Cube, MultiBlock, StructuredGrid
@@ -592,6 +593,22 @@ class MeshMaker:
             except Exception as e:
                 raise e
         return True
+
+    # -------------------------------------------------------------
+    # Mask convenience
+    # -------------------------------------------------------------
+    @property
+    def mask(self):
+        """
+        Access a MaskManager bound to the assembled mesh.
+
+        Returns:
+            MaskManager: Provides typed views via .nodes and .elements.
+
+        Raises:
+            RuntimeError: If the model has not been assembled yet.
+        """
+        return MaskManager.from_assembled()
 
     def set_model_info(self, model_name=None, model_path=None):
         """
