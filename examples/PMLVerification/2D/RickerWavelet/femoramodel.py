@@ -3,8 +3,9 @@ import femora as fm
 Vs = 300 # m/s
 nu = 0.3
 rho = 2000 # kg/m3
-BoubdaryConditionType = "Extended" ; # "PML" or "Fixed", "Extended"
-# BoubdaryConditionType = "PML" ; # "PML" or "Fixed", "Extended"
+# boundaryConditionType = "Extended" ; # "PML" or "Fixed", "Extended"
+# boundaryConditionType = "Fixed" ; # "PML" or "Fixed", "Extended"
+boundaryConditionType = "PML" ; # "PML" or "Fixed", "Extended"
 
 # calculate elastic parameters
 G = rho*Vs**2
@@ -45,7 +46,7 @@ if dx > max_dx:
     exit()
 
 
-if BoubdaryConditionType == "Extended":
+if boundaryConditionType == "Extended":
     additional_length = 510.0
 else:
     additional_length = 90.0
@@ -73,10 +74,13 @@ fm.mesh_part.volume.uniform_rectangular_grid(user_name="inner_meshpart",
 
 
 # number of elements in the PML
-n_elements_pml = 4
+n_elements_pml = 8
 thickness_pml = n_elements_pml * dx
 
 
+
+Damping = fm.damping.frequencyRayleigh(f1=0.2, f2=20.0, dampingFactor=0.95)
+PMLRegion = fm.region.elementRegion(damping=Damping)
 
 
 # right side PML 
@@ -101,7 +105,7 @@ right_absorbing_layer = fm.element.brick.pml3d(ndof=9,
 
 fm.mesh_part.volume.uniform_rectangular_grid(user_name="right_pml_meshpart",
                                              element = right_absorbing_layer,
-                                             region = fm.region.get_region(0),
+                                             region = PMLRegion,
                                              x_min = Xmax, 
                                              x_max = Xmax + thickness_pml,
                                              y_min = Ymin, 
@@ -137,7 +141,7 @@ right_corner_absorbing_layer = fm.element.brick.pml3d(ndof=9,
                                                     )
 fm.mesh_part.volume.uniform_rectangular_grid(user_name="right_bottom_pml_meshpart",
                                              element = right_corner_absorbing_layer,
-                                                region = fm.region.get_region(0),
+                                                region = PMLRegion,
                                                 x_min = Xmax, 
                                                 x_max = Xmax + thickness_pml,
                                                 y_min = Ymin ,
@@ -169,7 +173,7 @@ bottom_absorbing_layer = fm.element.brick.pml3d(ndof=9,
 
 fm.mesh_part.volume.uniform_rectangular_grid(user_name="bottom_pml_meshpart",
                                              element = bottom_absorbing_layer,
-                                                region = fm.region.get_region(0),
+                                                region = PMLRegion,
                                                 x_min = Xmin, 
                                                 x_max = Xmax,
                                                 y_min = Ymin ,
@@ -201,7 +205,7 @@ left_absorbing_layer = fm.element.brick.pml3d(ndof=9,
 
 fm.mesh_part.volume.uniform_rectangular_grid(user_name="left_pml_meshpart",
                                              element = left_absorbing_layer,
-                                                region = fm.region.get_region(0),
+                                                region = PMLRegion,
                                                 x_min = Xmin - thickness_pml, 
                                                 x_max = Xmin,
                                                 y_min = Ymin ,
@@ -238,7 +242,7 @@ left_corner_absorbing_layer = fm.element.brick.pml3d(ndof=9,
 
 fm.mesh_part.volume.uniform_rectangular_grid(user_name="left_bottom_pml_meshpart",
                                              element = left_corner_absorbing_layer,
-                                                region = fm.region.get_region(0),
+                                                region = PMLRegion,
                                                 x_min = Xmin - thickness_pml, 
                                                 x_max = Xmin,
                                                 y_min = Ymin ,
@@ -253,16 +257,19 @@ fm.mesh_part.volume.uniform_rectangular_grid(user_name="left_bottom_pml_meshpart
 # %%
 # assembling the mesh
 fm.assembler.clear_assembly_sections()
-fm.assembler.create_section(meshparts=["inner_meshpart"], num_partitions= 8, merging_points=True)
-if BoubdaryConditionType == "PML":
-    fm.assembler.create_section(meshparts=["right_pml_meshpart", 
-                                    "right_bottom_pml_meshpart", 
-                                    "bottom_pml_meshpart",
-                                        "left_pml_meshpart",
-                                        "left_bottom_pml_meshpart",
-                                    ], num_partitions= 1, merging_points=True)
+fm.assembler.create_section(meshparts=["inner_meshpart"], num_partitions= 2, merging_points=True)
+if boundaryConditionType == "PML":
+    # fm.assembler.create_section(meshparts=["right_pml_meshpart", 
+    #                                 "right_bottom_pml_meshpart", 
+    #                                 "bottom_pml_meshpart",
+    #                                     "left_pml_meshpart",
+    #                                     "left_bottom_pml_meshpart",
+    #                                 ], num_partitions= 2, merging_points=True)
+    fm.assembler.create_section(meshparts=["right_pml_meshpart", "right_bottom_pml_meshpart"], num_partitions= 2, merging_points=True)
+    fm.assembler.create_section(meshparts=["bottom_pml_meshpart"], num_partitions= 2, merging_points=True)
+    fm.assembler.create_section(meshparts=["left_pml_meshpart", "left_bottom_pml_meshpart"], num_partitions= 2, merging_points=True)
     
-fm.assembler.Assemble()
+fm.assembler.Assemble(merge_points=False)
 # %%
 # ==========================================================================
 # boundary conditions
@@ -292,12 +299,19 @@ mask = fm.mask.nodes.along_line(point1=[0.0, -dy/2, 0.0],
 pattern = fm.pattern.plain(time_series=time_series, factor=1.0)
 pattern.add_load.node(node_mask=mask, values=[0.0, 0.0, -1.0])
 
+
+# ==========================================================================
+# recorder
+# ==========================================================================
+fm.set_results_folder(boundaryConditionType)
+recorder = fm.recorder.vtkhdf(file_base_name="result", resp_types = ["disp", "accel"])
+
 # ==========================================================================
 # analysis 
 # ==========================================================================
 analysis = """
 domainChange
-constraints Penalty 1.0e12;
+constraints Penalty 1.0e12 1.0e12;
 numberer    ParallelRCM;
 system      Mumps -ICNTL14 400;
 test        EnergyIncr 1.0e-4 10;
@@ -306,12 +320,10 @@ algorithm   Linear -factorOnce
 analysis    Transient;
 set dt 0.002
 
-set steps [expr 1./$dt]
+set steps [expr 4./$dt]
 for {set i 0} {$i < $steps} {incr i} {
     
-    if {[expr $i % 100 == 0]} {
-        puts "step $i"
-    }
+    if {$pid == 0} {puts "step $i"}
     
     set ok [analyze 1 $dt]
     if {$ok != 0} {
@@ -328,12 +340,14 @@ analysis = fm.actions.tcl(command=analysis)
 # simulation steps
 # ===========================================================================
 fm.process.add_step(component=pattern, description="Ricker wavelet loading")
+fm.process.add_step(component=recorder, description="VTK recorder")
 fm.process.add_step(component=analysis, description="Transient analysis")
 
 
-fm.gui()
+# fm.gui()
+fm.assembler.plot(scalars="Core")
 # export the model to a tcl file
-# fm.export_to_tcl("model.tcl")
+fm.export_to_tcl("model.tcl")
 
 
 
