@@ -282,6 +282,29 @@ fm.constraint.sp.fixMacroXmax(dofs=[1,1,1,1,1,1,1,1,1], tol=1e-3)
 fm.constraint.sp.fixMacroZmin(dofs=[1,1,1,1,1,1,1,1,1], tol=1e-3)
 
 # ==========================================================================
+# mp constraints
+# ==========================================================================
+if boundaryConditionType == "PML":
+    fm.constraint.mp.create_equal_dof_between_meshparts(meshpart_master="inner_meshpart",
+                                                        meshpart_slave="right_pml_meshpart",
+                                                        dofs=[1,2,3])
+    fm.constraint.mp.create_equal_dof_between_meshparts(meshpart_master="inner_meshpart",
+                                                        meshpart_slave="right_bottom_pml_meshpart",
+                                                        dofs=[1,2,3])
+    fm.constraint.mp.create_equal_dof_between_meshparts(meshpart_master="inner_meshpart",
+                                                        meshpart_slave="bottom_pml_meshpart",
+                                                        dofs=[1,2,3])
+    fm.constraint.mp.create_equal_dof_between_meshparts(meshpart_master="inner_meshpart",
+                                                        meshpart_slave="left_pml_meshpart",
+                                                        dofs=[1,2,3])
+    fm.constraint.mp.create_equal_dof_between_meshparts(meshpart_master="inner_meshpart",
+                                                        meshpart_slave="left_bottom_pml_meshpart",
+                                                        dofs=[1,2,3])
+    
+
+
+
+# ==========================================================================
 # loading
 # ==========================================================================
 
