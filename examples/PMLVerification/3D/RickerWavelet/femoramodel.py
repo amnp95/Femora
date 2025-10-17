@@ -1,5 +1,11 @@
 # %%
 import femora as fm
+
+# change the working directory to the directory of this script
+import os
+os.chdir(os.path.dirname(__file__))
+
+
 Vs = 300 # m/s
 nu = 0.3
 rho = 2000 # kg/m3
@@ -7,13 +13,30 @@ boundaryConditionType = "Extended" ; # "PML" or "Fixed", "Extended"
 # boundaryConditionType = "Fixed" ; # "PML" or "Fixed", "Extended"
 # boundaryConditionType = "PML" ; # "PML" or "Fixed", "Extended"
 
+
+USING_SYMETRY = True # flag if modeling only a quarter of the domain
+if USING_SYMETRY:
+    inner_num_partitions = 8
+else:
+    if boundaryConditionType == "Extended":
+        inner_num_partitions = 32
+    if boundaryConditionType == "Fixed" or boundaryConditionType == "PML":
+        inner_num_partitions = 4
+
+
 # calculate elastic parameters
 G = rho*Vs**2
 E = 2*G*(1+nu)
 
+# caalculate cp 
+Vp = (E*(1-nu)/(rho*(1+nu)*(1-2*nu)))**0.5
+print("Vp = ", Vp)
+Vp = 800.0  # m/s
+
 # convert to MPa
 E /= 1000.
 rho /= 1000.
+
 
 
 mat = fm.material.nd.elastic_isotropic(user_name="elastic_material",
@@ -47,21 +70,33 @@ if dx > max_dx:
 
 
 if boundaryConditionType == "Extended":
-    additional_length = 510.0
+    additional_length = 255.0
 else:
     additional_length = 90.0
 
+if USING_SYMETRY:
 
-Xmin = - additional_length
-Xmax =   additional_length
-Ymin = - additional_length
-Ymax =   additional_length
-Zmin = - additional_length
-Zmax = 0.0
-eps = 1e-6
-Nx = int(((Xmax - Xmin) + eps)/dx)
-Ny = int(((Ymax - Ymin) + eps)/dy)
-Nz = int(((Zmax - Zmin) + eps)/dz)
+    Xmin = 0.0
+    Xmax =   additional_length
+    Ymin = 0.0
+    Ymax =   additional_length
+    Zmin = - additional_length
+    Zmax = 0.0
+    eps = 1e-6
+    Nx = int(((Xmax - Xmin) + eps)/dx)
+    Ny = int(((Ymax - Ymin) + eps)/dy)
+    Nz = int(((Zmax - Zmin) + eps)/dz)
+else:
+    Xmin = - additional_length
+    Xmax =   additional_length
+    Ymin = - additional_length
+    Ymax =   additional_length
+    Zmin = - additional_length
+    Zmax = 0.0
+    eps = 1e-6
+    Nx = int(((Xmax - Xmin) + eps)/dx)
+    Ny = int(((Ymax - Ymin) + eps)/dy)
+    Nz = int(((Zmax - Zmin) + eps)/dz)
 
 fm.mesh_part.volume.uniform_rectangular_grid(user_name="inner_meshpart",
                                              element = brick,
@@ -74,13 +109,14 @@ fm.mesh_part.volume.uniform_rectangular_grid(user_name="inner_meshpart",
 
 
 # number of elements in the PML
-n_elements_pml = 12
+n_elements_pml = 8
 thickness_pml = n_elements_pml * dx
 
 
 
-Damping = fm.damping.frequencyRayleigh(f1=0.2, f2=20.0, dampingFactor=0.95)
-PMLRegion = fm.region.elementRegion(damping=Damping)
+Damping = fm.damping.frequencyRayleigh(f1=0.2, f2=20.0, dampingFactor=0.0)
+PMLRegion = fm.region.elementRegion(damping=None)
+# PMLRegion = fm.region.elementRegion(damping=Damping)
 
 
 # right side PML 
@@ -94,13 +130,20 @@ normal_z = 0.0
 
 
 
-
+pml_params = {
+    "Cp": 1000.0,
+    "m": 2,
+    "R": 1e-5,
+    #"alpha0":None,
+    # "beta0":None
+}
 
 right_absorbing_layer = fm.element.brick.pml3d(ndof=9,
                                                material=mat,
                                                PML_Thickness = thickness_pml,
                                                meshType="General",
                                                meshTypeParameters = [Xref, Yref, Zref, normal_x, normal_y, normal_z],
+                                               **pml_params
                                                )
 
 fm.mesh_part.volume.uniform_rectangular_grid(user_name="right_pml_meshpart",
@@ -138,6 +181,7 @@ right_corner_absorbing_layer = fm.element.brick.pml3d(ndof=9,
                                                   meshType="General",
                                                   meshTypeParameters = [
                                                       Xref, Yref, Zref, normal_x, normal_y, normal_z],
+                                                    **pml_params
                                                     )
 fm.mesh_part.volume.uniform_rectangular_grid(user_name="right_bottom_pml_meshpart",
                                              element = right_corner_absorbing_layer,
@@ -169,6 +213,7 @@ bottom_absorbing_layer = fm.element.brick.pml3d(ndof=9,
                                                     meshType="General",
                                                     meshTypeParameters = [
                                                         Xref, Yref, Zref, normal_x, normal_y, normal_z],
+                                                    **pml_params
                                                 )
 
 fm.mesh_part.volume.uniform_rectangular_grid(user_name="bottom_pml_meshpart",
@@ -201,6 +246,7 @@ left_absorbing_layer = fm.element.brick.pml3d(ndof=9,
                                               meshTypeParameters = [
                                                 Xref, Yref, Zref, 
                                                 normal_x, normal_y, normal_z],
+                                                **pml_params
                                             )
 
 fm.mesh_part.volume.uniform_rectangular_grid(user_name="left_pml_meshpart",
@@ -232,12 +278,14 @@ normal_x /= norm
 normal_y /= norm
 normal_z /= norm
 
+
 left_corner_absorbing_layer = fm.element.brick.pml3d(ndof=9,
                                                    material=mat,
                                                     PML_Thickness = thickness_pml,
                                                     meshType="General",
                                                     meshTypeParameters = [
                                                     Xref, Yref, Zref, normal_x, normal_y, normal_z],
+                                                    **pml_params
                                                 )
 
 fm.mesh_part.volume.uniform_rectangular_grid(user_name="left_bottom_pml_meshpart",
@@ -257,50 +305,66 @@ fm.mesh_part.volume.uniform_rectangular_grid(user_name="left_bottom_pml_meshpart
 # %%
 # assembling the mesh
 fm.assembler.clear_assembly_sections()
-fm.assembler.create_section(meshparts=["inner_meshpart"], num_partitions= 2, merging_points=True)
+fm.assembler.create_section(meshparts=["inner_meshpart"], num_partitions=inner_num_partitions, merging_points=False)
 if boundaryConditionType == "PML":
-    # fm.assembler.create_section(meshparts=["right_pml_meshpart", 
-    #                                 "right_bottom_pml_meshpart", 
-    #                                 "bottom_pml_meshpart",
-    #                                     "left_pml_meshpart",
-    #                                     "left_bottom_pml_meshpart",
-    #                                 ], num_partitions= 2, merging_points=True)
     fm.assembler.create_section(meshparts=["right_pml_meshpart", "right_bottom_pml_meshpart"], num_partitions= 2, merging_points=True)
     fm.assembler.create_section(meshparts=["bottom_pml_meshpart"], num_partitions= 2, merging_points=True)
     fm.assembler.create_section(meshparts=["left_pml_meshpart", "left_bottom_pml_meshpart"], num_partitions= 2, merging_points=True)
     
-fm.assembler.Assemble(merge_points=False)
+fm.assembler.Assemble(merge_points=True)
 # %%
 # ==========================================================================
 # boundary conditions
 # =========================================================================
 # define boundary conditions
-fm.constraint.sp.fixMacroYmin(dofs=[0,1,0,0,0,0,0,0,0], tol=1e-3)
-fm.constraint.sp.fixMacroYmax(dofs=[0,1,0,0,0,0,0,0,0], tol=1e-3)
-fm.constraint.sp.fixMacroXmin(dofs=[1,1,1,1,1,1,1,1,1], tol=1e-3)
-fm.constraint.sp.fixMacroXmax(dofs=[1,1,1,1,1,1,1,1,1], tol=1e-3)
-fm.constraint.sp.fixMacroZmin(dofs=[1,1,1,1,1,1,1,1,1], tol=1e-3)
+if USING_SYMETRY:
+    fm.constraint.sp.fixMacroXmin(dofs=[1,0,0,1,1,1,1,1,1], tol=1e-3)
+    fm.constraint.sp.fixMacroXmax(dofs=[1,1,1,1,1,1,1,1,1], tol=1e-3)
+    fm.constraint.sp.fixMacroYmin(dofs=[0,1,0,1,1,1,1,1,1], tol=1e-3)
+    fm.constraint.sp.fixMacroYmax(dofs=[1,1,1,1,1,1,1,1,1], tol=1e-3)
+    fm.constraint.sp.fixMacroZmin(dofs=[1,1,1,1,1,1,1,1,1], tol=1e-3)
+
+else:
+    fm.constraint.sp.fixMacroYmin(dofs=[1,1,1,1,1,1,1,1,1], tol=1e-3)
+    fm.constraint.sp.fixMacroYmax(dofs=[1,1,1,1,1,1,1,1,1], tol=1e-3)
+    fm.constraint.sp.fixMacroXmin(dofs=[1,1,1,1,1,1,1,1,1], tol=1e-3)
+    fm.constraint.sp.fixMacroXmax(dofs=[1,1,1,1,1,1,1,1,1], tol=1e-3)
+    fm.constraint.sp.fixMacroZmin(dofs=[1,1,1,1,1,1,1,1,1], tol=1e-3)
 
 # ==========================================================================
 # mp constraints
 # ==========================================================================
 if boundaryConditionType == "PML":
-    fm.constraint.mp.create_equal_dof_between_meshparts(meshpart_master="inner_meshpart",
-                                                        meshpart_slave="right_pml_meshpart",
+    # fm.constraint.mp.create_equal_dof_between_meshparts(meshpart_master="inner_meshpart",
+    #                                                     meshpart_slave="right_pml_meshpart",
+    #                                                     dofs=[1,2,3])
+    # fm.constraint.mp.create_equal_dof_between_meshparts(meshpart_master="inner_meshpart",
+    #                                                     meshpart_slave="right_bottom_pml_meshpart",
+    #                                                     dofs=[1,2,3])
+    # fm.constraint.mp.create_equal_dof_between_meshparts(meshpart_master="inner_meshpart",
+    #                                                     meshpart_slave="bottom_pml_meshpart",
+    #                                                     dofs=[1,2,3])
+    # fm.constraint.mp.create_equal_dof_between_meshparts(meshpart_master="inner_meshpart",
+    #                                                     meshpart_slave="left_pml_meshpart",
+    #                                                     dofs=[1,2,3])
+    # fm.constraint.mp.create_equal_dof_between_meshparts(meshpart_master="inner_meshpart",
+    #                                                     meshpart_slave="left_bottom_pml_meshpart",
+    #                                                     dofs=[1,2,3])
+    fm.constraint.mp.create_equal_dof_between_meshparts(meshpart_master="right_pml_meshpart",
+                                                        meshpart_slave="inner_meshpart",
                                                         dofs=[1,2,3])
-    fm.constraint.mp.create_equal_dof_between_meshparts(meshpart_master="inner_meshpart",
-                                                        meshpart_slave="right_bottom_pml_meshpart",
+    fm.constraint.mp.create_equal_dof_between_meshparts(meshpart_master="bottom_pml_meshpart",
+                                                        meshpart_slave="inner_meshpart",
                                                         dofs=[1,2,3])
-    fm.constraint.mp.create_equal_dof_between_meshparts(meshpart_master="inner_meshpart",
-                                                        meshpart_slave="bottom_pml_meshpart",
+    fm.constraint.mp.create_equal_dof_between_meshparts(meshpart_master="left_pml_meshpart",
+                                                        meshpart_slave="inner_meshpart",
                                                         dofs=[1,2,3])
-    fm.constraint.mp.create_equal_dof_between_meshparts(meshpart_master="inner_meshpart",
-                                                        meshpart_slave="left_pml_meshpart",
+    fm.constraint.mp.create_equal_dof_between_meshparts(meshpart_master="left_bottom_pml_meshpart",
+                                                        meshpart_slave="inner_meshpart",
                                                         dofs=[1,2,3])
-    fm.constraint.mp.create_equal_dof_between_meshparts(meshpart_master="inner_meshpart",
-                                                        meshpart_slave="left_bottom_pml_meshpart",
+    fm.constraint.mp.create_equal_dof_between_meshparts(meshpart_master="right_bottom_pml_meshpart",
+                                                        meshpart_slave="inner_meshpart",
                                                         dofs=[1,2,3])
-    
 
 
 
@@ -334,16 +398,17 @@ recorder = fm.recorder.vtkhdf(file_base_name="result", resp_types = ["disp", "ac
 # ==========================================================================
 analysis = """
 domainChange
-constraints Penalty 1.0e12 1.0e12;
-numberer    ParallelRCM;
-system      Mumps -ICNTL14 400;
-test        EnergyIncr 1.0e-4 10;
-integrator  Newmark 0.5 0.25;
-algorithm   Linear -factorOnce
-analysis    Transient;
+constraints Penalty 1.e12 1.e12
+numberer ParallelRCM
+system MPIDiagonal
+algorithm Linear
+#test FixedNumIter 3 2
+test NormDispIncr 0.001 5 2 2
+integrator Explicitdifference
+analysis Transient
 set dt 0.002
 
-set steps [expr 4./$dt]
+set steps [expr 2./$dt]
 for {set i 0} {$i < $steps} {incr i} {
     
     if {$pid == 0} {puts "step $i"}
@@ -367,17 +432,10 @@ fm.process.add_step(component=recorder, description="VTK recorder")
 fm.process.add_step(component=analysis, description="Transient analysis")
 
 
-# print mesh infomaton  
-mk = fm.MeshMaker()
-mk.print_info()
-
 # fm.gui()
 fm.assembler.plot(scalars="Core")
 # export the model to a tcl file
 fm.export_to_tcl("model.tcl")
-
-
-
 
 
 
