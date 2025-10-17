@@ -643,4 +643,25 @@ class MeshMaker:
             str: The path to the results folder
         """
         return cls._results_folder if cls._results_folder else ""
+    
+
+    def print_info(self):
+        '''
+        Print information about the current model on the console
+
+        Args:
+            None
+
+        Returns:
+            None
+        '''
+
+        if self.assembler.AssembeledMesh is None:
+            print("No mesh found")
+        else:
+            numpoints = self.assembler.AssembeledMesh.n_points
+            numcells = self.assembler.AssembeledMesh.n_cells
+            print(f"Number of nodes: {numpoints}")
+            print(f"Number of elements: {numcells}")    
+        
         
