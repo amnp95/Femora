@@ -5,9 +5,9 @@ import os
 import pyvista as pv
 
 
-boundaryConditionType = "Extended"  # "PML" or "Fixed", "Extended"
-# boundaryConditionType = "Fixed"  # "PML" or "Fixed", "Extended"
-boundaryConditionType = "PML"  # "PML" or "Fixed"
+boundaryConditionType = "Extended"
+# boundaryConditionType = "Fixed"
+# boundaryConditionType = "PML"
 dirname = os.path.dirname(__file__)
 os.chdir(dirname)
 diname = os.path.join(dirname, boundaryConditionType)
@@ -18,84 +18,35 @@ file_pattern = os.path.join(diname, "*.vtkhdf")
 # get list of all files matching the pattern
 file_list = sorted(glob.glob(file_pattern))
 
-# observation points (copied from plot.py) - these are the points we want to
-# check for presence in a given vtkhdf file. If a file contains at least one
-# of these points we keep it. This speeds up reading and ensures we only
-# process files that actually have data for the observation points.
-depth = -51
-op1 = [0, 0, 0]
-op2 = [0, 51, 0]
-op3 = [51.0, 0, 0]
-op4 = [51.0, 51.0, 0]
-op5 = [0, 0, depth]
-op6 = [0, 51, depth]
-op7 = [51.0, 0, depth]
-op8 = [51.0, 51.0, depth]
-ops = [op1, op2, op3, op4, op5, op6, op7, op8]
 
-
-# helper: check whether a file contains any of the observation points
-def file_has_any_obs_point(filename, obs_points, tol=1e-3):
+def file_intersects_bounds(filename, bounds):
+    """Return True if any point in the HDF file lies within the axis-aligned
+    bounding box `bounds = (xmin, xmax, ymin, ymax, zmin, zmax)`."""
+    xmin, xmax, ymin, ymax, zmin, zmax = bounds
     try:
         with h5py.File(filename, "r") as f:
             pts = f["VTKHDF"]["Points"][()]
             if pts.size == 0:
                 return False
-            # compute distances from each obs point to all file points
-            for op in obs_points:
-                d = np.linalg.norm(pts - np.array(op), axis=1)
-                if np.min(d) <= tol:
-                    return True
+            xs = pts[:, 0]
+            ys = pts[:, 1]
+            zs = pts[:, 2]
+            inside = (xs >= xmin) & (xs <= xmax) & (ys >= ymin) & (ys <= ymax) & (zs >= zmin) & (zs <= zmax)
+            return np.any(inside)
     except Exception:
         return False
-    return False
 
 
-def file_obs_indices(filename, obs_points, tol=1e-3):
-    """Return indices of obs_points present in filename (within tol)."""
-    inds = []
-    try:
-        with h5py.File(filename, "r") as f:
-            pts = f["VTKHDF"]["Points"][()]
-            if pts.size == 0:
-                return inds
-            for i, op in enumerate(obs_points):
-                d = np.linalg.norm(pts - np.array(op), axis=1)
-                if np.min(d) <= tol:
-                    inds.append(i)
-    except Exception:
-        return []
-    return inds
-
-
-# Select files in a single pass. If a file contains one or more observation
-# points, select it and mark those points as covered. Stop when all points
-# are covered.
-selected_files = []
-covered = [False] * len(ops)
-
-for f in file_list:
-    inds = file_obs_indices(f, ops)
-    # keep only indices not yet covered
-    new_inds = [ii for ii in inds if not covered[ii]]
-    if new_inds:
-        selected_files.append(f)
-        for ii in new_inds:
-            covered[ii] = True
-    if all(covered):
-        break
-
-if not selected_files:
-    # fallback: keep the original list to preserve previous behaviour
-    filtered = file_list
-else:
-    filtered = selected_files
-
-print(f"Selected {len(filtered)} files out of {len(file_list)} total files.")
-
-
-
+# bounding box to test against (xmin, xmax, ymin, ymax, zmin, zmax)
 bounds = (-90, 90, -90, 90, -90, 0)
+
+# Filter files by bounding-box intersection using HDF-only checks
+filtered = [f for f in file_list if file_intersects_bounds(f, bounds)]
+if not filtered:
+    # fallback to original list if nothing matched
+    filtered = file_list
+
+print(f"Selected {len(filtered)} files out of {len(file_list)} total files by bounding box.")
 
 
 meshes = []
