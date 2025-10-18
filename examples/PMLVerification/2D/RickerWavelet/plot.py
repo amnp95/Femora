@@ -58,7 +58,7 @@ if __name__ == "__main__":
 
     boundaryConditionType = "Extended"  # "PML" or "Fixed", "Extended"
     boundaryConditionType = "Fixed"  # "PML" or "Fixed", "Extended"
-    # boundaryConditionType = "PML"  # "PML" or "Fixed", "Extended"
+    boundaryConditionType = "PML"  # "PML" or "Fixed", "Extended"
 
 
     file_pattern = os.path.join(boundaryConditionType, "*.vtkhdf")
@@ -120,4 +120,58 @@ if __name__ == "__main__":
         plt.tight_layout()
         # Save publication-quality PDF
         plt.savefig(f'{boundaryConditionType}.pdf', format='pdf', bbox_inches='tight')
+        plt.savefig(f'{boundaryConditionType}.png', format='png', bbox_inches='tight')
+        plt.savefig(f'{boundaryConditionType}.svg', format='svg', bbox_inches='tight')
         plt.show()
+
+
+        # Plot displacement figures as well
+        res_type_disp = "displacement"
+        t1_disp, d1 = read_vtk_data(file_pattern=file_pattern, max_time=max_time, coord=op1, res_type=res_type_disp)
+        t2_disp, d2 = read_vtk_data(file_pattern=file_pattern, max_time=max_time, coord=op2, res_type=res_type_disp)
+        t3_disp, d3 = read_vtk_data(file_pattern=file_pattern, max_time=max_time, coord=op3, res_type=res_type_disp)
+
+        if d1 is None or d2 is None or d3 is None:
+            print("Could not locate the requested point/field in any VTK-HDF file for displacement under 'Extended/'.")
+        else:
+            fig_disp, ax_disp = plt.subplots(3, 2, figsize=(6.5, 7.5), dpi=300, sharex=True, sharey=True)
+            for i, (t, d, target_coord) in enumerate(zip([t1_disp, t2_disp, t3_disp], [d1, d2, d3], [op1, op2, op3])):
+                color = colors[i % len(colors)]
+                # X component
+                ax_disp[i, 0].plot(t, d[:, 0], lw=1.2, color=color)
+                if i == 2:
+                    ax_disp[i, 0].set_xlabel("Time (s)", fontsize=12, fontweight='bold', fontname="Times New Roman")
+                ax_disp[i, 0].set_ylabel("Disp X (m)", fontsize=12, fontweight='bold', fontname="Times New Roman")
+                ax_disp[i, 0].grid(True, linestyle='--', alpha=0.7)
+                ax_disp[i, 0].text(
+                    0.98, 0.95, f"Observation point {i+1}",
+                    transform=ax_disp[i, 0].transAxes,
+                    ha='right', va='top',
+                    fontsize=12, fontname="Times New Roman",
+                    bbox=dict(boxstyle='round,pad=0.2', facecolor='white', edgecolor='black', linewidth=0.6, alpha=0.9)
+                )
+
+                # Z component
+                ax_disp[i, 1].plot(t, d[:, 2], lw=1.2, color=color)
+                if i == 2:
+                    ax_disp[i, 1].set_xlabel("Time (s)", fontsize=12, fontweight='bold', fontname="Times New Roman")
+                ax_disp[i, 1].set_ylabel("Disp Z (m)", fontsize=12, fontweight='bold', fontname="Times New Roman")
+                ax_disp[i, 1].grid(True, linestyle='--', alpha=0.7)
+                ax_disp[i, 1].text(
+                    0.98, 0.95, f"Observation point {i+1}",
+                    transform=ax_disp[i, 1].transAxes,
+                    ha='right', va='top',
+                    fontsize=12, fontname="Times New Roman",
+                    bbox=dict(boxstyle='round,pad=0.2', facecolor='white', edgecolor='black', linewidth=0.6, alpha=0.9)
+                )
+
+            for axi in ax_disp.ravel():
+                axi.tick_params(axis='both', which='major', labelsize=10)
+                for label in axi.get_xticklabels() + axi.get_yticklabels():
+                    label.set_fontname("Times New Roman")
+
+            plt.tight_layout()
+            # plt.savefig(f'{boundaryConditionType}_displacement.pdf', format='pdf', bbox_inches='tight')
+            # plt.savefig(f'{boundaryConditionType}_displacement.png', format='png', bbox_inches='tight')
+            plt.savefig(f'{boundaryConditionType}_displacement.svg', format='svg', bbox_inches='tight')
+            plt.show()
