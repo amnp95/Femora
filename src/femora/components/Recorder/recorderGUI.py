@@ -9,7 +9,7 @@ from qtpy.QtWidgets import (
 
 from femora.components.Recorder.recorderBase import (
     Recorder, RecorderManager, RecorderRegistry,
-    NodeRecorder, VTKHDFRecorder
+    NodeRecorder, VTKHDFRecorder, MPCORecorder
 )
 from femora.utils.validator import DoubleValidator, IntValidator
 
@@ -107,6 +107,8 @@ class RecorderManagerTab(QDialog):
             dialog = NodeRecorderCreationDialog(self)
         elif recorder_type.lower() == "vtkhdf":
             dialog = VTKHDFRecorderCreationDialog(self)
+        elif recorder_type.lower() == "mpco":
+            dialog = MPCORecorderCreationDialog(self)
         else:
             QMessageBox.warning(self, "Error", f"No creation dialog available for recorder type: {recorder_type}")
             return
@@ -128,6 +130,8 @@ class RecorderManagerTab(QDialog):
                 dialog = NodeRecorderEditDialog(recorder, self)
             elif recorder.recorder_type == "VTKHDF":
                 dialog = VTKHDFRecorderEditDialog(recorder, self)
+            elif recorder.recorder_type == "MPCO":
+                dialog = MPCORecorderEditDialog(recorder, self)
             else:
                 QMessageBox.warning(self, "Error", f"No edit dialog available for recorder type: {recorder.recorder_type}")
                 return
@@ -182,6 +186,8 @@ class RecorderManagerTab(QDialog):
                 params_str = self._format_node_recorder_params(params_dict)
             elif recorder.recorder_type == "VTKHDF":
                 params_str = self._format_vtkhdf_recorder_params(params_dict)
+            elif recorder.recorder_type == "MPCO":
+                params_str = self._format_mpco_recorder_params(params_dict)
             else:
                 params_str = str(params_dict)
                 
@@ -218,6 +224,25 @@ class RecorderManagerTab(QDialog):
         parts.append(f"DOFs: {params_dict['dofs']}")
         parts.append(f"Response: {params_dict['resp_type']}")
         
+        return ", ".join(parts)
+
+    def _format_mpco_recorder_params(self, params_dict):
+        parts = []
+        if params_dict.get("file_name"):
+            parts.append(f"File: {params_dict['file_name']}")
+        if params_dict.get("node_responses"):
+            parts.append(f"-N: {', '.join(params_dict['node_responses'])}")
+        if params_dict.get("element_responses"):
+            parts.append(f"-E: {', '.join(params_dict['element_responses'])}")
+        if params_dict.get("node_sensitivities"):
+            ns = [f"{name}:{par}" for name, par in params_dict["node_sensitivities"]]
+            parts.append(f"-NS: {', '.join(ns)}")
+        if params_dict.get("regions"):
+            parts.append(f"Regions: {params_dict['regions']}")
+        if params_dict.get("delta_t") is not None:
+            parts.append(f"-T dt {params_dict['delta_t']}")
+        if params_dict.get("num_steps") is not None:
+            parts.append(f"-T nsteps {params_dict['num_steps']}")
         return ", ".join(parts)
 
     def _format_vtkhdf_recorder_params(self, params_dict):
@@ -1438,6 +1463,324 @@ class VTKHDFRecorderEditDialog(QDialog):
             self.recorder = self.recorder_manager.create_recorder("vtkhdf", **params)
             self.accept()
             
+        except ValueError as e:
+            QMessageBox.warning(self, "Input Error", str(e))
+        except Exception as e:
+            QMessageBox.critical(self, "Error", str(e))
+
+
+class MPCORecorderCreationDialog(QDialog):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("Create MPCO Recorder")
+        self.recorder_manager = RecorderManager()
+        self.int_validator = IntValidator()
+        self.double_validator = DoubleValidator()
+
+        layout = QVBoxLayout(self)
+
+        # File name
+        file_group = QGroupBox("Output File (.mpco)")
+        file_layout = QHBoxLayout(file_group)
+        file_layout.addWidget(QLabel("File Name:"))
+        self.file_name_input = QLineEdit()
+        file_layout.addWidget(self.file_name_input)
+        browse_btn = QPushButton("Browse")
+        browse_btn.clicked.connect(self.browse_file)
+        file_layout.addWidget(browse_btn)
+        layout.addWidget(file_group)
+
+        # Node responses
+        nr_group = QGroupBox("Node Responses (-N)")
+        nr_layout = QGridLayout(nr_group)
+        self.node_resp_checks = {}
+        node_resps = [
+            "displacement", "rotation",
+            "velocity", "angularVelocity",
+            "acceleration", "angularAcceleration",
+            "reactionForce", "reactionMoment",
+            "reactionForceIncludingInertia", "reactionMomentIncludingInertia",
+            "rayleighForce", "rayleighMoment",
+            "unbalancedForce", "unbalancedForceIncludingInertia",
+            "unbalancedMoment", "unbalancedMomentIncludingInertia",
+            "pressure",
+            "modesOfVibration", "modesOfVibrationRotational",
+        ]
+        rows = (len(node_resps) + 1) // 2
+        for i, name in enumerate(node_resps):
+            cb = QCheckBox(name)
+            self.node_resp_checks[name] = cb
+            r = i % rows
+            c = i // rows
+            nr_layout.addWidget(cb, r, c)
+        layout.addWidget(nr_group)
+
+        # Element responses (-E)
+        er_group = QGroupBox("Element Responses (-E)")
+        er_layout = QVBoxLayout(er_group)
+        self.element_responses_input = QLineEdit()
+        er_layout.addWidget(QLabel("Space-separated responses (e.g., 'force section.force material.stress')"))
+        er_layout.addWidget(self.element_responses_input)
+        layout.addWidget(er_group)
+
+        # Node sensitivities (-NS)
+        ns_group = QGroupBox("Node Sensitivities (-NS)")
+        ns_layout = QVBoxLayout(ns_group)
+        self.ns_text = QLineEdit()
+        ns_layout.addWidget(QLabel("Pairs 'name:param' separated by spaces (e.g., displacementSensitivity:1)"))
+        ns_layout.addWidget(self.ns_text)
+        layout.addWidget(ns_group)
+
+        # Regions (-R) and -T options
+        opt_group = QGroupBox("Regions and Frequency")
+        opt_form = QFormLayout(opt_group)
+        # Region selection: dropdown populated from RegionBase registry
+        from femora.components.Region.regionBase import RegionBase
+        regions = RegionBase.get_all_regions()
+        self.region_combo = QComboBox()
+        self.region_combo.addItem("<none>", None)
+        # Show as "tag: name"
+        for tag, region in regions.items():
+            self.region_combo.addItem(f"{tag}: {getattr(region, 'name', str(tag))}", tag)
+        opt_form.addRow("Region (-R):", self.region_combo)
+        self.delta_t_input = QLineEdit()
+        self.delta_t_input.setValidator(self.double_validator)
+        opt_form.addRow("-T dt (delta time):", self.delta_t_input)
+        self.nsteps_input = QLineEdit()
+        self.nsteps_input.setValidator(self.int_validator)
+        opt_form.addRow("-T nsteps:", self.nsteps_input)
+        layout.addWidget(opt_group)
+
+        # Buttons
+        btn_layout = QHBoxLayout()
+        create_btn = QPushButton("Create")
+        create_btn.clicked.connect(self.create_recorder)
+        cancel_btn = QPushButton("Cancel")
+        cancel_btn.clicked.connect(self.reject)
+        btn_layout.addWidget(create_btn)
+        btn_layout.addWidget(cancel_btn)
+        layout.addLayout(btn_layout)
+
+    def browse_file(self):
+        filename, _ = QFileDialog.getSaveFileName(
+            self, "Select MPCO Output File", "", "MPCO Files (*.mpco);;All Files (*)"
+        )
+        if filename:
+            self.file_name_input.setText(filename)
+
+    def create_recorder(self):
+        try:
+            params = {}
+            file_name = self.file_name_input.text().strip()
+            if not file_name:
+                raise ValueError("Please specify an output file name")
+            params["file_name"] = file_name
+
+            node_rs = [name for name, cb in self.node_resp_checks.items() if cb.isChecked()]
+            params["node_responses"] = node_rs
+
+            er_text = self.element_responses_input.text().strip()
+            params["element_responses"] = er_text.split() if er_text else []
+
+            ns_text = self.ns_text.text().strip()
+            ns_pairs = []
+            if ns_text:
+                for token in ns_text.split():
+                    if ":" not in token:
+                        raise ValueError("Sensitivity pairs must be in 'name:param' form")
+                    name, par = token.split(":", 1)
+                    ns_pairs.append((name.strip(), int(par.strip())))
+            params["node_sensitivities"] = ns_pairs
+
+            # Single region selection for now (can be extended later)
+            selected_tag = self.region_combo.currentData()
+            if selected_tag is not None:
+                params["regions"] = [int(selected_tag)]
+
+            dt_text = self.delta_t_input.text().strip()
+            ns_steps_text = self.nsteps_input.text().strip()
+            if dt_text and ns_steps_text:
+                raise ValueError("Specify only one of -T dt or -T nsteps")
+            if dt_text:
+                params["delta_t"] = float(dt_text)
+            if ns_steps_text:
+                params["num_steps"] = int(ns_steps_text)
+
+            self.recorder = self.recorder_manager.create_recorder("mpco", **params)
+            self.accept()
+
+        except ValueError as e:
+            QMessageBox.warning(self, "Input Error", str(e))
+        except Exception as e:
+            QMessageBox.critical(self, "Error", str(e))
+
+
+class MPCORecorderEditDialog(QDialog):
+    def __init__(self, recorder, parent=None):
+        super().__init__(parent)
+        self.recorder = recorder
+        self.setWindowTitle(f"Edit MPCO Recorder (Tag: {recorder.tag})")
+        self.recorder_manager = RecorderManager()
+        self.int_validator = IntValidator()
+        self.double_validator = DoubleValidator()
+
+        layout = QVBoxLayout(self)
+
+        # File name
+        file_group = QGroupBox("Output File (.mpco)")
+        file_layout = QHBoxLayout(file_group)
+        file_layout.addWidget(QLabel("File Name:"))
+        self.file_name_input = QLineEdit()
+        file_layout.addWidget(self.file_name_input)
+        browse_btn = QPushButton("Browse")
+        browse_btn.clicked.connect(self.browse_file)
+        file_layout.addWidget(browse_btn)
+        layout.addWidget(file_group)
+
+        # Node responses
+        nr_group = QGroupBox("Node Responses (-N)")
+        nr_layout = QGridLayout(nr_group)
+        self.node_resp_checks = {}
+        self._node_resps_list = [
+            "displacement", "rotation",
+            "velocity", "angularVelocity",
+            "acceleration", "angularAcceleration",
+            "reactionForce", "reactionMoment",
+            "reactionForceIncludingInertia", "reactionMomentIncludingInertia",
+            "rayleighForce", "rayleighMoment",
+            "unbalancedForce", "unbalancedForceIncludingInertia",
+            "unbalancedMoment", "unbalancedMomentIncludingInertia",
+            "pressure",
+            "modesOfVibration", "modesOfVibrationRotational",
+        ]
+        rows = (len(self._node_resps_list) + 1) // 2
+        for i, name in enumerate(self._node_resps_list):
+            cb = QCheckBox(name)
+            self.node_resp_checks[name] = cb
+            r = i % rows
+            c = i // rows
+            nr_layout.addWidget(cb, r, c)
+        layout.addWidget(nr_group)
+
+        # Element responses (-E)
+        er_group = QGroupBox("Element Responses (-E)")
+        er_layout = QVBoxLayout(er_group)
+        self.element_responses_input = QLineEdit()
+        er_layout.addWidget(QLabel("Space-separated responses (e.g., 'force section.force material.stress')"))
+        er_layout.addWidget(self.element_responses_input)
+        layout.addWidget(er_group)
+
+        # Node sensitivities (-NS)
+        ns_group = QGroupBox("Node Sensitivities (-NS)")
+        ns_layout = QVBoxLayout(ns_group)
+        self.ns_text = QLineEdit()
+        ns_layout.addWidget(QLabel("Pairs 'name:param' separated by spaces (e.g., displacementSensitivity:1)"))
+        ns_layout.addWidget(self.ns_text)
+        layout.addWidget(ns_group)
+
+        # Regions and -T options
+        opt_group = QGroupBox("Regions and Frequency")
+        opt_form = QFormLayout(opt_group)
+        from femora.components.Region.regionBase import RegionBase
+        regions = RegionBase.get_all_regions()
+        self.region_combo = QComboBox()
+        self.region_combo.addItem("<none>", None)
+        for tag, region in regions.items():
+            self.region_combo.addItem(f"{tag}: {getattr(region, 'name', str(tag))}", tag)
+        opt_form.addRow("Region (-R):", self.region_combo)
+        self.delta_t_input = QLineEdit()
+        self.delta_t_input.setValidator(self.double_validator)
+        opt_form.addRow("-T dt (delta time):", self.delta_t_input)
+        self.nsteps_input = QLineEdit()
+        self.nsteps_input.setValidator(self.int_validator)
+        opt_form.addRow("-T nsteps:", self.nsteps_input)
+        layout.addWidget(opt_group)
+
+        # Buttons
+        btn_layout = QHBoxLayout()
+        save_btn = QPushButton("Save")
+        save_btn.clicked.connect(self.save_recorder)
+        cancel_btn = QPushButton("Cancel")
+        cancel_btn.clicked.connect(self.reject)
+        btn_layout.addWidget(save_btn)
+        btn_layout.addWidget(cancel_btn)
+        layout.addLayout(btn_layout)
+
+        self.load_current_values()
+
+    def browse_file(self):
+        filename, _ = QFileDialog.getSaveFileName(
+            self, "Select MPCO Output File", "", "MPCO Files (*.mpco);;All Files (*)"
+        )
+        if filename:
+            self.file_name_input.setText(filename)
+
+    def load_current_values(self):
+        values = self.recorder.get_values()
+        if values.get("file_name"):
+            self.file_name_input.setText(values["file_name"])
+        selected_nr = set(values.get("node_responses", []))
+        for name, cb in self.node_resp_checks.items():
+            cb.setChecked(name in selected_nr)
+        er = values.get("element_responses", [])
+        self.element_responses_input.setText(" ".join(er))
+        ns_pairs = values.get("node_sensitivities", [])
+        self.ns_text.setText(" ".join([f"{n}:{p}" for n, p in ns_pairs]))
+        regions = values.get("regions", [])
+        # select first region if present
+        if regions:
+            tag_to_select = regions[0]
+            for idx in range(self.region_combo.count()):
+                if self.region_combo.itemData(idx) == tag_to_select:
+                    self.region_combo.setCurrentIndex(idx)
+                    break
+        if values.get("delta_t") is not None:
+            self.delta_t_input.setText(str(values["delta_t"]))
+        if values.get("num_steps") is not None:
+            self.nsteps_input.setText(str(values["num_steps"]))
+
+    def save_recorder(self):
+        try:
+            params = {}
+            file_name = self.file_name_input.text().strip()
+            if not file_name:
+                raise ValueError("Please specify an output file name")
+            params["file_name"] = file_name
+
+            node_rs = [name for name, cb in self.node_resp_checks.items() if cb.isChecked()]
+            params["node_responses"] = node_rs
+
+            er_text = self.element_responses_input.text().strip()
+            params["element_responses"] = er_text.split() if er_text else []
+
+            ns_text = self.ns_text.text().strip()
+            ns_pairs = []
+            if ns_text:
+                for token in ns_text.split():
+                    if ":" not in token:
+                        raise ValueError("Sensitivity pairs must be in 'name:param' form")
+                    name, par = token.split(":", 1)
+                    ns_pairs.append((name.strip(), int(par.strip())))
+            params["node_sensitivities"] = ns_pairs
+
+            selected_tag = self.region_combo.currentData()
+            if selected_tag is not None:
+                params["regions"] = [int(selected_tag)]
+
+            dt_text = self.delta_t_input.text().strip()
+            ns_steps_text = self.nsteps_input.text().strip()
+            if dt_text and ns_steps_text:
+                raise ValueError("Specify only one of -T dt or -T nsteps")
+            if dt_text:
+                params["delta_t"] = float(dt_text)
+            if ns_steps_text:
+                params["num_steps"] = int(ns_steps_text)
+
+            tag = self.recorder.tag
+            self.recorder_manager.remove_recorder(tag)
+            self.recorder = self.recorder_manager.create_recorder("mpco", **params)
+            self.accept()
+
         except ValueError as e:
             QMessageBox.warning(self, "Input Error", str(e))
         except Exception as e:
