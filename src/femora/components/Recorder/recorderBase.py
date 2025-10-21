@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import List, Dict, Optional, Union, Type
+from femora.components.Region.regionBase import RegionBase
 from femora.components.interface.embedded_beam_solid_interface import EmbeddedBeamSolidInterface
 from femora.components.interface.interface_base import InterfaceManager
 
@@ -571,13 +572,486 @@ class VTKHDFRecorder(Recorder):
         }
 
 
+class MPCORecorder(Recorder):
+    """
+    MPCO recorder writes model responses into an HDF5 database readable by STKO (\*.mpco).
+
+    Command form (see official docs):
+        recorder mpco $fileName \
+            <-N nodeResponses...> \
+            <-E elementResponses...> \
+            <-NS name1 par1 name2 par2 ...> \
+            <-R regionTag> ... \
+            <-T dt $deltaTime | -T nsteps $numSteps>
+
+    Reference: OpenSees MPCO Recorder documentation.
+    """
+    def __init__(self, **kwargs):
+        """
+        Initialize an MPCO Recorder
+
+        Args:
+            file_name (str): Output file name (e.g., "results.mpco")
+            node_responses (List[str], optional): Node response names per docs
+            element_responses (List[str], optional): Element/section/material response names
+            node_sensitivities (List[tuple[str,int]] | List[dict], optional): Pairs of (name, parameterId)
+            regions (List[int], optional): Region tags to record (can repeat)
+            delta_t (float, optional): Recording time interval (mutually exclusive with num_steps)
+            num_steps (int, optional): Recording step interval (mutually exclusive with delta_t)
+        """
+        super().__init__("MPCO")
+        self.file_name = kwargs.get("file_name", "")
+        self.node_responses = kwargs.get("node_responses", [])
+        self.element_responses = kwargs.get("element_responses", [])
+        self.node_sensitivities = kwargs.get("node_sensitivities", [])
+        self.regions = self._resolve_regions(kwargs.get("regions", []))
+        self.delta_t = kwargs.get("delta_t", None)
+        self.num_steps = kwargs.get("num_steps", None)
+
+        self.validate()
+
+    def validate(self):
+        """
+        Validate MPCO recorder parameters
+        """
+        if not self.file_name:
+            raise ValueError("File name must be specified for MPCO recorder")
+
+        # Validate node responses against documented options
+        if self.node_responses is None:
+            self.node_responses = []
+        if not isinstance(self.node_responses, list):
+            raise TypeError("node_responses must be a list of strings")
+        valid_node_responses = [
+            "displacement", "rotation",
+            "velocity", "angularVelocity",
+            "acceleration", "angularAcceleration",
+            "reactionForce", "reactionMoment",
+            "reactionForceIncludingInertia", "reactionMomentIncludingInertia",
+            "rayleighForce", "rayleighMoment",
+            "unbalancedForce", "unbalancedForceIncludingInertia",
+            "unbalancedMoment", "unbalancedMomentIncludingInertia",
+            "pressure",
+            "modesOfVibration", "modesOfVibrationRotational",
+        ]
+        for resp in self.node_responses:
+            if not isinstance(resp, str):
+                raise TypeError("Each node response must be a string")
+            if resp not in valid_node_responses:
+                raise ValueError(
+                    f"Invalid node response: {resp}. Valid: {', '.join(valid_node_responses)}"
+                )
+
+        # element_responses are model-dependent; accept strings if given
+        if self.element_responses is None:
+            self.element_responses = []
+        if not isinstance(self.element_responses, list):
+            raise TypeError("element_responses must be a list of strings")
+        for er in self.element_responses:
+            if not isinstance(er, str):
+                raise TypeError("Each element response must be a string")
+
+        # Validate node sensitivities: list of (name, param) pairs
+        if self.node_sensitivities is None:
+            self.node_sensitivities = []
+        valid_sensitivity_names = [
+            "displacementSensitivity", "rotationSensitivity",
+            "velocitySensitivity", "angularVelocitySensitivity",
+            "accelerationSensitivity", "angularAccelerationSensitivity",
+        ]
+        normalized_pairs = []
+        if not isinstance(self.node_sensitivities, list):
+            raise TypeError("node_sensitivities must be a list of pairs or dicts")
+        for item in self.node_sensitivities:
+            if isinstance(item, dict):
+                name = item.get("name")
+                par = item.get("param")
+            elif isinstance(item, (list, tuple)) and len(item) == 2:
+                name, par = item[0], item[1]
+            else:
+                raise TypeError("node_sensitivities items must be (name, param) or {'name','param'}")
+            if name not in valid_sensitivity_names:
+                raise ValueError(
+                    f"Invalid node sensitivity: {name}. Valid: {', '.join(valid_sensitivity_names)}"
+                )
+            if not isinstance(par, int):
+                raise TypeError("Sensitivity parameter id must be an integer")
+            normalized_pairs.append((name, par))
+        self.node_sensitivities = normalized_pairs
+
+        # Regions must be list of ints
+        if self.regions is None:
+            self.regions = []
+        if not isinstance(self.regions, list):
+            raise TypeError("regions must be a list of integers")
+        for r in self.regions:
+            if not isinstance(r, int):
+                raise TypeError("Each region tag must be an integer")
+
+        # Mutually exclusive time options
+        if self.delta_t is not None and self.num_steps is not None:
+            raise ValueError("Only one of delta_t or num_steps may be specified")
+
+    def to_tcl(self) -> str:
+        """
+        Convert the MPCO recorder to a TCL command string for OpenSees
+
+        Returns:
+            str: The TCL command string
+        """
+        from femora import MeshMaker
+        results_folder = MeshMaker.get_results_folder()
+        file_path = self.file_name
+        
+        file_ext = self.file_name.split(".")[-1]
+        # add $pid before the extension
+        if len(self.file_name.split(".")) >1:
+            file_path = self.file_name.replace("." + file_ext, "$pid." + file_ext)
+        else:
+            file_path = self.file_name + "$pid"
+
+        if results_folder:
+            file_path = results_folder + "/" + file_path
+
+        cmd = f'recorder mpco "{file_path}"'
+
+        if self.node_responses:
+            cmd += " -N " + " ".join(self.node_responses)
+
+        if self.element_responses:
+            cmd += " -E " + " ".join(self.element_responses)
+
+        if self.node_sensitivities:
+            ns_parts = []
+            for name, par in self.node_sensitivities:
+                ns_parts.append(name)
+                ns_parts.append(str(par))
+            cmd += " -NS " + " ".join(ns_parts)
+
+        for r in self.regions:
+            cmd += f" -R {r}"
+
+        if self.delta_t is not None:
+            cmd += f" -T dt {self.delta_t}"
+        elif self.num_steps is not None:
+            cmd += f" -T nsteps {self.num_steps}"
+
+        return cmd
+
+    @staticmethod
+    def get_parameters() -> List[tuple]:
+        """
+        Get the parameters defining this recorder
+
+        Returns:
+            List[tuple]: List of (parameter name, description) tuples
+        """
+        return [
+            ("file_name", "Output file name (e.g., results.mpco)"),
+            ("node_responses", "List of node responses to record (-N)"),
+            ("element_responses", "List of element responses to record (-E)"),
+            ("node_sensitivities", "List of (name,param) sensitivity pairs (-NS)"),
+            ("regions", "Regions to record: tags, names, or RegionBase instances (-R)"),
+            ("delta_t", "Recording time interval: -T dt <deltaTime> (mutually exclusive)"),
+            ("num_steps", "Recording step interval: -T nsteps <numSteps> (mutually exclusive)"),
+        ]
+
+    def get_values(self) -> Dict[str, Union[str, list, float, int]]:
+        """
+        Get the parameters defining this recorder
+
+        Returns:
+            Dict[str, Union[str, list, float, int]]: Dictionary of parameter values
+        """
+        return {
+            "file_name": self.file_name,
+            "node_responses": self.node_responses,
+            "element_responses": self.element_responses,
+            "node_sensitivities": self.node_sensitivities,
+            "regions": self.regions,
+            "delta_t": self.delta_t,
+            "num_steps": self.num_steps,
+        }
+
+class BeamForceRecorder(Recorder):
+    """
+    Specialized Element recorder for beam meshes to record forces.
+
+    This recorder inspects the assembled mesh, resolves the element tags that
+    correspond to selected beam mesh parts (line meshes), and emits one or more
+    recorder Element commands per compute core.
+
+    Args:
+
+        meshparts (List[Union[str, int, object]]):
+            MeshPart identifiers (user_name strings or MeshPart instances).
+            If omitted or empty, all line mesh parts will be used.
+
+        force_type (str): 'globalForce' or 'localForce'. Default: 'globalForce'.
+
+        file_prefix (str): Prefix for output files. Default: 'Beam'.
+
+        delta_t (float | None): Optional -dT value. Default: None.
+
+        include_time (bool): Include -time flag. Default: True.
+
+        output_format (str): 'file', 'xml', or 'binary' (-file/-xml/-binary). Default: 'file'.
+
+        precision (int | None): Number of significant digits (-precision). Default: None.
+
+    Raises:
+        ValueError: If force_type is invalid or if specified meshparts are not found.
+    
+    Returns:
+        BeamForceRecorder: An instance of the recorder.
+
+    Example:
+    '''
+        import femora as fm
+        fm.recorder = fm.BeamForceRecorder(
+            meshparts=["BeamMeshPart1", "BeamMeshPart2"],
+            force_type="localForce",
+            file_prefix="MyBeamForces",
+            delta_t=0.1,
+            include_time=True
+        )
+    '''
+    """
+    def __init__(self, **kwargs):
+        super().__init__("BeamForce")
+        self.meshparts = kwargs.get("meshparts", [])
+        self.force_type = kwargs.get("force_type", "globalForce")
+        self.file_prefix = kwargs.get("file_prefix", "Beam")
+        self.delta_t = kwargs.get("delta_t", None)
+        self.include_time = kwargs.get("include_time", True)
+        self.output_format = kwargs.get("output_format", "file")
+        self.precision = kwargs.get("precision", None)
+
+        # Validate force type
+        if self.force_type not in ("globalForce", "localForce"):
+            raise ValueError("force_type must be 'globalForce' or 'localForce'")
+        if self.output_format not in ("file", "xml", "binary"):
+            raise ValueError("output_format must be one of 'file', 'xml', 'binary'")
+
+    @staticmethod
+    def get_parameters() -> List[tuple]:
+        return [
+            ("meshparts", "List of MeshPart names/instances to record (line meshes)"),
+            ("force_type", "'globalForce' or 'localForce'"),
+            ("file_prefix", "Output file prefix (default: 'Beam')"),
+            ("delta_t", "Time interval: -dT <deltaTime> (optional)"),
+            ("include_time", "Include -time flag (default: True)"),
+            ("output_format", "'file', 'xml', or 'binary' (-file/-xml/-binary)"),
+            ("precision", "Number of significant digits (-precision), optional"),
+        ]
+
+    def get_values(self) -> Dict[str, Union[str, list, float, bool]]:
+        return {
+            "meshparts": [mp if isinstance(mp, str) else getattr(mp, "user_name", str(mp)) for mp in (self.meshparts or [])],
+            "force_type": self.force_type,
+            "file_prefix": self.file_prefix,
+            "delta_t": self.delta_t,
+            "include_time": self.include_time,
+            "output_format": self.output_format,
+            "precision": self.precision,
+        }
+
+    def _resolve_meshparts(self):
+        from femora.components.Mesh.meshPartBase import MeshPart
+        if not self.meshparts:
+            # Default to all line mesh parts
+            return {name: part for name, part in MeshPart.get_mesh_parts().items() if part.category.lower() == "line mesh"}
+        resolved: Dict[str, object] = {}
+        for mp in self.meshparts:
+            if isinstance(mp, str):
+                part = MeshPart.get_mesh_parts().get(mp)
+                if part is None:
+                    raise ValueError(f"MeshPart '{mp}' not found")
+                resolved[mp] = part
+            elif isinstance(mp, MeshPart):
+                resolved[mp.user_name] = mp
+            else:
+                raise TypeError("meshparts must be MeshPart instances or user_name strings")
+        return resolved
+
+    @staticmethod
+    def _compress_to_ranges(sorted_tags: List[int]) -> List[Union[int, tuple]]:
+        if not sorted_tags:
+            return []
+        ranges: List[Union[int, tuple]] = []
+        start = prev = sorted_tags[0]
+        for t in sorted_tags[1:]:
+            if t == prev + 1:
+                prev = t
+                continue
+            # close current range
+            if start == prev:
+                ranges.append(start)
+            else:
+                ranges.append((start, prev))
+            start = prev = t
+        # close last range
+        if start == prev:
+            ranges.append(start)
+        else:
+            ranges.append((start, prev))
+        return ranges
+
+    def to_tcl(self) -> str:
+        from femora import MeshMaker
+        import numpy as np
+        try:
+            import pyvista as pv
+        except Exception:
+            pv = None
+
+        mm = MeshMaker()
+        assembled = mm.assembler.AssembeledMesh
+        if assembled is None:
+            raise ValueError("No assembled mesh found. Assemble the model before creating BeamForceRecorder.")
+
+        results_folder = MeshMaker.get_results_folder()
+        if results_folder != "":
+            results_folder = results_folder + "/"
+
+        start_ele_tag = mm._start_ele_tag
+
+        # Resolve meshparts
+        parts = self._resolve_meshparts()
+
+        # Determine beam cell types mask, if pyvista is available
+        celltypes = getattr(assembled, "celltypes", None)
+        beam_mask_all = None
+        if pv is not None and celltypes is not None:
+            beam_types = set()
+            if hasattr(pv, "CellType"):
+                # Common line-like cell types
+                for name in ("LINE", "POLY_LINE"):
+                    if hasattr(pv.CellType, name):
+                        beam_types.add(getattr(pv.CellType, name))
+            if beam_types:
+                beam_mask_all = np.isin(celltypes, list(beam_types))
+
+        cores = assembled.cell_data.get("Core")
+        mesh_tags = assembled.cell_data.get("MeshTag_cell")
+        if mesh_tags is None or cores is None:
+            raise ValueError("Assembled mesh missing required cell_data ('MeshTag_cell' or 'Core')")
+
+        lines: List[str] = []
+        # For each meshpart, build recorder(s) grouped by core
+        for name, part in parts.items():
+            # mask by mesh tag
+            mask = (mesh_tags == part.tag)
+            if beam_mask_all is not None:
+                mask = mask & beam_mask_all
+
+            idxs = np.where(mask)[0]
+            if idxs.size == 0:
+                lines.append(f"# No beam elements found for meshpart '{name}'")
+                continue
+
+            # Map indices to element tags
+            ele_tags = (start_ele_tag + idxs).astype(int)
+
+            # group by core
+            part_cores = cores[idxs]
+            unique_cores = np.unique(part_cores)
+            for core in unique_cores:
+                core_mask = (part_cores == core)
+                core_tags = np.sort(ele_tags[core_mask])
+                if core_tags.size == 0:
+                    continue
+
+                # File name per meshpart per core with extension by format
+                ext = ".out" if self.output_format == "file" else (".xml" if self.output_format == "xml" else ".bin")
+                file_name = f"{results_folder}{self.file_prefix}_{name}_Core{int(core)}_{self.force_type}{ext}"
+
+                # Build command
+                file_flag = "-file" if self.output_format == "file" else ("-xml" if self.output_format == "xml" else "-binary")
+                cmd = f"if {{$pid == {int(core)}}} {{\n\trecorder Element {file_flag} {file_name}"
+                if self.precision is not None:
+                    cmd += f" -precision {int(self.precision)}"
+                if self.include_time:
+                    cmd += " -time"
+                if self.delta_t is not None:
+                    cmd += f" -dT {self.delta_t}"
+
+                # Always use explicit element tags with -ele
+                tags_list = core_tags.tolist()
+                if self.output_format == "xml":
+                    # Avoid multiple XML recorders writing to same file; single line with all tags
+                    cmd += " -ele " + " ".join(str(t) for t in tags_list)
+                    cmd += f" {self.force_type}\n}}"
+                    lines.append(cmd)
+                else:
+                    # Split into chunks if long (text/binary append-friendly)
+                    CHUNK = 1000
+                    head, rest = tags_list[:CHUNK], tags_list[CHUNK:]
+                    if head:
+                        cmd += " -ele " + " ".join(str(t) for t in head)
+                        cmd += f" {self.force_type}\n"
+                    # For remaining chunks, create additional recorder lines with same file
+                    while rest:
+                        chunk, rest = rest[:CHUNK], rest[CHUNK:]
+                        cmd += f"\trecorder Element {file_flag} {file_name}"
+                        if self.precision is not None:
+                            cmd += f" -precision {int(self.precision)}"
+                        if self.include_time:
+                            cmd += " -time"
+                        if self.delta_t is not None:
+                            cmd += f" -dT {self.delta_t}"
+                        cmd += " -ele " + " ".join(str(t) for t in chunk)
+                        cmd += f" {self.force_type}\n"
+                    cmd += "}"
+                    lines.append(cmd)
+
+        return "\n".join(lines)
+
+    def _resolve_regions(self, regions_input: Union[int, str, RegionBase, List[Union[int, str, RegionBase]]]) -> List[int]:
+        """
+        Normalize provided regions to a list of integer tags.
+
+        Accepts:
+            - int tag
+            - str name (matched against existing RegionBase.name)
+            - RegionBase instance
+            - list/tuple of the above
+        """
+        if regions_input is None:
+            return []
+
+        def resolve_one(item) -> int:
+            if isinstance(item, int):
+                return item
+            if isinstance(item, RegionBase):
+                return item.tag
+            if isinstance(item, str):
+                # Find by name
+                for tag, region in RegionBase.get_all_regions().items():
+                    if getattr(region, "name", None) == item:
+                        return tag
+                raise ValueError(f"Region with name '{item}' not found")
+            raise TypeError("regions must contain ints, names, or RegionBase instances")
+
+        tags: List[int] = []
+        if isinstance(regions_input, (list, tuple)):
+            for it in regions_input:
+                tag = resolve_one(it)
+                if tag not in tags:
+                    tags.append(tag)
+        else:
+            tags = [resolve_one(regions_input)]
+        return tags
+
 class RecorderRegistry:
     """
     A registry to manage recorder types and their creation.
     """
     _recorder_types = {
         'node': NodeRecorder,
-        'vtkhdf': VTKHDFRecorder
+        'vtkhdf': VTKHDFRecorder,
+        'mpco': MPCORecorder,
+        'beam_force': BeamForceRecorder,
     }
 
     @classmethod
@@ -641,6 +1115,8 @@ class RecorderManager:
         # Register recorder types
         self.node = NodeRecorder    
         self.vtkhdf = VTKHDFRecorder
+        self.mpco = MPCORecorder
+        self.beam_force = BeamForceRecorder
         self.embedded_beam_solid_interface = EmbeddedBeamSolidInterfaceRecorder
 
 
