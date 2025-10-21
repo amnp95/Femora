@@ -459,6 +459,18 @@ class VTKHDFRecorder(Recorder):
     the model geometry and metadata, along with selected response quantities.
     The output of this recorder is in the .h5 file format, which can be 
     visualized using visualization tools like ParaView.
+
+    Args:
+        file_base_name (str): Base name of the file to which output is sent
+        resp_types (List[str]): List of strings indicating response types to record
+        delta_t (float, optional): Time interval for recording
+        r_tol_dt (float, optional): Relative tolerance for time step matching
+
+    Raises:
+        ValueError: If file_base_name is not specified
+        ValueError: If resp_types is not specified or contains invalid types    
+    Returns:
+        VTKHDFRecorder: An instance of the recorder.
     """
     def __init__(self, **kwargs):
         """
