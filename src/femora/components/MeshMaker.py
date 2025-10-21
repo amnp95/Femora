@@ -539,6 +539,8 @@ class MeshMaker:
                 indx = 1
                 size = len(self.process)
                 f.write(f"{self.process.to_tcl()}\n")
+                
+                f.write("exit\n")
                 # for process in self.process:
                 #     print(process["component"])
                 #     f.write(f"{process['component'].to_tcl()}\n")
