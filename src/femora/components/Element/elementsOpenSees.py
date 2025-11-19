@@ -3,6 +3,182 @@ from ..Material.materialBase import Material
 from .elementBase import Element, ElementRegistry
 
 
+class SSPbrickElement(Element):
+    """OpenSees 8-node stabilized single-point integration brick (SSPbrick).
+
+    The SSPbrick element is an eight-node hexahedral 3D continuum element that
+    uses a physically stabilized single-point integration scheme ("Stabilized
+    Single Point"). The stabilization employs an enhanced assumed strain field
+    to eliminate both volumetric and shear locking, improving coarse mesh
+    accuracy for bending-dominated and nearly-incompressible problems while
+    typically providing faster analysis times than full integration elements.
+
+    OpenSees command syntax:
+        ``element SSPbrick <tag> <n1> <n2> <n3> <n4> <n5> <n6> <n7> <n8> <matTag> [b1] [b2] [b3]``
+
+    Where the 8 node tags are provided in counter-clockwise order using the
+    same numbering scheme as the standard brick (``stdBrick``) element.
+
+    Parameters can be supplied at construction time via ``**kwargs`` and are
+    validated by :meth:`validate_element_parameters`.
+
+    Attributes:
+        params (Dict[str, Union[int, float, str]]): Validated element parameters
+            (optional body forces ``b1``, ``b2``, ``b3``).
+
+    Notes:
+        - Body forces are constant in the global coordinate directions and
+          default to 0.0 when omitted.
+        - Recorder queries (e.g. ``stress``, ``strain``) correspond to those of
+          the assigned ``nDMaterial`` and are evaluated at the single
+          integration point located at the element center.
+        - Designed to duplicate functionality of ``stdBrick``; report any
+          discrepancies to developers.
+
+    Reference:
+        SSPbrick Element documentation – https://opensees.berkeley.edu/wiki/index.php/SSPbrick_Element
+    """
+    def __init__(self, ndof: int, material: Material, **kwargs):
+        """Initialize an SSPbrick element.
+
+        Args:
+            ndof: Number of degrees of freedom per node. Must be ``3``.
+            material: Associated OpenSees material. Must have
+                ``material_type == 'nDMaterial'`` (3D material).
+            **kwargs: Optional parameters:
+                - ``b1`` (float): Constant body force in global x-direction.
+                - ``b2`` (float): Constant body force in global y-direction.
+                - ``b3`` (float): Constant body force in global z-direction.
+
+        Raises:
+            ValueError: If the material is incompatible, ``ndof`` != 3, or any
+                provided parameter is invalid.
+        """
+        if not self._is_material_compatible(material):
+            raise ValueError(
+                f"Material {material.user_name} with type {material.material_type} is not compatible with SSPbrickElement"
+            )
+        if ndof != 3:
+            raise ValueError(f"SSPbrickElement requires 3 DOFs, but got {ndof}")
+        if kwargs:
+            kwargs = self.validate_element_parameters(**kwargs)
+        super().__init__('SSPbrick', ndof, material)
+        self.params = kwargs if kwargs else {}
+
+    def to_tcl(self, tag: int, nodes: List[int]) -> str:
+        """Generate the OpenSees TCL command for this SSPbrick element.
+
+        Args:
+            tag: Unique element tag.
+            nodes: List of 8 node tags.
+
+        Returns:
+            str: TCL command of the form:
+                ``element SSPbrick <tag> <n1> ... <n8> <matTag> [b1] [b2] [b3]``
+
+        Raises:
+            ValueError: If ``nodes`` does not contain exactly 8 node IDs.
+        """
+        if len(nodes) != 8:
+            raise ValueError("SSPbrick element requires 8 nodes")
+        keys = self.get_parameters()
+        params_str = " ".join(str(self.params[key]) for key in keys if key in self.params)
+        nodes_str = " ".join(str(node) for node in nodes)
+        return f"element SSPbrick {tag} {nodes_str} {self._material.tag} {params_str}".rstrip()
+
+    @classmethod
+    def get_parameters(cls) -> List[str]:
+        """List the supported parameter names for SSPbrick.
+
+        Returns:
+            List[str]: ``["b1", "b2", "b3"]``.
+        """
+        return ["b1", "b2", "b3"]
+
+    @classmethod
+    def get_description(cls) -> List[str]:
+        """Describe each parameter expected by this element.
+
+        Returns:
+            List[str]: Descriptions aligned with :meth:`get_parameters`.
+        """
+        return [
+            'Constant body force in global x direction',
+            'Constant body force in global y direction',
+            'Constant body force in global z direction'
+        ]
+
+    @classmethod
+    def get_possible_dofs(cls) -> List[str]:
+        """Get the allowed number of DOFs per node for this element.
+
+        Returns:
+            List[str]: ``['3']``.
+        """
+        return ['3']
+
+    def get_values(self, keys: List[str]) -> Dict[str, Union[int, float, str]]:
+        """Retrieve current values for the given parameters.
+
+        Args:
+            keys: Parameter names to retrieve; see :meth:`get_parameters`.
+
+        Returns:
+            Dict[str, Union[int, float, str]]: Mapping from key to stored value
+            (or ``None`` if not present).
+        """
+        return {key: self.params.get(key) for key in keys}
+
+    def update_values(self, values: Dict[str, Union[int, float, str]]) -> None:
+        """Replace all stored parameters with the provided mapping.
+
+        Args:
+            values: New parameter mapping. Any previously stored parameter not
+                present in this mapping will be removed.
+        """
+        self.params.clear()
+        self.params.update(values)
+
+    @classmethod
+    def _is_material_compatible(cls, material: Material) -> bool:
+        """Check whether the provided material can be used with SSPbrick.
+
+        Requires an OpenSees 3D ``nDMaterial``.
+
+        Args:
+            material: Material instance to check.
+
+        Returns:
+            bool: ``True`` if ``material.material_type == 'nDMaterial'``.
+        """
+        return material.material_type == 'nDMaterial'
+
+    @classmethod
+    def validate_element_parameters(cls, **kwargs) -> Dict[str, Union[int, float, str]]:
+        """Validate and coerce SSPbrick parameters.
+
+        Optional parameters ``b1``, ``b2`` and ``b3`` are converted to ``float``
+        if provided.
+
+        Args:
+            **kwargs: Raw parameter mapping.
+
+        Returns:
+            Dict[str, Union[int, float, str]]: Validated parameter mapping.
+
+        Raises:
+            ValueError: If any provided body force cannot be converted to
+                ``float``.
+        """
+        for key in ["b1", "b2", "b3"]:
+            if key in kwargs:
+                try:
+                    kwargs[key] = float(kwargs.get(key,0.0))
+                except (ValueError, TypeError):
+                    raise ValueError(f"{key} must be a float number")
+        return kwargs
+    
+    
 class SSPQuadElement(Element):
     """OpenSees 4-node stabilized single-point integration quadrilateral (SSPquad).
 
@@ -49,12 +225,14 @@ class SSPQuadElement(Element):
         super().__init__('SSPQuad', ndof, material)
         self.params = kwargs if kwargs else {}
 
+
     def __str__(self):
         """Return a compact string with material tag and parameters.
 
         This is not a full TCL command. Use :meth:`to_tcl` to generate an
         executable OpenSees command string.
 
+        ElementRegistry.register_element_type('SSPbrick', SSPbrickElement)
         Returns:
             str: ``"<matTag> <paramValues>"`` where parameters are ordered as
             in :meth:`get_parameters` and included only if present.
@@ -657,3 +835,4 @@ class PML3DElement(Element):
 ElementRegistry.register_element_type('SSPQuad', SSPQuadElement)
 ElementRegistry.register_element_type('stdBrick', stdBrickElement)
 ElementRegistry.register_element_type('PML3D', PML3DElement)
+ElementRegistry.register_element_type('SSPbrick', SSPbrickElement)
