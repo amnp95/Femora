@@ -310,6 +310,19 @@ class TimeHistory:
             sa[i] = np.max(np.abs(resp))
 
         return periods, sa
+    
+
+    def plot(self) -> None:
+        """Plot the acceleration time history."""
+        import matplotlib.pyplot as plt
+        plt.figure(figsize=(10, 4))
+        plt.plot(self.time, self.acceleration, label='Acceleration')
+        plt.xlabel('Time (s)')
+        plt.ylabel('Acceleration (g)' if self.unit_in_g else 'Acceleration (m/s²)')
+        plt.title('Acceleration Time History')
+        plt.grid()
+        plt.legend()
+        plt.show()
 
 
 
