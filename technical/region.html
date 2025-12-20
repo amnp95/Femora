@@ -1,0 +1,428 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Region &mdash; Femora (Fast Efficient Meshing for OpenSees-based Resilience Analysis) 0.5.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/custom.css?v=bbbd0671" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=1dd76d02"></script>
+      <script src="../_static/doctools.js?v=9a2dae69"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../_static/js/copy-button.js?v=47d38097"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Region Types" href="region/index.html" />
+    <link rel="prev" title="Secant Stiffness Proportional Damping" href="damping/secant_stiffness.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html">
+            
+              <img src="../_static/Femoralogo.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Introduction:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../introduction/getting_started.html">Getting Started with Femora</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../introduction/installation.html">Installation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../introduction/quick_start.html">Quick Start Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../introduction/examples.html">Examples and Tutorials</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Technical Guide:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Technical Documentation</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="materials.html">Material</a></li>
+<li class="toctree-l2"><a class="reference internal" href="elements.html">Element</a></li>
+<li class="toctree-l2"><a class="reference internal" href="damping.html">Damping</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Region</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#understanding-the-regionmanager">Understanding the RegionManager</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#accessing-the-regionmanager">Accessing the RegionManager</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#how-regionmanager-works">How RegionManager Works</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#global-region">Global Region</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#region-tagging-system">Region Tagging System</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#regionmanager-api-reference">RegionManager API Reference</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#femora.components.Region.regionBase.RegionManager"><code class="docutils literal notranslate"><span class="pre">RegionManager</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#region-creation">Region Creation</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#usage-example">Usage Example</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#available-region-types">Available Region Types</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="region/index.html">Region Types</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="meshparts.html">MeshPart</a></li>
+<li class="toctree-l2"><a class="reference internal" href="assembler.html">Assembler</a></li>
+<li class="toctree-l2"><a class="reference internal" href="constraint.html">Constraints</a></li>
+<li class="toctree-l2"><a class="reference internal" href="timeseries.html">TimeSeries</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pattern.html">Pattern</a></li>
+<li class="toctree-l2"><a class="reference internal" href="analysis.html">Analysis</a></li>
+<li class="toctree-l2"><a class="reference internal" href="process.html">Process</a></li>
+<li class="toctree-l2"><a class="reference internal" href="drm.html">DRM</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer Documentation:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../developer/index.html">Developer Documentation</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Femora (Fast Efficient Meshing for OpenSees-based Resilience Analysis)</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">Technical Documentation</a></li>
+      <li class="breadcrumb-item active">Region</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/technical/region.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="region">
+<h1>Region<a class="headerlink" href="#region" title="Link to this heading"></a></h1>
+<section id="understanding-the-regionmanager">
+<h2>Understanding the RegionManager<a class="headerlink" href="#understanding-the-regionmanager" title="Link to this heading"></a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">RegionManager</span></code> is a core component of the Femora library that serves as a centralized system for creating, retrieving, tracking, and managing region objects. It implements the Singleton pattern to ensure a single, consistent point of region management across the entire application.</p>
+<p>Regions defined in Femora are automatically tracked, tagged, and organized by the RegionManager, simplifying the process of defining specific parts of your model for targeted analysis and damping assignments.</p>
+</section>
+<section id="accessing-the-regionmanager">
+<h2>Accessing the RegionManager<a class="headerlink" href="#accessing-the-regionmanager" title="Link to this heading"></a></h2>
+<p>There are two ways to access the RegionManager in your code:</p>
+<ol class="arabic">
+<li><p><strong>Direct Access</strong>: Import and use the RegionManager class directly</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">femora.components.Region.regionBase</span><span class="w"> </span><span class="kn">import</span> <span class="n">RegionManager</span>
+
+<span class="c1"># Get the singleton instance</span>
+<span class="n">region_manager</span> <span class="o">=</span> <span class="n">RegionManager</span><span class="p">()</span>
+
+<span class="c1"># Use the region manager directly</span>
+<span class="n">region_manager</span><span class="o">.</span><span class="n">create_region</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+</pre></div>
+</div>
+</li>
+<li><p><strong>Through femora</strong> (Recommended): Access via the Femora class’s .region property</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">femora</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">fm</span>
+
+<span class="c1"># Create a Femora instance</span>
+
+
+<span class="c1"># Access the RegionManager through the .region property</span>
+<span class="n">fm</span><span class="o">.</span><span class="n">region</span><span class="o">.</span><span class="n">create_region</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+</pre></div>
+</div>
+</li>
+</ol>
+<p>The second approach is recommended as it provides a unified interface to all of Femora’s components and ensures proper initialization of all dependencies.</p>
+</section>
+<section id="how-regionmanager-works">
+<h2>How RegionManager Works<a class="headerlink" href="#how-regionmanager-works" title="Link to this heading"></a></h2>
+<p>The RegionManager provides several key capabilities:</p>
+<ol class="arabic simple">
+<li><p><strong>Region Creation</strong>: Creates region objects of various types with appropriate parameters</p></li>
+<li><p><strong>Region Tracking</strong>: Keeps track of all region instances by tag</p></li>
+<li><p><strong>Region Tagging</strong>: Automatically assigns sequential tags to region instances</p></li>
+<li><p><strong>Region Management</strong>: Provides methods to retrieve, update, and delete region instances</p></li>
+</ol>
+<p>When a region is created, the RegionManager:</p>
+<ol class="arabic simple">
+<li><p>Assigns a unique numeric tag automatically (starting from 1, as tag 0 is reserved for the GlobalRegion)</p></li>
+<li><p>Validates that all required parameters are present and valid</p></li>
+<li><p>Registers it for use in defining parts of the model</p></li>
+</ol>
+</section>
+<section id="global-region">
+<h2>Global Region<a class="headerlink" href="#global-region" title="Link to this heading"></a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">GlobalRegion</span></code> is a special region with tag 0 that represents the entire model. It’s automatically created when the RegionManager is initialized, and there can only be one instance of GlobalRegion in the system.</p>
+<p>This region serves as the default region for operations that don’t specify a specific region, providing a convenient way to apply configurations to the entire model.</p>
+</section>
+<section id="region-tagging-system">
+<h2>Region Tagging System<a class="headerlink" href="#region-tagging-system" title="Link to this heading"></a></h2>
+<p>The RegionManager implements an intelligent tagging system that:</p>
+<ul class="simple">
+<li><p>Reserves tag 0 for the GlobalRegion</p></li>
+<li><p>Assigns sequential tags to other regions starting from 1</p></li>
+<li><p>Automatically retags instances when one is removed to maintain sequential numbering</p></li>
+<li><p>Ensures uniqueness of tags across the model</p></li>
+</ul>
+</section>
+<section id="regionmanager-api-reference">
+<h2>RegionManager API Reference<a class="headerlink" href="#regionmanager-api-reference" title="Link to this heading"></a></h2>
+<p>Key Methods:</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="femora.components.Region.regionBase.RegionManager">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">femora.components.Region.regionBase.</span></span><span class="sig-name descname"><span class="pre">RegionManager</span></span><a class="reference internal" href="../_modules/femora/components/Region/regionBase.html#RegionManager"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#femora.components.Region.regionBase.RegionManager" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>A centralized manager for all region instances in MeshMaker.</p>
+<p>The RegionManager implements the Singleton pattern to ensure a single, consistent
+point of region management across the entire application. It provides methods for
+creating, retrieving, and managing region objects used to define specific parts
+of structural models for analysis and damping assignments.</p>
+<p>All region objects created through this manager are automatically tracked and tagged,
+simplifying the process of defining and managing model regions. A special GlobalRegion
+with tag 0 is automatically created when the RegionManager is initialized.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="femora.components.Region.regionBase.RegionManager.GlobalRegion">
+<span class="sig-name descname"><span class="pre">GlobalRegion</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/femora/components/Region/regionBase.html#RegionManager.GlobalRegion"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#femora.components.Region.regionBase.RegionManager.GlobalRegion" title="Link to this definition"></a></dt>
+<dd><p>Get the GlobalRegion instance.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The global region instance</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>GlobalRegion</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="femora.components.Region.regionBase.RegionManager.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/femora/components/Region/regionBase.html#RegionManager.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#femora.components.Region.regionBase.RegionManager.__init__" title="Link to this definition"></a></dt>
+<dd><p>Initialize the RegionManager and create the GlobalRegion.</p>
+<p>This method ensures that the global region (tag 0) is automatically created
+when the RegionManager is initialized. The initialization only happens once
+due to the singleton pattern.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="femora.components.Region.regionBase.RegionManager.clear_regions">
+<span class="sig-name descname"><span class="pre">clear_regions</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/femora/components/Region/regionBase.html#RegionManager.clear_regions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#femora.components.Region.regionBase.RegionManager.clear_regions" title="Link to this definition"></a></dt>
+<dd><p>Remove all regions and reinitialize the GlobalRegion.</p>
+<p>This method clears all region instances, including the GlobalRegion,
+and then recreates the GlobalRegion with tag 0.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="femora.components.Region.regionBase.RegionManager.create_region">
+<span class="sig-name descname"><span class="pre">create_region</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">regionType</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">damping</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/femora/components/Region/regionBase.html#RegionManager.create_region"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#femora.components.Region.regionBase.RegionManager.create_region" title="Link to this definition"></a></dt>
+<dd><p>Create a new region instance of the specified type.</p>
+<p>This method creates and returns a new region object based on the provided type
+and parameters. The region is automatically registered and tracked.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>regionType</strong> (<em>str</em>) – The type of region to create. Available types include:
+‘ElementRegion’: A region defined by a set of elements or element range
+‘NodeRegion’: A region defined by a set of nodes or node range
+‘GlobalRegion’: The global region representing the entire model</p></li>
+<li><p><strong>damping</strong> – Optional damping instance to associate with the region</p></li>
+<li><p><strong>**kwargs</strong> – Specific parameters for the region type being created
+(e.g., elements, element_range for ElementRegion,
+nodes, node_range for NodeRegion)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A new instance of the requested region type</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>RegionBase</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If the region type is unknown or if required parameters are missing or invalid</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="femora.components.Region.regionBase.RegionManager.get_region">
+<span class="sig-name descname"><span class="pre">get_region</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tag</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/femora/components/Region/regionBase.html#RegionManager.get_region"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#femora.components.Region.regionBase.RegionManager.get_region" title="Link to this definition"></a></dt>
+<dd><p>Get a region by its tag.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>tag</strong> (<em>int</em>) – The unique identifier of the region instance</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The region instance with the specified tag, or None if not found</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>RegionBase</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="femora.components.Region.regionBase.RegionManager.print_regions">
+<span class="sig-name descname"><span class="pre">print_regions</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/femora/components/Region/regionBase.html#RegionManager.print_regions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#femora.components.Region.regionBase.RegionManager.print_regions" title="Link to this definition"></a></dt>
+<dd><p>Print information about all regions.</p>
+<p>This method prints detailed information about all region instances
+including their tags, types, elements/nodes, and damping assignments.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="femora.components.Region.regionBase.RegionManager.regions">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">regions</span></span><a class="headerlink" href="#femora.components.Region.regionBase.RegionManager.regions" title="Link to this definition"></a></dt>
+<dd><p>Get all regions as a dictionary mapping tags to region instances.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A dictionary mapping tags to region instances</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dict[int, RegionBase]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="femora.components.Region.regionBase.RegionManager.remove_region">
+<span class="sig-name descname"><span class="pre">remove_region</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tag</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/femora/components/Region/regionBase.html#RegionManager.remove_region"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#femora.components.Region.regionBase.RegionManager.remove_region" title="Link to this definition"></a></dt>
+<dd><p>Remove a region by its tag.</p>
+<p>This method removes the specified region instance and automatically
+updates the tags of the remaining region instances to maintain sequential numbering.
+The GlobalRegion (tag 0) cannot be removed.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>tag</strong> (<em>int</em>) – The unique identifier of the region instance to remove</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If attempting to remove the GlobalRegion (tag 0)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="region-creation">
+<h2>Region Creation<a class="headerlink" href="#region-creation" title="Link to this heading"></a></h2>
+<p>Creating regions is one of the primary functions of the RegionManager. When creating a region, you need to specify:</p>
+<ol class="arabic simple">
+<li><p><strong>regionType</strong>: Specifies the region type to create. Available types include:
+- <code class="docutils literal notranslate"><span class="pre">ElementRegion</span></code>: A region defined by a set of elements or element range
+- <code class="docutils literal notranslate"><span class="pre">NodeRegion</span></code>: A region defined by a set of nodes or node range
+- <code class="docutils literal notranslate"><span class="pre">GlobalRegion</span></code>: The global region representing the entire model (typically not created directly)</p></li>
+<li><p><strong>damping</strong>: Optional damping instance to associate with the region</p></li>
+<li><p><strong>Region-specific parameters</strong>: Each region type requires specific parameters (like elements, element_range for ElementRegion)</p></li>
+</ol>
+<p>The RegionManager handles all the details of creating the appropriate region object based on these parameters, ensuring type safety and parameter validation.</p>
+<section id="usage-example">
+<h3>Usage Example<a class="headerlink" href="#usage-example" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">femora.components.Region.regionBase</span><span class="w"> </span><span class="kn">import</span> <span class="n">RegionManager</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">femora.components.Damping.dampingBase</span><span class="w"> </span><span class="kn">import</span> <span class="n">DampingManager</span>
+
+<span class="c1"># Get the region manager instance</span>
+<span class="n">region_manager</span> <span class="o">=</span> <span class="n">RegionManager</span><span class="p">()</span>
+
+<span class="c1"># Get the damping manager instance</span>
+<span class="n">damping_manager</span> <span class="o">=</span> <span class="n">DampingManager</span><span class="p">()</span>
+
+<span class="c1"># Create a Rayleigh damping instance</span>
+<span class="n">rayleigh_damping</span> <span class="o">=</span> <span class="n">damping_manager</span><span class="o">.</span><span class="n">create_damping</span><span class="p">(</span>
+    <span class="s1">&#39;rayleigh&#39;</span><span class="p">,</span>
+    <span class="n">alphaM</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
+    <span class="n">betaK</span><span class="o">=</span><span class="mf">0.2</span>
+<span class="p">)</span>
+
+<span class="c1"># Create an element region with specific elements and the damping</span>
+<span class="n">element_region</span> <span class="o">=</span> <span class="n">region_manager</span><span class="o">.</span><span class="n">create_region</span><span class="p">(</span>
+    <span class="s1">&#39;ElementRegion&#39;</span><span class="p">,</span>
+    <span class="n">damping</span><span class="o">=</span><span class="n">rayleigh_damping</span><span class="p">,</span>
+    <span class="n">elements</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">]</span>
+<span class="p">)</span>
+
+<span class="c1"># Create a node region with a node range</span>
+<span class="n">node_region</span> <span class="o">=</span> <span class="n">region_manager</span><span class="o">.</span><span class="n">create_region</span><span class="p">(</span>
+    <span class="s1">&#39;NodeRegion&#39;</span><span class="p">,</span>
+    <span class="n">node_range</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">100</span><span class="p">]</span>
+<span class="p">)</span>
+
+<span class="c1"># Access the global region</span>
+<span class="n">global_region</span> <span class="o">=</span> <span class="n">region_manager</span><span class="o">.</span><span class="n">get_region</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+<span class="c1"># Remove a region</span>
+<span class="n">region_manager</span><span class="o">.</span><span class="n">remove_region</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+
+<span class="c1"># Print all regions</span>
+<span class="n">region_manager</span><span class="o">.</span><span class="n">print_regions</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="available-region-types">
+<h2>Available Region Types<a class="headerlink" href="#available-region-types" title="Link to this heading"></a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="region/index.html">Region Types</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="region/globalregion.html">GlobalRegion</a></li>
+<li class="toctree-l2"><a class="reference internal" href="region/elementregion.html">ElementRegion</a></li>
+<li class="toctree-l2"><a class="reference internal" href="region/noderegion.html">NodeRegion</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<p>The region types available in Femora provide different ways to define specific parts of your model for targeted analysis and configuration. Follow the link above to explore the different region types available.</p>
+<p>Each region type has its own documentation page with detailed parameter descriptions and usage examples.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="damping/secant_stiffness.html" class="btn btn-neutral float-left" title="Secant Stiffness Proportional Damping" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="region/index.html" class="btn btn-neutral float-right" title="Region Types" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Amin Pakzad.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

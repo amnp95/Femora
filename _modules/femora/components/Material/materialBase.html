@@ -1,0 +1,785 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>femora.components.Material.materialBase &mdash; Femora (Fast Efficient Meshing for OpenSees-based Resilience Analysis) 0.5.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/custom.css?v=bbbd0671" />
+
+  
+      <script src="../../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../../_static/documentation_options.js?v=1dd76d02"></script>
+      <script src="../../../../_static/doctools.js?v=9a2dae69"></script>
+      <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../../../../_static/js/copy-button.js?v=47d38097"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html">
+            
+              <img src="../../../../_static/Femoralogo.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Introduction:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../introduction/getting_started.html">Getting Started with Femora</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../introduction/installation.html">Installation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../introduction/quick_start.html">Quick Start Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../introduction/examples.html">Examples and Tutorials</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Technical Guide:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../technical/index.html">Technical Documentation</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer Documentation:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../developer/index.html">Developer Documentation</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">Femora (Fast Efficient Meshing for OpenSees-based Resilience Analysis)</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">femora.components.Material.materialBase</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for femora.components.Material.materialBase</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">ABC</span><span class="p">,</span> <span class="n">abstractmethod</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Type</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Any</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">Material</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Base abstract class for all materials with simple sequential tagging</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">_materials</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># Class-level dictionary to track all materials</span>
+    <span class="n">_matTags</span> <span class="o">=</span> <span class="p">{}</span>    <span class="c1"># Class-level dictionary to track material tags</span>
+    <span class="n">_names</span> <span class="o">=</span> <span class="p">{}</span>      <span class="c1"># Class-level dictionary to track material names</span>
+    <span class="n">_next_tag</span> <span class="o">=</span> <span class="mi">1</span>    <span class="c1"># Class variable to track the next tag to assign</span>
+    <span class="n">_start_tag</span> <span class="o">=</span> <span class="mi">1</span>   <span class="c1"># Class variable to track the starting tag number</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">material_type</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">material_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">user_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize a new material with a sequential tag</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            material_type (str): The type of material (e.g., &#39;nDMaterial&#39;, &#39;uniaxialMaterial&#39;)</span>
+<span class="sd">            material_name (str): The specific material name (e.g., &#39;ElasticIsotropic&#39;)</span>
+<span class="sd">            user_name (str): User-specified name for the material</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">user_name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_names</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Material name &#39;</span><span class="si">{</span><span class="n">user_name</span><span class="si">}</span><span class="s2">&#39; already exists&quot;</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">tag</span> <span class="o">=</span> <span class="n">Material</span><span class="o">.</span><span class="n">_next_tag</span>
+        <span class="n">Material</span><span class="o">.</span><span class="n">_next_tag</span> <span class="o">+=</span> <span class="mi">1</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">material_type</span> <span class="o">=</span> <span class="n">material_type</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">material_name</span> <span class="o">=</span> <span class="n">material_name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">user_name</span> <span class="o">=</span> <span class="n">user_name</span>
+        
+        <span class="c1"># Register this material in the class-level tracking dictionaries</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_materials</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">tag</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_matTags</span><span class="p">[</span><span class="bp">self</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tag</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_names</span><span class="p">[</span><span class="n">user_name</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">delete_material</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">tag</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Delete a material by its tag and retag all remaining materials sequentially</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            tag (int): The tag of the material to delete</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">tag</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_materials</span><span class="p">:</span>
+            <span class="c1"># Remove the material from tracking dictionaries</span>
+            <span class="n">material_to_delete</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_materials</span><span class="p">[</span><span class="n">tag</span><span class="p">]</span>
+            <span class="bp">cls</span><span class="o">.</span><span class="n">_names</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">material_to_delete</span><span class="o">.</span><span class="n">user_name</span><span class="p">)</span>
+            <span class="bp">cls</span><span class="o">.</span><span class="n">_matTags</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">material_to_delete</span><span class="p">)</span>
+            <span class="bp">cls</span><span class="o">.</span><span class="n">_materials</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">tag</span><span class="p">)</span>
+
+            <span class="c1"># Retag all remaining materials</span>
+            <span class="bp">cls</span><span class="o">.</span><span class="n">retag_all</span><span class="p">()</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_material_by_tag</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">tag</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;Material&#39;</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Retrieve a specific material by its tag.</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            tag (int): The tag of the material</span>
+<span class="sd">        </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            Material: The material with the specified tag</span>
+<span class="sd">        </span>
+<span class="sd">        Raises:</span>
+<span class="sd">            KeyError: If no material with the given tag exists</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">tag</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_materials</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;No material found with tag </span><span class="si">{</span><span class="n">tag</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_materials</span><span class="p">[</span><span class="n">tag</span><span class="p">]</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_material_by_name</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;Material&#39;</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Retrieve a specific material by its user-specified name.</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            name (str): The user-specified name of the material</span>
+<span class="sd">        </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            Material: The material with the specified name</span>
+<span class="sd">        </span>
+<span class="sd">        Raises:</span>
+<span class="sd">            KeyError: If no material with the given name exists</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_names</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;No material found with name </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_names</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">clear_all</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Reset all class-level tracking and start tags from 1 again</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">cls</span><span class="o">.</span><span class="n">_materials</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+        <span class="bp">cls</span><span class="o">.</span><span class="n">_matTags</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+        <span class="bp">cls</span><span class="o">.</span><span class="n">_names</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+        <span class="bp">cls</span><span class="o">.</span><span class="n">_next_tag</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_start_tag</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_tag_start</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">start_number</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set the starting number for material tags globally</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            start_number (int): The first tag number to use</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">start_number</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Tag start number must be greater than 0&quot;</span><span class="p">)</span>
+        <span class="bp">cls</span><span class="o">.</span><span class="n">_start_tag</span> <span class="o">=</span> <span class="n">start_number</span>
+        <span class="bp">cls</span><span class="o">.</span><span class="n">_next_tag</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_start_tag</span>
+        <span class="bp">cls</span><span class="o">.</span><span class="n">retag_all</span><span class="p">()</span>
+
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">retag_all</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Retag all materials sequentially starting from 1</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">sorted_materials</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span>
+            <span class="p">[(</span><span class="n">tag</span><span class="p">,</span> <span class="n">material</span><span class="p">)</span> <span class="k">for</span> <span class="n">tag</span><span class="p">,</span> <span class="n">material</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_materials</span><span class="o">.</span><span class="n">items</span><span class="p">()],</span>
+            <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Clear existing dictionaries</span>
+        <span class="bp">cls</span><span class="o">.</span><span class="n">_materials</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+        <span class="bp">cls</span><span class="o">.</span><span class="n">_matTags</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+
+        <span class="c1"># Rebuild dictionaries with new sequential tags</span>
+        <span class="k">for</span> <span class="n">new_tag</span><span class="p">,</span> <span class="p">(</span><span class="n">_</span><span class="p">,</span> <span class="n">material</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">sorted_materials</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="bp">cls</span><span class="o">.</span><span class="n">_start_tag</span><span class="p">):</span>
+            <span class="n">material</span><span class="o">.</span><span class="n">tag</span> <span class="o">=</span> <span class="n">new_tag</span> <span class="c1"># Update the material&#39;s tag</span>
+            <span class="bp">cls</span><span class="o">.</span><span class="n">_materials</span><span class="p">[</span><span class="n">new_tag</span><span class="p">]</span> <span class="o">=</span> <span class="n">material</span> <span class="c1"># Update materials dictionary</span>
+            <span class="bp">cls</span><span class="o">.</span><span class="n">_matTags</span><span class="p">[</span><span class="n">material</span><span class="p">]</span> <span class="o">=</span> <span class="n">new_tag</span>   <span class="c1"># Update matTags dictionary</span>
+        
+        <span class="c1"># Update next tag</span>
+        <span class="bp">cls</span><span class="o">.</span><span class="n">_next_tag</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_start_tag</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">_materials</span><span class="p">)</span>
+
+
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_all_materials</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="s1">&#39;Material&#39;</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Retrieve all created materials.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            Dict[int, Material]: A dictionary of all materials, keyed by their unique tags</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_materials</span>
+
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_material_by_name</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;Material&#39;</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Retrieve a specific material by its user-specified name.</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            name (str): The user-specified name of the material</span>
+<span class="sd">        </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            Material: The material with the specified name</span>
+<span class="sd">        </span>
+<span class="sd">        Raises:</span>
+<span class="sd">            KeyError: If no material with the given name exists</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_names</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
+    
+    <span class="nd">@classmethod</span>  
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_parameters</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the list of parameters for this material type.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            List[str]: List of parameter names</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span>
+
+    <span class="nd">@classmethod</span>  
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_description</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the list of descriptions for the parameters of this material type.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            List[str]: List of parameter descriptions</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        String representation of the material.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            str: Formatted material definition string</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">str</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Material :&quot;</span>
+        <span class="nb">str</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">name:</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">material_name</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="nb">str</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">type:</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">material_type</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="nb">str</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">tag:</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">tag</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="nb">str</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">user_name:</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">user_name</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="nb">str</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">parameters:&quot;</span>
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_parameters</span><span class="p">():</span>
+            <span class="nb">str</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="se">\t\t</span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">key</span><span class="p">)</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">validate</span><span class="p">(</span><span class="n">params</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Validate the material parameters for all instances.</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            params (Dict[str, Any]): Dictionary of parameter names and values to validate</span>
+<span class="sd">        </span>
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If any parameter is invalid</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span>
+    
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">to_tcl</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Convert the material to a TCL string for OpenSees.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            str: TCL representation of the material</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_values</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">keys</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Default implementation to retrieve values for specific parameters.</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            keys (List[str]): List of parameter names to retrieve</span>
+<span class="sd">        </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            Dict[str, float]: Dictionary of parameter values</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">}</span>
+    
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">update_values</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Default implementation to update material parameters.</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            values (Dict[str, float]): Dictionary of parameter names and values to update</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+        <span class="n">params</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">params</span> <span class="o">=</span> <span class="n">params</span> <span class="k">if</span> <span class="n">params</span> <span class="k">else</span> <span class="p">{}</span>
+        
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_param</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span><span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the value of a specific parameter.</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            key (str): The parameter name</span>
+<span class="sd">        </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            float: The value of the parameter</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">clear_all_materials</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Clear all materials and reset tags to starting value</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">cls</span><span class="o">.</span><span class="n">clear_all</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">updateMaterialStage</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span><span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Update the material stage.</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            state (str): The new state of the material</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="s2">&quot;&quot;</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">MaterialRegistry</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A registry to manage material types and their creation.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">_material_types</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">register_material_type</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">material_category</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">material_class</span><span class="p">:</span> <span class="n">Type</span><span class="p">[</span><span class="n">Material</span><span class="p">]):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Register a new material type for easy creation.</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            material_category (str): The category of material (nDMaterial, uniaxialMaterial)</span>
+<span class="sd">            name (str): The name of the material type</span>
+<span class="sd">            material_class (Type[Material]): The class of the material</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">material_category</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_material_types</span><span class="p">:</span>
+            <span class="bp">cls</span><span class="o">.</span><span class="n">_material_types</span><span class="p">[</span><span class="n">material_category</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">cls</span><span class="o">.</span><span class="n">_material_types</span><span class="p">[</span><span class="n">material_category</span><span class="p">][</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">material_class</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_material_categories</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get available material categories.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            List[str]: Available material categories</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">_material_types</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_material_types</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">category</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get available material types for a given category.</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            category (str): Material category</span>
+<span class="sd">        </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            List[str]: Available material types for the category</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">_material_types</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">category</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">create_material</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">material_category</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">material_type</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">user_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;Unnamed&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Material</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Create a new material of a specific type.</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            material_category (str): Category of material (nDMaterial, uniaxialMaterial)</span>
+<span class="sd">            material_type (str): Type of material to create</span>
+<span class="sd">            user_name (str): User-specified name for the material</span>
+<span class="sd">            **kwargs: Parameters for material initialization</span>
+<span class="sd">        </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            Material: A new material instance</span>
+<span class="sd">        </span>
+<span class="sd">        Raises:</span>
+<span class="sd">            KeyError: If the material category or type is not registered</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">material_category</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_material_types</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Material category </span><span class="si">{</span><span class="n">material_category</span><span class="si">}</span><span class="s2"> not registered&quot;</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="n">material_type</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_material_types</span><span class="p">[</span><span class="n">material_category</span><span class="p">]:</span>
+            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Material type </span><span class="si">{</span><span class="n">material_type</span><span class="si">}</span><span class="s2"> not registered in </span><span class="si">{</span><span class="n">material_category</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        
+        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_material_types</span><span class="p">[</span><span class="n">material_category</span><span class="p">][</span><span class="n">material_type</span><span class="p">](</span><span class="n">user_name</span><span class="o">=</span><span class="n">user_name</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    
+    
+    <span class="k">def</span><span class="w"> </span><span class="nf">updateMaterialStage</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span><span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Update the material stage.</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            state (str): The new state of the material</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="s2">&quot;&quot;</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">femora.components.Material.materialsOpenSees</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
+<div class="viewcode-block" id="MaterialManager">
+<a class="viewcode-back" href="../../../../technical/materials.html#femora.components.Material.materialBase.MaterialManager">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">MaterialManager</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Singleton class for managing mesh materials and properties</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">_instance</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_instance</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">cls</span><span class="o">.</span><span class="n">_instance</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">MaterialManager</span><span class="p">,</span> <span class="bp">cls</span><span class="p">)</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span>
+            <span class="bp">cls</span><span class="o">.</span><span class="n">_instance</span><span class="o">.</span><span class="n">_initialize</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_instance</span>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_initialize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize the singleton instance&quot;&quot;&quot;</span>
+        <span class="c1"># Add nd and uniaxial managers for autocompletion and access</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">.nd_uniaxial_manager</span><span class="w"> </span><span class="kn">import</span> <span class="n">NDMaterialManager</span><span class="p">,</span> <span class="n">UniaxialMaterialManager</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nd</span> <span class="o">=</span> <span class="n">NDMaterialManager</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">uniaxial</span> <span class="o">=</span> <span class="n">UniaxialMaterialManager</span><span class="p">()</span>
+
+
+<div class="viewcode-block" id="MaterialManager.create_material">
+<a class="viewcode-back" href="../../../../technical/materials.html#femora.components.Material.materialBase.MaterialManager.create_material">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">create_material</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> 
+                       <span class="n">material_category</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> 
+                       <span class="n">material_type</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> 
+                       <span class="n">user_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> 
+                       <span class="o">**</span><span class="n">material_params</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Material</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Create a new material with the given parameters</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            material_category (str): Category of material (e.g., &#39;nDMaterial&#39;)</span>
+<span class="sd">            material_type (str): Type of material (e.g., &#39;Concrete&#39;)</span>
+<span class="sd">            user_name (str): Unique name for the material</span>
+<span class="sd">            **material_params: Material-specific parameters</span>
+<span class="sd">            </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            Material: The created material instance</span>
+<span class="sd">            </span>
+<span class="sd">        Raises:</span>
+<span class="sd">            KeyError: If material category or type doesn&#39;t exist</span>
+<span class="sd">            ValueError: If material name already exists</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">MaterialRegistry</span><span class="o">.</span><span class="n">create_material</span><span class="p">(</span>
+            <span class="n">material_category</span><span class="o">=</span><span class="n">material_category</span><span class="p">,</span>
+            <span class="n">material_type</span><span class="o">=</span><span class="n">material_type</span><span class="p">,</span>
+            <span class="n">user_name</span><span class="o">=</span><span class="n">user_name</span><span class="p">,</span>
+            <span class="o">**</span><span class="n">material_params</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="MaterialManager.get_material">
+<a class="viewcode-back" href="../../../../technical/materials.html#femora.components.Material.materialBase.MaterialManager.get_material">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_material</span><span class="p">(</span><span class="n">identifier</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Material</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get material by either tag or name</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            identifier: Either material tag (int) or user_name (str)</span>
+<span class="sd">            </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            Material: The requested material</span>
+<span class="sd">            </span>
+<span class="sd">        Raises:</span>
+<span class="sd">            KeyError: If material not found</span>
+<span class="sd">            TypeError: If identifier type is invalid</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">identifier</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">Material</span><span class="o">.</span><span class="n">get_material_by_tag</span><span class="p">(</span><span class="n">identifier</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">identifier</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">Material</span><span class="o">.</span><span class="n">get_material_by_name</span><span class="p">(</span><span class="n">identifier</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Identifier must be either tag (int) or name (str)&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="MaterialManager.update_material_params">
+<a class="viewcode-back" href="../../../../technical/materials.html#femora.components.Material.materialBase.MaterialManager.update_material_params">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">update_material_params</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> 
+                             <span class="n">identifier</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> 
+                             <span class="n">new_params</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Update parameters of an existing material</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            identifier: Either material tag (int) or user_name (str)</span>
+<span class="sd">            new_params: Dictionary of parameter names and new values</span>
+<span class="sd">            </span>
+<span class="sd">        Raises:</span>
+<span class="sd">            KeyError: If material not found</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">material</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_material</span><span class="p">(</span><span class="n">identifier</span><span class="p">)</span>
+        <span class="n">material</span><span class="o">.</span><span class="n">update_values</span><span class="p">(</span><span class="n">new_params</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="MaterialManager.delete_material">
+<a class="viewcode-back" href="../../../../technical/materials.html#femora.components.Material.materialBase.MaterialManager.delete_material">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">delete_material</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">identifier</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Delete a material by its identifier</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            identifier: Either material tag (int) or user_name (str)</span>
+<span class="sd">            </span>
+<span class="sd">        Raises:</span>
+<span class="sd">            KeyError: If material not found</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">identifier</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">material</span> <span class="o">=</span> <span class="n">Material</span><span class="o">.</span><span class="n">get_material_by_name</span><span class="p">(</span><span class="n">identifier</span><span class="p">)</span>
+            <span class="n">Material</span><span class="o">.</span><span class="n">delete_material</span><span class="p">(</span><span class="n">material</span><span class="o">.</span><span class="n">tag</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">identifier</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="n">Material</span><span class="o">.</span><span class="n">delete_material</span><span class="p">(</span><span class="n">identifier</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Identifier must be either tag (int) or name (str)&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="MaterialManager.get_all_materials">
+<a class="viewcode-back" href="../../../../technical/materials.html#femora.components.Material.materialBase.MaterialManager.get_all_materials">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_all_materials</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Material</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get all registered materials</span>
+<span class="sd">        </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            Dict[int, Material]: Dictionary of all materials keyed by their tags</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">Material</span><span class="o">.</span><span class="n">get_all_materials</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="MaterialManager.get_available_material_types">
+<a class="viewcode-back" href="../../../../technical/materials.html#femora.components.Material.materialBase.MaterialManager.get_available_material_types">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_available_material_types</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">category</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get available material types, optionally filtered by category</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            category (str, optional): Specific category to get types for</span>
+<span class="sd">            </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            Dict[str, List[str]]: Dictionary of categories and their material types</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">category</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">{</span><span class="n">category</span><span class="p">:</span> <span class="n">MaterialRegistry</span><span class="o">.</span><span class="n">get_material_types</span><span class="p">(</span><span class="n">category</span><span class="p">)}</span>
+        
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="n">cat</span><span class="p">:</span> <span class="n">MaterialRegistry</span><span class="o">.</span><span class="n">get_material_types</span><span class="p">(</span><span class="n">cat</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">cat</span> <span class="ow">in</span> <span class="n">MaterialRegistry</span><span class="o">.</span><span class="n">get_material_categories</span><span class="p">()</span>
+        <span class="p">}</span></div>
+
+
+
+<div class="viewcode-block" id="MaterialManager.set_material_tag_start">
+<a class="viewcode-back" href="../../../../technical/materials.html#femora.components.Material.materialBase.MaterialManager.set_material_tag_start">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_material_tag_start</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">start_number</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set the starting number for material tags</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            start_number (int): Starting tag number (must be &gt; 0)</span>
+<span class="sd">            </span>
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If start_number &lt; 1</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">Material</span><span class="o">.</span><span class="n">set_tag_start</span><span class="p">(</span><span class="n">start_number</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="MaterialManager.clear_all_materials">
+<a class="viewcode-back" href="../../../../technical/materials.html#femora.components.Material.materialBase.MaterialManager.clear_all_materials">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">clear_all_materials</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Clear all registered materials and reset tags&quot;&quot;&quot;</span>
+        <span class="n">Material</span><span class="o">.</span><span class="n">clear_all</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="MaterialManager.get_instance">
+<a class="viewcode-back" href="../../../../technical/materials.html#femora.components.Material.materialBase.MaterialManager.get_instance">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_instance</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the singleton instance of MaterialManager</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            **kwargs: Keyword arguments to pass to the constructor</span>
+<span class="sd">            </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            MaterialManager: The singleton instance</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_instance</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">cls</span><span class="o">.</span><span class="n">_instance</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_instance</span></div>
+</div>
+
+
+
+
+
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+<span class="c1"># Example concrete material class for testing</span>
+    <span class="k">class</span><span class="w"> </span><span class="nc">ConcreteMaterial</span><span class="p">(</span><span class="n">Material</span><span class="p">):</span>
+        <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">user_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">fc</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">4000</span><span class="p">,</span> <span class="n">E</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">57000</span><span class="o">*</span><span class="nb">pow</span><span class="p">(</span><span class="mi">4000</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">)):</span>
+            <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="s1">&#39;nDMaterial&#39;</span><span class="p">,</span> <span class="s1">&#39;Concrete&#39;</span><span class="p">,</span> <span class="n">user_name</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">params</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;fc&#39;</span><span class="p">:</span> <span class="n">fc</span><span class="p">,</span> <span class="s1">&#39;E&#39;</span><span class="p">:</span> <span class="n">E</span><span class="p">}</span>
+        
+        <span class="nd">@classmethod</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">get_parameters</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+            <span class="k">return</span> <span class="p">[</span><span class="s1">&#39;fc&#39;</span><span class="p">,</span> <span class="s1">&#39;E&#39;</span><span class="p">]</span>
+        
+        <span class="nd">@classmethod</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">get_description</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+            <span class="k">return</span> <span class="p">[</span><span class="s1">&#39;Concrete strength&#39;</span><span class="p">,</span> <span class="s2">&quot;Young&#39;s modulus&quot;</span><span class="p">]</span>
+        
+        <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+            <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;nDMaterial Concrete </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">tag</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;fc&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;E&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span>
+
+    <span class="c1"># Register the concrete material</span>
+    <span class="n">MaterialRegistry</span><span class="o">.</span><span class="n">register_material_type</span><span class="p">(</span><span class="s1">&#39;nDMaterial&#39;</span><span class="p">,</span> <span class="s1">&#39;Concrete&#39;</span><span class="p">,</span> <span class="n">ConcreteMaterial</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">print_material_info</span><span class="p">():</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Helper function to print current material information&quot;&quot;&quot;</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Current Materials:&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">tag</span><span class="p">,</span> <span class="n">mat</span> <span class="ow">in</span> <span class="n">Material</span><span class="o">.</span><span class="n">get_all_materials</span><span class="p">()</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Tag: </span><span class="si">{</span><span class="n">tag</span><span class="si">}</span><span class="s2">, Name: </span><span class="si">{</span><span class="n">mat</span><span class="o">.</span><span class="n">user_name</span><span class="si">}</span><span class="s2">, Material: </span><span class="si">{</span><span class="n">mat</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;-&quot;</span> <span class="o">*</span> <span class="mi">50</span><span class="p">)</span>
+
+    <span class="c1"># Test 1: Basic material creation and sequential tagging</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Test 1: Basic material creation and sequential tagging&quot;</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">mat1</span> <span class="o">=</span> <span class="n">ConcreteMaterial</span><span class="p">(</span><span class="n">user_name</span><span class="o">=</span><span class="s2">&quot;Concrete1&quot;</span><span class="p">)</span>
+        <span class="n">mat2</span> <span class="o">=</span> <span class="n">ConcreteMaterial</span><span class="p">(</span><span class="n">user_name</span><span class="o">=</span><span class="s2">&quot;Concrete2&quot;</span><span class="p">)</span>
+        <span class="n">mat3</span> <span class="o">=</span> <span class="n">ConcreteMaterial</span><span class="p">(</span><span class="n">user_name</span><span class="o">=</span><span class="s2">&quot;Concrete3&quot;</span><span class="p">)</span>
+        <span class="n">print_material_info</span><span class="p">()</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Test 1 failed: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Test 2: Deleting a material and checking retag</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Test 2: Deleting a material and checking retag&quot;</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">Material</span><span class="o">.</span><span class="n">delete_material</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>  <span class="c1"># Delete middle material</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;After deleting material with tag 2:&quot;</span><span class="p">)</span>
+        <span class="n">print_material_info</span><span class="p">()</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Test 2 failed: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Test 3: Setting custom start tag</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Test 3: Setting custom start tag&quot;</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">Material</span><span class="o">.</span><span class="n">clear_all</span><span class="p">()</span>  <span class="c1"># Clear existing materials</span>
+        <span class="n">Material</span><span class="o">.</span><span class="n">set_tag_start</span><span class="p">(</span><span class="mi">100</span><span class="p">)</span>  <span class="c1"># Start tags from 100</span>
+        <span class="n">mat1</span> <span class="o">=</span> <span class="n">ConcreteMaterial</span><span class="p">(</span><span class="n">user_name</span><span class="o">=</span><span class="s2">&quot;HighTagConcrete1&quot;</span><span class="p">)</span>
+        <span class="n">mat2</span> <span class="o">=</span> <span class="n">ConcreteMaterial</span><span class="p">(</span><span class="n">user_name</span><span class="o">=</span><span class="s2">&quot;HighTagConcrete2&quot;</span><span class="p">)</span>
+        <span class="n">print_material_info</span><span class="p">()</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Test 3 failed: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Test 4: Error handling for duplicate names</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Test 4: Error handling for duplicate names&quot;</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">mat_duplicate</span> <span class="o">=</span> <span class="n">ConcreteMaterial</span><span class="p">(</span><span class="n">user_name</span><span class="o">=</span><span class="s2">&quot;HighTagConcrete1&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Should not reach here - duplicate name allowed!&quot;</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Expected error caught: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Test 5: Material retrieval by tag and name</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Test 5: Material retrieval by tag and name&quot;</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">mat_by_tag</span> <span class="o">=</span> <span class="n">Material</span><span class="o">.</span><span class="n">get_material_by_tag</span><span class="p">(</span><span class="mi">100</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Retrieved by tag 100: </span><span class="si">{</span><span class="n">mat_by_tag</span><span class="o">.</span><span class="n">user_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        
+        <span class="n">mat_by_name</span> <span class="o">=</span> <span class="n">Material</span><span class="o">.</span><span class="n">get_material_by_name</span><span class="p">(</span><span class="s2">&quot;HighTagConcrete2&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Retrieved by name &#39;HighTagConcrete2&#39;: Tag = </span><span class="si">{</span><span class="n">mat_by_name</span><span class="o">.</span><span class="n">tag</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Test 5 failed: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Test 6: Registry functionality</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Test 6: Registry functionality&quot;</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="c1"># Get available categories and types</span>
+        <span class="n">categories</span> <span class="o">=</span> <span class="n">MaterialRegistry</span><span class="o">.</span><span class="n">get_material_categories</span><span class="p">()</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Available categories: </span><span class="si">{</span><span class="n">categories</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        
+        <span class="n">types</span> <span class="o">=</span> <span class="n">MaterialRegistry</span><span class="o">.</span><span class="n">get_material_types</span><span class="p">(</span><span class="s1">&#39;nDMaterial&#39;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Available nDMaterial types: </span><span class="si">{</span><span class="n">types</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        
+        <span class="c1"># Create material through registry</span>
+        <span class="n">registry_mat</span> <span class="o">=</span> <span class="n">MaterialRegistry</span><span class="o">.</span><span class="n">create_material</span><span class="p">(</span>
+            <span class="s1">&#39;nDMaterial&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Concrete&#39;</span><span class="p">,</span>
+            <span class="n">user_name</span><span class="o">=</span><span class="s2">&quot;RegistryMaterial&quot;</span><span class="p">,</span>
+            <span class="n">fc</span><span class="o">=</span><span class="mi">5000</span><span class="p">,</span>
+            <span class="n">E</span><span class="o">=</span><span class="mi">4000000</span>
+        <span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Created through registry: </span><span class="si">{</span><span class="n">registry_mat</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Test 6 failed: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Final state</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Final state of materials:&quot;</span><span class="p">)</span>
+    <span class="n">print_material_info</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Amin Pakzad.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

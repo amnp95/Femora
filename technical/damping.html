@@ -1,0 +1,461 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Damping &mdash; Femora (Fast Efficient Meshing for OpenSees-based Resilience Analysis) 0.5.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/custom.css?v=bbbd0671" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=1dd76d02"></script>
+      <script src="../_static/doctools.js?v=9a2dae69"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      <script src="../_static/js/copy-button.js?v=47d38097"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Damping Models" href="damping/index.html" />
+    <link rel="prev" title="SSPQuad" href="elements/2d/SSPQuad.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html">
+            
+              <img src="../_static/Femoralogo.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Introduction:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../introduction/getting_started.html">Getting Started with Femora</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../introduction/installation.html">Installation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../introduction/quick_start.html">Quick Start Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../introduction/examples.html">Examples and Tutorials</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Technical Guide:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Technical Documentation</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="materials.html">Material</a></li>
+<li class="toctree-l2"><a class="reference internal" href="elements.html">Element</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Damping</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#understanding-the-dampingmanager">Understanding the DampingManager</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#accessing-the-dampingmanager">Accessing the DampingManager</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#how-dampingmanager-works">How DampingManager Works</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#damping-tagging-system">Damping Tagging System</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#dampingmanager-api-reference">DampingManager API Reference</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#femora.components.Damping.dampingBase.DampingManager"><code class="docutils literal notranslate"><span class="pre">DampingManager</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#damping-creation">Damping Creation</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#usage-example">Usage Example</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#available-damping-types">Available Damping Types</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="damping/index.html">Damping Models</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="region.html">Region</a></li>
+<li class="toctree-l2"><a class="reference internal" href="meshparts.html">MeshPart</a></li>
+<li class="toctree-l2"><a class="reference internal" href="assembler.html">Assembler</a></li>
+<li class="toctree-l2"><a class="reference internal" href="constraint.html">Constraints</a></li>
+<li class="toctree-l2"><a class="reference internal" href="timeseries.html">TimeSeries</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pattern.html">Pattern</a></li>
+<li class="toctree-l2"><a class="reference internal" href="analysis.html">Analysis</a></li>
+<li class="toctree-l2"><a class="reference internal" href="process.html">Process</a></li>
+<li class="toctree-l2"><a class="reference internal" href="drm.html">DRM</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer Documentation:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../developer/index.html">Developer Documentation</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Femora (Fast Efficient Meshing for OpenSees-based Resilience Analysis)</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">Technical Documentation</a></li>
+      <li class="breadcrumb-item active">Damping</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/technical/damping.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="damping">
+<h1>Damping<a class="headerlink" href="#damping" title="Link to this heading"></a></h1>
+<section id="understanding-the-dampingmanager">
+<h2>Understanding the DampingManager<a class="headerlink" href="#understanding-the-dampingmanager" title="Link to this heading"></a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">DampingManager</span></code> is a core component of the Femora library that serves as a centralized system for creating, retrieving, tracking, and managing damping objects. It implements the Singleton pattern to ensure a single, consistent point of damping management across the entire application.</p>
+<p>Damping models defined in Femora are automatically tracked, tagged, and organized by the DampingManager, simplifying the process of creating models with appropriate energy dissipation mechanisms.</p>
+</section>
+<section id="accessing-the-dampingmanager">
+<h2>Accessing the DampingManager<a class="headerlink" href="#accessing-the-dampingmanager" title="Link to this heading"></a></h2>
+<p>There are two ways to access the DampingManager in your code:</p>
+<ol class="arabic">
+<li><p><strong>Direct Access</strong>: Import and use the DampingManager class directly</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">Femora.components.Damping</span><span class="w"> </span><span class="kn">import</span> <span class="n">DampingManager</span>
+
+<span class="c1"># Get the singleton instance</span>
+<span class="n">damping_manager</span> <span class="o">=</span> <span class="n">DampingManager</span><span class="p">()</span>
+
+<span class="c1"># Use the damping manager directly</span>
+<span class="n">damping_manager</span><span class="o">.</span><span class="n">create_damping</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+</pre></div>
+</div>
+</li>
+<li><p><strong>Through Femora</strong> (Recommended): Access via the Femora class’s .damping property</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">Femora</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">fm</span>
+
+<span class="c1"># Create a Femora instance</span>
+
+
+<span class="c1"># Access the DampingManager through the .damping property</span>
+<span class="n">fm</span><span class="o">.</span><span class="n">damping</span><span class="o">.</span><span class="n">create_damping</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+</pre></div>
+</div>
+</li>
+</ol>
+<p>The second approach is recommended as it provides a unified interface to all of Femora’s components and ensures proper initialization of all dependencies.</p>
+</section>
+<section id="how-dampingmanager-works">
+<h2>How DampingManager Works<a class="headerlink" href="#how-dampingmanager-works" title="Link to this heading"></a></h2>
+<p>The DampingManager provides several key capabilities:</p>
+<ol class="arabic simple">
+<li><p><strong>Damping Creation</strong>: Creates damping objects of various types with appropriate parameters</p></li>
+<li><p><strong>Damping Tracking</strong>: Keeps track of all damping instances by tag</p></li>
+<li><p><strong>Damping Tagging</strong>: Automatically assigns sequential tags to damping models</p></li>
+<li><p><strong>Damping Management</strong>: Provides methods to retrieve, update, and delete damping instances</p></li>
+</ol>
+<p>When a damping model is created, the DampingManager:</p>
+<ol class="arabic simple">
+<li><p>Assigns a unique numeric tag automatically</p></li>
+<li><p>Validates that all required parameters are present and valid</p></li>
+<li><p>Registers it for use in dynamic analyses</p></li>
+</ol>
+</section>
+<section id="damping-tagging-system">
+<h2>Damping Tagging System<a class="headerlink" href="#damping-tagging-system" title="Link to this heading"></a></h2>
+<p>The DampingManager implements an intelligent tagging system that:</p>
+<ul class="simple">
+<li><p>Assigns sequential tags to damping instances starting from 1</p></li>
+<li><p>Automatically retags instances when one is deleted to maintain sequential numbering</p></li>
+<li><p>Ensures uniqueness of tags across the model</p></li>
+</ul>
+</section>
+<section id="dampingmanager-api-reference">
+<h2>DampingManager API Reference<a class="headerlink" href="#dampingmanager-api-reference" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="femora.components.Damping.dampingBase.DampingManager">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">femora.components.Damping.dampingBase.</span></span><span class="sig-name descname"><span class="pre">DampingManager</span></span><a class="reference internal" href="../_modules/femora/components/Damping/dampingBase.html#DampingManager"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#femora.components.Damping.dampingBase.DampingManager" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>A centralized manager for all damping instances in MeshMaker.</p>
+<p>The DampingManager implements the Singleton pattern to ensure a single, consistent
+point of damping management across the entire application. It provides methods for
+creating, retrieving, and managing damping objects used in dynamic structural analysis.</p>
+<p>All damping objects created through this manager are automatically tracked and tagged,
+simplifying the process of creating models with appropriate energy dissipation mechanisms.</p>
+<dl>
+<dt>Usage:</dt><dd><p># Direct access
+from femora.components.Damping import DampingManager
+damping_manager = DampingManager()</p>
+<p># Through MeshMaker (recommended)
+from femora.components.MeshMaker import MeshMaker
+mk = MeshMaker()
+damping_manager = mk.damping</p>
+<p># Creating a damping instance
+rayleigh_damping = damping_manager.create_damping(‘rayleigh’, alphaM=0.05, betaK=0.001)</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="femora.components.Damping.dampingBase.DampingManager.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/femora/components/Damping/dampingBase.html#DampingManager.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#femora.components.Damping.dampingBase.DampingManager.__init__" title="Link to this definition"></a></dt>
+<dd><p>Initialize the DampingManager.</p>
+<p>This method is called only once when the first instance of DampingManager is created.
+It sets up the necessary attributes and prepares the manager for use.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="femora.components.Damping.dampingBase.DampingManager.clear_all_dampings">
+<span class="sig-name descname"><span class="pre">clear_all_dampings</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/femora/components/Damping/dampingBase.html#DampingManager.clear_all_dampings"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#femora.components.Damping.dampingBase.DampingManager.clear_all_dampings" title="Link to this definition"></a></dt>
+<dd><p>Remove all damping instances managed by this DampingManager.</p>
+<p>This method clears all damping instances from the manager, effectively
+resetting the damping system.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="femora.components.Damping.dampingBase.DampingManager.create_damping">
+<span class="sig-name descname"><span class="pre">create_damping</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">damping_type</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/femora/components/Damping/dampingBase.html#DampingManager.create_damping"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#femora.components.Damping.dampingBase.DampingManager.create_damping" title="Link to this definition"></a></dt>
+<dd><p>Create a new damping instance of the specified type.</p>
+<p>This method delegates the damping creation to the DampingRegistry, which
+maintains a dictionary of available damping types and their corresponding classes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>damping_type</strong> (<em>str</em>) – The type of damping to create. Available types include:
+- ‘rayleigh’: Classical Rayleigh damping
+- ‘modal’: Modal damping for specific modes
+- ‘frequency rayleigh’: Rayleigh damping specified by target frequencies
+- ‘uniform’: Uniform damping across a frequency range
+- ‘secant stiffness proportional’: Damping proportional to secant stiffness</p></li>
+<li><p><strong>**kwargs</strong> – Specific parameters for the damping type being created
+(see documentation for each damping type for details)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A new instance of the requested damping type</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>DampingBase</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If the damping type is unknown or if required parameters are missing or invalid</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="femora.components.Damping.dampingBase.DampingManager.get_all_dampings">
+<span class="sig-name descname"><span class="pre">get_all_dampings</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/femora/components/Damping/dampingBase.html#DampingManager.get_all_dampings"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#femora.components.Damping.dampingBase.DampingManager.get_all_dampings" title="Link to this definition"></a></dt>
+<dd><p>Get all damping instances currently managed by this DampingManager.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A dictionary mapping tags to damping instances</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dict[int, DampingBase]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="femora.components.Damping.dampingBase.DampingManager.get_available_types">
+<span class="sig-name descname"><span class="pre">get_available_types</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/femora/components/Damping/dampingBase.html#DampingManager.get_available_types"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#femora.components.Damping.dampingBase.DampingManager.get_available_types" title="Link to this definition"></a></dt>
+<dd><p>Get a list of available damping types that can be created.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A list of damping type names that can be used with create_damping()</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>List[str]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="femora.components.Damping.dampingBase.DampingManager.get_damping">
+<span class="sig-name descname"><span class="pre">get_damping</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tag</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/femora/components/Damping/dampingBase.html#DampingManager.get_damping"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#femora.components.Damping.dampingBase.DampingManager.get_damping" title="Link to this definition"></a></dt>
+<dd><p>Get a damping instance by its tag.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>tag</strong> (<em>int</em>) – The unique identifier of the damping instance</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The damping instance with the specified tag</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>DampingBase</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>KeyError</strong> – If no damping with the given tag exists</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="femora.components.Damping.dampingBase.DampingManager.get_instance">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_instance</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/femora/components/Damping/dampingBase.html#DampingManager.get_instance"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#femora.components.Damping.dampingBase.DampingManager.get_instance" title="Link to this definition"></a></dt>
+<dd><p>Get the singleton instance of the DampingManager.</p>
+<p>This method ensures that only one instance of DampingManager exists throughout
+the application, following the Singleton design pattern.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The singleton instance of the DampingManager</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#femora.components.Damping.dampingBase.DampingManager" title="femora.components.Damping.dampingBase.DampingManager">DampingManager</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="femora.components.Damping.dampingBase.DampingManager.remove_damping">
+<span class="sig-name descname"><span class="pre">remove_damping</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tag</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/femora/components/Damping/dampingBase.html#DampingManager.remove_damping"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#femora.components.Damping.dampingBase.DampingManager.remove_damping" title="Link to this definition"></a></dt>
+<dd><p>Remove a damping instance by its tag.</p>
+<p>This method removes the specified damping instance and automatically
+updates the tags of the remaining damping instances to maintain sequential numbering.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>tag</strong> (<em>int</em>) – The unique identifier of the damping instance to remove</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="femora.components.Damping.dampingBase.DampingManager.set_start_tag">
+<span class="sig-name descname"><span class="pre">set_start_tag</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start_tag</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/femora/components/Damping/dampingBase.html#DampingManager.set_start_tag"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#femora.components.Damping.dampingBase.DampingManager.set_start_tag" title="Link to this definition"></a></dt>
+<dd><p>Set the starting tag number for new damping instances.</p>
+<p>This method allows customization of the initial tag number assigned to
+newly created damping instances. By default, tags start from 1 and
+increment sequentially with each new instance.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>start_tag</strong> (<em>int</em>) – The starting tag number for new damping instances</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If start_tag is not a positive integer</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="damping-creation">
+<h2>Damping Creation<a class="headerlink" href="#damping-creation" title="Link to this heading"></a></h2>
+<p>Creating damping models is one of the primary functions of the DampingManager. When creating a damping model, you need to specify:</p>
+<ol class="arabic simple">
+<li><p><strong>damping_type</strong>: Specifies the damping model to create. Available types include:
+- <code class="docutils literal notranslate"><span class="pre">rayleigh</span></code>: Classical Rayleigh damping
+- <code class="docutils literal notranslate"><span class="pre">modal</span></code>: Modal damping for specific modes
+- <code class="docutils literal notranslate"><span class="pre">frequency</span> <span class="pre">rayleigh</span></code>: Rayleigh damping specified by target frequencies
+- <code class="docutils literal notranslate"><span class="pre">uniform</span></code>: Uniform damping across a frequency range
+- <code class="docutils literal notranslate"><span class="pre">secant</span> <span class="pre">stiffness</span> <span class="pre">proportional</span></code>: Damping proportional to secant stiffness</p></li>
+<li><p><strong>Damping-specific parameters</strong>: Each damping type requires specific parameters (like alphaM, betaK for Rayleigh damping)</p></li>
+</ol>
+<p>The DampingManager handles all the details of creating the appropriate damping object based on these parameters, ensuring type safety and parameter validation.</p>
+<section id="usage-example">
+<h3>Usage Example<a class="headerlink" href="#usage-example" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">Femora.components.Damping</span><span class="w"> </span><span class="kn">import</span> <span class="n">DampingManager</span>
+
+<span class="c1"># Get the damping manager instance</span>
+<span class="n">damping_manager</span> <span class="o">=</span> <span class="n">DampingManager</span><span class="p">()</span>
+
+<span class="c1"># Create a Rayleigh damping instance</span>
+<span class="n">rayleigh_damping</span> <span class="o">=</span> <span class="n">damping_manager</span><span class="o">.</span><span class="n">create_damping</span><span class="p">(</span>
+    <span class="s1">&#39;rayleigh&#39;</span><span class="p">,</span>
+    <span class="n">alphaM</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
+    <span class="n">betaK</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span>
+    <span class="n">betaKInit</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+    <span class="n">betaKComm</span><span class="o">=</span><span class="mf">0.0</span>
+<span class="p">)</span>
+
+<span class="c1"># Create a modal damping instance</span>
+<span class="n">modal_damping</span> <span class="o">=</span> <span class="n">damping_manager</span><span class="o">.</span><span class="n">create_damping</span><span class="p">(</span>
+    <span class="s1">&#39;modal&#39;</span><span class="p">,</span>
+    <span class="n">numberofModes</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+    <span class="n">dampingFactors</span><span class="o">=</span><span class="s2">&quot;0.02,0.03,0.04&quot;</span>
+<span class="p">)</span>
+
+<span class="c1"># Access an existing damping instance by tag</span>
+<span class="n">damping</span> <span class="o">=</span> <span class="n">damping_manager</span><span class="o">.</span><span class="n">get_damping</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+<span class="c1"># Remove a damping instance</span>
+<span class="n">damping_manager</span><span class="o">.</span><span class="n">remove_damping</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+
+<span class="c1"># Get all available damping types</span>
+<span class="n">available_types</span> <span class="o">=</span> <span class="n">damping_manager</span><span class="o">.</span><span class="n">get_available_types</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">available_types</span><span class="p">)</span>  <span class="c1"># [&#39;frequency rayleigh&#39;, &#39;rayleigh&#39;, &#39;modal&#39;, ...]</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="available-damping-types">
+<h2>Available Damping Types<a class="headerlink" href="#available-damping-types" title="Link to this heading"></a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="damping/index.html">Damping Models</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="damping/rayleigh.html">Rayleigh Damping</a></li>
+<li class="toctree-l2"><a class="reference internal" href="damping/modal.html">Modal Damping</a></li>
+<li class="toctree-l2"><a class="reference internal" href="damping/frequency_rayleigh.html">Frequency Rayleigh Damping</a></li>
+<li class="toctree-l2"><a class="reference internal" href="damping/uniform.html">Uniform Damping</a></li>
+<li class="toctree-l2"><a class="reference internal" href="damping/secant_stiffness.html">Secant Stiffness Proportional Damping</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<p>The damping models available in Femora provide various approaches to energy dissipation in dynamic analysis. Follow the link above to explore the different damping models available.</p>
+<p>Each damping type has its own documentation page with detailed parameter descriptions and usage examples.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="elements/2d/SSPQuad.html" class="btn btn-neutral float-left" title="SSPQuad" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="damping/index.html" class="btn btn-neutral float-right" title="Damping Models" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Amin Pakzad.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

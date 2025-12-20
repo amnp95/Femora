@@ -1,0 +1,400 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Element &mdash; Femora (Fast Efficient Meshing for OpenSees-based Resilience Analysis) 0.5.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/custom.css?v=bbbd0671" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=1dd76d02"></script>
+      <script src="../_static/doctools.js?v=9a2dae69"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../_static/js/copy-button.js?v=47d38097"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="3D Elements" href="elements/3d/index.html" />
+    <link rel="prev" title="ElasticUniaxialMaterial" href="materials/uniaxial/ElasticUniaxialMaterial.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html">
+            
+              <img src="../_static/Femoralogo.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Introduction:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../introduction/getting_started.html">Getting Started with Femora</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../introduction/installation.html">Installation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../introduction/quick_start.html">Quick Start Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../introduction/examples.html">Examples and Tutorials</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Technical Guide:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Technical Documentation</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="materials.html">Material</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Element</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#understanding-the-elementregistry">Understanding the ElementRegistry</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#accessing-the-elementregistry">Accessing the ElementRegistry</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#how-elementregistry-works">How ElementRegistry Works</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#element-tagging-system">Element Tagging System</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#elementregistry-api-reference">ElementRegistry API Reference</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#femora.components.Element.elementBase.ElementRegistry"><code class="docutils literal notranslate"><span class="pre">ElementRegistry</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#element-creation">Element Creation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#available-element-types">Available Element Types</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="elements/3d/index.html">3D Elements</a></li>
+<li class="toctree-l4"><a class="reference internal" href="elements/2d/index.html">2D Elements</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="damping.html">Damping</a></li>
+<li class="toctree-l2"><a class="reference internal" href="region.html">Region</a></li>
+<li class="toctree-l2"><a class="reference internal" href="meshparts.html">MeshPart</a></li>
+<li class="toctree-l2"><a class="reference internal" href="assembler.html">Assembler</a></li>
+<li class="toctree-l2"><a class="reference internal" href="constraint.html">Constraints</a></li>
+<li class="toctree-l2"><a class="reference internal" href="timeseries.html">TimeSeries</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pattern.html">Pattern</a></li>
+<li class="toctree-l2"><a class="reference internal" href="analysis.html">Analysis</a></li>
+<li class="toctree-l2"><a class="reference internal" href="process.html">Process</a></li>
+<li class="toctree-l2"><a class="reference internal" href="drm.html">DRM</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer Documentation:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../developer/index.html">Developer Documentation</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Femora (Fast Efficient Meshing for OpenSees-based Resilience Analysis)</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">Technical Documentation</a></li>
+      <li class="breadcrumb-item active">Element</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/technical/elements.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="element">
+<h1>Element<a class="headerlink" href="#element" title="Link to this heading"></a></h1>
+<section id="understanding-the-elementregistry">
+<h2>Understanding the ElementRegistry<a class="headerlink" href="#understanding-the-elementregistry" title="Link to this heading"></a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">ElementRegistry</span></code> is a core component of the Femora library that serves as a centralized system for creating, retrieving, tracking, and managing element objects throughout the mesh generation process. Similar to the MaterialManager, it implements the Singleton pattern to ensure a single, consistent point of element management across the entire application.</p>
+<p>Elements defined in Femora are automatically tracked, tagged, and organized by the ElementRegistry, simplifying the process of creating complex models with multiple element types.</p>
+</section>
+<section id="accessing-the-elementregistry">
+<h2>Accessing the ElementRegistry<a class="headerlink" href="#accessing-the-elementregistry" title="Link to this heading"></a></h2>
+<p>There are two ways to access the ElementRegistry in your code:</p>
+<ol class="arabic">
+<li><p><strong>Direct Access</strong>: Import and use the ElementRegistry class directly</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">femora.components.Element.elementBase</span><span class="w"> </span><span class="kn">import</span> <span class="n">ElementRegistry</span>
+
+<span class="c1"># Access the registry directly</span>
+<span class="n">element_types</span> <span class="o">=</span> <span class="n">ElementRegistry</span><span class="o">.</span><span class="n">get_element_types</span><span class="p">()</span>
+
+<span class="c1"># Create an element using the registry</span>
+<span class="n">my_element</span> <span class="o">=</span> <span class="n">ElementRegistry</span><span class="o">.</span><span class="n">create_element</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+</pre></div>
+</div>
+</li>
+<li><p><strong>Through Femora</strong> (Recommended): Access via the Femora class’s .element property</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">femora</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">fm</span>
+
+<span class="c1"># Create a Femora instance</span>
+
+
+<span class="c1"># Access the ElementRegistry through the .element property</span>
+<span class="n">element_types</span> <span class="o">=</span> <span class="n">fm</span><span class="o">.</span><span class="n">element</span><span class="o">.</span><span class="n">get_element_types</span><span class="p">()</span>
+<span class="n">my_element</span> <span class="o">=</span> <span class="n">fm</span><span class="o">.</span><span class="n">element</span><span class="o">.</span><span class="n">create_element</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+</pre></div>
+</div>
+</li>
+</ol>
+<p>The second approach is recommended as it provides a unified interface to all of Femora’s components and ensures proper initialization of all dependencies.</p>
+</section>
+<section id="how-elementregistry-works">
+<h2>How ElementRegistry Works<a class="headerlink" href="#how-elementregistry-works" title="Link to this heading"></a></h2>
+<p>The ElementRegistry provides several key capabilities:</p>
+<ol class="arabic simple">
+<li><p><strong>Element Creation</strong>: Creates element objects of various types with appropriate parameters</p></li>
+<li><p><strong>Element Tracking</strong>: Keeps track of all elements by their tags</p></li>
+<li><p><strong>Element Tagging</strong>: Automatically assigns sequential tags to elements for use in analysis</p></li>
+<li><p><strong>Element Management</strong>: Provides methods to retrieve, update, and delete elements</p></li>
+</ol>
+<p>When an element is created, the ElementRegistry:</p>
+<ol class="arabic simple">
+<li><p>Assigns a unique numeric tag automatically (used by solvers like OpenSees)</p></li>
+<li><p>Validates that all required parameters are present and valid</p></li>
+<li><p>Associates the element with an appropriate material</p></li>
+<li><p>Sets the degrees of freedom (DOF) for the element</p></li>
+</ol>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Each element has a unique tag that is used for identification during mesh generation and analysis. The ElementRegistry ensures that these tags remain unique and sequential.</p>
+</div>
+</section>
+<section id="element-tagging-system">
+<h2>Element Tagging System<a class="headerlink" href="#element-tagging-system" title="Link to this heading"></a></h2>
+<p>The Element class implements an intelligent tagging system that:</p>
+<ul class="simple">
+<li><p>Assigns sequential tags to elements starting from 1.</p></li>
+<li><p>Automatically retags elements when one is deleted to maintain sequential numbering</p></li>
+<li><p>Ensures uniqueness of tags across the model</p></li>
+<li><p>Maps between element objects and their assigned tags</p></li>
+</ul>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Example of setting a custom tag starting point</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">femora.components.Element.elementBase</span><span class="w"> </span><span class="kn">import</span> <span class="n">Element</span>
+</pre></div>
+</div>
+</section>
+<section id="elementregistry-api-reference">
+<h2>ElementRegistry API Reference<a class="headerlink" href="#elementregistry-api-reference" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="femora.components.Element.elementBase.ElementRegistry">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">femora.components.Element.elementBase.</span></span><span class="sig-name descname"><span class="pre">ElementRegistry</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/femora/components/Element/elementBase.html#ElementRegistry"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#femora.components.Element.elementBase.ElementRegistry" title="Link to this definition"></a></dt>
+<dd><p>A singleton registry to manage element types and their creation with full dependency resolution.</p>
+<dl class="py property">
+<dt class="sig sig-object py" id="femora.components.Element.elementBase.ElementRegistry.beam">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">beam</span></span><a class="headerlink" href="#femora.components.Element.elementBase.ElementRegistry.beam" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="femora.components.Element.elementBase.ElementRegistry.brick">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">brick</span></span><a class="headerlink" href="#femora.components.Element.elementBase.ElementRegistry.brick" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="femora.components.Element.elementBase.ElementRegistry.clear_all_elements">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">clear_all_elements</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/femora/components/Element/elementBase.html#ElementRegistry.clear_all_elements"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#femora.components.Element.elementBase.ElementRegistry.clear_all_elements" title="Link to this definition"></a></dt>
+<dd><p>Clear all elements.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="femora.components.Element.elementBase.ElementRegistry.create_element">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">create_element</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">element_type</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/femora/components/Element/elementBase.html#ElementRegistry.create_element"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#femora.components.Element.elementBase.ElementRegistry.create_element" title="Link to this definition"></a></dt>
+<dd><p>Create a new element of a specific type with full dependency resolution.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>element_type</strong> (<em>str</em>) – Type of element to create</p></li>
+<li><p><strong>**kwargs</strong> – All element parameters including ndof, material, section, transformation</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A new element instance</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Element</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>KeyError</strong> – If the element type is not registered</p></li>
+<li><p><strong>ValueError</strong> – If dependencies cannot be resolved</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="femora.components.Element.elementBase.ElementRegistry.get_element">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_element</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tag</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/femora/components/Element/elementBase.html#ElementRegistry.get_element"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#femora.components.Element.elementBase.ElementRegistry.get_element" title="Link to this definition"></a></dt>
+<dd><p>Get an element by its tag.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>tag</strong> (<em>int</em>) – The tag of the element to retrieve</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The element with the given tag, or None if not found</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Optional[Element]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="femora.components.Element.elementBase.ElementRegistry.get_element_count">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_element_count</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/femora/components/Element/elementBase.html#ElementRegistry.get_element_count"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#femora.components.Element.elementBase.ElementRegistry.get_element_count" title="Link to this definition"></a></dt>
+<dd><p>Get the total number of registered elements.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Number of elements</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="femora.components.Element.elementBase.ElementRegistry.get_element_types">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_element_types</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/femora/components/Element/elementBase.html#ElementRegistry.get_element_types"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#femora.components.Element.elementBase.ElementRegistry.get_element_types" title="Link to this definition"></a></dt>
+<dd><p>Get available element types.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Available element types</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>List[str]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="femora.components.Element.elementBase.ElementRegistry.is_element_type_registered">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">is_element_type_registered</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/femora/components/Element/elementBase.html#ElementRegistry.is_element_type_registered"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#femora.components.Element.elementBase.ElementRegistry.is_element_type_registered" title="Link to this definition"></a></dt>
+<dd><p>Check if an element type is registered.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>name</strong> (<em>str</em>) – The element type name to check</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>True if registered, False otherwise</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="femora.components.Element.elementBase.ElementRegistry.quad">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">quad</span></span><a class="headerlink" href="#femora.components.Element.elementBase.ElementRegistry.quad" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="femora.components.Element.elementBase.ElementRegistry.register_element_type">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">register_element_type</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">element_class</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/femora/components/Element/elementBase.html#ElementRegistry.register_element_type"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#femora.components.Element.elementBase.ElementRegistry.register_element_type" title="Link to this definition"></a></dt>
+<dd><p>Register a new element type for easy creation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>str</em>) – The name of the element type</p></li>
+<li><p><strong>element_class</strong> (<em>Type</em><em>[</em><em>Element</em><em>]</em>) – The class of the element</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="femora.components.Element.elementBase.ElementRegistry.unregister_element_type">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">unregister_element_type</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/femora/components/Element/elementBase.html#ElementRegistry.unregister_element_type"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#femora.components.Element.elementBase.ElementRegistry.unregister_element_type" title="Link to this definition"></a></dt>
+<dd><p>Unregister an element type.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>name</strong> (<em>str</em>) – The name of the element type to remove</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="element-creation">
+<h2>Element Creation<a class="headerlink" href="#element-creation" title="Link to this heading"></a></h2>
+<p>Creating elements is one of the primary functions of the ElementRegistry. When creating an element, you need to specify several key parameters:</p>
+<ol class="arabic simple">
+<li><p><strong>element_type</strong>: Specifies the type of element (e.g., ‘SSPQuad’, ‘stdBrick’, etc.)</p></li>
+<li><p><strong>ndof</strong>: Number of degrees of freedom per node for this element</p></li>
+<li><p><strong>material</strong>: The material to associate with the element (can be a Material object, material tag, or material name)</p></li>
+<li><p><strong>Element-specific parameters</strong>: Each element type requires specific parameters</p></li>
+</ol>
+<p>The ElementRegistry handles all the details of creating the appropriate element object based on these parameters, ensuring type safety and parameter validation.</p>
+</section>
+<section id="available-element-types">
+<h2>Available Element Types<a class="headerlink" href="#available-element-types" title="Link to this heading"></a></h2>
+<p>The element types available in Femora are organized by their geometric dimensionality and characteristics. Follow the links above to explore the various element models available in each category.</p>
+<ul class="simple">
+<li><p><strong>3D Elements</strong>: For three-dimensional continuum modeling</p></li>
+<li><p><strong>2D Elements</strong>: For two-dimensional plane stress/strain problems</p></li>
+</ul>
+<p>Each element type has its own documentation page with detailed parameter descriptions and usage examples.</p>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="elements/3d/index.html">3D Elements</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="elements/3d/stdBrick.html">stdBrick</a></li>
+<li class="toctree-l2"><a class="reference internal" href="elements/3d/PML3D.html">PML3D</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="elements/2d/index.html">2D Elements</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="elements/2d/SSPQuad.html">SSPQuad</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="materials/uniaxial/ElasticUniaxialMaterial.html" class="btn btn-neutral float-left" title="ElasticUniaxialMaterial" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="elements/3d/index.html" class="btn btn-neutral float-right" title="3D Elements" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Amin Pakzad.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

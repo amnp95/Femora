@@ -1,0 +1,1090 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Welcome to Femora Documentation &mdash; Femora (Fast Efficient Meshing for OpenSees-based Resilience Analysis) 0.5.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/css/custom.css?v=bbbd0671" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=1dd76d02"></script>
+      <script src="_static/doctools.js?v=9a2dae69"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      <script src="_static/js/copy-button.js?v=47d38097"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Getting Started with Femora" href="introduction/getting_started.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="#">
+            
+              <img src="_static/Femoralogo.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Introduction:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="introduction/getting_started.html">Getting Started with Femora</a></li>
+<li class="toctree-l1"><a class="reference internal" href="introduction/installation.html">Installation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="introduction/quick_start.html">Quick Start Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="introduction/examples.html">Examples and Tutorials</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Technical Guide:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="technical/index.html">Technical Documentation</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer Documentation:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="developer/index.html">Developer Documentation</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="#">Femora (Fast Efficient Meshing for OpenSees-based Resilience Analysis)</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="#" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Welcome to Femora Documentation</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/index.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="welcome-to-femora-documentation">
+<h1>Welcome to Femora Documentation<a class="headerlink" href="#welcome-to-femora-documentation" title="Link to this heading"></a></h1>
+<div class="toctree-wrapper compound">
+<p class="caption" role="heading"><span class="caption-text">Introduction:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="introduction/getting_started.html">Getting Started with Femora</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="introduction/getting_started.html#what-is-femora">What is Femora?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="introduction/getting_started.html#core-purpose-and-philosophy">Core Purpose and Philosophy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="introduction/getting_started.html#key-features-and-capabilities">Key Features and Capabilities</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="introduction/getting_started.html#advanced-mesh-partitioning">Advanced Mesh Partitioning</a></li>
+<li class="toctree-l3"><a class="reference internal" href="introduction/getting_started.html#material-and-element-management">Material and Element Management</a></li>
+<li class="toctree-l3"><a class="reference internal" href="introduction/getting_started.html#domain-customization">Domain Customization</a></li>
+<li class="toctree-l3"><a class="reference internal" href="introduction/getting_started.html#visualization-without-gui-dependency">Visualization Without GUI Dependency</a></li>
+<li class="toctree-l3"><a class="reference internal" href="introduction/getting_started.html#opensees-integration">OpenSees Integration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="introduction/getting_started.html#component-based-architecture">Component-Based Architecture</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="introduction/getting_started.html#exceptional-extensibility">Exceptional Extensibility</a></li>
+<li class="toctree-l2"><a class="reference internal" href="introduction/getting_started.html#target-users">Target Users</a></li>
+<li class="toctree-l2"><a class="reference internal" href="introduction/getting_started.html#what-makes-femora-unique">What Makes Femora Unique</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="introduction/installation.html">Installation Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="introduction/installation.html#system-requirements">System Requirements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="introduction/installation.html#installation-methods">Installation Methods</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="introduction/installation.html#using-pip">Using pip</a></li>
+<li class="toctree-l3"><a class="reference internal" href="introduction/installation.html#from-source">From Source</a></li>
+<li class="toctree-l3"><a class="reference internal" href="introduction/installation.html#using-conda">Using Conda</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="introduction/installation.html#verifying-installation">Verifying Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="introduction/installation.html#dependencies">Dependencies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="introduction/installation.html#troubleshooting">Troubleshooting</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="introduction/installation.html#common-installation-issues">Common Installation Issues</a></li>
+<li class="toctree-l3"><a class="reference internal" href="introduction/installation.html#getting-help">Getting Help</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="introduction/quick_start.html">Quick Start Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="introduction/quick_start.html#setting-up-your-environment">Setting Up Your Environment</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="introduction/quick_start.html#step-1-initialize-femora">Step 1: Initialize Femora</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="introduction/quick_start.html#creating-your-first-3d-soil-layer-model">Creating Your First 3D Soil Layer Model</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="introduction/quick_start.html#step-2-define-materials">Step 2: Define Materials</a></li>
+<li class="toctree-l3"><a class="reference internal" href="introduction/quick_start.html#step-3-create-elements">Step 3: Create Elements</a></li>
+<li class="toctree-l3"><a class="reference internal" href="introduction/quick_start.html#step-4-create-mesh-parts">Step 4: Create Mesh Parts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="introduction/quick_start.html#step-5-assemble-mesh-parts">Step 5: Assemble Mesh Parts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="introduction/quick_start.html#step-6-define-time-series-and-patterns">Step 6: Define Time Series and Patterns</a></li>
+<li class="toctree-l3"><a class="reference internal" href="introduction/quick_start.html#step-7-apply-boundary-conditions">Step 7: Apply Boundary Conditions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="introduction/quick_start.html#step-8-create-recorders-and-analysis-steps">Step 8: Create Recorders and Analysis Steps</a></li>
+<li class="toctree-l3"><a class="reference internal" href="introduction/quick_start.html#step-9-export-and-visualize-the-model">Step 9: Export and Visualize the Model</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="introduction/quick_start.html#complete-example">Complete Example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="introduction/quick_start.html#next-steps">Next Steps</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="introduction/examples.html">Examples and Tutorials</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="introduction/quick_start.html">Quick Start Example (Layered Soil Profile)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="introduction/quick_start.html#setting-up-your-environment">Setting Up Your Environment</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="introduction/quick_start.html#step-1-initialize-femora">Step 1: Initialize Femora</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="introduction/quick_start.html#creating-your-first-3d-soil-layer-model">Creating Your First 3D Soil Layer Model</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="introduction/quick_start.html#step-2-define-materials">Step 2: Define Materials</a></li>
+<li class="toctree-l4"><a class="reference internal" href="introduction/quick_start.html#step-3-create-elements">Step 3: Create Elements</a></li>
+<li class="toctree-l4"><a class="reference internal" href="introduction/quick_start.html#step-4-create-mesh-parts">Step 4: Create Mesh Parts</a></li>
+<li class="toctree-l4"><a class="reference internal" href="introduction/quick_start.html#step-5-assemble-mesh-parts">Step 5: Assemble Mesh Parts</a></li>
+<li class="toctree-l4"><a class="reference internal" href="introduction/quick_start.html#step-6-define-time-series-and-patterns">Step 6: Define Time Series and Patterns</a></li>
+<li class="toctree-l4"><a class="reference internal" href="introduction/quick_start.html#step-7-apply-boundary-conditions">Step 7: Apply Boundary Conditions</a></li>
+<li class="toctree-l4"><a class="reference internal" href="introduction/quick_start.html#step-8-create-recorders-and-analysis-steps">Step 8: Create Recorders and Analysis Steps</a></li>
+<li class="toctree-l4"><a class="reference internal" href="introduction/quick_start.html#step-9-export-and-visualize-the-model">Step 9: Export and Visualize the Model</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="introduction/quick_start.html#complete-example">Complete Example</a></li>
+<li class="toctree-l3"><a class="reference internal" href="introduction/quick_start.html#next-steps">Next Steps</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="introduction/SiteResponseExamples/SiteResponse.html">Site Response Examples</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="introduction/SiteResponseExamples/example1.html">Example 1: Single-Column Site Response Analysis with Frequency Sweep</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="introduction/SiteResponseExamples/example1.html#overview">Overview</a></li>
+<li class="toctree-l4"><a class="reference internal" href="introduction/SiteResponseExamples/example1.html#model-description">Model Description</a></li>
+<li class="toctree-l4"><a class="reference internal" href="introduction/SiteResponseExamples/example1.html#implementation-details">Implementation Details</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="introduction/SiteResponseExamples/example1.html#material-definition">Material Definition</a></li>
+<li class="toctree-l5"><a class="reference internal" href="introduction/SiteResponseExamples/example1.html#elements-and-damping">Elements and Damping</a></li>
+<li class="toctree-l5"><a class="reference internal" href="introduction/SiteResponseExamples/example1.html#layer-definition-and-mesh-generation">Layer Definition and Mesh Generation</a></li>
+<li class="toctree-l5"><a class="reference internal" href="introduction/SiteResponseExamples/example1.html#assembly-configuration-for-single-processor-analysis">Assembly Configuration for Single-Processor Analysis</a></li>
+<li class="toctree-l5"><a class="reference internal" href="introduction/SiteResponseExamples/example1.html#frequency-sweep-input-motion">Frequency Sweep Input Motion</a></li>
+<li class="toctree-l5"><a class="reference internal" href="introduction/SiteResponseExamples/example1.html#boundary-conditions">Boundary Conditions</a></li>
+<li class="toctree-l5"><a class="reference internal" href="introduction/SiteResponseExamples/example1.html#analysis-configuration">Analysis Configuration</a></li>
+<li class="toctree-l5"><a class="reference internal" href="introduction/SiteResponseExamples/example1.html#process-flow-and-recording">Process Flow and Recording</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="introduction/SiteResponseExamples/example1.html#results-and-analysis">Results and Analysis</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="introduction/SiteResponseExamples/example1.html#response-time-histories">Response Time Histories</a></li>
+<li class="toctree-l5"><a class="reference internal" href="introduction/SiteResponseExamples/example1.html#transfer-function-comparison">Transfer Function Comparison</a></li>
+<li class="toctree-l5"><a class="reference internal" href="introduction/SiteResponseExamples/example1.html#effect-of-damping-type-on-transfer-function">Effect of Damping Type on Transfer Function</a></li>
+<li class="toctree-l5"><a class="reference internal" href="introduction/SiteResponseExamples/example1.html#simulation-visualization">Simulation Visualization</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="introduction/SiteResponseExamples/example1.html#conclusion">Conclusion</a></li>
+<li class="toctree-l4"><a class="reference internal" href="introduction/SiteResponseExamples/example1.html#code-access">Code Access</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="introduction/SiteResponseExamples/example2.html">Example 2: Multi-Material Site Response Analysis with Transfer Function Comparison</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="introduction/SiteResponseExamples/example2.html#overview">Overview</a></li>
+<li class="toctree-l4"><a class="reference internal" href="introduction/SiteResponseExamples/example2.html#model-description">Model Description</a></li>
+<li class="toctree-l4"><a class="reference internal" href="introduction/SiteResponseExamples/example2.html#implementation-details">Implementation Details</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="introduction/SiteResponseExamples/example2.html#material-definition-with-multiple-properties">Material Definition with Multiple Properties</a></li>
+<li class="toctree-l5"><a class="reference internal" href="introduction/SiteResponseExamples/example2.html#layer-definition-and-mesh-generation">Layer Definition and Mesh Generation</a></li>
+<li class="toctree-l5"><a class="reference internal" href="introduction/SiteResponseExamples/example2.html#using-the-transferfunction-class-for-analytical-solutions">Using the TransferFunction Class for Analytical Solutions</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="introduction/SiteResponseExamples/example2.html#results-and-analysis">Results and Analysis</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="introduction/SiteResponseExamples/example2.html#effect-of-layer-properties-on-site-response">Effect of Layer Properties on Site Response</a></li>
+<li class="toctree-l5"><a class="reference internal" href="introduction/SiteResponseExamples/example2.html#simulation-visualization">Simulation Visualization</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="introduction/SiteResponseExamples/example2.html#conclusion">Conclusion</a></li>
+<li class="toctree-l4"><a class="reference internal" href="introduction/SiteResponseExamples/example2.html#code-access">Code Access</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="introduction/SiteResponseExamples/example3.html">Example 3: 3D Multi-Processor Site Response Analysis</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="introduction/SiteResponseExamples/example3.html#overview">Overview</a></li>
+<li class="toctree-l4"><a class="reference internal" href="introduction/SiteResponseExamples/example3.html#model-description">Model Description</a></li>
+<li class="toctree-l4"><a class="reference internal" href="introduction/SiteResponseExamples/example3.html#implementation-details">Implementation Details</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="introduction/SiteResponseExamples/example3.html#d-domain-configuration">3D Domain Configuration</a></li>
+<li class="toctree-l5"><a class="reference internal" href="introduction/SiteResponseExamples/example3.html#layer-and-material-definition">Layer and Material Definition</a></li>
+<li class="toctree-l5"><a class="reference internal" href="introduction/SiteResponseExamples/example3.html#parallel-processing-configuration">Parallel Processing Configuration</a></li>
+<li class="toctree-l5"><a class="reference internal" href="introduction/SiteResponseExamples/example3.html#analysis-system-and-equations">Analysis System and Equations</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="introduction/SiteResponseExamples/example3.html#results-and-analysis">Results and Analysis</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="introduction/SiteResponseExamples/example3.html#transfer-function-comparison">Transfer Function Comparison</a></li>
+<li class="toctree-l5"><a class="reference internal" href="introduction/SiteResponseExamples/example3.html#d-visualization-of-wave-propagation">3D Visualization of Wave Propagation</a></li>
+<li class="toctree-l5"><a class="reference internal" href="introduction/SiteResponseExamples/example3.html#post-processing-multi-processor-results">Post-Processing Multi-Processor Results</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="introduction/SiteResponseExamples/example3.html#conclusion">Conclusion</a></li>
+<li class="toctree-l4"><a class="reference internal" href="introduction/SiteResponseExamples/example3.html#code-access">Code Access</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="introduction/SiteResponseExamples/example4.html">Example 4: Site Response Analysis with Deconvolution Using TransferFunction Tool</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="introduction/SiteResponseExamples/example4.html#overview">Overview</a></li>
+<li class="toctree-l4"><a class="reference internal" href="introduction/SiteResponseExamples/example4.html#model-description">Model Description</a></li>
+<li class="toctree-l4"><a class="reference internal" href="introduction/SiteResponseExamples/example4.html#deconvolution-process">Deconvolution Process</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="introduction/SiteResponseExamples/example4.html#loading-surface-motion">Loading Surface Motion</a></li>
+<li class="toctree-l5"><a class="reference internal" href="introduction/SiteResponseExamples/example4.html#defining-soil-profile">Defining Soil Profile</a></li>
+<li class="toctree-l5"><a class="reference internal" href="introduction/SiteResponseExamples/example4.html#performing-deconvolution">Performing Deconvolution</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="introduction/SiteResponseExamples/example4.html#numerical-verification">Numerical Verification</a></li>
+<li class="toctree-l4"><a class="reference internal" href="introduction/SiteResponseExamples/example4.html#results-and-analysis">Results and Analysis</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="introduction/SiteResponseExamples/example4.html#transfer-function-comparison">Transfer Function Comparison</a></li>
+<li class="toctree-l5"><a class="reference internal" href="introduction/SiteResponseExamples/example4.html#time-history-comparison">Time History Comparison</a></li>
+<li class="toctree-l5"><a class="reference internal" href="introduction/SiteResponseExamples/example4.html#simulation-visualization">Simulation Visualization</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="introduction/SiteResponseExamples/example4.html#applications-and-benefits">Applications and Benefits</a></li>
+<li class="toctree-l4"><a class="reference internal" href="introduction/SiteResponseExamples/example4.html#conclusion">Conclusion</a></li>
+<li class="toctree-l4"><a class="reference internal" href="introduction/SiteResponseExamples/example4.html#code-access">Code Access</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="introduction/DRMExamples/DRM.html">Domain Reduction Method (DRM) Examples</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="introduction/DRMExamples/example1.html">Example 1: Domain Reduction Method (DRM) Site Response Analysis</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="introduction/DRMExamples/example1.html#overview">Overview</a></li>
+<li class="toctree-l4"><a class="reference internal" href="introduction/DRMExamples/example1.html#model-description">Model Description</a></li>
+<li class="toctree-l4"><a class="reference internal" href="introduction/DRMExamples/example1.html#domain-reduction-method-implementation">Domain Reduction Method Implementation</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="introduction/DRMExamples/example1.html#creating-the-drm-load-pattern">Creating the DRM Load Pattern</a></li>
+<li class="toctree-l5"><a class="reference internal" href="introduction/DRMExamples/example1.html#applying-the-drm-pattern">Applying the DRM Pattern</a></li>
+<li class="toctree-l5"><a class="reference internal" href="introduction/DRMExamples/example1.html#absorbing-boundary-configuration">Absorbing Boundary Configuration</a></li>
+<li class="toctree-l5"><a class="reference internal" href="introduction/DRMExamples/example1.html#drm-process-configuration">DRM Process Configuration</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="introduction/DRMExamples/example1.html#results-and-analysis">Results and Analysis</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="introduction/DRMExamples/example1.html#transfer-function-validation">Transfer Function Validation</a></li>
+<li class="toctree-l5"><a class="reference internal" href="introduction/DRMExamples/example1.html#time-history-comparison">Time History Comparison</a></li>
+<li class="toctree-l5"><a class="reference internal" href="introduction/DRMExamples/example1.html#d-wave-propagation-visualization">3D Wave Propagation Visualization</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="introduction/DRMExamples/example1.html#advantages-of-drm-over-uniform-excitation">Advantages of DRM Over Uniform Excitation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="introduction/DRMExamples/example1.html#relationship-to-site-response-examples">Relationship to Site Response Examples</a></li>
+<li class="toctree-l4"><a class="reference internal" href="introduction/DRMExamples/example1.html#practical-applications">Practical Applications</a></li>
+<li class="toctree-l4"><a class="reference internal" href="introduction/DRMExamples/example1.html#conclusion">Conclusion</a></li>
+<li class="toctree-l4"><a class="reference internal" href="introduction/DRMExamples/example1.html#code-access">Code Access</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="introduction/DRMExamples/example2.html">Example 2: Multi-layer Soil Model with Absorbing Boundaries</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="introduction/DRMExamples/example2.html#overview">Overview</a></li>
+<li class="toctree-l4"><a class="reference internal" href="introduction/DRMExamples/example2.html#model-description">Model Description</a></li>
+<li class="toctree-l4"><a class="reference internal" href="introduction/DRMExamples/example2.html#domain-reduction-method-drm-explained">Domain Reduction Method (DRM) Explained</a></li>
+<li class="toctree-l4"><a class="reference internal" href="introduction/DRMExamples/example2.html#perfectly-matched-layer-pml-explained">Perfectly Matched Layer (PML) Explained</a></li>
+<li class="toctree-l4"><a class="reference internal" href="introduction/DRMExamples/example2.html#absorbing-layer-parameters-in-detail">Absorbing Layer Parameters in Detail</a></li>
+<li class="toctree-l4"><a class="reference internal" href="introduction/DRMExamples/example2.html#frequency-rayleigh-damping-in-femora">Frequency Rayleigh Damping in Femora</a></li>
+<li class="toctree-l4"><a class="reference internal" href="introduction/DRMExamples/example2.html#region-assignment-in-layered-soil-model">Region Assignment in Layered Soil Model</a></li>
+<li class="toctree-l4"><a class="reference internal" href="introduction/DRMExamples/example2.html#global-region-and-region-management-in-femora">Global Region and Region Management in Femora</a></li>
+<li class="toctree-l4"><a class="reference internal" href="introduction/DRMExamples/example2.html#step-by-step-code-walkthrough">Step-by-Step Code Walkthrough</a></li>
+<li class="toctree-l4"><a class="reference internal" href="introduction/DRMExamples/example2.html#code-access">Code Access</a></li>
+<li class="toctree-l4"><a class="reference internal" href="introduction/DRMExamples/example2.html#key-concepts-demonstrated">Key Concepts Demonstrated</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="introduction/DRMExamples/example3.html">Example 3: Seismic Wave Basin Effects Model with External Mesh</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="introduction/DRMExamples/example3.html#overview">Overview</a></li>
+<li class="toctree-l4"><a class="reference internal" href="introduction/DRMExamples/example3.html#schematic-model-representation">Schematic Model Representation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="introduction/DRMExamples/example3.html#model-description">Model Description</a></li>
+<li class="toctree-l4"><a class="reference internal" href="introduction/DRMExamples/example3.html#step-by-step-model-development">Step-by-Step Model Development</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="introduction/DRMExamples/example3.html#initial-setup-and-basin-configuration">1. Initial Setup and Basin Configuration</a></li>
+<li class="toctree-l5"><a class="reference internal" href="introduction/DRMExamples/example3.html#interactive-mesh-visualization">2. Interactive Mesh Visualization</a></li>
+<li class="toctree-l5"><a class="reference internal" href="introduction/DRMExamples/example3.html#soft-material-definition-for-the-basin">3. Soft Material Definition for the Basin</a></li>
+<li class="toctree-l5"><a class="reference internal" href="introduction/DRMExamples/example3.html#external-mesh-implementation-for-complex-geometry">4. External Mesh Implementation for Complex Geometry</a></li>
+<li class="toctree-l5"><a class="reference internal" href="introduction/DRMExamples/example3.html#assembly-with-separate-sections">5. Assembly with Separate Sections</a></li>
+<li class="toctree-l5"><a class="reference internal" href="introduction/DRMExamples/example3.html#absorbing-boundary-and-simulation-setup">6. Absorbing Boundary and Simulation Setup</a></li>
+<li class="toctree-l5"><a class="reference internal" href="introduction/DRMExamples/example3.html#dynamic-output-organization">7. Dynamic Output Organization</a></li>
+<li class="toctree-l5"><a class="reference internal" href="introduction/DRMExamples/example3.html#custom-drm-simulation-process">8. Custom DRM Simulation Process</a></li>
+<li class="toctree-l5"><a class="reference internal" href="introduction/DRMExamples/example3.html#tcl-actions-and-process-flow-management">9. TCL Actions and Process Flow Management</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="introduction/DRMExamples/example3.html#results-and-analysis">Results and Analysis</a></li>
+<li class="toctree-l4"><a class="reference internal" href="introduction/DRMExamples/example3.html#data-visualization-and-post-processing">Data Visualization and Post-Processing</a></li>
+<li class="toctree-l4"><a class="reference internal" href="introduction/DRMExamples/example3.html#code-access">Code Access</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="introduction/DRMExamples/DRM.html#references">References</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<p class="caption" role="heading"><span class="caption-text">Technical Guide:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="technical/index.html">Technical Documentation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="technical/materials.html">Material</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="technical/materials.html#understanding-the-materialmanager">Understanding the MaterialManager</a></li>
+<li class="toctree-l3"><a class="reference internal" href="technical/materials.html#accessing-the-materialmanager">Accessing the MaterialManager</a></li>
+<li class="toctree-l3"><a class="reference internal" href="technical/materials.html#how-materialmanager-works">How MaterialManager Works</a></li>
+<li class="toctree-l3"><a class="reference internal" href="technical/materials.html#material-tagging-system">Material Tagging System</a></li>
+<li class="toctree-l3"><a class="reference internal" href="technical/materials.html#materialmanager-api-reference">MaterialManager API Reference</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="technical/materials.html#femora.components.Material.materialBase.MaterialManager"><code class="docutils literal notranslate"><span class="pre">MaterialManager</span></code></a><ul>
+<li class="toctree-l5"><a class="reference internal" href="technical/materials.html#femora.components.Material.materialBase.MaterialManager.clear_all_materials"><code class="docutils literal notranslate"><span class="pre">MaterialManager.clear_all_materials()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="technical/materials.html#femora.components.Material.materialBase.MaterialManager.create_material"><code class="docutils literal notranslate"><span class="pre">MaterialManager.create_material()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="technical/materials.html#femora.components.Material.materialBase.MaterialManager.delete_material"><code class="docutils literal notranslate"><span class="pre">MaterialManager.delete_material()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="technical/materials.html#femora.components.Material.materialBase.MaterialManager.get_all_materials"><code class="docutils literal notranslate"><span class="pre">MaterialManager.get_all_materials()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="technical/materials.html#femora.components.Material.materialBase.MaterialManager.get_available_material_types"><code class="docutils literal notranslate"><span class="pre">MaterialManager.get_available_material_types()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="technical/materials.html#femora.components.Material.materialBase.MaterialManager.get_instance"><code class="docutils literal notranslate"><span class="pre">MaterialManager.get_instance()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="technical/materials.html#femora.components.Material.materialBase.MaterialManager.get_material"><code class="docutils literal notranslate"><span class="pre">MaterialManager.get_material()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="technical/materials.html#femora.components.Material.materialBase.MaterialManager.set_material_tag_start"><code class="docutils literal notranslate"><span class="pre">MaterialManager.set_material_tag_start()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="technical/materials.html#femora.components.Material.materialBase.MaterialManager.update_material_params"><code class="docutils literal notranslate"><span class="pre">MaterialManager.update_material_params()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="technical/materials.html#material-creation">Material Creation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="technical/materials.html#available-material-types">Available Material Types</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="technical/materials/nd/index.html">nDMaterial Types</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="technical/materials/nd/ElasticIsotropicMaterial.html">ElasticIsotropicMaterial</a></li>
+<li class="toctree-l5"><a class="reference internal" href="technical/materials/nd/DruckerPragerMaterial.html">DruckerPragerMaterial</a></li>
+<li class="toctree-l5"><a class="reference internal" href="technical/materials/nd/J2CyclicBoundingSurfaceMaterial.html">J2CyclicBoundingSurfaceMaterial</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="technical/materials/uniaxial/index.html">uniaxialMaterial Types</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="technical/materials/uniaxial/ElasticUniaxialMaterial.html">ElasticUniaxialMaterial</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="technical/elements.html">Element</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="technical/elements.html#understanding-the-elementregistry">Understanding the ElementRegistry</a></li>
+<li class="toctree-l3"><a class="reference internal" href="technical/elements.html#accessing-the-elementregistry">Accessing the ElementRegistry</a></li>
+<li class="toctree-l3"><a class="reference internal" href="technical/elements.html#how-elementregistry-works">How ElementRegistry Works</a></li>
+<li class="toctree-l3"><a class="reference internal" href="technical/elements.html#element-tagging-system">Element Tagging System</a></li>
+<li class="toctree-l3"><a class="reference internal" href="technical/elements.html#elementregistry-api-reference">ElementRegistry API Reference</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="technical/elements.html#femora.components.Element.elementBase.ElementRegistry"><code class="docutils literal notranslate"><span class="pre">ElementRegistry</span></code></a><ul>
+<li class="toctree-l5"><a class="reference internal" href="technical/elements.html#femora.components.Element.elementBase.ElementRegistry.beam"><code class="docutils literal notranslate"><span class="pre">ElementRegistry.beam</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="technical/elements.html#femora.components.Element.elementBase.ElementRegistry.brick"><code class="docutils literal notranslate"><span class="pre">ElementRegistry.brick</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="technical/elements.html#femora.components.Element.elementBase.ElementRegistry.clear_all_elements"><code class="docutils literal notranslate"><span class="pre">ElementRegistry.clear_all_elements()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="technical/elements.html#femora.components.Element.elementBase.ElementRegistry.create_element"><code class="docutils literal notranslate"><span class="pre">ElementRegistry.create_element()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="technical/elements.html#femora.components.Element.elementBase.ElementRegistry.get_element"><code class="docutils literal notranslate"><span class="pre">ElementRegistry.get_element()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="technical/elements.html#femora.components.Element.elementBase.ElementRegistry.get_element_count"><code class="docutils literal notranslate"><span class="pre">ElementRegistry.get_element_count()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="technical/elements.html#femora.components.Element.elementBase.ElementRegistry.get_element_types"><code class="docutils literal notranslate"><span class="pre">ElementRegistry.get_element_types()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="technical/elements.html#femora.components.Element.elementBase.ElementRegistry.is_element_type_registered"><code class="docutils literal notranslate"><span class="pre">ElementRegistry.is_element_type_registered()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="technical/elements.html#femora.components.Element.elementBase.ElementRegistry.quad"><code class="docutils literal notranslate"><span class="pre">ElementRegistry.quad</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="technical/elements.html#femora.components.Element.elementBase.ElementRegistry.register_element_type"><code class="docutils literal notranslate"><span class="pre">ElementRegistry.register_element_type()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="technical/elements.html#femora.components.Element.elementBase.ElementRegistry.unregister_element_type"><code class="docutils literal notranslate"><span class="pre">ElementRegistry.unregister_element_type()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="technical/elements.html#element-creation">Element Creation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="technical/elements.html#available-element-types">Available Element Types</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="technical/elements/3d/index.html">3D Elements</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="technical/elements/3d/stdBrick.html">stdBrick</a></li>
+<li class="toctree-l5"><a class="reference internal" href="technical/elements/3d/PML3D.html">PML3D</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="technical/elements/2d/index.html">2D Elements</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="technical/elements/2d/SSPQuad.html">SSPQuad</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="technical/damping.html">Damping</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="technical/damping.html#understanding-the-dampingmanager">Understanding the DampingManager</a></li>
+<li class="toctree-l3"><a class="reference internal" href="technical/damping.html#accessing-the-dampingmanager">Accessing the DampingManager</a></li>
+<li class="toctree-l3"><a class="reference internal" href="technical/damping.html#how-dampingmanager-works">How DampingManager Works</a></li>
+<li class="toctree-l3"><a class="reference internal" href="technical/damping.html#damping-tagging-system">Damping Tagging System</a></li>
+<li class="toctree-l3"><a class="reference internal" href="technical/damping.html#dampingmanager-api-reference">DampingManager API Reference</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="technical/damping.html#femora.components.Damping.dampingBase.DampingManager"><code class="docutils literal notranslate"><span class="pre">DampingManager</span></code></a><ul>
+<li class="toctree-l5"><a class="reference internal" href="technical/damping.html#femora.components.Damping.dampingBase.DampingManager.__init__"><code class="docutils literal notranslate"><span class="pre">DampingManager.__init__()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="technical/damping.html#femora.components.Damping.dampingBase.DampingManager.clear_all_dampings"><code class="docutils literal notranslate"><span class="pre">DampingManager.clear_all_dampings()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="technical/damping.html#femora.components.Damping.dampingBase.DampingManager.create_damping"><code class="docutils literal notranslate"><span class="pre">DampingManager.create_damping()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="technical/damping.html#femora.components.Damping.dampingBase.DampingManager.get_all_dampings"><code class="docutils literal notranslate"><span class="pre">DampingManager.get_all_dampings()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="technical/damping.html#femora.components.Damping.dampingBase.DampingManager.get_available_types"><code class="docutils literal notranslate"><span class="pre">DampingManager.get_available_types()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="technical/damping.html#femora.components.Damping.dampingBase.DampingManager.get_damping"><code class="docutils literal notranslate"><span class="pre">DampingManager.get_damping()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="technical/damping.html#femora.components.Damping.dampingBase.DampingManager.get_instance"><code class="docutils literal notranslate"><span class="pre">DampingManager.get_instance()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="technical/damping.html#femora.components.Damping.dampingBase.DampingManager.remove_damping"><code class="docutils literal notranslate"><span class="pre">DampingManager.remove_damping()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="technical/damping.html#femora.components.Damping.dampingBase.DampingManager.set_start_tag"><code class="docutils literal notranslate"><span class="pre">DampingManager.set_start_tag()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="technical/damping.html#damping-creation">Damping Creation</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="technical/damping.html#usage-example">Usage Example</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="technical/damping.html#available-damping-types">Available Damping Types</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="technical/damping/index.html">Damping Models</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="technical/damping/rayleigh.html">Rayleigh Damping</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="technical/damping/rayleigh.html#mathematical-formulation">Mathematical Formulation</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/damping/rayleigh.html#parameters">Parameters</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/damping/rayleigh.html#usage">Usage</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/damping/rayleigh.html#notes">Notes</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/damping/rayleigh.html#references">References</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="technical/damping/modal.html">Modal Damping</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="technical/damping/modal.html#parameters">Parameters</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/damping/modal.html#usage">Usage</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/damping/modal.html#notes">Notes</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/damping/modal.html#references">References</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="technical/damping/frequency_rayleigh.html">Frequency Rayleigh Damping</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="technical/damping/frequency_rayleigh.html#mathematical-formulation">Mathematical Formulation</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/damping/frequency_rayleigh.html#parameters">Parameters</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/damping/frequency_rayleigh.html#usage">Usage</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/damping/frequency_rayleigh.html#notes">Notes</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="technical/damping/uniform.html">Uniform Damping</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="technical/damping/uniform.html#parameters">Parameters</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/damping/uniform.html#usage">Usage</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/damping/uniform.html#advanced-usage">Advanced Usage</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/damping/uniform.html#references">References</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="technical/damping/secant_stiffness.html">Secant Stiffness Proportional Damping</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="technical/damping/secant_stiffness.html#mathematical-formulation">Mathematical Formulation</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/damping/secant_stiffness.html#parameters">Parameters</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/damping/secant_stiffness.html#usage">Usage</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/damping/secant_stiffness.html#advanced-usage">Advanced Usage</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/damping/secant_stiffness.html#notes">Notes</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/damping/secant_stiffness.html#references">References</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="technical/region.html">Region</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="technical/region.html#understanding-the-regionmanager">Understanding the RegionManager</a></li>
+<li class="toctree-l3"><a class="reference internal" href="technical/region.html#accessing-the-regionmanager">Accessing the RegionManager</a></li>
+<li class="toctree-l3"><a class="reference internal" href="technical/region.html#how-regionmanager-works">How RegionManager Works</a></li>
+<li class="toctree-l3"><a class="reference internal" href="technical/region.html#global-region">Global Region</a></li>
+<li class="toctree-l3"><a class="reference internal" href="technical/region.html#region-tagging-system">Region Tagging System</a></li>
+<li class="toctree-l3"><a class="reference internal" href="technical/region.html#regionmanager-api-reference">RegionManager API Reference</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="technical/region.html#femora.components.Region.regionBase.RegionManager"><code class="docutils literal notranslate"><span class="pre">RegionManager</span></code></a><ul>
+<li class="toctree-l5"><a class="reference internal" href="technical/region.html#femora.components.Region.regionBase.RegionManager.GlobalRegion"><code class="docutils literal notranslate"><span class="pre">RegionManager.GlobalRegion()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="technical/region.html#femora.components.Region.regionBase.RegionManager.__init__"><code class="docutils literal notranslate"><span class="pre">RegionManager.__init__()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="technical/region.html#femora.components.Region.regionBase.RegionManager.clear_regions"><code class="docutils literal notranslate"><span class="pre">RegionManager.clear_regions()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="technical/region.html#femora.components.Region.regionBase.RegionManager.create_region"><code class="docutils literal notranslate"><span class="pre">RegionManager.create_region()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="technical/region.html#femora.components.Region.regionBase.RegionManager.get_region"><code class="docutils literal notranslate"><span class="pre">RegionManager.get_region()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="technical/region.html#femora.components.Region.regionBase.RegionManager.print_regions"><code class="docutils literal notranslate"><span class="pre">RegionManager.print_regions()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="technical/region.html#femora.components.Region.regionBase.RegionManager.regions"><code class="docutils literal notranslate"><span class="pre">RegionManager.regions</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="technical/region.html#femora.components.Region.regionBase.RegionManager.remove_region"><code class="docutils literal notranslate"><span class="pre">RegionManager.remove_region()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="technical/region.html#region-creation">Region Creation</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="technical/region.html#usage-example">Usage Example</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="technical/region.html#available-region-types">Available Region Types</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="technical/region/index.html">Region Types</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="technical/region/globalregion.html">GlobalRegion</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="technical/region/globalregion.html#parameters">Parameters</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/region/globalregion.html#usage">Usage</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/region/globalregion.html#component-assignment">Component Assignment</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/region/globalregion.html#notes">Notes</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="technical/region/elementregion.html">ElementRegion</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="technical/region/elementregion.html#parameters">Parameters</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/region/elementregion.html#usage">Usage</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/region/elementregion.html#notes">Notes</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="technical/region/noderegion.html">NodeRegion</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="technical/region/noderegion.html#parameters">Parameters</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/region/noderegion.html#usage">Usage</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/region/noderegion.html#notes">Notes</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="technical/meshparts.html">MeshPart</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="technical/meshparts.html#understanding-the-meshpartmanager">Understanding the MeshPartManager</a></li>
+<li class="toctree-l3"><a class="reference internal" href="technical/meshparts.html#accessing-the-meshpartmanager">Accessing the MeshPartManager</a></li>
+<li class="toctree-l3"><a class="reference internal" href="technical/meshparts.html#how-meshpartmanager-works">How MeshPartManager Works</a></li>
+<li class="toctree-l3"><a class="reference internal" href="technical/meshparts.html#meshpart-class-system">MeshPart Class System</a></li>
+<li class="toctree-l3"><a class="reference internal" href="technical/meshparts.html#meshpartmanager-api-reference">MeshPartManager API Reference</a></li>
+<li class="toctree-l3"><a class="reference internal" href="technical/meshparts.html#mesh-part-creation">Mesh Part Creation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="technical/meshparts.html#available-mesh-part-types">Available Mesh Part Types</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="technical/meshparts/volume/index.html">Volume Mesh Types</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="technical/meshparts/volume/UniformRectangularGrid.html">Uniform Rectangular Grid</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="technical/meshparts/volume/UniformRectangularGrid.html#parameters">Parameters</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/meshparts/volume/UniformRectangularGrid.html#compatible-elements">Compatible Elements</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/meshparts/volume/UniformRectangularGrid.html#usage-example">Usage Example</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/meshparts/volume/UniformRectangularGrid.html#notes">Notes</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="technical/meshparts/volume/CustomRectangularGrid.html">Custom Rectangular Grid</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="technical/meshparts/volume/CustomRectangularGrid.html#parameters">Parameters</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/meshparts/volume/CustomRectangularGrid.html#compatible-elements">Compatible Elements</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/meshparts/volume/CustomRectangularGrid.html#usage-example">Usage Example</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/meshparts/volume/CustomRectangularGrid.html#notes">Notes</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="technical/meshparts/volume/GeometricRectangularGrid.html">Geometric Rectangular Grid</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="technical/meshparts/volume/GeometricRectangularGrid.html#parameters">Parameters</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/meshparts/volume/GeometricRectangularGrid.html#compatible-elements">Compatible Elements</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/meshparts/volume/GeometricRectangularGrid.html#usage-example">Usage Example</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/meshparts/volume/GeometricRectangularGrid.html#geometric-ratio-effect">Geometric Ratio Effect</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/meshparts/volume/GeometricRectangularGrid.html#notes">Notes</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="technical/assembler.html">Assembler</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="technical/assembler.html#introduction">Introduction</a></li>
+<li class="toctree-l3"><a class="reference internal" href="technical/assembler.html#understanding-the-assembler">Understanding the Assembler</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="technical/assembler.html#accessing-the-assembler">Accessing the Assembler</a></li>
+<li class="toctree-l4"><a class="reference internal" href="technical/assembler.html#structure-of-the-assembler">Structure of the Assembler</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="technical/assembler.html#understanding-assembly-sections">Understanding Assembly Sections</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="technical/assembler.html#creating-assembly-sections">Creating Assembly Sections</a></li>
+<li class="toctree-l4"><a class="reference internal" href="technical/assembler.html#merging-points-in-assembly-sections">Merging Points in Assembly Sections</a></li>
+<li class="toctree-l4"><a class="reference internal" href="technical/assembler.html#partitioning-strategies">Partitioning Strategies</a></li>
+<li class="toctree-l4"><a class="reference internal" href="technical/assembler.html#assembled-mesh-structure">Assembled Mesh Structure</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="technical/assembler.html#assembling-the-complete-mesh">Assembling the Complete Mesh</a></li>
+<li class="toctree-l3"><a class="reference internal" href="technical/assembler.html#api-reference">API Reference</a></li>
+<li class="toctree-l3"><a class="reference internal" href="technical/assembler.html#best-practices">Best Practices</a></li>
+<li class="toctree-l3"><a class="reference internal" href="technical/assembler.html#use-cases">Use Cases</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="technical/constraint.html">Constraints</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="technical/constraint/sp/index.html">SP Constraints</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="technical/constraint/sp/index.html#understanding-the-sp-constraint-manager">Understanding the SP Constraint Manager</a></li>
+<li class="toctree-l4"><a class="reference internal" href="technical/constraint/sp/index.html#accessing-the-sp-constraint-manager">Accessing the SP Constraint Manager</a></li>
+<li class="toctree-l4"><a class="reference internal" href="technical/constraint/sp/index.html#how-sp-constraint-manager-works">How SP Constraint Manager Works</a></li>
+<li class="toctree-l4"><a class="reference internal" href="technical/constraint/sp/index.html#creating-sp-constraints">Creating SP Constraints</a></li>
+<li class="toctree-l4"><a class="reference internal" href="technical/constraint/sp/index.html#dof-specification-format">DOF Specification Format</a></li>
+<li class="toctree-l4"><a class="reference internal" href="technical/constraint/sp/index.html#best-practices-for-sp-constraints">Best Practices for SP Constraints</a></li>
+<li class="toctree-l4"><a class="reference internal" href="technical/constraint/sp/index.html#sp-constraint-manager-api-reference">SP Constraint Manager API Reference</a></li>
+<li class="toctree-l4"><a class="reference internal" href="technical/constraint/sp/index.html#sp-constraint-types">SP Constraint Types</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="technical/constraint/sp/fix.html">Fix Constraint</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="technical/constraint/sp/fix.html#description">Description</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/constraint/sp/fix.html#parameters">Parameters</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/constraint/sp/fix.html#usage">Usage</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="technical/constraint/sp/fixmacro.html">Macro-Based Constraints</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="technical/constraint/sp/fixmacro.html#description">Description</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/constraint/sp/fixmacro.html#available-macro-constraints">Available Macro Constraints</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/constraint/sp/fixmacro.html#parameters">Parameters</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/constraint/sp/fixmacro.html#usage">Usage</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/constraint/sp/fixmacro.html#opensees-tcl-output">OpenSees TCL Output</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="technical/constraint/sp/fixx.html">FixX Constraint</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="technical/constraint/sp/fixx.html#description">Description</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/constraint/sp/fixx.html#parameters">Parameters</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/constraint/sp/fixx.html#usage">Usage</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="technical/constraint/sp/fixy.html">FixY Constraint</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="technical/constraint/sp/fixy.html#description">Description</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/constraint/sp/fixy.html#parameters">Parameters</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/constraint/sp/fixy.html#usage">Usage</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="technical/constraint/sp/fixz.html">FixZ Constraint</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="technical/constraint/sp/fixz.html#description">Description</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/constraint/sp/fixz.html#parameters">Parameters</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/constraint/sp/fixz.html#usage">Usage</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="technical/constraint/mp/index.html">MP Constraints</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="technical/constraint/mp/index.html#understanding-the-mp-constraint-manager">Understanding the MP Constraint Manager</a></li>
+<li class="toctree-l4"><a class="reference internal" href="technical/constraint/mp/index.html#accessing-the-mp-constraint-manager">Accessing the MP Constraint Manager</a></li>
+<li class="toctree-l4"><a class="reference internal" href="technical/constraint/mp/index.html#managing-mp-constraints">Managing MP Constraints</a></li>
+<li class="toctree-l4"><a class="reference internal" href="technical/constraint/mp/index.html#best-practices-for-mp-constraints">Best Practices for MP Constraints</a></li>
+<li class="toctree-l4"><a class="reference internal" href="technical/constraint/mp/index.html#mp-constraint-manager-api-reference">MP Constraint Manager API Reference</a></li>
+<li class="toctree-l4"><a class="reference internal" href="technical/constraint/mp/index.html#available-mp-constraint-types">Available MP Constraint Types</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="technical/constraint/mp/equaldof.html">EqualDOF Constraint</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="technical/constraint/mp/equaldof.html#description">Description</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/constraint/mp/equaldof.html#parameters">Parameters</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/constraint/mp/equaldof.html#usage">Usage</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/constraint/mp/equaldof.html#common-applications">Common Applications</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="technical/constraint/mp/rigidlink.html">RigidLink Constraint</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="technical/constraint/mp/rigidlink.html#description">Description</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/constraint/mp/rigidlink.html#parameters">Parameters</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/constraint/mp/rigidlink.html#usage">Usage</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/constraint/mp/rigidlink.html#common-applications">Common Applications</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/constraint/mp/rigidlink.html#comparison-of-bar-and-beam-types">Comparison of bar and beam types</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="technical/constraint/mp/rigiddiaphragm.html">RigidDiaphragm Constraint</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="technical/constraint/mp/rigiddiaphragm.html#description">Description</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/constraint/mp/rigiddiaphragm.html#parameters">Parameters</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/constraint/mp/rigiddiaphragm.html#usage">Usage</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/constraint/mp/rigiddiaphragm.html#meaning-of-direction-parameter">Meaning of Direction Parameter</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/constraint/mp/rigiddiaphragm.html#common-applications">Common Applications</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="technical/constraint/mp/laminarboundary.html">Laminar Boundary Constraint</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="technical/constraint/mp/laminarboundary.html#description">Description</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/constraint/mp/laminarboundary.html#parameters">Parameters</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/constraint/mp/laminarboundary.html#usage">Usage</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/constraint/mp/laminarboundary.html#how-it-works">How It Works</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/constraint/mp/laminarboundary.html#common-applications">Common Applications</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/constraint/mp/laminarboundary.html#implementation-note">Implementation Note</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/constraint/mp/laminarboundary.html#example-soil-box-model">Example: Soil Box Model</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/constraint/mp/laminarboundary.html#function-reference">Function Reference</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="technical/timeseries.html">TimeSeries</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="technical/timeseries.html#understanding-the-timeseriesmanager">Understanding the TimeSeriesManager</a></li>
+<li class="toctree-l3"><a class="reference internal" href="technical/timeseries.html#accessing-the-timeseriesmanager">Accessing the TimeSeriesManager</a></li>
+<li class="toctree-l3"><a class="reference internal" href="technical/timeseries.html#how-timeseriesmanager-works">How TimeSeriesManager Works</a></li>
+<li class="toctree-l3"><a class="reference internal" href="technical/timeseries.html#timeseriesmanager-api-reference">TimeSeriesManager API Reference</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="technical/timeseries.html#femora.components.TimeSeries.timeSeriesBase.TimeSeriesManager"><code class="docutils literal notranslate"><span class="pre">TimeSeriesManager</span></code></a><ul>
+<li class="toctree-l5"><a class="reference internal" href="technical/timeseries.html#femora.components.TimeSeries.timeSeriesBase.TimeSeriesManager.__init__"><code class="docutils literal notranslate"><span class="pre">TimeSeriesManager.__init__()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="technical/timeseries.html#femora.components.TimeSeries.timeSeriesBase.TimeSeriesManager.clear_all"><code class="docutils literal notranslate"><span class="pre">TimeSeriesManager.clear_all()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="technical/timeseries.html#femora.components.TimeSeries.timeSeriesBase.TimeSeriesManager.create_time_series"><code class="docutils literal notranslate"><span class="pre">TimeSeriesManager.create_time_series()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="technical/timeseries.html#femora.components.TimeSeries.timeSeriesBase.TimeSeriesManager.get_all_time_series"><code class="docutils literal notranslate"><span class="pre">TimeSeriesManager.get_all_time_series()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="technical/timeseries.html#femora.components.TimeSeries.timeSeriesBase.TimeSeriesManager.get_available_types"><code class="docutils literal notranslate"><span class="pre">TimeSeriesManager.get_available_types()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="technical/timeseries.html#femora.components.TimeSeries.timeSeriesBase.TimeSeriesManager.get_time_series"><code class="docutils literal notranslate"><span class="pre">TimeSeriesManager.get_time_series()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="technical/timeseries.html#femora.components.TimeSeries.timeSeriesBase.TimeSeriesManager.remove_time_series"><code class="docutils literal notranslate"><span class="pre">TimeSeriesManager.remove_time_series()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="technical/timeseries.html#TimeSeriesManager"><code class="docutils literal notranslate"><span class="pre">TimeSeriesManager</span></code></a><ul>
+<li class="toctree-l5"><a class="reference internal" href="technical/timeseries.html#TimeSeriesManager.clear_all"><code class="docutils literal notranslate"><span class="pre">TimeSeriesManager.clear_all()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="technical/timeseries.html#TimeSeriesManager.create_time_series"><code class="docutils literal notranslate"><span class="pre">TimeSeriesManager.create_time_series()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="technical/timeseries.html#TimeSeriesManager.get_time_series"><code class="docutils literal notranslate"><span class="pre">TimeSeriesManager.get_time_series()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="technical/timeseries.html#TimeSeriesManager.get_all_time_series"><code class="docutils literal notranslate"><span class="pre">TimeSeriesManager.get_all_time_series()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="technical/timeseries.html#TimeSeriesManager.get_available_types"><code class="docutils literal notranslate"><span class="pre">TimeSeriesManager.get_available_types()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="technical/timeseries.html#TimeSeriesManager.remove_time_series"><code class="docutils literal notranslate"><span class="pre">TimeSeriesManager.remove_time_series()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="technical/timeseries.html#time-series-creation">Time Series Creation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="technical/timeseries.html#usage-example">Usage Example</a></li>
+<li class="toctree-l3"><a class="reference internal" href="technical/timeseries.html#available-time-series-types">Available Time Series Types</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="technical/timeseries/constant.html">Constant</a></li>
+<li class="toctree-l4"><a class="reference internal" href="technical/timeseries/linear.html">Linear</a></li>
+<li class="toctree-l4"><a class="reference internal" href="technical/timeseries/path.html">Path</a></li>
+<li class="toctree-l4"><a class="reference internal" href="technical/timeseries/pathtime.html">PathTime</a></li>
+<li class="toctree-l4"><a class="reference internal" href="technical/timeseries/trig.html">Trig</a></li>
+<li class="toctree-l4"><a class="reference internal" href="technical/timeseries/pulsetrain.html">PulseTrain</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="technical/timeseries.html#applying-time-series">Applying Time Series</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="technical/pattern.html">Pattern</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="technical/pattern.html#understanding-the-patternmanager">Understanding the PatternManager</a></li>
+<li class="toctree-l3"><a class="reference internal" href="technical/pattern.html#accessing-the-patternmanager">Accessing the PatternManager</a></li>
+<li class="toctree-l3"><a class="reference internal" href="technical/pattern.html#how-patternmanager-works">How PatternManager Works</a></li>
+<li class="toctree-l3"><a class="reference internal" href="technical/pattern.html#patternmanager-api-reference">PatternManager API Reference</a></li>
+<li class="toctree-l3"><a class="reference internal" href="technical/pattern.html#pattern-creation">Pattern Creation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="technical/pattern.html#usage-example">Usage Example</a></li>
+<li class="toctree-l3"><a class="reference internal" href="technical/pattern.html#available-pattern-types">Available Pattern Types</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="technical/pattern/uniformexcitation.html">UniformExcitation Pattern</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="technical/pattern/uniformexcitation.html#overview">Overview</a></li>
+<li class="toctree-l5"><a class="reference internal" href="technical/pattern/uniformexcitation.html#parameters">Parameters</a></li>
+<li class="toctree-l5"><a class="reference internal" href="technical/pattern/uniformexcitation.html#usage-example">Usage Example</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="technical/pattern/h5drm.html">H5DRM Pattern</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="technical/pattern/h5drm.html#overview">Overview</a></li>
+<li class="toctree-l5"><a class="reference internal" href="technical/pattern/h5drm.html#parameters">Parameters</a></li>
+<li class="toctree-l5"><a class="reference internal" href="technical/pattern/h5drm.html#usage-example">Usage Example</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="technical/analysis.html">Analysis</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="technical/analysis.html#understanding-the-analysis-component">Understanding the Analysis Component</a></li>
+<li class="toctree-l3"><a class="reference internal" href="technical/analysis.html#accessing-the-analysis-component">Accessing the Analysis Component</a></li>
+<li class="toctree-l3"><a class="reference internal" href="technical/analysis.html#how-analysis-works">How Analysis Works</a></li>
+<li class="toctree-l3"><a class="reference internal" href="technical/analysis.html#analysis-types">Analysis Types</a></li>
+<li class="toctree-l3"><a class="reference internal" href="technical/analysis.html#analysis-components">Analysis Components</a></li>
+<li class="toctree-l3"><a class="reference internal" href="technical/analysis.html#analysismanager-api-reference">AnalysisManager API Reference</a></li>
+<li class="toctree-l3"><a class="reference internal" href="technical/analysis.html#analysis-creation">Analysis Creation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="technical/analysis.html#available-analysis-components">Available Analysis Components</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="technical/analysis/integrators/index.html">Integrators</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="technical/analysis/integrators/index.html#static-integrators">Static Integrators</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/integrators/loadcontrol.html">LoadControl Integrator</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/integrators/displacementcontrol.html">DisplacementControl Integrator</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/integrators/paralleldisplacementcontrol.html">ParallelDisplacementControl Integrator</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/integrators/minunbaldispnorm.html">MinUnbalDispNorm Integrator</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/integrators/arclength.html">ArcLength Integrator</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="technical/analysis/integrators/index.html#transient-integrators">Transient Integrators</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/integrators/newmark.html">Newmark Integrator</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/integrators/trbdf2.html">TRBDF2 Integrator</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/integrators/centraldifference.html">CentralDifference Integrator</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/integrators/hht.html">HHT Integrator</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/integrators/generalizedalpha.html">GeneralizedAlpha Integrator</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/integrators/explicitdifference.html">ExplicitDifference Integrator</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/integrators/pfem.html">PFEM Integrator</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="technical/analysis/constraint_handlers/index.html">Constraint Handlers</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="technical/analysis/constraint_handlers/plain.html">Plain constraint handler</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/constraint_handlers/plain.html#parameters">Parameters</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/constraint_handlers/plain.html#usage-example">Usage Example</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="technical/analysis/constraint_handlers/transformation.html">Transformation constraint handler</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/constraint_handlers/transformation.html#parameters">Parameters</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/constraint_handlers/transformation.html#usage-example">Usage Example</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="technical/analysis/constraint_handlers/penalty.html">Penalty constraint handler</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/constraint_handlers/penalty.html#parameters">Parameters</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/constraint_handlers/penalty.html#usage-example">Usage Example</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="technical/analysis/constraint_handlers/lagrange.html">Lagrange constraint handler</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/constraint_handlers/lagrange.html#parameters">Parameters</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/constraint_handlers/lagrange.html#usage-example">Usage Example</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="technical/analysis/constraint_handlers/auto.html">Auto constraint handler</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/constraint_handlers/auto.html#description">Description</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/constraint_handlers/auto.html#parameters">Parameters</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/constraint_handlers/auto.html#usage-example">Usage Example</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="technical/analysis/numberers/index.html">Equation Numberers</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="technical/analysis/numberers/plain.html">Plain Numberer</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/numberers/plain.html#description">Description</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/numberers/plain.html#parameters">Parameters</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/numberers/plain.html#usage-example">Usage Example</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/numberers/plain.html#notes">Notes</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="technical/analysis/numberers/rcm.html">RCM Numberer</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/numberers/rcm.html#description">Description</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/numberers/rcm.html#parameters">Parameters</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/numberers/rcm.html#usage-example">Usage Example</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/numberers/rcm.html#notes">Notes</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="technical/analysis/numberers/amd.html">AMD Numberer</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/numberers/amd.html#description">Description</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/numberers/amd.html#parameters">Parameters</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/numberers/amd.html#usage-example">Usage Example</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/numberers/amd.html#notes">Notes</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="technical/analysis/numberers/parallelrcm.html">Parallel RCM Numberer</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/numberers/parallelrcm.html#description">Description</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/numberers/parallelrcm.html#parameters">Parameters</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/numberers/parallelrcm.html#usage-example">Usage Example</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/numberers/parallelrcm.html#notes">Notes</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="technical/analysis/systems/index.html">System Solvers</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="technical/analysis/systems/fullgeneral.html">Full General System</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/systems/fullgeneral.html#description">Description</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/systems/fullgeneral.html#parameters">Parameters</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/systems/fullgeneral.html#usage-example">Usage Example</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/systems/fullgeneral.html#notes">Notes</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="technical/analysis/systems/bandgeneral.html">Band General System</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/systems/bandgeneral.html#description">Description</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/systems/bandgeneral.html#parameters">Parameters</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/systems/bandgeneral.html#usage-example">Usage Example</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/systems/bandgeneral.html#notes">Notes</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="technical/analysis/systems/bandspd.html">Band SPD System</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/systems/bandspd.html#description">Description</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/systems/bandspd.html#parameters">Parameters</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/systems/bandspd.html#usage-example">Usage Example</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/systems/bandspd.html#notes">Notes</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="technical/analysis/systems/profilespd.html">Profile SPD System</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/systems/profilespd.html#description">Description</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/systems/profilespd.html#parameters">Parameters</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/systems/profilespd.html#usage-example">Usage Example</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/systems/profilespd.html#notes">Notes</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="technical/analysis/systems/superlu.html">SuperLU System</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/systems/superlu.html#description">Description</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/systems/superlu.html#parameters">Parameters</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/systems/superlu.html#usage-example">Usage Example</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/systems/superlu.html#notes">Notes</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="technical/analysis/systems/umfpack.html">UMFPACK System</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/systems/umfpack.html#description">Description</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/systems/umfpack.html#parameters">Parameters</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/systems/umfpack.html#usage-example">Usage Example</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/systems/umfpack.html#notes">Notes</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="technical/analysis/systems/mumps.html">MUMPS System</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/systems/mumps.html#description">Description</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/systems/mumps.html#parameters">Parameters</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/systems/mumps.html#usage-example">Usage Example</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/systems/mumps.html#notes">Notes</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="technical/analysis/algorithms/index.html">Solution Algorithms</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="technical/analysis/algorithms/linear.html">Linear Algorithm</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/algorithms/linear.html#description">Description</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/algorithms/linear.html#parameters">Parameters</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/algorithms/linear.html#usage-example">Usage Example</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/algorithms/linear.html#notes">Notes</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="technical/analysis/algorithms/newton.html">Newton Algorithm</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/algorithms/newton.html#description">Description</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/algorithms/newton.html#parameters">Parameters</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/algorithms/newton.html#usage-example">Usage Example</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/algorithms/newton.html#notes">Notes</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="technical/analysis/algorithms/modifiednewton.html">Modified Newton Algorithm</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/algorithms/modifiednewton.html#description">Description</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/algorithms/modifiednewton.html#parameters">Parameters</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/algorithms/modifiednewton.html#usage-example">Usage Example</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/algorithms/modifiednewton.html#notes">Notes</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="technical/analysis/algorithms/newtonlinesearch.html">Newton Line Search Algorithm</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/algorithms/newtonlinesearch.html#description">Description</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/algorithms/newtonlinesearch.html#parameters">Parameters</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/algorithms/newtonlinesearch.html#usage-example">Usage Example</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/algorithms/newtonlinesearch.html#notes">Notes</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="technical/analysis/algorithms/krylovnewton.html">Krylov Newton Algorithm</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/algorithms/krylovnewton.html#description">Description</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/algorithms/krylovnewton.html#parameters">Parameters</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/algorithms/krylovnewton.html#usage-example">Usage Example</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/algorithms/krylovnewton.html#notes">Notes</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="technical/analysis/algorithms/secantnewton.html">Secant Newton Algorithm</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/algorithms/secantnewton.html#description">Description</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/algorithms/secantnewton.html#parameters">Parameters</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/algorithms/secantnewton.html#usage-example">Usage Example</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/algorithms/secantnewton.html#notes">Notes</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="technical/analysis/algorithms/bfgs.html">BFGS Algorithm</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/algorithms/bfgs.html#description">Description</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/algorithms/bfgs.html#parameters">Parameters</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/algorithms/bfgs.html#usage-example">Usage Example</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/algorithms/bfgs.html#notes">Notes</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="technical/analysis/algorithms/broyden.html">Broyden Algorithm</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/algorithms/broyden.html#description">Description</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/algorithms/broyden.html#parameters">Parameters</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/algorithms/broyden.html#usage-example">Usage Example</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/algorithms/broyden.html#notes">Notes</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="technical/analysis/convergence_tests/index.html">Convergence Tests</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="technical/analysis/convergence_tests/norm_disp_incr.html">Norm Disp Incr Convergence Test</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/convergence_tests/norm_disp_incr.html#description">Description</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/convergence_tests/norm_disp_incr.html#parameters">Parameters</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/convergence_tests/norm_disp_incr.html#usage-example">Usage Example</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="technical/analysis/convergence_tests/norm_unbalance.html">Norm Unbalance Convergence Test</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/convergence_tests/norm_unbalance.html#description">Description</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/convergence_tests/norm_unbalance.html#parameters">Parameters</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/convergence_tests/norm_unbalance.html#usage-example">Usage Example</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="technical/analysis/convergence_tests/energy_incr.html">Energy Incr Convergence Test</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/convergence_tests/energy_incr.html#description">Description</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/convergence_tests/energy_incr.html#parameters">Parameters</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/convergence_tests/energy_incr.html#usage-example">Usage Example</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="technical/analysis/convergence_tests/relative_norm_disp_incr.html">Relative Norm Disp Incr Convergence Test</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/convergence_tests/relative_norm_disp_incr.html#description">Description</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/convergence_tests/relative_norm_disp_incr.html#parameters">Parameters</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/convergence_tests/relative_norm_disp_incr.html#usage-example">Usage Example</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="technical/analysis/convergence_tests/relative_norm_unbalance.html">Relative Norm Unbalance Convergence Test</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/convergence_tests/relative_norm_unbalance.html#description">Description</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/convergence_tests/relative_norm_unbalance.html#parameters">Parameters</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/convergence_tests/relative_norm_unbalance.html#usage-example">Usage Example</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="technical/analysis/convergence_tests/relative_energy_incr.html">Relative Energy Incr Convergence Test</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/convergence_tests/relative_energy_incr.html#description">Description</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/convergence_tests/relative_energy_incr.html#parameters">Parameters</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/convergence_tests/relative_energy_incr.html#usage-example">Usage Example</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="technical/analysis/convergence_tests/relative_total_norm_disp_incr.html">Relative Total Norm Disp Incr Convergence Test</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/convergence_tests/relative_total_norm_disp_incr.html#description">Description</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/convergence_tests/relative_total_norm_disp_incr.html#parameters">Parameters</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/convergence_tests/relative_total_norm_disp_incr.html#usage-example">Usage Example</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="technical/analysis/convergence_tests/relative_total_norm_unbalance.html">Relative Total Norm Unbalance Convergence Test</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/convergence_tests/relative_total_norm_unbalance.html#description">Description</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/convergence_tests/relative_total_norm_unbalance.html#parameters">Parameters</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/convergence_tests/relative_total_norm_unbalance.html#usage-example">Usage Example</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="technical/analysis/convergence_tests/relative_total_energy_incr.html">Relative Total Energy Incr Convergence Test</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/convergence_tests/relative_total_energy_incr.html#description">Description</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/convergence_tests/relative_total_energy_incr.html#parameters">Parameters</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/convergence_tests/relative_total_energy_incr.html#usage-example">Usage Example</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="technical/analysis/convergence_tests/fixed_num_iter.html">Fixed Num Iter Convergence Test</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/convergence_tests/fixed_num_iter.html#description">Description</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/convergence_tests/fixed_num_iter.html#parameters">Parameters</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/convergence_tests/fixed_num_iter.html#usage-example">Usage Example</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="technical/analysis/convergence_tests/norm_disp_and_unbalance.html">NormDispAndUnbalance Convergence Test</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/convergence_tests/norm_disp_and_unbalance.html#description">Description</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/convergence_tests/norm_disp_and_unbalance.html#parameters">Parameters</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/convergence_tests/norm_disp_and_unbalance.html#usage-example">Usage Example</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="technical/analysis/convergence_tests/norm_disp_or_unbalance.html">Norm Disp Or Unbalance Convergence Test</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/convergence_tests/norm_disp_or_unbalance.html#description">Description</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/convergence_tests/norm_disp_or_unbalance.html#parameters">Parameters</a></li>
+<li class="toctree-l6"><a class="reference internal" href="technical/analysis/convergence_tests/norm_disp_or_unbalance.html#usage-example">Usage Example</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="technical/process.html">Process</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="technical/process.html#understanding-the-process-component">Understanding the Process Component</a></li>
+<li class="toctree-l3"><a class="reference internal" href="technical/process.html#accessing-the-process-component">Accessing the Process Component</a></li>
+<li class="toctree-l3"><a class="reference internal" href="technical/process.html#how-process-works">How Process Works</a></li>
+<li class="toctree-l3"><a class="reference internal" href="technical/process.html#supported-component-types">Supported Component Types</a></li>
+<li class="toctree-l3"><a class="reference internal" href="technical/process.html#processmanager-api-reference">ProcessManager API Reference</a></li>
+<li class="toctree-l3"><a class="reference internal" href="technical/process.html#process-management">Process Management</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="technical/drm.html">DRM</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="technical/drm.html#understanding-the-drm-component">Understanding the DRM Component</a></li>
+<li class="toctree-l3"><a class="reference internal" href="technical/drm.html#accessing-the-drm-component">Accessing the DRM Component</a></li>
+<li class="toctree-l3"><a class="reference internal" href="technical/drm.html#how-drm-works">How DRM Works</a></li>
+<li class="toctree-l3"><a class="reference internal" href="technical/drm.html#technical-implementation">Technical Implementation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="technical/drm.html#key-features">Key Features</a></li>
+<li class="toctree-l3"><a class="reference internal" href="technical/drm.html#creating-a-drm-analysis">Creating a DRM Analysis</a></li>
+<li class="toctree-l3"><a class="reference internal" href="technical/drm.html#default-analysis-process-configuration">Default Analysis Process Configuration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="technical/drm.html#absorbing-layer-implementation">Absorbing Layer Implementation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="technical/drm.html#absorbing-layer-types">Absorbing Layer Types</a></li>
+<li class="toctree-l3"><a class="reference internal" href="technical/drm.html#partitioning-and-parallelization">Partitioning and Parallelization</a></li>
+<li class="toctree-l3"><a class="reference internal" href="technical/drm.html#technical-details-of-pml-implementation">Technical Details of PML Implementation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="technical/drm.html#performance-considerations">Performance Considerations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="technical/drm.html#api-reference">API Reference</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<p class="caption" role="heading"><span class="caption-text">Developer Documentation:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="developer/index.html">Developer Documentation</a><ul class="simple">
+</ul>
+</li>
+</ul>
+</div>
+</section>
+<section id="indices-and-tables">
+<h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Link to this heading"></a></h1>
+<ul class="simple">
+<li><p><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></p></li>
+<li><p><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></p></li>
+<li><p><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></p></li>
+</ul>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="introduction/getting_started.html" class="btn btn-neutral float-right" title="Getting Started with Femora" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Amin Pakzad.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,437 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Material &mdash; Femora (Fast Efficient Meshing for OpenSees-based Resilience Analysis) 0.5.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/custom.css?v=bbbd0671" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=1dd76d02"></script>
+      <script src="../_static/doctools.js?v=9a2dae69"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../_static/js/copy-button.js?v=47d38097"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="nDMaterial Types" href="materials/nd/index.html" />
+    <link rel="prev" title="Technical Documentation" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html">
+            
+              <img src="../_static/Femoralogo.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Introduction:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../introduction/getting_started.html">Getting Started with Femora</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../introduction/installation.html">Installation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../introduction/quick_start.html">Quick Start Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../introduction/examples.html">Examples and Tutorials</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Technical Guide:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Technical Documentation</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Material</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#understanding-the-materialmanager">Understanding the MaterialManager</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#accessing-the-materialmanager">Accessing the MaterialManager</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#how-materialmanager-works">How MaterialManager Works</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#material-tagging-system">Material Tagging System</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#materialmanager-api-reference">MaterialManager API Reference</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#femora.components.Material.materialBase.MaterialManager"><code class="docutils literal notranslate"><span class="pre">MaterialManager</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#material-creation">Material Creation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#available-material-types">Available Material Types</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="materials/nd/index.html">nDMaterial Types</a></li>
+<li class="toctree-l4"><a class="reference internal" href="materials/uniaxial/index.html">uniaxialMaterial Types</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="elements.html">Element</a></li>
+<li class="toctree-l2"><a class="reference internal" href="damping.html">Damping</a></li>
+<li class="toctree-l2"><a class="reference internal" href="region.html">Region</a></li>
+<li class="toctree-l2"><a class="reference internal" href="meshparts.html">MeshPart</a></li>
+<li class="toctree-l2"><a class="reference internal" href="assembler.html">Assembler</a></li>
+<li class="toctree-l2"><a class="reference internal" href="constraint.html">Constraints</a></li>
+<li class="toctree-l2"><a class="reference internal" href="timeseries.html">TimeSeries</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pattern.html">Pattern</a></li>
+<li class="toctree-l2"><a class="reference internal" href="analysis.html">Analysis</a></li>
+<li class="toctree-l2"><a class="reference internal" href="process.html">Process</a></li>
+<li class="toctree-l2"><a class="reference internal" href="drm.html">DRM</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer Documentation:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../developer/index.html">Developer Documentation</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Femora (Fast Efficient Meshing for OpenSees-based Resilience Analysis)</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">Technical Documentation</a></li>
+      <li class="breadcrumb-item active">Material</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/technical/materials.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="material">
+<h1>Material<a class="headerlink" href="#material" title="Link to this heading"></a></h1>
+<section id="understanding-the-materialmanager">
+<h2>Understanding the MaterialManager<a class="headerlink" href="#understanding-the-materialmanager" title="Link to this heading"></a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">MaterialManager</span></code> is a core component of the Femora library that serves as a centralized system for creating, retrieving, tracking, and managing material objects throughout the mesh generation process. It implements the Singleton pattern to ensure a single, consistent point of material management across the entire application.</p>
+<p>Materials defined in Femora are automatically tracked, tagged, and organized by the MaterialManager, simplifying the process of creating complex models with multiple material definitions.</p>
+</section>
+<section id="accessing-the-materialmanager">
+<h2>Accessing the MaterialManager<a class="headerlink" href="#accessing-the-materialmanager" title="Link to this heading"></a></h2>
+<p>There are two ways to access the MaterialManager in your code:</p>
+<ol class="arabic">
+<li><p><strong>Direct Access</strong>: Import and use the MaterialManager class directly</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">femora.components.Material.materialBase</span><span class="w"> </span><span class="kn">import</span> <span class="n">MaterialManager</span>
+
+<span class="c1"># Get the singleton instance</span>
+<span class="n">material_manager</span> <span class="o">=</span> <span class="n">MaterialManager</span><span class="o">.</span><span class="n">get_instance</span><span class="p">()</span>
+
+<span class="c1"># Use the material manager directly</span>
+<span class="n">material_manager</span><span class="o">.</span><span class="n">create_material</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+</pre></div>
+</div>
+</li>
+<li><p><strong>Through Femora</strong> (Recommended): Access via the Femora class’s .material property</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">femora</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">fm</span>
+
+<span class="c1"># Create a Femora instance</span>
+
+
+<span class="c1"># Access the MaterialManager through the .material property</span>
+<span class="n">fm</span><span class="o">.</span><span class="n">material</span><span class="o">.</span><span class="n">create_material</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+</pre></div>
+</div>
+</li>
+</ol>
+<p>The second approach is recommended as it provides a unified interface to all of Femora’s components and ensures proper initialization of all dependencies.</p>
+</section>
+<section id="how-materialmanager-works">
+<h2>How MaterialManager Works<a class="headerlink" href="#how-materialmanager-works" title="Link to this heading"></a></h2>
+<p>The MaterialManager provides several key capabilities:</p>
+<ol class="arabic simple">
+<li><p><strong>Material Creation</strong>: Creates material objects of various types with appropriate parameters</p></li>
+<li><p><strong>Material Tracking</strong>: Keeps track of all materials by both tag and name</p></li>
+<li><p><strong>Material Tagging</strong>: Automatically assigns sequential tags to materials for use in analysis</p></li>
+<li><p><strong>Material Management</strong>: Provides methods to retrieve, update, and delete materials</p></li>
+</ol>
+<p>When a material is created, the MaterialManager:</p>
+<ol class="arabic simple">
+<li><p>Assigns a unique numeric tag automatically (used by solvers like OpenSees)</p></li>
+<li><p>Registers it with the user-provided name (which must be unique)</p></li>
+<li><p>Validates that all required parameters are present and valid</p></li>
+</ol>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Each material must have a unique name. The MaterialManager uses this name as a key
+to retrieve materials later. If you try to create a material with a name that already
+exists, the MaterialManager will raise an error.</p>
+</div>
+</section>
+<section id="material-tagging-system">
+<h2>Material Tagging System<a class="headerlink" href="#material-tagging-system" title="Link to this heading"></a></h2>
+<p>The MaterialManager implements an intelligent tagging system that:</p>
+<ul class="simple">
+<li><p>Assigns sequential tags to materials starting from 1 (or a user-defined starting value)</p></li>
+<li><p>Automatically retags materials when one is deleted to maintain sequential numbering</p></li>
+<li><p>Ensures uniqueness of tags across the model</p></li>
+<li><p>Maps between material objects and their assigned tags</p></li>
+</ul>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Example of setting a custom tag starting point</span>
+<span class="n">material_manager</span> <span class="o">=</span> <span class="n">MaterialManager</span><span class="o">.</span><span class="n">get_instance</span><span class="p">()</span>
+<span class="n">material_manager</span><span class="o">.</span><span class="n">set_material_tag_start</span><span class="p">(</span><span class="mi">1000</span><span class="p">)</span>  <span class="c1"># All new materials will start from tag 1000</span>
+</pre></div>
+</div>
+</section>
+<section id="materialmanager-api-reference">
+<h2>MaterialManager API Reference<a class="headerlink" href="#materialmanager-api-reference" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="femora.components.Material.materialBase.MaterialManager">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">femora.components.Material.materialBase.</span></span><span class="sig-name descname"><span class="pre">MaterialManager</span></span><a class="reference internal" href="../_modules/femora/components/Material/materialBase.html#MaterialManager"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#femora.components.Material.materialBase.MaterialManager" title="Link to this definition"></a></dt>
+<dd><p>Singleton class for managing mesh materials and properties</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="femora.components.Material.materialBase.MaterialManager.clear_all_materials">
+<span class="sig-name descname"><span class="pre">clear_all_materials</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/femora/components/Material/materialBase.html#MaterialManager.clear_all_materials"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#femora.components.Material.materialBase.MaterialManager.clear_all_materials" title="Link to this definition"></a></dt>
+<dd><p>Clear all registered materials and reset tags</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="femora.components.Material.materialBase.MaterialManager.create_material">
+<span class="sig-name descname"><span class="pre">create_material</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">material_category</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">material_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">user_name</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">material_params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/femora/components/Material/materialBase.html#MaterialManager.create_material"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#femora.components.Material.materialBase.MaterialManager.create_material" title="Link to this definition"></a></dt>
+<dd><p>Create a new material with the given parameters</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>material_category</strong> (<em>str</em>) – Category of material (e.g., ‘nDMaterial’)</p></li>
+<li><p><strong>material_type</strong> (<em>str</em>) – Type of material (e.g., ‘Concrete’)</p></li>
+<li><p><strong>user_name</strong> (<em>str</em>) – Unique name for the material</p></li>
+<li><p><strong>**material_params</strong> – Material-specific parameters</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The created material instance</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Material</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>KeyError</strong> – If material category or type doesn’t exist</p></li>
+<li><p><strong>ValueError</strong> – If material name already exists</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="femora.components.Material.materialBase.MaterialManager.delete_material">
+<span class="sig-name descname"><span class="pre">delete_material</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">identifier</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/femora/components/Material/materialBase.html#MaterialManager.delete_material"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#femora.components.Material.materialBase.MaterialManager.delete_material" title="Link to this definition"></a></dt>
+<dd><p>Delete a material by its identifier</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>identifier</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></span>) – Either material tag (int) or user_name (str)</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>KeyError</strong> – If material not found</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="femora.components.Material.materialBase.MaterialManager.get_all_materials">
+<span class="sig-name descname"><span class="pre">get_all_materials</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/femora/components/Material/materialBase.html#MaterialManager.get_all_materials"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#femora.components.Material.materialBase.MaterialManager.get_all_materials" title="Link to this definition"></a></dt>
+<dd><p>Get all registered materials</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dictionary of all materials keyed by their tags</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dict[int, Material]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="femora.components.Material.materialBase.MaterialManager.get_available_material_types">
+<span class="sig-name descname"><span class="pre">get_available_material_types</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">category</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/femora/components/Material/materialBase.html#MaterialManager.get_available_material_types"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#femora.components.Material.materialBase.MaterialManager.get_available_material_types" title="Link to this definition"></a></dt>
+<dd><p>Get available material types, optionally filtered by category</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>category</strong> (<em>str</em><em>, </em><em>optional</em>) – Specific category to get types for</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dictionary of categories and their material types</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dict[str, List[str]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="femora.components.Material.materialBase.MaterialManager.get_instance">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_instance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/femora/components/Material/materialBase.html#MaterialManager.get_instance"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#femora.components.Material.materialBase.MaterialManager.get_instance" title="Link to this definition"></a></dt>
+<dd><p>Get the singleton instance of MaterialManager</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>**kwargs</strong> – Keyword arguments to pass to the constructor</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The singleton instance</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#femora.components.Material.materialBase.MaterialManager" title="femora.components.Material.materialBase.MaterialManager">MaterialManager</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="femora.components.Material.materialBase.MaterialManager.get_material">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_material</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">identifier</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/femora/components/Material/materialBase.html#MaterialManager.get_material"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#femora.components.Material.materialBase.MaterialManager.get_material" title="Link to this definition"></a></dt>
+<dd><p>Get material by either tag or name</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>identifier</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></span>) – Either material tag (int) or user_name (str)</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The requested material</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Material</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>KeyError</strong> – If material not found</p></li>
+<li><p><strong>TypeError</strong> – If identifier type is invalid</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="femora.components.Material.materialBase.MaterialManager.set_material_tag_start">
+<span class="sig-name descname"><span class="pre">set_material_tag_start</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start_number</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/femora/components/Material/materialBase.html#MaterialManager.set_material_tag_start"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#femora.components.Material.materialBase.MaterialManager.set_material_tag_start" title="Link to this definition"></a></dt>
+<dd><p>Set the starting number for material tags</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>start_number</strong> (<em>int</em>) – Starting tag number (must be &gt; 0)</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If start_number &lt; 1</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="femora.components.Material.materialBase.MaterialManager.update_material_params">
+<span class="sig-name descname"><span class="pre">update_material_params</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">identifier</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">new_params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/femora/components/Material/materialBase.html#MaterialManager.update_material_params"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#femora.components.Material.materialBase.MaterialManager.update_material_params" title="Link to this definition"></a></dt>
+<dd><p>Update parameters of an existing material</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>identifier</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></span>) – Either material tag (int) or user_name (str)</p></li>
+<li><p><strong>new_params</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>]</span>) – Dictionary of parameter names and new values</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>KeyError</strong> – If material not found</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="material-creation">
+<h2>Material Creation<a class="headerlink" href="#material-creation" title="Link to this heading"></a></h2>
+<p>Creating materials is one of the primary functions of the MaterialManager. There are two recommended approaches for material creation.
+When creating a material, you need to specify several key parameters:</p>
+<ol class="arabic simple">
+<li><p><strong>material_category</strong>: Defines the broad category of the material. Common categories include:
+- <code class="docutils literal notranslate"><span class="pre">nDMaterial</span></code>: For multi-dimensional materials (1D, 2D, or 3D)
+- <code class="docutils literal notranslate"><span class="pre">uniaxialMaterial</span></code>: For materials defined along a single axis</p></li>
+<li><p><strong>material_type</strong>: Specifies the specific material model within the category. For example:
+- For <code class="docutils literal notranslate"><span class="pre">nDMaterial</span></code>: ElasticIsotropic, J2Plasticity, etc.
+- For <code class="docutils literal notranslate"><span class="pre">uniaxialMaterial</span></code>: Elastic, Steel01, Concrete01, etc.</p></li>
+<li><p><strong>user_name</strong>: A unique identifier you assign to the material for later retrieval or working with it. This name must be unique across all materials in the model.</p></li>
+<li><p><strong>Material-specific parameters</strong>: Each material type requires specific parameters (like E, nu, rho for ElasticIsotropic materials)</p></li>
+</ol>
+<p>The MaterialManager handles all the details of creating the appropriate material object based on these parameters, ensuring type safety and parameter validation.</p>
+</section>
+<section id="available-material-types">
+<h2>Available Material Types<a class="headerlink" href="#available-material-types" title="Link to this heading"></a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="materials/nd/index.html">nDMaterial Types</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="materials/nd/ElasticIsotropicMaterial.html">ElasticIsotropicMaterial</a></li>
+<li class="toctree-l2"><a class="reference internal" href="materials/nd/DruckerPragerMaterial.html">DruckerPragerMaterial</a></li>
+<li class="toctree-l2"><a class="reference internal" href="materials/nd/J2CyclicBoundingSurfaceMaterial.html">J2CyclicBoundingSurfaceMaterial</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="materials/uniaxial/index.html">uniaxialMaterial Types</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="materials/uniaxial/ElasticUniaxialMaterial.html">ElasticUniaxialMaterial</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<p>The material types available in Femora are organized by category. Follow the links above to explore the various material models available in each category.</p>
+<ul class="simple">
+<li><p><strong>nDMaterial</strong>: Multi-dimensional materials for 2D and 3D analysis</p></li>
+<li><p><strong>uniaxialMaterial</strong>: One-dimensional materials for truss, beam, and spring elements</p></li>
+</ul>
+<p>Each material type has its own documentation page with detailed parameter descriptions and usage examples.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="index.html" class="btn btn-neutral float-left" title="Technical Documentation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="materials/nd/index.html" class="btn btn-neutral float-right" title="nDMaterial Types" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Amin Pakzad.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

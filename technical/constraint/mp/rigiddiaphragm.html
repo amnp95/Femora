@@ -1,0 +1,218 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RigidDiaphragm Constraint &mdash; Femora (Fast Efficient Meshing for OpenSees-based Resilience Analysis) 0.5.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/custom.css?v=bbbd0671" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=1dd76d02"></script>
+      <script src="../../../_static/doctools.js?v=9a2dae69"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../../../_static/js/copy-button.js?v=47d38097"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="next" title="Laminar Boundary Constraint" href="laminarboundary.html" />
+    <link rel="prev" title="RigidLink Constraint" href="rigidlink.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html">
+            
+              <img src="../../../_static/Femoralogo.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Introduction:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../introduction/getting_started.html">Getting Started with Femora</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../introduction/installation.html">Installation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../introduction/quick_start.html">Quick Start Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../introduction/examples.html">Examples and Tutorials</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Technical Guide:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../../index.html">Technical Documentation</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../../materials.html">Material</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../elements.html">Element</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../damping.html">Damping</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../region.html">Region</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../meshparts.html">MeshPart</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../assembler.html">Assembler</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="../../constraint.html">Constraints</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="../sp/index.html">SP Constraints</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="index.html">MP Constraints</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="index.html#understanding-the-mp-constraint-manager">Understanding the MP Constraint Manager</a></li>
+<li class="toctree-l4"><a class="reference internal" href="index.html#accessing-the-mp-constraint-manager">Accessing the MP Constraint Manager</a></li>
+<li class="toctree-l4"><a class="reference internal" href="index.html#managing-mp-constraints">Managing MP Constraints</a></li>
+<li class="toctree-l4"><a class="reference internal" href="index.html#best-practices-for-mp-constraints">Best Practices for MP Constraints</a></li>
+<li class="toctree-l4"><a class="reference internal" href="index.html#mp-constraint-manager-api-reference">MP Constraint Manager API Reference</a></li>
+<li class="toctree-l4 current"><a class="reference internal" href="index.html#available-mp-constraint-types">Available MP Constraint Types</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../timeseries.html">TimeSeries</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../pattern.html">Pattern</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../analysis.html">Analysis</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../process.html">Process</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../drm.html">DRM</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer Documentation:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../developer/index.html">Developer Documentation</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">Femora (Fast Efficient Meshing for OpenSees-based Resilience Analysis)</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Technical Documentation</a></li>
+          <li class="breadcrumb-item"><a href="../../constraint.html">Constraints</a></li>
+          <li class="breadcrumb-item"><a href="index.html">MP Constraints</a></li>
+      <li class="breadcrumb-item active">RigidDiaphragm Constraint</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../../_sources/technical/constraint/mp/rigiddiaphragm.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="rigiddiaphragm-constraint">
+<h1>RigidDiaphragm Constraint<a class="headerlink" href="#rigiddiaphragm-constraint" title="Link to this heading"></a></h1>
+<p>The <code class="docutils literal notranslate"><span class="pre">rigidDiaphragm</span></code> constraint creates a rigid planar constraint that forces a group of slave nodes to maintain their relative positions in a plane perpendicular to the specified direction.</p>
+<section id="description">
+<h2>Description<a class="headerlink" href="#description" title="Link to this heading"></a></h2>
+<p>The rigidDiaphragm constraint is commonly used to model floor diaphragms in structural models. It constrains all slave nodes to move as a rigid body in the plane perpendicular to the specified direction, while allowing them to move independently along the specified direction.</p>
+<p>This constraint is particularly useful for structural models where floor slabs can be approximated as infinitely rigid in their own plane but flexible out-of-plane.</p>
+</section>
+<section id="parameters">
+<h2>Parameters<a class="headerlink" href="#parameters" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><strong>direction</strong> (int): Direction perpendicular to the rigid plane (1 for YZ plane, 2 for XZ plane, 3 for XY plane)</p></li>
+<li><p><strong>master_node</strong> (int): Tag of the master/retained node</p></li>
+<li><p><strong>slave_nodes</strong> (List[int]): List of tags for slave/constrained nodes</p></li>
+</ul>
+</section>
+<section id="usage">
+<h2>Usage<a class="headerlink" href="#usage" title="Link to this heading"></a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">femora</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">fm</span>
+
+<span class="c1"># Create Femora instance</span>
+
+
+<span class="c1"># First assemble the mesh</span>
+<span class="n">fm</span><span class="o">.</span><span class="n">assembler</span><span class="o">.</span><span class="n">Assemble</span><span class="p">(</span><span class="n">merge_points</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="c1"># Create a rigid diaphragm in the XY plane (perpendicular to Z-axis)</span>
+<span class="c1"># This is commonly used for floor diaphragms in building models</span>
+<span class="n">fm</span><span class="o">.</span><span class="n">constraint</span><span class="o">.</span><span class="n">mp</span><span class="o">.</span><span class="n">create_rigid_diaphragm</span><span class="p">(</span>
+    <span class="n">direction</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>  <span class="c1"># 3 for Z-direction (perpendicular to XY plane)</span>
+    <span class="n">master_node</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
+    <span class="n">slave_nodes</span><span class="o">=</span><span class="p">[</span><span class="mi">101</span><span class="p">,</span> <span class="mi">102</span><span class="p">,</span> <span class="mi">103</span><span class="p">,</span> <span class="mi">104</span><span class="p">,</span> <span class="mi">105</span><span class="p">,</span> <span class="mi">106</span><span class="p">]</span>
+<span class="p">)</span>
+
+<span class="c1"># Create a rigid diaphragm in the XZ plane (perpendicular to Y-axis)</span>
+<span class="n">fm</span><span class="o">.</span><span class="n">constraint</span><span class="o">.</span><span class="n">mp</span><span class="o">.</span><span class="n">create_rigid_diaphragm</span><span class="p">(</span>
+    <span class="n">direction</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>  <span class="c1"># 2 for Y-direction (perpendicular to XZ plane)</span>
+    <span class="n">master_node</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span>
+    <span class="n">slave_nodes</span><span class="o">=</span><span class="p">[</span><span class="mi">201</span><span class="p">,</span> <span class="mi">202</span><span class="p">,</span> <span class="mi">203</span><span class="p">,</span> <span class="mi">204</span><span class="p">]</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="meaning-of-direction-parameter">
+<h2>Meaning of Direction Parameter<a class="headerlink" href="#meaning-of-direction-parameter" title="Link to this heading"></a></h2>
+<p>The direction parameter specifies which coordinate direction is perpendicular to the rigid plane:</p>
+<ol class="arabic simple">
+<li><p><strong>direction=1</strong>: Creates a rigid constraint in the YZ plane (perpendicular to X-axis)
+* Constrains Y and Z translations, and rotations about X
+* Allows movement in X direction</p></li>
+<li><p><strong>direction=2</strong>: Creates a rigid constraint in the XZ plane (perpendicular to Y-axis)
+* Constrains X and Z translations, and rotations about Y
+* Allows movement in Y direction</p></li>
+<li><p><strong>direction=3</strong>: Creates a rigid constraint in the XY plane (perpendicular to Z-axis)
+* Constrains X and Y translations, and rotations about Z
+* Allows movement in Z direction</p></li>
+</ol>
+</section>
+<section id="common-applications">
+<h2>Common Applications<a class="headerlink" href="#common-applications" title="Link to this heading"></a></h2>
+<p>RigidDiaphragm constraints are commonly used in the following scenarios:</p>
+<ol class="arabic simple">
+<li><p><strong>Modeling floor diaphragms</strong>: In building models to represent in-plane rigidity of floor slabs</p></li>
+<li><p><strong>Modeling deck structures</strong>: In bridge models</p></li>
+<li><p><strong>Creating constraint planes</strong>: For symmetry or other boundary conditions</p></li>
+<li><p><strong>Idealized rigid surfaces</strong>: When surface flexibility can be neglected</p></li>
+</ol>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="rigidlink.html" class="btn btn-neutral float-left" title="RigidLink Constraint" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="laminarboundary.html" class="btn btn-neutral float-right" title="Laminar Boundary Constraint" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Amin Pakzad.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

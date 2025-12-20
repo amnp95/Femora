@@ -1,0 +1,237 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MP Constraints &mdash; Femora (Fast Efficient Meshing for OpenSees-based Resilience Analysis) 0.5.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/custom.css?v=bbbd0671" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=1dd76d02"></script>
+      <script src="../../../_static/doctools.js?v=9a2dae69"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../../../_static/js/copy-button.js?v=47d38097"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="next" title="EqualDOF Constraint" href="equaldof.html" />
+    <link rel="prev" title="FixZ Constraint" href="../sp/fixz.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html">
+            
+              <img src="../../../_static/Femoralogo.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Introduction:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../introduction/getting_started.html">Getting Started with Femora</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../introduction/installation.html">Installation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../introduction/quick_start.html">Quick Start Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../introduction/examples.html">Examples and Tutorials</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Technical Guide:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../../index.html">Technical Documentation</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../../materials.html">Material</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../elements.html">Element</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../damping.html">Damping</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../region.html">Region</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../meshparts.html">MeshPart</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../assembler.html">Assembler</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="../../constraint.html">Constraints</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="../sp/index.html">SP Constraints</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">MP Constraints</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#understanding-the-mp-constraint-manager">Understanding the MP Constraint Manager</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#accessing-the-mp-constraint-manager">Accessing the MP Constraint Manager</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#managing-mp-constraints">Managing MP Constraints</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#best-practices-for-mp-constraints">Best Practices for MP Constraints</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#mp-constraint-manager-api-reference">MP Constraint Manager API Reference</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#available-mp-constraint-types">Available MP Constraint Types</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../timeseries.html">TimeSeries</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../pattern.html">Pattern</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../analysis.html">Analysis</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../process.html">Process</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../drm.html">DRM</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer Documentation:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../developer/index.html">Developer Documentation</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">Femora (Fast Efficient Meshing for OpenSees-based Resilience Analysis)</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Technical Documentation</a></li>
+          <li class="breadcrumb-item"><a href="../../constraint.html">Constraints</a></li>
+      <li class="breadcrumb-item active">MP Constraints</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../../_sources/technical/constraint/mp/index.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="mp-constraints">
+<h1>MP Constraints<a class="headerlink" href="#mp-constraints" title="Link to this heading"></a></h1>
+<p>Multi-point constraints create relationships between multiple nodes in your mesh, allowing you to create master-slave relationships, rigid links, rigid diaphragms, and laminar boundary conditions.</p>
+<section id="understanding-the-mp-constraint-manager">
+<h2>Understanding the MP Constraint Manager<a class="headerlink" href="#understanding-the-mp-constraint-manager" title="Link to this heading"></a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">MPConstraintManager</span></code> is a core component of Femora that provides a centralized system for creating, managing, and applying multi-point constraints to your model. It implements the Singleton pattern to ensure a single, consistent point of constraint management across the entire application.</p>
+<p>MP constraints define relationships between multiple nodes in your mesh, allowing you to:</p>
+<ol class="arabic simple">
+<li><p>Create master-slave relationships between nodes</p></li>
+<li><p>Create rigid links between nodes</p></li>
+<li><p>Create rigid diaphragms across sets of nodes</p></li>
+<li><p>Create laminar boundary conditions on mesh surfaces</p></li>
+</ol>
+<p>MP constraints are typically applied after assembling the mesh, as they operate on nodes in the assembled mesh.</p>
+</section>
+<section id="accessing-the-mp-constraint-manager">
+<h2>Accessing the MP Constraint Manager<a class="headerlink" href="#accessing-the-mp-constraint-manager" title="Link to this heading"></a></h2>
+<p>There are two ways to access the MP Constraint Manager:</p>
+<ol class="arabic">
+<li><p><strong>Direct Access</strong>: Import and use the MPConstraintManager class directly</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">femora.components.Constraint.mpConstraint</span><span class="w"> </span><span class="kn">import</span> <span class="n">mpConstraintManager</span>
+
+<span class="c1"># Get the singleton instance</span>
+<span class="n">mp_manager</span> <span class="o">=</span> <span class="n">mpConstraintManager</span><span class="p">()</span>
+
+<span class="c1"># Use MP manager directly</span>
+<span class="n">mp_manager</span><span class="o">.</span><span class="n">create_equal_dof</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+</pre></div>
+</div>
+</li>
+<li><p><strong>Through Femora</strong> (Recommended): Access via the Femora class and the Constraint module</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">femora</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">fm</span>
+
+<span class="c1"># Create a Femora instance</span>
+
+
+<span class="c1"># Access the MPConstraintManager through the constraint property</span>
+<span class="n">mp_manager</span> <span class="o">=</span> <span class="n">fm</span><span class="o">.</span><span class="n">constraint</span><span class="o">.</span><span class="n">mp</span>
+
+<span class="c1"># Add constraints using the manager</span>
+<span class="n">mp_manager</span><span class="o">.</span><span class="n">create_equal_dof</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+</pre></div>
+</div>
+</li>
+</ol>
+<p>The second approach is recommended as it provides a unified interface to all of Femora’s components and ensures proper initialization of all dependencies.</p>
+</section>
+<section id="managing-mp-constraints">
+<h2>Managing MP Constraints<a class="headerlink" href="#managing-mp-constraints" title="Link to this heading"></a></h2>
+<p>The MP Constraint Manager provides methods to manage constraints:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Get a specific constraint by tag</span>
+<span class="n">constraint</span> <span class="o">=</span> <span class="n">mp_manager</span><span class="o">.</span><span class="n">get_constraint</span><span class="p">(</span><span class="n">tag</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+<span class="c1"># Remove a constraint by tag</span>
+<span class="n">mp_manager</span><span class="o">.</span><span class="n">remove_constraint</span><span class="p">(</span><span class="n">tag</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+<span class="c1"># Iterate through all constraints</span>
+<span class="k">for</span> <span class="n">constraint</span> <span class="ow">in</span> <span class="n">mp_manager</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">constraint</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="best-practices-for-mp-constraints">
+<h2>Best Practices for MP Constraints<a class="headerlink" href="#best-practices-for-mp-constraints" title="Link to this heading"></a></h2>
+<ol class="arabic simple">
+<li><p><strong>Create MP constraints after mesh assembly</strong> to ensure all nodes are properly defined</p></li>
+<li><p><strong>Choose master nodes carefully</strong> as they control the motion of all slave nodes</p></li>
+<li><p><strong>Avoid cyclic constraints</strong> where nodes are both masters and slaves in different constraints</p></li>
+<li><p><strong>Be careful with over-constrained systems</strong> as they may lead to numerical issues</p></li>
+<li><p><strong>Consider using laminar_boundary for soil-structure interfaces</strong> to create appropriate boundary conditions</p></li>
+</ol>
+</section>
+<section id="mp-constraint-manager-api-reference">
+<h2>MP Constraint Manager API Reference<a class="headerlink" href="#mp-constraint-manager-api-reference" title="Link to this heading"></a></h2>
+<p>Below is the complete API reference for the MPConstraintManager class:</p>
+</section>
+<section id="available-mp-constraint-types">
+<h2>Available MP Constraint Types<a class="headerlink" href="#available-mp-constraint-types" title="Link to this heading"></a></h2>
+<p>Femora provides several types of MP constraints:</p>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="equaldof.html">EqualDOF Constraint</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rigidlink.html">RigidLink Constraint</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rigiddiaphragm.html">RigidDiaphragm Constraint</a></li>
+<li class="toctree-l1"><a class="reference internal" href="laminarboundary.html">Laminar Boundary Constraint</a></li>
+</ul>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../sp/fixz.html" class="btn btn-neutral float-left" title="FixZ Constraint" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="equaldof.html" class="btn btn-neutral float-right" title="EqualDOF Constraint" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Amin Pakzad.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

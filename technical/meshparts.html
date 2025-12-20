@@ -1,0 +1,292 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MeshPart &mdash; Femora (Fast Efficient Meshing for OpenSees-based Resilience Analysis) 0.5.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/custom.css?v=bbbd0671" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=1dd76d02"></script>
+      <script src="../_static/doctools.js?v=9a2dae69"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../_static/js/copy-button.js?v=47d38097"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Volume Mesh Types" href="meshparts/volume/index.html" />
+    <link rel="prev" title="NodeRegion" href="region/noderegion.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html">
+            
+              <img src="../_static/Femoralogo.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Introduction:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../introduction/getting_started.html">Getting Started with Femora</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../introduction/installation.html">Installation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../introduction/quick_start.html">Quick Start Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../introduction/examples.html">Examples and Tutorials</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Technical Guide:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Technical Documentation</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="materials.html">Material</a></li>
+<li class="toctree-l2"><a class="reference internal" href="elements.html">Element</a></li>
+<li class="toctree-l2"><a class="reference internal" href="damping.html">Damping</a></li>
+<li class="toctree-l2"><a class="reference internal" href="region.html">Region</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">MeshPart</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#understanding-the-meshpartmanager">Understanding the MeshPartManager</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#accessing-the-meshpartmanager">Accessing the MeshPartManager</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#how-meshpartmanager-works">How MeshPartManager Works</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#meshpart-class-system">MeshPart Class System</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#meshpartmanager-api-reference">MeshPartManager API Reference</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#mesh-part-creation">Mesh Part Creation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#available-mesh-part-types">Available Mesh Part Types</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="meshparts/volume/index.html">Volume Mesh Types</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="assembler.html">Assembler</a></li>
+<li class="toctree-l2"><a class="reference internal" href="constraint.html">Constraints</a></li>
+<li class="toctree-l2"><a class="reference internal" href="timeseries.html">TimeSeries</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pattern.html">Pattern</a></li>
+<li class="toctree-l2"><a class="reference internal" href="analysis.html">Analysis</a></li>
+<li class="toctree-l2"><a class="reference internal" href="process.html">Process</a></li>
+<li class="toctree-l2"><a class="reference internal" href="drm.html">DRM</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer Documentation:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../developer/index.html">Developer Documentation</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Femora (Fast Efficient Meshing for OpenSees-based Resilience Analysis)</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">Technical Documentation</a></li>
+      <li class="breadcrumb-item active">MeshPart</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/technical/meshparts.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="meshpart">
+<h1>MeshPart<a class="headerlink" href="#meshpart" title="Link to this heading"></a></h1>
+<section id="understanding-the-meshpartmanager">
+<h2>Understanding the MeshPartManager<a class="headerlink" href="#understanding-the-meshpartmanager" title="Link to this heading"></a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">MeshPartManager</span></code> is a core component of the Femora library that serves as a centralized system for creating, retrieving, tracking, and managing mesh part objects throughout the mesh generation process. Similar to the MaterialManager and ElementRegistry, it implements the Singleton pattern to ensure a single, consistent point of mesh part management across the entire application.</p>
+<p>Mesh parts defined in Femora are automatically tracked, categorized, and organized by the MeshPartManager, simplifying the process of creating complex models with multiple mesh geometries.</p>
+</section>
+<section id="accessing-the-meshpartmanager">
+<h2>Accessing the MeshPartManager<a class="headerlink" href="#accessing-the-meshpartmanager" title="Link to this heading"></a></h2>
+<p>There are two ways to access the MeshPartManager in your code:</p>
+<ol class="arabic">
+<li><p><strong>Direct Access</strong>: Import and use the MeshPartManager class directly</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">femora.components.Mesh.meshPartBase</span><span class="w"> </span><span class="kn">import</span> <span class="n">MeshPartManager</span>
+
+<span class="c1"># Create a manager instance</span>
+<span class="n">manager</span> <span class="o">=</span> <span class="n">MeshPartManager</span><span class="p">()</span>
+
+<span class="c1"># Access the manager directly</span>
+<span class="n">mesh_part_types</span> <span class="o">=</span> <span class="n">manager</span><span class="o">.</span><span class="n">_registry</span><span class="o">.</span><span class="n">get_mesh_part_categories</span><span class="p">()</span>
+
+<span class="c1"># Create a mesh part using the manager</span>
+<span class="n">my_mesh_part</span> <span class="o">=</span> <span class="n">manager</span><span class="o">.</span><span class="n">create_mesh_part</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+</pre></div>
+</div>
+</li>
+<li><p><strong>Through Femora</strong> (Recommended): Access via the Femora class’s .meshPart property</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">femora</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">fm</span>
+
+<span class="c1"># Create a Femora instance</span>
+
+
+<span class="c1"># Access the MeshPartManager through the .meshPart property</span>
+<span class="n">mesh_part_types</span> <span class="o">=</span> <span class="n">fm</span><span class="o">.</span><span class="n">meshPart</span><span class="o">.</span><span class="n">get_mesh_part_categories</span><span class="p">()</span>
+<span class="n">my_mesh_part</span> <span class="o">=</span> <span class="n">fm</span><span class="o">.</span><span class="n">meshPart</span><span class="o">.</span><span class="n">create_mesh_part</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+</pre></div>
+</div>
+</li>
+</ol>
+<p>The second approach is recommended as it provides a unified interface to all of Femora’s components and ensures proper initialization of all dependencies.</p>
+</section>
+<section id="how-meshpartmanager-works">
+<h2>How MeshPartManager Works<a class="headerlink" href="#how-meshpartmanager-works" title="Link to this heading"></a></h2>
+<p>The MeshPartManager provides several key capabilities:</p>
+<ol class="arabic simple">
+<li><p><strong>Mesh Part Creation</strong>: Creates mesh part objects of various types with appropriate parameters</p></li>
+<li><p><strong>Mesh Part Tracking</strong>: Keeps track of all mesh parts by their unique user-assigned names</p></li>
+<li><p><strong>Mesh Part Management</strong>: Provides methods to retrieve, update, and delete mesh parts</p></li>
+<li><p><strong>Mesh Part Categorization</strong>: Organizes mesh parts by categories (Volume mesh, Surface mesh, etc.)</p></li>
+<li><p><strong>Mesh Part Filtering</strong>: Filters mesh parts by category, region, or element type</p></li>
+<li><p><strong>Mesh Part Operations</strong>: Provides advanced operations like renaming, cloning, and merging mesh parts</p></li>
+<li><p><strong>Mesh Part Validation</strong>: Validates mesh parts for errors or issues</p></li>
+<li><p><strong>Batch Operations</strong>: Supports updating parameters and exporting multiple mesh parts at once</p></li>
+</ol>
+<p>When a mesh part is created, the MeshPartManager:</p>
+<ol class="arabic simple">
+<li><p>Validates that all required parameters are present and valid</p></li>
+<li><p>Associates the mesh part with an appropriate element and region</p></li>
+<li><p>Automatically generates the mesh geometry based on the specified parameters</p></li>
+<li><p>Registers it with a user-provided name (which must be unique)</p></li>
+<li><p>Provides detailed operation status feedback</p></li>
+</ol>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Each mesh part must have a unique name. The MeshPartManager uses this name as a key
+to retrieve mesh parts later. If you try to create a mesh part with a name that already
+exists, the MeshPartManager will raise an error.</p>
+</div>
+</section>
+<section id="meshpart-class-system">
+<h2>MeshPart Class System<a class="headerlink" href="#meshpart-class-system" title="Link to this heading"></a></h2>
+<p>The MeshPart base class implements an object-oriented design that:</p>
+<ul class="simple">
+<li><p>Provides a standardized interface for all mesh part types</p></li>
+<li><p>Enforces validation of parameters for each mesh part type</p></li>
+<li><p>Manages the lifecycle of mesh parts from creation to deletion</p></li>
+<li><p>Maps between mesh part objects and their assigned names</p></li>
+<li><p>Associates elements and regions with mesh parts</p></li>
+</ul>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Example of creating a simple volumetric mesh part</span>
+
+
+<span class="c1"># Create element and region first</span>
+<span class="n">element</span> <span class="o">=</span> <span class="n">fm</span><span class="o">.</span><span class="n">element</span><span class="o">.</span><span class="n">create_element</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+<span class="n">region</span> <span class="o">=</span> <span class="n">fm</span><span class="o">.</span><span class="n">region</span><span class="o">.</span><span class="n">create_region</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+
+<span class="c1"># Create the mesh part</span>
+<span class="n">fm</span><span class="o">.</span><span class="n">meshPart</span><span class="o">.</span><span class="n">create_mesh_part</span><span class="p">(</span>
+    <span class="s2">&quot;Volume mesh&quot;</span><span class="p">,</span>                  <span class="c1"># Category</span>
+    <span class="s2">&quot;Uniform Rectangular Grid&quot;</span><span class="p">,</span>     <span class="c1"># Mesh part type</span>
+    <span class="s2">&quot;MyMeshPart&quot;</span><span class="p">,</span>                   <span class="c1"># Unique user name</span>
+    <span class="n">element</span><span class="o">=</span><span class="n">element</span><span class="p">,</span>                <span class="c1"># Element to assign</span>
+    <span class="n">region</span><span class="o">=</span><span class="n">region</span><span class="p">,</span>                  <span class="c1"># Region to assign</span>
+    <span class="o">**</span><span class="p">{</span>                             <span class="c1"># Type-specific parameters</span>
+       <span class="s1">&#39;X Min&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mi">10</span><span class="p">,</span> <span class="s1">&#39;X Max&#39;</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span>
+       <span class="s1">&#39;Y Min&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mi">10</span><span class="p">,</span> <span class="s1">&#39;Y Max&#39;</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span>
+       <span class="s1">&#39;Z Min&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mi">5</span><span class="p">,</span> <span class="s1">&#39;Z Max&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+       <span class="s1">&#39;Nx Cells&#39;</span><span class="p">:</span> <span class="mi">20</span><span class="p">,</span> <span class="s1">&#39;Ny Cells&#39;</span><span class="p">:</span> <span class="mi">20</span><span class="p">,</span> <span class="s1">&#39;Nz Cells&#39;</span><span class="p">:</span> <span class="mi">5</span>
+    <span class="p">}</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="meshpartmanager-api-reference">
+<h2>MeshPartManager API Reference<a class="headerlink" href="#meshpartmanager-api-reference" title="Link to this heading"></a></h2>
+</section>
+<section id="mesh-part-creation">
+<h2>Mesh Part Creation<a class="headerlink" href="#mesh-part-creation" title="Link to this heading"></a></h2>
+<p>Creating mesh parts is one of the primary functions of the MeshPartManager. When creating a mesh part, you need to specify several key parameters:</p>
+<ol class="arabic simple">
+<li><p><strong>category</strong>: Defines the broad category of the mesh part. Common categories include:
+- <code class="docutils literal notranslate"><span class="pre">Volume</span> <span class="pre">mesh</span></code>: For three-dimensional volume meshes
+- <code class="docutils literal notranslate"><span class="pre">Surface</span> <span class="pre">mesh</span></code>: For two-dimensional surface meshes
+- <code class="docutils literal notranslate"><span class="pre">Line</span> <span class="pre">mesh</span></code>: For one-dimensional line meshes
+- <code class="docutils literal notranslate"><span class="pre">Point</span> <span class="pre">mesh</span></code>: For zero-dimensional point meshes</p></li>
+<li><p><strong>mesh_part_type</strong>: Specifies the specific mesh geometry within the category. For example:
+- For <code class="docutils literal notranslate"><span class="pre">Volume</span> <span class="pre">mesh</span></code>: Uniform Rectangular Grid, Custom Rectangular Grid, etc.</p></li>
+<li><p><strong>user_name</strong>: A unique identifier you assign to the mesh part for later retrieval or working with it. This name must be unique across all mesh parts in the model.</p></li>
+<li><p><strong>element</strong>: The element type to associate with this mesh part.</p></li>
+<li><p><strong>region</strong>: The region to associate with this mesh part for properties like damping.</p></li>
+<li><p><strong>Type-specific parameters</strong>: Each mesh part type requires specific parameters (like X Min, X Max, Nx Cells for Uniform Rectangular Grid meshes)</p></li>
+</ol>
+<p>The MeshPartManager handles all the details of creating the appropriate mesh part object based on these parameters, ensuring type safety and parameter validation.</p>
+</section>
+<section id="available-mesh-part-types">
+<h2>Available Mesh Part Types<a class="headerlink" href="#available-mesh-part-types" title="Link to this heading"></a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="meshparts/volume/index.html">Volume Mesh Types</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="meshparts/volume/UniformRectangularGrid.html">Uniform Rectangular Grid</a></li>
+<li class="toctree-l2"><a class="reference internal" href="meshparts/volume/CustomRectangularGrid.html">Custom Rectangular Grid</a></li>
+<li class="toctree-l2"><a class="reference internal" href="meshparts/volume/GeometricRectangularGrid.html">Geometric Rectangular Grid</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<p>The mesh part types available in Femora are organized by their geometric dimensionality. Follow the links above to explore the various mesh part types available in each category.</p>
+<ul class="simple">
+<li><p><strong>Volume mesh</strong>: Three-dimensional mesh parts for modeling solid domains</p></li>
+<li><p><strong>Surface mesh</strong>: Two-dimensional mesh parts for modeling surface structures</p></li>
+<li><p><strong>Line mesh</strong>: One-dimensional mesh parts for modeling linear structures</p></li>
+<li><p><strong>Point mesh</strong>: Zero-dimensional mesh parts for modeling point structures</p></li>
+</ul>
+<p>Each mesh part type has its own documentation page with detailed parameter descriptions and usage examples.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="region/noderegion.html" class="btn btn-neutral float-left" title="NodeRegion" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="meshparts/volume/index.html" class="btn btn-neutral float-right" title="Volume Mesh Types" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Amin Pakzad.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

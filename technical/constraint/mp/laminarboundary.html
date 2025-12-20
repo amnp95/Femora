@@ -1,0 +1,244 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Laminar Boundary Constraint &mdash; Femora (Fast Efficient Meshing for OpenSees-based Resilience Analysis) 0.5.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/custom.css?v=bbbd0671" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=1dd76d02"></script>
+      <script src="../../../_static/doctools.js?v=9a2dae69"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../../../_static/js/copy-button.js?v=47d38097"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="next" title="TimeSeries" href="../../timeseries.html" />
+    <link rel="prev" title="RigidDiaphragm Constraint" href="rigiddiaphragm.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html">
+            
+              <img src="../../../_static/Femoralogo.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Introduction:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../introduction/getting_started.html">Getting Started with Femora</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../introduction/installation.html">Installation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../introduction/quick_start.html">Quick Start Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../introduction/examples.html">Examples and Tutorials</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Technical Guide:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../../index.html">Technical Documentation</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../../materials.html">Material</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../elements.html">Element</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../damping.html">Damping</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../region.html">Region</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../meshparts.html">MeshPart</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../assembler.html">Assembler</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="../../constraint.html">Constraints</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="../sp/index.html">SP Constraints</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="index.html">MP Constraints</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="index.html#understanding-the-mp-constraint-manager">Understanding the MP Constraint Manager</a></li>
+<li class="toctree-l4"><a class="reference internal" href="index.html#accessing-the-mp-constraint-manager">Accessing the MP Constraint Manager</a></li>
+<li class="toctree-l4"><a class="reference internal" href="index.html#managing-mp-constraints">Managing MP Constraints</a></li>
+<li class="toctree-l4"><a class="reference internal" href="index.html#best-practices-for-mp-constraints">Best Practices for MP Constraints</a></li>
+<li class="toctree-l4"><a class="reference internal" href="index.html#mp-constraint-manager-api-reference">MP Constraint Manager API Reference</a></li>
+<li class="toctree-l4 current"><a class="reference internal" href="index.html#available-mp-constraint-types">Available MP Constraint Types</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../timeseries.html">TimeSeries</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../pattern.html">Pattern</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../analysis.html">Analysis</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../process.html">Process</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../drm.html">DRM</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer Documentation:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../developer/index.html">Developer Documentation</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">Femora (Fast Efficient Meshing for OpenSees-based Resilience Analysis)</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Technical Documentation</a></li>
+          <li class="breadcrumb-item"><a href="../../constraint.html">Constraints</a></li>
+          <li class="breadcrumb-item"><a href="index.html">MP Constraints</a></li>
+      <li class="breadcrumb-item active">Laminar Boundary Constraint</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../../_sources/technical/constraint/mp/laminarboundary.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="laminar-boundary-constraint">
+<h1>Laminar Boundary Constraint<a class="headerlink" href="#laminar-boundary-constraint" title="Link to this heading"></a></h1>
+<p>The <code class="docutils literal notranslate"><span class="pre">laminar_boundary</span></code> function creates a set of specialized equalDOF constraints that are particularly useful for modeling soil-structure interaction and boundary conditions in geotechnical models.</p>
+<section id="description">
+<h2>Description<a class="headerlink" href="#description" title="Link to this heading"></a></h2>
+<p>The laminar boundary constraint automates the process of creating equal DOF constraints between nodes that have the same coordinate in a specified direction. This creates “layers” of nodes that are constrained to move together in specified degrees of freedom, while being free to move independently in other directions.</p>
+<p>This constraint is particularly useful for:
+- Creating periodic boundary conditions at the edges of a soil model
+- Enforcing laminar deformation in soil-structure interaction problems
+- Creating soil box boundary conditions for dynamic analysis</p>
+</section>
+<section id="parameters">
+<h2>Parameters<a class="headerlink" href="#parameters" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><strong>dofs</strong> (List[int]): List of degrees of freedom to be constrained within each layer</p></li>
+<li><p><strong>direction</strong> (int, optional): Direction perpendicular to the layers (1 for X, 2 for Y, 3 for Z, default=3)</p></li>
+<li><p><strong>tol</strong> (float, optional): Tolerance for finding nodes within the same layer (default=1e-2)</p></li>
+</ul>
+</section>
+<section id="usage">
+<h2>Usage<a class="headerlink" href="#usage" title="Link to this heading"></a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">femora</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">fm</span>
+
+<span class="c1"># Create Femora instance</span>
+
+
+<span class="c1"># First assemble the mesh</span>
+<span class="n">fm</span><span class="o">.</span><span class="n">assembler</span><span class="o">.</span><span class="n">Assemble</span><span class="p">(</span><span class="n">merge_points</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="c1"># Create a laminar boundary constraint where nodes at the same Z-coordinate</span>
+<span class="c1"># are constrained to have the same X and Y translations</span>
+<span class="n">fm</span><span class="o">.</span><span class="n">constraint</span><span class="o">.</span><span class="n">mp</span><span class="o">.</span><span class="n">create_laminar_boundary</span><span class="p">(</span>
+    <span class="n">dofs</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span>      <span class="c1"># Constrain x and y translations</span>
+    <span class="n">direction</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>      <span class="c1"># Layers perpendicular to Z-axis</span>
+    <span class="n">tol</span><span class="o">=</span><span class="mf">1e-2</span>          <span class="c1"># Tolerance for identifying nodes in the same layer</span>
+<span class="p">)</span>
+
+<span class="c1"># Create a laminar boundary in X-direction (layers perpendicular to X-axis)</span>
+<span class="c1"># Constraining only Y translations</span>
+<span class="n">fm</span><span class="o">.</span><span class="n">constraint</span><span class="o">.</span><span class="n">mp</span><span class="o">.</span><span class="n">create_laminar_boundary</span><span class="p">(</span>
+    <span class="n">dofs</span><span class="o">=</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span>         <span class="c1"># Constrain only y translations</span>
+    <span class="n">direction</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>      <span class="c1"># Layers perpendicular to X-axis</span>
+    <span class="n">tol</span><span class="o">=</span><span class="mf">1e-3</span>          <span class="c1"># Smaller tolerance for more precise layer identification</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="how-it-works">
+<h2>How It Works<a class="headerlink" href="#how-it-works" title="Link to this heading"></a></h2>
+<p>The laminar boundary constraint works through the following process:</p>
+<ol class="arabic simple">
+<li><p>Extracts the surface mesh from the assembled model</p></li>
+<li><p>Identifies points within the model boundaries (accounting for tolerance)</p></li>
+<li><p>Groups nodes that have the same coordinate in the specified direction within the tolerance</p></li>
+<li><p>Creates equalDOF constraints for each group, making the first node in each group the master</p></li>
+</ol>
+<p>Internally, this creates many equalDOF constraints, one for each slave node in each identified layer.</p>
+</section>
+<section id="common-applications">
+<h2>Common Applications<a class="headerlink" href="#common-applications" title="Link to this heading"></a></h2>
+<p>Laminar boundary constraints are commonly used in the following scenarios:</p>
+<ol class="arabic simple">
+<li><p><strong>Soil-structure interaction</strong>: Creating boundary conditions that allow shear deformation</p></li>
+<li><p><strong>Periodic boundary conditions</strong>: For wave propagation or soil dynamics problems</p></li>
+<li><p><strong>Soil box models</strong>: Creating artificial boundaries for dynamic analysis</p></li>
+<li><p><strong>Free-field boundary conditions</strong>: For earthquake engineering analysis</p></li>
+</ol>
+</section>
+<section id="implementation-note">
+<h2>Implementation Note<a class="headerlink" href="#implementation-note" title="Link to this heading"></a></h2>
+<p>Unlike the other MP constraint types that are implemented as distinct classes, the laminar boundary constraint is implemented as a function that creates multiple equalDOF constraints internally. The constraints are generated dynamically based on the mesh geometry.</p>
+</section>
+<section id="example-soil-box-model">
+<h2>Example: Soil Box Model<a class="headerlink" href="#example-soil-box-model" title="Link to this heading"></a></h2>
+<p>A common application is creating a soil box model for dynamic analysis:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create a soil box model</span>
+<span class="c1"># First create and assemble the mesh...</span>
+
+<span class="c1"># Apply laminar boundary conditions on all four sides</span>
+
+<span class="c1"># X-face constraints (nodes with same X coordinate move together in Y)</span>
+<span class="n">fm</span><span class="o">.</span><span class="n">constraint</span><span class="o">.</span><span class="n">mp</span><span class="o">.</span><span class="n">create_laminar_boundary</span><span class="p">(</span><span class="n">dofs</span><span class="o">=</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">direction</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+<span class="c1"># Y-face constraints (nodes with same Y coordinate move together in X)</span>
+<span class="n">fm</span><span class="o">.</span><span class="n">constraint</span><span class="o">.</span><span class="n">mp</span><span class="o">.</span><span class="n">create_laminar_boundary</span><span class="p">(</span><span class="n">dofs</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">direction</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+
+<span class="c1"># Fix the base in X, Y, and Z directions using SP constraints</span>
+<span class="n">fm</span><span class="o">.</span><span class="n">constraint</span><span class="o">.</span><span class="n">sp</span><span class="o">.</span><span class="n">fixZ</span><span class="p">(</span><span class="n">zCoordinate</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">dofs</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
+</pre></div>
+</div>
+</section>
+<section id="function-reference">
+<h2>Function Reference<a class="headerlink" href="#function-reference" title="Link to this heading"></a></h2>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="rigiddiaphragm.html" class="btn btn-neutral float-left" title="RigidDiaphragm Constraint" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../../timeseries.html" class="btn btn-neutral float-right" title="TimeSeries" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Amin Pakzad.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

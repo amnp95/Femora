@@ -1,0 +1,717 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Quick Start Guide &mdash; Femora (Fast Efficient Meshing for OpenSees-based Resilience Analysis) 0.5.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/custom.css?v=bbbd0671" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=1dd76d02"></script>
+      <script src="../_static/doctools.js?v=9a2dae69"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../_static/js/copy-button.js?v=47d38097"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Examples and Tutorials" href="examples.html" />
+    <link rel="prev" title="Installation Guide" href="installation.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html">
+            
+              <img src="../_static/Femoralogo.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Introduction:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting Started with Femora</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation Guide</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Quick Start Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#setting-up-your-environment">Setting Up Your Environment</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#step-1-initialize-femora">Step 1: Initialize Femora</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#creating-your-first-3d-soil-layer-model">Creating Your First 3D Soil Layer Model</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#step-2-define-materials">Step 2: Define Materials</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#step-3-create-elements">Step 3: Create Elements</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#step-4-create-mesh-parts">Step 4: Create Mesh Parts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#step-5-assemble-mesh-parts">Step 5: Assemble Mesh Parts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#step-6-define-time-series-and-patterns">Step 6: Define Time Series and Patterns</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#step-7-apply-boundary-conditions">Step 7: Apply Boundary Conditions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#step-8-create-recorders-and-analysis-steps">Step 8: Create Recorders and Analysis Steps</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#step-9-export-and-visualize-the-model">Step 9: Export and Visualize the Model</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#complete-example">Complete Example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#next-steps">Next Steps</a></li>
+</ul>
+</li>
+<li class="toctree-l1 current"><a class="reference internal" href="examples.html">Examples and Tutorials</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Quick Start Example (Layered Soil Profile)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#setting-up-your-environment">Setting Up Your Environment</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#step-1-initialize-femora">Step 1: Initialize Femora</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#creating-your-first-3d-soil-layer-model">Creating Your First 3D Soil Layer Model</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#step-2-define-materials">Step 2: Define Materials</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#step-3-create-elements">Step 3: Create Elements</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#step-4-create-mesh-parts">Step 4: Create Mesh Parts</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#step-5-assemble-mesh-parts">Step 5: Assemble Mesh Parts</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#step-6-define-time-series-and-patterns">Step 6: Define Time Series and Patterns</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#step-7-apply-boundary-conditions">Step 7: Apply Boundary Conditions</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#step-8-create-recorders-and-analysis-steps">Step 8: Create Recorders and Analysis Steps</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#step-9-export-and-visualize-the-model">Step 9: Export and Visualize the Model</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#complete-example">Complete Example</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#next-steps">Next Steps</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="SiteResponseExamples/SiteResponse.html">Site Response Examples</a></li>
+<li class="toctree-l2"><a class="reference internal" href="DRMExamples/DRM.html">Domain Reduction Method (DRM) Examples</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Technical Guide:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../technical/index.html">Technical Documentation</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer Documentation:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../developer/index.html">Developer Documentation</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Femora (Fast Efficient Meshing for OpenSees-based Resilience Analysis)</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Quick Start Guide</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/introduction/quick_start.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="quick-start-guide">
+<h1>Quick Start Guide<a class="headerlink" href="#quick-start-guide" title="Link to this heading"></a></h1>
+<p>This quick start guide will help you create your first 3D soil layer model using Femora. We’ll walk through Example1, which demonstrates how to create a multi-layered soil profile for seismic analysis.</p>
+<section id="setting-up-your-environment">
+<h2>Setting Up Your Environment<a class="headerlink" href="#setting-up-your-environment" title="Link to this heading"></a></h2>
+<p>Before you begin, make sure you have installed Femora (see <a class="reference internal" href="installation.html"><span class="doc">Installation Guide</span></a> for details)</p>
+<section id="step-1-initialize-femora">
+<h3>Step 1: Initialize Femora<a class="headerlink" href="#step-1-initialize-femora" title="Link to this heading"></a></h3>
+<p>First, we need to import the Femora library and set up our working environment:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">femora</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">fm</span>
+
+<span class="c1"># Set working directory to the location of your model files</span>
+<span class="c1"># This ensures that output files (like mesh.tcl) will be saved in the same directory as your script</span>
+<span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">))</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="creating-your-first-3d-soil-layer-model">
+<h2>Creating Your First 3D Soil Layer Model<a class="headerlink" href="#creating-your-first-3d-soil-layer-model" title="Link to this heading"></a></h2>
+<p>Example1 demonstrates how to create a 3D soil model with multiple layers of different soil materials, apply boundary conditions, and perform a seismic analysis using an earthquake record (Kobe earthquake).</p>
+<p>The model consists of a 20m × 20m soil column (-10m to 10m in both X and Y directions) with a total depth of 18m, divided into 5 distinct soil layers:</p>
+<ol class="arabic simple">
+<li><p>Three layers of “Dense Ottawa” sand (total 10m thick)</p></li>
+<li><p>One layer of “Loose Ottawa” sand (6m thick)</p></li>
+<li><p>One layer of “Dense Montrey” sand (2m thick) at the surface</p></li>
+</ol>
+<p>This stratified soil profile allows for realistic modeling of wave propagation through different soil materials during seismic events.</p>
+<section id="step-2-define-materials">
+<h3>Step 2: Define Materials<a class="headerlink" href="#step-2-define-materials" title="Link to this heading"></a></h3>
+<p>In this step, we define the three soil materials used in our layered profile:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Define materials</span>
+<span class="n">fm</span><span class="o">.</span><span class="n">material</span><span class="o">.</span><span class="n">create_material</span><span class="p">(</span><span class="n">material_category</span><span class="o">=</span><span class="s2">&quot;nDMaterial&quot;</span><span class="p">,</span>
+                           <span class="n">material_type</span><span class="o">=</span><span class="s2">&quot;ElasticIsotropic&quot;</span><span class="p">,</span>
+                           <span class="n">user_name</span><span class="o">=</span><span class="s2">&quot;Dense Ottawa&quot;</span><span class="p">,</span>
+                           <span class="n">E</span><span class="o">=</span><span class="mf">2.0e7</span><span class="p">,</span>    <span class="c1"># Young&#39;s modulus (Pa)</span>
+                           <span class="n">nu</span><span class="o">=</span><span class="mf">0.3</span><span class="p">,</span>     <span class="c1"># Poisson&#39;s ratio</span>
+                           <span class="n">rho</span><span class="o">=</span><span class="mf">2.02</span><span class="p">)</span>   <span class="c1"># Density (ton/m³)</span>
+
+<span class="n">fm</span><span class="o">.</span><span class="n">material</span><span class="o">.</span><span class="n">create_material</span><span class="p">(</span><span class="n">material_category</span><span class="o">=</span><span class="s2">&quot;nDMaterial&quot;</span><span class="p">,</span>
+                           <span class="n">material_type</span><span class="o">=</span><span class="s2">&quot;ElasticIsotropic&quot;</span><span class="p">,</span>
+                           <span class="n">user_name</span><span class="o">=</span><span class="s2">&quot;Loose Ottawa&quot;</span><span class="p">,</span>
+                           <span class="n">E</span><span class="o">=</span><span class="mf">2.0e7</span><span class="p">,</span>
+                           <span class="n">nu</span><span class="o">=</span><span class="mf">0.3</span><span class="p">,</span>
+                           <span class="n">rho</span><span class="o">=</span><span class="mf">1.94</span><span class="p">)</span>
+
+<span class="n">fm</span><span class="o">.</span><span class="n">material</span><span class="o">.</span><span class="n">create_material</span><span class="p">(</span><span class="n">material_category</span><span class="o">=</span><span class="s2">&quot;nDMaterial&quot;</span><span class="p">,</span>
+                           <span class="n">material_type</span><span class="o">=</span><span class="s2">&quot;ElasticIsotropic&quot;</span><span class="p">,</span>
+                           <span class="n">user_name</span><span class="o">=</span><span class="s2">&quot;Dense Montrey&quot;</span><span class="p">,</span>
+                           <span class="n">E</span><span class="o">=</span><span class="mf">2.0e7</span><span class="p">,</span>
+                           <span class="n">nu</span><span class="o">=</span><span class="mf">0.3</span><span class="p">,</span>
+                           <span class="n">rho</span><span class="o">=</span><span class="mf">2.018</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Note</strong>: We’re using ElasticIsotropic materials with different densities to represent different soil types. In more advanced models, you might use more complex constitutive models like PressureDependMultiYield or other nonlinear materials.</p>
+</section>
+<section id="step-3-create-elements">
+<h3>Step 3: Create Elements<a class="headerlink" href="#step-3-create-elements" title="Link to this heading"></a></h3>
+<p>Now we define the element types for each soil material. We use 3D brick elements (stdBrick) with body forces to account for gravity:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create elements using the defined materials</span>
+<span class="n">DensOttawaEle</span> <span class="o">=</span> <span class="n">fm</span><span class="o">.</span><span class="n">element</span><span class="o">.</span><span class="n">create_element</span><span class="p">(</span><span class="n">element_type</span><span class="o">=</span><span class="s2">&quot;stdBrick&quot;</span><span class="p">,</span>
+                                         <span class="n">ndof</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>             <span class="c1"># 3 degrees of freedom per node</span>
+                                         <span class="n">material</span><span class="o">=</span><span class="s2">&quot;Dense Ottawa&quot;</span><span class="p">,</span>
+                                         <span class="n">b1</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>             <span class="c1"># Body force in x-direction</span>
+                                         <span class="n">b2</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>             <span class="c1"># Body force in y-direction</span>
+                                         <span class="n">b3</span><span class="o">=-</span><span class="mf">9.81</span> <span class="o">*</span> <span class="mf">2.02</span><span class="p">)</span>    <span class="c1"># Body force in z-direction (gravity * density)</span>
+
+<span class="n">LooseOttawaEle</span> <span class="o">=</span> <span class="n">fm</span><span class="o">.</span><span class="n">element</span><span class="o">.</span><span class="n">create_element</span><span class="p">(</span><span class="n">element_type</span><span class="o">=</span><span class="s2">&quot;stdBrick&quot;</span><span class="p">,</span>
+                                          <span class="n">ndof</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+                                          <span class="n">material</span><span class="o">=</span><span class="s2">&quot;Loose Ottawa&quot;</span><span class="p">,</span>
+                                          <span class="n">b1</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+                                          <span class="n">b2</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+                                          <span class="n">b3</span><span class="o">=-</span><span class="mf">9.81</span> <span class="o">*</span> <span class="mf">1.94</span><span class="p">)</span>   <span class="c1"># Note the different gravity force due to different density</span>
+
+<span class="n">MontreyEle</span> <span class="o">=</span> <span class="n">fm</span><span class="o">.</span><span class="n">element</span><span class="o">.</span><span class="n">create_element</span><span class="p">(</span><span class="n">element_type</span><span class="o">=</span><span class="s2">&quot;stdBrick&quot;</span><span class="p">,</span>
+                                      <span class="n">ndof</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+                                      <span class="n">material</span><span class="o">=</span><span class="s2">&quot;Dense Montrey&quot;</span><span class="p">,</span>
+                                      <span class="n">b1</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+                                      <span class="n">b2</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+                                      <span class="n">b3</span><span class="o">=-</span><span class="mf">9.81</span> <span class="o">*</span> <span class="mf">2.018</span><span class="p">)</span>      <span class="c1"># Gravity force for Montrey sand</span>
+</pre></div>
+</div>
+<p><strong>Note</strong>: The <cite>b3</cite> parameter represents the gravitational body force in the vertical direction, calculated as the acceleration due to gravity (-9.81 m/s²) multiplied by the material density.</p>
+</section>
+<section id="step-4-create-mesh-parts">
+<h3>Step 4: Create Mesh Parts<a class="headerlink" href="#step-4-create-mesh-parts" title="Link to this heading"></a></h3>
+<p>In this step, we define the dimensions and discretization of our 3D soil profile, creating five distinct layers:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Define mesh dimensions and discretization parameters</span>
+<span class="n">Xmin</span> <span class="o">=</span> <span class="o">-</span><span class="mf">10.0</span>
+<span class="n">Xmax</span> <span class="o">=</span> <span class="mf">10.0</span>
+<span class="n">Ymin</span> <span class="o">=</span> <span class="o">-</span><span class="mf">10.0</span>
+<span class="n">Ymax</span> <span class="o">=</span> <span class="mf">10.0</span>
+<span class="n">Zmin</span> <span class="o">=</span> <span class="o">-</span><span class="mf">18.0</span>  <span class="c1"># Bottom of the model</span>
+
+<span class="c1"># Layer thicknesses (from bottom to top)</span>
+<span class="n">thick1</span> <span class="o">=</span> <span class="mf">2.6</span>  <span class="c1"># First layer (Dense Ottawa)</span>
+<span class="n">thick2</span> <span class="o">=</span> <span class="mf">2.4</span>  <span class="c1"># Second layer (Dense Ottawa)</span>
+<span class="n">thick3</span> <span class="o">=</span> <span class="mf">5.0</span>  <span class="c1"># Third layer (Dense Ottawa)</span>
+<span class="n">thick4</span> <span class="o">=</span> <span class="mf">6.0</span>  <span class="c1"># Fourth layer (Loose Ottawa)</span>
+<span class="n">thick5</span> <span class="o">=</span> <span class="mf">2.0</span>  <span class="c1"># Fifth layer (Montrey)</span>
+
+<span class="c1"># Mesh discretization (element sizes)</span>
+<span class="n">dx</span> <span class="o">=</span> <span class="mf">1.0</span>    <span class="c1"># Element size in x-direction</span>
+<span class="n">dy</span> <span class="o">=</span> <span class="mf">1.0</span>    <span class="c1"># Element size in y-direction</span>
+<span class="n">dz1</span> <span class="o">=</span> <span class="mf">1.3</span>   <span class="c1"># Element size in z-direction for layer 1</span>
+<span class="n">dz2</span> <span class="o">=</span> <span class="mf">1.2</span>   <span class="c1"># Element size in z-direction for layer 2</span>
+<span class="n">dz3</span> <span class="o">=</span> <span class="mf">1.0</span>   <span class="c1"># Element size in z-direction for layer 3</span>
+<span class="n">dz4</span> <span class="o">=</span> <span class="mf">0.5</span>   <span class="c1"># Element size in z-direction for layer 4</span>
+<span class="n">dz5</span> <span class="o">=</span> <span class="mf">0.5</span>   <span class="c1"># Element size in z-direction for layer 5</span>
+
+<span class="c1"># Calculate number of elements in x and y directions</span>
+<span class="n">Nx</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="n">Xmax</span> <span class="o">-</span> <span class="n">Xmin</span><span class="p">)</span><span class="o">/</span><span class="n">dx</span><span class="p">)</span>  <span class="c1"># 20 elements in x-direction</span>
+<span class="n">Ny</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="n">Ymax</span> <span class="o">-</span> <span class="n">Ymin</span><span class="p">)</span><span class="o">/</span><span class="n">dy</span><span class="p">)</span>  <span class="c1"># 20 elements in y-direction</span>
+
+<span class="c1"># Create first layer (Dense Ottawa) at the bottom</span>
+<span class="n">fm</span><span class="o">.</span><span class="n">meshPart</span><span class="o">.</span><span class="n">create_mesh_part</span><span class="p">(</span><span class="n">category</span><span class="o">=</span><span class="s2">&quot;Volume mesh&quot;</span><span class="p">,</span>
+                            <span class="n">mesh_part_type</span><span class="o">=</span><span class="s2">&quot;Uniform Rectangular Grid&quot;</span><span class="p">,</span>
+                            <span class="n">user_name</span><span class="o">=</span><span class="s2">&quot;DensOttawa1&quot;</span><span class="p">,</span>
+                            <span class="n">element</span><span class="o">=</span><span class="n">DensOttawaEle</span><span class="p">,</span>
+                            <span class="n">region</span><span class="o">=</span><span class="n">fm</span><span class="o">.</span><span class="n">region</span><span class="o">.</span><span class="n">get_region</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span>
+                            <span class="o">**</span><span class="p">{</span><span class="s1">&#39;X Min&#39;</span><span class="p">:</span> <span class="n">Xmin</span><span class="p">,</span> <span class="s1">&#39;X Max&#39;</span><span class="p">:</span> <span class="n">Xmax</span><span class="p">,</span>
+                               <span class="s1">&#39;Y Min&#39;</span><span class="p">:</span> <span class="n">Ymin</span><span class="p">,</span> <span class="s1">&#39;Y Max&#39;</span><span class="p">:</span> <span class="n">Ymax</span><span class="p">,</span>
+                               <span class="s1">&#39;Z Min&#39;</span><span class="p">:</span> <span class="n">Zmin</span><span class="p">,</span> <span class="s1">&#39;Z Max&#39;</span><span class="p">:</span> <span class="n">Zmin</span> <span class="o">+</span> <span class="n">thick1</span><span class="p">,</span>
+                               <span class="s1">&#39;Nx Cells&#39;</span><span class="p">:</span> <span class="n">Nx</span><span class="p">,</span> <span class="s1">&#39;Ny Cells&#39;</span><span class="p">:</span> <span class="n">Ny</span><span class="p">,</span> <span class="s1">&#39;Nz Cells&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">thick1</span><span class="o">/</span><span class="n">dz1</span><span class="p">)})</span>
+
+<span class="c1"># Update Zmin to the top of the previous layer</span>
+<span class="n">Zmin</span> <span class="o">+=</span> <span class="n">thick1</span>
+
+<span class="c1"># Create second layer (Dense Ottawa)</span>
+<span class="n">fm</span><span class="o">.</span><span class="n">meshPart</span><span class="o">.</span><span class="n">create_mesh_part</span><span class="p">(</span><span class="n">category</span><span class="o">=</span><span class="s2">&quot;Volume mesh&quot;</span><span class="p">,</span>
+                            <span class="n">mesh_part_type</span><span class="o">=</span><span class="s2">&quot;Uniform Rectangular Grid&quot;</span><span class="p">,</span>
+                            <span class="n">user_name</span><span class="o">=</span><span class="s2">&quot;DensOttawa2&quot;</span><span class="p">,</span>
+                            <span class="n">element</span><span class="o">=</span><span class="n">DensOttawaEle</span><span class="p">,</span>
+                            <span class="n">region</span><span class="o">=</span><span class="n">fm</span><span class="o">.</span><span class="n">region</span><span class="o">.</span><span class="n">get_region</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span>
+                            <span class="o">**</span><span class="p">{</span><span class="s1">&#39;X Min&#39;</span><span class="p">:</span> <span class="n">Xmin</span><span class="p">,</span> <span class="s1">&#39;X Max&#39;</span><span class="p">:</span> <span class="n">Xmax</span><span class="p">,</span>
+                               <span class="s1">&#39;Y Min&#39;</span><span class="p">:</span> <span class="n">Ymin</span><span class="p">,</span> <span class="s1">&#39;Y Max&#39;</span><span class="p">:</span> <span class="n">Ymax</span><span class="p">,</span>
+                               <span class="s1">&#39;Z Min&#39;</span><span class="p">:</span> <span class="n">Zmin</span><span class="p">,</span> <span class="s1">&#39;Z Max&#39;</span><span class="p">:</span> <span class="n">Zmin</span> <span class="o">+</span> <span class="n">thick2</span><span class="p">,</span>
+                               <span class="s1">&#39;Nx Cells&#39;</span><span class="p">:</span> <span class="n">Nx</span><span class="p">,</span> <span class="s1">&#39;Ny Cells&#39;</span><span class="p">:</span> <span class="n">Ny</span><span class="p">,</span> <span class="s1">&#39;Nz Cells&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">thick2</span><span class="o">/</span><span class="n">dz2</span><span class="p">)})</span>
+
+<span class="c1"># Update Zmin to the top of the previous layer</span>
+<span class="n">Zmin</span> <span class="o">+=</span> <span class="n">thick2</span>
+
+<span class="c1"># Create third layer (Dense Ottawa)</span>
+<span class="n">fm</span><span class="o">.</span><span class="n">meshPart</span><span class="o">.</span><span class="n">create_mesh_part</span><span class="p">(</span><span class="n">category</span><span class="o">=</span><span class="s2">&quot;Volume mesh&quot;</span><span class="p">,</span>
+                            <span class="n">mesh_part_type</span><span class="o">=</span><span class="s2">&quot;Uniform Rectangular Grid&quot;</span><span class="p">,</span>
+                            <span class="n">user_name</span><span class="o">=</span><span class="s2">&quot;DensOttawa3&quot;</span><span class="p">,</span>
+                            <span class="n">element</span><span class="o">=</span><span class="n">DensOttawaEle</span><span class="p">,</span>
+                            <span class="n">region</span><span class="o">=</span><span class="n">fm</span><span class="o">.</span><span class="n">region</span><span class="o">.</span><span class="n">get_region</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span>
+                            <span class="o">**</span><span class="p">{</span><span class="s1">&#39;X Min&#39;</span><span class="p">:</span> <span class="n">Xmin</span><span class="p">,</span> <span class="s1">&#39;X Max&#39;</span><span class="p">:</span> <span class="n">Xmax</span><span class="p">,</span>
+                               <span class="s1">&#39;Y Min&#39;</span><span class="p">:</span> <span class="n">Ymin</span><span class="p">,</span> <span class="s1">&#39;Y Max&#39;</span><span class="p">:</span> <span class="n">Ymax</span><span class="p">,</span>
+                               <span class="s1">&#39;Z Min&#39;</span><span class="p">:</span> <span class="n">Zmin</span><span class="p">,</span> <span class="s1">&#39;Z Max&#39;</span><span class="p">:</span> <span class="n">Zmin</span> <span class="o">+</span> <span class="n">thick3</span><span class="p">,</span>
+                               <span class="s1">&#39;Nx Cells&#39;</span><span class="p">:</span> <span class="n">Nx</span><span class="p">,</span> <span class="s1">&#39;Ny Cells&#39;</span><span class="p">:</span> <span class="n">Ny</span><span class="p">,</span> <span class="s1">&#39;Nz Cells&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">thick3</span><span class="o">/</span><span class="n">dz3</span><span class="p">)})</span>
+
+<span class="c1"># Update Zmin to the top of the previous layer</span>
+<span class="n">Zmin</span> <span class="o">+=</span> <span class="n">thick3</span>
+
+<span class="c1"># Create fourth layer (Loose Ottawa)</span>
+<span class="n">fm</span><span class="o">.</span><span class="n">meshPart</span><span class="o">.</span><span class="n">create_mesh_part</span><span class="p">(</span><span class="n">category</span><span class="o">=</span><span class="s2">&quot;Volume mesh&quot;</span><span class="p">,</span>
+                            <span class="n">mesh_part_type</span><span class="o">=</span><span class="s2">&quot;Uniform Rectangular Grid&quot;</span><span class="p">,</span>
+                            <span class="n">user_name</span><span class="o">=</span><span class="s2">&quot;LooseOttawa&quot;</span><span class="p">,</span>
+                            <span class="n">element</span><span class="o">=</span><span class="n">LooseOttawaEle</span><span class="p">,</span>
+                            <span class="n">region</span><span class="o">=</span><span class="n">fm</span><span class="o">.</span><span class="n">region</span><span class="o">.</span><span class="n">get_region</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span>
+                            <span class="o">**</span><span class="p">{</span><span class="s1">&#39;X Min&#39;</span><span class="p">:</span> <span class="n">Xmin</span><span class="p">,</span> <span class="s1">&#39;X Max&#39;</span><span class="p">:</span> <span class="n">Xmax</span><span class="p">,</span>
+                               <span class="s1">&#39;Y Min&#39;</span><span class="p">:</span> <span class="n">Ymin</span><span class="p">,</span> <span class="s1">&#39;Y Max&#39;</span><span class="p">:</span> <span class="n">Ymax</span><span class="p">,</span>
+                               <span class="s1">&#39;Z Min&#39;</span><span class="p">:</span> <span class="n">Zmin</span><span class="p">,</span> <span class="s1">&#39;Z Max&#39;</span><span class="p">:</span> <span class="n">Zmin</span> <span class="o">+</span> <span class="n">thick4</span><span class="p">,</span>
+                               <span class="s1">&#39;Nx Cells&#39;</span><span class="p">:</span> <span class="n">Nx</span><span class="p">,</span> <span class="s1">&#39;Ny Cells&#39;</span><span class="p">:</span> <span class="n">Ny</span><span class="p">,</span> <span class="s1">&#39;Nz Cells&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">thick4</span><span class="o">/</span><span class="n">dz4</span><span class="p">)})</span>
+
+<span class="c1"># Update Zmin to the top of the previous layer</span>
+<span class="n">Zmin</span> <span class="o">+=</span> <span class="n">thick4</span>
+
+<span class="c1"># Create fifth layer (Montrey) at the top</span>
+<span class="n">fm</span><span class="o">.</span><span class="n">meshPart</span><span class="o">.</span><span class="n">create_mesh_part</span><span class="p">(</span><span class="n">category</span><span class="o">=</span><span class="s2">&quot;Volume mesh&quot;</span><span class="p">,</span>
+                            <span class="n">mesh_part_type</span><span class="o">=</span><span class="s2">&quot;Uniform Rectangular Grid&quot;</span><span class="p">,</span>
+                            <span class="n">user_name</span><span class="o">=</span><span class="s2">&quot;Montrey&quot;</span><span class="p">,</span>
+                            <span class="n">element</span><span class="o">=</span><span class="n">MontreyEle</span><span class="p">,</span>
+                            <span class="n">region</span><span class="o">=</span><span class="n">fm</span><span class="o">.</span><span class="n">region</span><span class="o">.</span><span class="n">get_region</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span>
+                            <span class="o">**</span><span class="p">{</span><span class="s1">&#39;X Min&#39;</span><span class="p">:</span> <span class="n">Xmin</span><span class="p">,</span> <span class="s1">&#39;X Max&#39;</span><span class="p">:</span> <span class="n">Xmax</span><span class="p">,</span>
+                               <span class="s1">&#39;Y Min&#39;</span><span class="p">:</span> <span class="n">Ymin</span><span class="p">,</span> <span class="s1">&#39;Y Max&#39;</span><span class="p">:</span> <span class="n">Ymax</span><span class="p">,</span>
+                               <span class="s1">&#39;Z Min&#39;</span><span class="p">:</span> <span class="n">Zmin</span><span class="p">,</span> <span class="s1">&#39;Z Max&#39;</span><span class="p">:</span> <span class="n">Zmin</span> <span class="o">+</span> <span class="n">thick5</span><span class="p">,</span>
+                               <span class="s1">&#39;Nx Cells&#39;</span><span class="p">:</span> <span class="n">Nx</span><span class="p">,</span> <span class="s1">&#39;Ny Cells&#39;</span><span class="p">:</span> <span class="n">Ny</span><span class="p">,</span> <span class="s1">&#39;Nz Cells&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">thick5</span><span class="o">/</span><span class="n">dz5</span><span class="p">)})</span>
+</pre></div>
+</div>
+</section>
+<section id="step-5-assemble-mesh-parts">
+<h3>Step 5: Assemble Mesh Parts<a class="headerlink" href="#step-5-assemble-mesh-parts" title="Link to this heading"></a></h3>
+<p>Now we need to assemble the five mesh parts into a complete model for analysis:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create assembly sections (grouping mesh parts for parallel processing)</span>
+<span class="n">fm</span><span class="o">.</span><span class="n">assembler</span><span class="o">.</span><span class="n">create_section</span><span class="p">(</span><span class="n">meshparts</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;DensOttawa1&quot;</span><span class="p">,</span> <span class="s2">&quot;DensOttawa2&quot;</span><span class="p">,</span> <span class="s2">&quot;DensOttawa3&quot;</span><span class="p">],</span>
+                           <span class="n">num_partitions</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>  <span class="c1"># Group all Dense Ottawa layers with 2 parallel partitions</span>
+
+<span class="n">fm</span><span class="o">.</span><span class="n">assembler</span><span class="o">.</span><span class="n">create_section</span><span class="p">([</span><span class="s2">&quot;LooseOttawa&quot;</span><span class="p">],</span>
+                           <span class="n">num_partitions</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>  <span class="c1"># Loose Ottawa layer with 2 parallel partitions</span>
+
+<span class="n">fm</span><span class="o">.</span><span class="n">assembler</span><span class="o">.</span><span class="n">create_section</span><span class="p">([</span><span class="s2">&quot;Montrey&quot;</span><span class="p">],</span>
+                           <span class="n">num_partitions</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>  <span class="c1"># Montrey layer with 2 parallel partitions</span>
+
+<span class="c1"># Assemble the mesh parts into a complete mesh</span>
+<span class="n">fm</span><span class="o">.</span><span class="n">assembler</span><span class="o">.</span><span class="n">Assemble</span><span class="p">()</span>
+</pre></div>
+</div>
+<p><strong>Understanding Assembly in Femora</strong>:</p>
+<p>The assembly process is a critical step in Femora that serves multiple purposes:</p>
+<ol class="arabic simple">
+<li><p><strong>What are Sections?</strong> Sections are logical groupings of mesh parts that allow for efficient parallel processing. They organize mesh parts that share similar characteristics (like material properties) for computational optimization.</p></li>
+<li><p><strong>Why do we need Assembly?</strong> The assembly process:
+- Connects individual mesh parts into a unified computational model
+- Creates node and element numbering across the entire model
+- Establishes connectivity between adjoining layers
+- Prepares the model for parallel computation by organizing the domain decomposition</p></li>
+<li><p><strong>Assembly Process</strong>:
+- <cite>create_section()</cite> defines which mesh parts belong together in computational groups
+- Each section can have a specified number of partitions for parallel processing
+- <cite>Assemble()</cite> performs the actual assembly, creating the unified mesh with proper node connections between all parts</p></li>
+</ol>
+<p>Without the assembly step, the mesh parts would remain isolated, and analysis couldn’t properly simulate the interaction between different soil layers during earthquake shaking.</p>
+</section>
+<section id="step-6-define-time-series-and-patterns">
+<h3>Step 6: Define Time Series and Patterns<a class="headerlink" href="#step-6-define-time-series-and-patterns" title="Link to this heading"></a></h3>
+<p>Now we define the seismic loading by creating a time series and excitation pattern:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create a TimeSeries for excitation using the Kobe earthquake record</span>
+<span class="n">timeseries</span> <span class="o">=</span> <span class="n">fm</span><span class="o">.</span><span class="n">timeSeries</span><span class="o">.</span><span class="n">create_time_series</span><span class="p">(</span><span class="n">series_type</span><span class="o">=</span><span class="s2">&quot;path&quot;</span><span class="p">,</span>
+                                            <span class="n">filePath</span><span class="o">=</span><span class="s2">&quot;kobe.acc&quot;</span><span class="p">,</span>  <span class="c1"># Acceleration file</span>
+                                            <span class="n">fileTime</span><span class="o">=</span><span class="s2">&quot;kobe.time&quot;</span><span class="p">)</span> <span class="c1"># Time steps file</span>
+
+<span class="c1"># Create a pattern for the uniform excitation (base shaking)</span>
+<span class="n">kobe</span> <span class="o">=</span> <span class="n">fm</span><span class="o">.</span><span class="n">pattern</span><span class="o">.</span><span class="n">create_pattern</span><span class="p">(</span><span class="n">pattern_type</span><span class="o">=</span><span class="s2">&quot;uniformexcitation&quot;</span><span class="p">,</span>
+                               <span class="n">dof</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>  <span class="c1"># X-direction excitation</span>
+                               <span class="n">time_series</span><span class="o">=</span><span class="n">timeseries</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Note</strong>: This applies the Kobe earthquake record as a uniform base excitation in the X-direction (dof=1). The acceleration data is read from “kobe.acc” and the corresponding time values from “kobe.time”. This simulates the propagation of seismic waves from the bottom of the model upward through the different soil layers.</p>
+</section>
+<section id="step-7-apply-boundary-conditions">
+<h3>Step 7: Apply Boundary Conditions<a class="headerlink" href="#step-7-apply-boundary-conditions" title="Link to this heading"></a></h3>
+<p>Next, we apply appropriate boundary conditions for a seismic analysis:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Apply laminar boundary conditions</span>
+<span class="n">fm</span><span class="o">.</span><span class="n">constraint</span><span class="o">.</span><span class="n">mp</span><span class="o">.</span><span class="n">create_laminar_boundary</span><span class="p">(</span><span class="n">dofs</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">],</span> <span class="n">direction</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+
+<span class="c1"># Fix the bottom of the model</span>
+<span class="n">fm</span><span class="o">.</span><span class="n">constraint</span><span class="o">.</span><span class="n">sp</span><span class="o">.</span><span class="n">fixMacroZmin</span><span class="p">(</span><span class="n">dofs</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">])</span>
+</pre></div>
+</div>
+<p><strong>Understanding Boundary Conditions</strong>:</p>
+<ol class="arabic simple">
+<li><p><strong>Laminar Boundary Conditions</strong>:
+- The <cite>create_laminar_boundary(dofs=[1,2], direction=3)</cite> function imposes a constraint that forces all nodes at the same elevation (z-coordinate) to move together in the horizontal directions (x and y).
+- This simulates a laminar shear box condition, which is essential for proper wave propagation in seismic analysis of soil columns.
+- Without these boundary conditions, the model would allow unrealistic deformation patterns that don’t represent how soil actually behaves during earthquakes.</p></li>
+<li><p><strong>Why we use fixMacroZmin</strong>:
+- The <cite>fixMacroZmin(dofs=[1,1,1])</cite> function fixes all degrees of freedom at the bottom boundary of the model.
+- The term “Macro” in this function refers to a macro-level operation that applies to the entire model boundary, rather than individual nodes.
+- Using “Macro” commands is more efficient and less error-prone than manually selecting and fixing individual nodes at the bottom of the model.
+- This creates a rigid base at the bottom of the soil column where the earthquake motion will be applied.</p></li>
+<li><p><strong>Why these specific boundary conditions</strong>:
+- These boundary conditions are standard for 1D site response analysis converted to a 3D model.
+- They ensure that the seismic waves propagate properly from the base through all soil layers.
+- They prevent unrealistic lateral spreading or other deformation modes that wouldn’t occur in the field.</p></li>
+</ol>
+</section>
+<section id="step-8-create-recorders-and-analysis-steps">
+<h3>Step 8: Create Recorders and Analysis Steps<a class="headerlink" href="#step-8-create-recorders-and-analysis-steps" title="Link to this heading"></a></h3>
+<p>Now we define how to record the results and set up the analysis:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create a recorder for the whole model</span>
+<span class="n">recorder</span> <span class="o">=</span> <span class="n">fm</span><span class="o">.</span><span class="n">recorder</span><span class="o">.</span><span class="n">create_recorder</span><span class="p">(</span><span class="s2">&quot;vtkhdf&quot;</span><span class="p">,</span>                    <span class="c1"># VTK HDF format for ParaView visualization</span>
+                                     <span class="n">file_base_name</span><span class="o">=</span><span class="s2">&quot;result.vtkhdf&quot;</span><span class="p">,</span> <span class="c1"># Base name for output files</span>
+                                     <span class="n">resp_types</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;disp&quot;</span><span class="p">,</span> <span class="s2">&quot;vel&quot;</span><span class="p">,</span> <span class="s2">&quot;accel&quot;</span><span class="p">,</span> <span class="s2">&quot;stress3D6&quot;</span><span class="p">,</span> <span class="s2">&quot;strain3D6&quot;</span><span class="p">],</span> <span class="c1"># Response quantities to record</span>
+                                     <span class="n">delta_t</span><span class="o">=</span><span class="mf">0.02</span><span class="p">)</span>                  <span class="c1"># Time interval between recordings (seconds)</span>
+
+<span class="c1"># Create a gravity analysis step (initialize the model under gravitational forces)</span>
+<span class="n">gravity</span> <span class="o">=</span> <span class="n">fm</span><span class="o">.</span><span class="n">analysis</span><span class="o">.</span><span class="n">create_default_transient_analysis</span><span class="p">(</span><span class="n">username</span><span class="o">=</span><span class="s2">&quot;gravity&quot;</span><span class="p">,</span>
+                                                      <span class="n">dt</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span>      <span class="c1"># Time step size (seconds)</span>
+                                                      <span class="n">num_steps</span><span class="o">=</span><span class="mi">50</span><span class="p">)</span> <span class="c1"># Total number of time steps</span>
+
+<span class="c1"># Add components to the process in sequence</span>
+<span class="n">fm</span><span class="o">.</span><span class="n">process</span><span class="o">.</span><span class="n">add_step</span><span class="p">(</span><span class="n">kobe</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Uniform Excitation (Kobe record)&quot;</span><span class="p">)</span>
+<span class="n">fm</span><span class="o">.</span><span class="n">process</span><span class="o">.</span><span class="n">add_step</span><span class="p">(</span><span class="n">recorder</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Recorder of the whole model&quot;</span><span class="p">)</span>
+<span class="n">fm</span><span class="o">.</span><span class="n">process</span><span class="o">.</span><span class="n">add_step</span><span class="p">(</span><span class="n">gravity</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Gravity Analysis Step&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Understanding Steps in Femora</strong>:</p>
+<ol class="arabic simple">
+<li><p><strong>The Concept of Steps</strong>:
+- In Femora, steps are components that define the sequence and flow of the analysis procedure.
+- Steps can be loading patterns, recorders, analysis procedures, or other components.
+- They are added to the process in the order they should be executed or applied.</p></li>
+<li><p><strong>Types of Steps in Example1</strong>:
+- <strong>Pattern Step</strong>: The Kobe earthquake uniform excitation pattern (<cite>kobe</cite>) defines the loading applied to the model.
+- <strong>Recorder Step</strong>: The recorder (<cite>recorder</cite>) defines what response quantities to save and how often.
+- <strong>Analysis Step</strong>: The gravity analysis (<cite>gravity</cite>) defines the actual solution strategy and time stepping.</p></li>
+<li><p><strong>Sequence of Steps</strong>:
+- The order of steps matters in <cite>process.add_step()</cite>.
+- First, we add the excitation pattern to be applied during analysis.
+- Then, we add the recorder to capture results during analysis.
+- Finally, we add the gravity analysis procedure that will actually solve the model.</p></li>
+</ol>
+<p>This step-by-step approach allows for maximum flexibility in defining complex analysis procedures.</p>
+</section>
+<section id="step-9-export-and-visualize-the-model">
+<h3>Step 9: Export and Visualize the Model<a class="headerlink" href="#step-9-export-and-visualize-the-model" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Export to OpenSees Tcl file</span>
+<span class="n">fm</span><span class="o">.</span><span class="n">export_to_tcl</span><span class="p">(</span><span class="s2">&quot;mesh.tcl&quot;</span><span class="p">)</span>
+
+<span class="c1"># Launch the GUI for visualization</span>
+<span class="n">fm</span><span class="o">.</span><span class="n">gui</span><span class="p">()</span>
+</pre></div>
+</div>
+<p><strong>Understanding TCL Export and Visualization</strong>:</p>
+<ol class="arabic">
+<li><p><strong>Why Export to TCL?</strong>
+- The <cite>export_to_tcl(“mesh.tcl”)</cite> command generates an OpenSees Tcl script file that contains all the commands needed to recreate and run your model in OpenSees.
+- This exported file serves as both documentation of your model and a standalone script that can be executed in OpenSees.
+- By using <cite>os.chdir(os.path.dirname(__file__))</cite> at the beginning of our script, we ensure that the mesh.tcl file is created in the same directory as our Python script, making it easy to locate.</p></li>
+<li><p><strong>GUI Visualization</strong>:
+- The <cite>fm.gui()</cite> command launches Femora’s graphical user interface, allowing you to:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Visualize the 3D model geometry and mesh</p></li>
+<li><p>Verify material assignments and layer arrangement</p></li>
+<li><p>Check boundary conditions</p></li>
+<li><p>Review and modify model properties</p></li>
+<li><p>Inspect the model before running analysis</p></li>
+</ul>
+</div></blockquote>
+</li>
+<li><p><strong>Working with the GUI</strong>:
+- You can create models entirely through the GUI interface instead of Python scripting
+- The GUI provides intuitive tools for model creation, material definition, and analysis setup
+- You can also load existing models created with Python scripts to review or modify them
+- The GUI is particularly useful for:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Verifying complex geometries</p></li>
+<li><p>Checking node and element connectivity</p></li>
+<li><p>Troubleshooting model issues</p></li>
+<li><p>Making quick modifications to existing models</p></li>
+</ul>
+</div></blockquote>
+</li>
+</ol>
+</section>
+</section>
+<section id="complete-example">
+<h2>Complete Example<a class="headerlink" href="#complete-example" title="Link to this heading"></a></h2>
+<p>Here’s the complete code for this quick start example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">femora</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">fm</span>
+
+<span class="c1"># Set working directory to the location of your model files</span>
+<span class="c1"># This ensures that output files (like mesh.tcl) will be saved in the same directory as your script</span>
+<span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">))</span>
+
+<span class="c1"># Define materials</span>
+<span class="n">fm</span><span class="o">.</span><span class="n">material</span><span class="o">.</span><span class="n">create_material</span><span class="p">(</span><span class="n">material_category</span><span class="o">=</span><span class="s2">&quot;nDMaterial&quot;</span><span class="p">,</span>
+                           <span class="n">material_type</span><span class="o">=</span><span class="s2">&quot;ElasticIsotropic&quot;</span><span class="p">,</span>
+                           <span class="n">user_name</span><span class="o">=</span><span class="s2">&quot;Dense Ottawa&quot;</span><span class="p">,</span>
+                           <span class="n">E</span><span class="o">=</span><span class="mf">2.0e7</span><span class="p">,</span>    <span class="c1"># Young&#39;s modulus (Pa)</span>
+                           <span class="n">nu</span><span class="o">=</span><span class="mf">0.3</span><span class="p">,</span>     <span class="c1"># Poisson&#39;s ratio</span>
+                           <span class="n">rho</span><span class="o">=</span><span class="mf">2.02</span><span class="p">)</span>   <span class="c1"># Density (ton/m³)</span>
+
+<span class="n">fm</span><span class="o">.</span><span class="n">material</span><span class="o">.</span><span class="n">create_material</span><span class="p">(</span><span class="n">material_category</span><span class="o">=</span><span class="s2">&quot;nDMaterial&quot;</span><span class="p">,</span>
+                           <span class="n">material_type</span><span class="o">=</span><span class="s2">&quot;ElasticIsotropic&quot;</span><span class="p">,</span>
+                           <span class="n">user_name</span><span class="o">=</span><span class="s2">&quot;Loose Ottawa&quot;</span><span class="p">,</span>
+                           <span class="n">E</span><span class="o">=</span><span class="mf">2.0e7</span><span class="p">,</span>
+                           <span class="n">nu</span><span class="o">=</span><span class="mf">0.3</span><span class="p">,</span>
+                           <span class="n">rho</span><span class="o">=</span><span class="mf">1.94</span><span class="p">)</span>
+
+<span class="n">fm</span><span class="o">.</span><span class="n">material</span><span class="o">.</span><span class="n">create_material</span><span class="p">(</span><span class="n">material_category</span><span class="o">=</span><span class="s2">&quot;nDMaterial&quot;</span><span class="p">,</span>
+                           <span class="n">material_type</span><span class="o">=</span><span class="s2">&quot;ElasticIsotropic&quot;</span><span class="p">,</span>
+                           <span class="n">user_name</span><span class="o">=</span><span class="s2">&quot;Dense Montrey&quot;</span><span class="p">,</span>
+                           <span class="n">E</span><span class="o">=</span><span class="mf">2.0e7</span><span class="p">,</span>
+                           <span class="n">nu</span><span class="o">=</span><span class="mf">0.3</span><span class="p">,</span>
+                           <span class="n">rho</span><span class="o">=</span><span class="mf">2.018</span><span class="p">)</span>
+
+<span class="c1"># Create elements using the defined materials</span>
+<span class="n">DensOttawaEle</span> <span class="o">=</span> <span class="n">fm</span><span class="o">.</span><span class="n">element</span><span class="o">.</span><span class="n">create_element</span><span class="p">(</span><span class="n">element_type</span><span class="o">=</span><span class="s2">&quot;stdBrick&quot;</span><span class="p">,</span>
+                                         <span class="n">ndof</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>             <span class="c1"># 3 degrees of freedom per node</span>
+                                         <span class="n">material</span><span class="o">=</span><span class="s2">&quot;Dense Ottawa&quot;</span><span class="p">,</span>
+                                         <span class="n">b1</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>             <span class="c1"># Body force in x-direction</span>
+                                         <span class="n">b2</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>             <span class="c1"># Body force in y-direction</span>
+                                         <span class="n">b3</span><span class="o">=-</span><span class="mf">9.81</span> <span class="o">*</span> <span class="mf">2.02</span><span class="p">)</span>    <span class="c1"># Body force in z-direction (gravity * density)</span>
+
+<span class="n">LooseOttawaEle</span> <span class="o">=</span> <span class="n">fm</span><span class="o">.</span><span class="n">element</span><span class="o">.</span><span class="n">create_element</span><span class="p">(</span><span class="n">element_type</span><span class="o">=</span><span class="s2">&quot;stdBrick&quot;</span><span class="p">,</span>
+                                          <span class="n">ndof</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+                                          <span class="n">material</span><span class="o">=</span><span class="s2">&quot;Loose Ottawa&quot;</span><span class="p">,</span>
+                                          <span class="n">b1</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+                                          <span class="n">b2</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+                                          <span class="n">b3</span><span class="o">=-</span><span class="mf">9.81</span> <span class="o">*</span> <span class="mf">1.94</span><span class="p">)</span>   <span class="c1"># Note the different gravity force due to different density</span>
+
+<span class="n">MontreyEle</span> <span class="o">=</span> <span class="n">fm</span><span class="o">.</span><span class="n">element</span><span class="o">.</span><span class="n">create_element</span><span class="p">(</span><span class="n">element_type</span><span class="o">=</span><span class="s2">&quot;stdBrick&quot;</span><span class="p">,</span>
+                                      <span class="n">ndof</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+                                      <span class="n">material</span><span class="o">=</span><span class="s2">&quot;Dense Montrey&quot;</span><span class="p">,</span>
+                                      <span class="n">b1</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+                                      <span class="n">b2</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+                                      <span class="n">b3</span><span class="o">=-</span><span class="mf">9.81</span> <span class="o">*</span> <span class="mf">2.018</span><span class="p">)</span>      <span class="c1"># Gravity force for Montrey sand</span>
+
+<span class="c1"># Define mesh dimensions and discretization parameters</span>
+<span class="n">Xmin</span> <span class="o">=</span> <span class="o">-</span><span class="mf">10.0</span>
+<span class="n">Xmax</span> <span class="o">=</span> <span class="mf">10.0</span>
+<span class="n">Ymin</span> <span class="o">=</span> <span class="o">-</span><span class="mf">10.0</span>
+<span class="n">Ymax</span> <span class="o">=</span> <span class="mf">10.0</span>
+<span class="n">Zmin</span> <span class="o">=</span> <span class="o">-</span><span class="mf">18.0</span>  <span class="c1"># Bottom of the model</span>
+
+<span class="c1"># Layer thicknesses (from bottom to top)</span>
+<span class="n">thick1</span> <span class="o">=</span> <span class="mf">2.6</span>  <span class="c1"># First layer (Dense Ottawa)</span>
+<span class="n">thick2</span> <span class="o">=</span> <span class="mf">2.4</span>  <span class="c1"># Second layer (Dense Ottawa)</span>
+<span class="n">thick3</span> <span class="o">=</span> <span class="mf">5.0</span>  <span class="c1"># Third layer (Dense Ottawa)</span>
+<span class="n">thick4</span> <span class="o">=</span> <span class="mf">6.0</span>  <span class="c1"># Fourth layer (Loose Ottawa)</span>
+<span class="n">thick5</span> <span class="o">=</span> <span class="mf">2.0</span>  <span class="c1"># Fifth layer (Montrey)</span>
+
+<span class="c1"># Mesh discretization (element sizes)</span>
+<span class="n">dx</span> <span class="o">=</span> <span class="mf">1.0</span>    <span class="c1"># Element size in x-direction</span>
+<span class="n">dy</span> <span class="o">=</span> <span class="mf">1.0</span>    <span class="c1"># Element size in y-direction</span>
+<span class="n">dz1</span> <span class="o">=</span> <span class="mf">1.3</span>   <span class="c1"># Element size in z-direction for layer 1</span>
+<span class="n">dz2</span> <span class="o">=</span> <span class="mf">1.2</span>   <span class="c1"># Element size in z-direction for layer 2</span>
+<span class="n">dz3</span> <span class="o">=</span> <span class="mf">1.0</span>   <span class="c1"># Element size in z-direction for layer 3</span>
+<span class="n">dz4</span> <span class="o">=</span> <span class="mf">0.5</span>   <span class="c1"># Element size in z-direction for layer 4</span>
+<span class="n">dz5</span> <span class="o">=</span> <span class="mf">0.5</span>   <span class="c1"># Element size in z-direction for layer 5</span>
+
+<span class="c1"># Calculate number of elements in x and y directions</span>
+<span class="n">Nx</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="n">Xmax</span> <span class="o">-</span> <span class="n">Xmin</span><span class="p">)</span><span class="o">/</span><span class="n">dx</span><span class="p">)</span>  <span class="c1"># 20 elements in x-direction</span>
+<span class="n">Ny</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="n">Ymax</span> <span class="o">-</span> <span class="n">Ymin</span><span class="p">)</span><span class="o">/</span><span class="n">dy</span><span class="p">)</span>  <span class="c1"># 20 elements in y-direction</span>
+
+<span class="c1"># Create first layer (Dense Ottawa) at the bottom</span>
+<span class="n">fm</span><span class="o">.</span><span class="n">meshPart</span><span class="o">.</span><span class="n">create_mesh_part</span><span class="p">(</span><span class="n">category</span><span class="o">=</span><span class="s2">&quot;Volume mesh&quot;</span><span class="p">,</span>
+                            <span class="n">mesh_part_type</span><span class="o">=</span><span class="s2">&quot;Uniform Rectangular Grid&quot;</span><span class="p">,</span>
+                            <span class="n">user_name</span><span class="o">=</span><span class="s2">&quot;DensOttawa1&quot;</span><span class="p">,</span>
+                            <span class="n">element</span><span class="o">=</span><span class="n">DensOttawaEle</span><span class="p">,</span>
+                            <span class="n">region</span><span class="o">=</span><span class="n">fm</span><span class="o">.</span><span class="n">region</span><span class="o">.</span><span class="n">get_region</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span>
+                            <span class="o">**</span><span class="p">{</span><span class="s1">&#39;X Min&#39;</span><span class="p">:</span> <span class="n">Xmin</span><span class="p">,</span> <span class="s1">&#39;X Max&#39;</span><span class="p">:</span> <span class="n">Xmax</span><span class="p">,</span>
+                               <span class="s1">&#39;Y Min&#39;</span><span class="p">:</span> <span class="n">Ymin</span><span class="p">,</span> <span class="s1">&#39;Y Max&#39;</span><span class="p">:</span> <span class="n">Ymax</span><span class="p">,</span>
+                               <span class="s1">&#39;Z Min&#39;</span><span class="p">:</span> <span class="n">Zmin</span><span class="p">,</span> <span class="s1">&#39;Z Max&#39;</span><span class="p">:</span> <span class="n">Zmin</span> <span class="o">+</span> <span class="n">thick1</span><span class="p">,</span>
+                               <span class="s1">&#39;Nx Cells&#39;</span><span class="p">:</span> <span class="n">Nx</span><span class="p">,</span> <span class="s1">&#39;Ny Cells&#39;</span><span class="p">:</span> <span class="n">Ny</span><span class="p">,</span> <span class="s1">&#39;Nz Cells&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">thick1</span><span class="o">/</span><span class="n">dz1</span><span class="p">)})</span>
+
+<span class="c1"># Update Zmin to the top of the previous layer</span>
+<span class="n">Zmin</span> <span class="o">+=</span> <span class="n">thick1</span>
+
+<span class="c1"># Create second layer (Dense Ottawa)</span>
+<span class="n">fm</span><span class="o">.</span><span class="n">meshPart</span><span class="o">.</span><span class="n">create_mesh_part</span><span class="p">(</span><span class="n">category</span><span class="o">=</span><span class="s2">&quot;Volume mesh&quot;</span><span class="p">,</span>
+                            <span class="n">mesh_part_type</span><span class="o">=</span><span class="s2">&quot;Uniform Rectangular Grid&quot;</span><span class="p">,</span>
+                            <span class="n">user_name</span><span class="o">=</span><span class="s2">&quot;DensOttawa2&quot;</span><span class="p">,</span>
+                            <span class="n">element</span><span class="o">=</span><span class="n">DensOttawaEle</span><span class="p">,</span>
+                            <span class="n">region</span><span class="o">=</span><span class="n">fm</span><span class="o">.</span><span class="n">region</span><span class="o">.</span><span class="n">get_region</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span>
+                            <span class="o">**</span><span class="p">{</span><span class="s1">&#39;X Min&#39;</span><span class="p">:</span> <span class="n">Xmin</span><span class="p">,</span> <span class="s1">&#39;X Max&#39;</span><span class="p">:</span> <span class="n">Xmax</span><span class="p">,</span>
+                               <span class="s1">&#39;Y Min&#39;</span><span class="p">:</span> <span class="n">Ymin</span><span class="p">,</span> <span class="s1">&#39;Y Max&#39;</span><span class="p">:</span> <span class="n">Ymax</span><span class="p">,</span>
+                               <span class="s1">&#39;Z Min&#39;</span><span class="p">:</span> <span class="n">Zmin</span><span class="p">,</span> <span class="s1">&#39;Z Max&#39;</span><span class="p">:</span> <span class="n">Zmin</span> <span class="o">+</span> <span class="n">thick2</span><span class="p">,</span>
+                               <span class="s1">&#39;Nx Cells&#39;</span><span class="p">:</span> <span class="n">Nx</span><span class="p">,</span> <span class="s1">&#39;Ny Cells&#39;</span><span class="p">:</span> <span class="n">Ny</span><span class="p">,</span> <span class="s1">&#39;Nz Cells&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">thick2</span><span class="o">/</span><span class="n">dz2</span><span class="p">)})</span>
+
+<span class="c1"># Update Zmin to the top of the previous layer</span>
+<span class="n">Zmin</span> <span class="o">+=</span> <span class="n">thick2</span>
+
+<span class="c1"># Create third layer (Dense Ottawa)</span>
+<span class="n">fm</span><span class="o">.</span><span class="n">meshPart</span><span class="o">.</span><span class="n">create_mesh_part</span><span class="p">(</span><span class="n">category</span><span class="o">=</span><span class="s2">&quot;Volume mesh&quot;</span><span class="p">,</span>
+                            <span class="n">mesh_part_type</span><span class="o">=</span><span class="s2">&quot;Uniform Rectangular Grid&quot;</span><span class="p">,</span>
+                            <span class="n">user_name</span><span class="o">=</span><span class="s2">&quot;DensOttawa3&quot;</span><span class="p">,</span>
+                            <span class="n">element</span><span class="o">=</span><span class="n">DensOttawaEle</span><span class="p">,</span>
+                            <span class="n">region</span><span class="o">=</span><span class="n">fm</span><span class="o">.</span><span class="n">region</span><span class="o">.</span><span class="n">get_region</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span>
+                            <span class="o">**</span><span class="p">{</span><span class="s1">&#39;X Min&#39;</span><span class="p">:</span> <span class="n">Xmin</span><span class="p">,</span> <span class="s1">&#39;X Max&#39;</span><span class="p">:</span> <span class="n">Xmax</span><span class="p">,</span>
+                               <span class="s1">&#39;Y Min&#39;</span><span class="p">:</span> <span class="n">Ymin</span><span class="p">,</span> <span class="s1">&#39;Y Max&#39;</span><span class="p">:</span> <span class="n">Ymax</span><span class="p">,</span>
+                               <span class="s1">&#39;Z Min&#39;</span><span class="p">:</span> <span class="n">Zmin</span><span class="p">,</span> <span class="s1">&#39;Z Max&#39;</span><span class="p">:</span> <span class="n">Zmin</span> <span class="o">+</span> <span class="n">thick3</span><span class="p">,</span>
+                               <span class="s1">&#39;Nx Cells&#39;</span><span class="p">:</span> <span class="n">Nx</span><span class="p">,</span> <span class="s1">&#39;Ny Cells&#39;</span><span class="p">:</span> <span class="n">Ny</span><span class="p">,</span> <span class="s1">&#39;Nz Cells&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">thick3</span><span class="o">/</span><span class="n">dz3</span><span class="p">)})</span>
+
+<span class="c1"># Update Zmin to the top of the previous layer</span>
+<span class="n">Zmin</span> <span class="o">+=</span> <span class="n">thick3</span>
+
+<span class="c1"># Create fourth layer (Loose Ottawa)</span>
+<span class="n">fm</span><span class="o">.</span><span class="n">meshPart</span><span class="o">.</span><span class="n">create_mesh_part</span><span class="p">(</span><span class="n">category</span><span class="o">=</span><span class="s2">&quot;Volume mesh&quot;</span><span class="p">,</span>
+                            <span class="n">mesh_part_type</span><span class="o">=</span><span class="s2">&quot;Uniform Rectangular Grid&quot;</span><span class="p">,</span>
+                            <span class="n">user_name</span><span class="o">=</span><span class="s2">&quot;LooseOttawa&quot;</span><span class="p">,</span>
+                            <span class="n">element</span><span class="o">=</span><span class="n">LooseOttawaEle</span><span class="p">,</span>
+                            <span class="n">region</span><span class="o">=</span><span class="n">fm</span><span class="o">.</span><span class="n">region</span><span class="o">.</span><span class="n">get_region</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span>
+                            <span class="o">**</span><span class="p">{</span><span class="s1">&#39;X Min&#39;</span><span class="p">:</span> <span class="n">Xmin</span><span class="p">,</span> <span class="s1">&#39;X Max&#39;</span><span class="p">:</span> <span class="n">Xmax</span><span class="p">,</span>
+                               <span class="s1">&#39;Y Min&#39;</span><span class="p">:</span> <span class="n">Ymin</span><span class="p">,</span> <span class="s1">&#39;Y Max&#39;</span><span class="p">:</span> <span class="n">Ymax</span><span class="p">,</span>
+                               <span class="s1">&#39;Z Min&#39;</span><span class="p">:</span> <span class="n">Zmin</span><span class="p">,</span> <span class="s1">&#39;Z Max&#39;</span><span class="p">:</span> <span class="n">Zmin</span> <span class="o">+</span> <span class="n">thick4</span><span class="p">,</span>
+                               <span class="s1">&#39;Nx Cells&#39;</span><span class="p">:</span> <span class="n">Nx</span><span class="p">,</span> <span class="s1">&#39;Ny Cells&#39;</span><span class="p">:</span> <span class="n">Ny</span><span class="p">,</span> <span class="s1">&#39;Nz Cells&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">thick4</span><span class="o">/</span><span class="n">dz4</span><span class="p">)})</span>
+
+<span class="c1"># Update Zmin to the top of the previous layer</span>
+<span class="n">Zmin</span> <span class="o">+=</span> <span class="n">thick4</span>
+
+<span class="c1"># Create fifth layer (Montrey) at the top</span>
+<span class="n">fm</span><span class="o">.</span><span class="n">meshPart</span><span class="o">.</span><span class="n">create_mesh_part</span><span class="p">(</span><span class="n">category</span><span class="o">=</span><span class="s2">&quot;Volume mesh&quot;</span><span class="p">,</span>
+                            <span class="n">mesh_part_type</span><span class="o">=</span><span class="s2">&quot;Uniform Rectangular Grid&quot;</span><span class="p">,</span>
+                            <span class="n">user_name</span><span class="o">=</span><span class="s2">&quot;Montrey&quot;</span><span class="p">,</span>
+                            <span class="n">element</span><span class="o">=</span><span class="n">MontreyEle</span><span class="p">,</span>
+                            <span class="n">region</span><span class="o">=</span><span class="n">fm</span><span class="o">.</span><span class="n">region</span><span class="o">.</span><span class="n">get_region</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span>
+                            <span class="o">**</span><span class="p">{</span><span class="s1">&#39;X Min&#39;</span><span class="p">:</span> <span class="n">Xmin</span><span class="p">,</span> <span class="s1">&#39;X Max&#39;</span><span class="p">:</span> <span class="n">Xmax</span><span class="p">,</span>
+                               <span class="s1">&#39;Y Min&#39;</span><span class="p">:</span> <span class="n">Ymin</span><span class="p">,</span> <span class="s1">&#39;Y Max&#39;</span><span class="p">:</span> <span class="n">Ymax</span><span class="p">,</span>
+                               <span class="s1">&#39;Z Min&#39;</span><span class="p">:</span> <span class="n">Zmin</span><span class="p">,</span> <span class="s1">&#39;Z Max&#39;</span><span class="p">:</span> <span class="n">Zmin</span> <span class="o">+</span> <span class="n">thick5</span><span class="p">,</span>
+                               <span class="s1">&#39;Nx Cells&#39;</span><span class="p">:</span> <span class="n">Nx</span><span class="p">,</span> <span class="s1">&#39;Ny Cells&#39;</span><span class="p">:</span> <span class="n">Ny</span><span class="p">,</span> <span class="s1">&#39;Nz Cells&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">thick5</span><span class="o">/</span><span class="n">dz5</span><span class="p">)})</span>
+
+<span class="c1"># Create assembly sections (grouping mesh parts for parallel processing)</span>
+<span class="n">fm</span><span class="o">.</span><span class="n">assembler</span><span class="o">.</span><span class="n">create_section</span><span class="p">(</span><span class="n">meshparts</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;DensOttawa1&quot;</span><span class="p">,</span> <span class="s2">&quot;DensOttawa2&quot;</span><span class="p">,</span> <span class="s2">&quot;DensOttawa3&quot;</span><span class="p">],</span>
+                           <span class="n">num_partitions</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>  <span class="c1"># Group all Dense Ottawa layers with 2 parallel partitions</span>
+
+<span class="n">fm</span><span class="o">.</span><span class="n">assembler</span><span class="o">.</span><span class="n">create_section</span><span class="p">([</span><span class="s2">&quot;LooseOttawa&quot;</span><span class="p">],</span>
+                           <span class="n">num_partitions</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>  <span class="c1"># Loose Ottawa layer with 2 parallel partitions</span>
+
+<span class="n">fm</span><span class="o">.</span><span class="n">assembler</span><span class="o">.</span><span class="n">create_section</span><span class="p">([</span><span class="s2">&quot;Montrey&quot;</span><span class="p">],</span>
+                           <span class="n">num_partitions</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>  <span class="c1"># Montrey layer with 2 parallel partitions</span>
+
+<span class="c1"># Assemble the mesh parts into a complete mesh</span>
+<span class="n">fm</span><span class="o">.</span><span class="n">assembler</span><span class="o">.</span><span class="n">Assemble</span><span class="p">()</span>
+
+<span class="c1"># Create a TimeSeries for excitation using the Kobe earthquake record</span>
+<span class="n">timeseries</span> <span class="o">=</span> <span class="n">fm</span><span class="o">.</span><span class="n">timeSeries</span><span class="o">.</span><span class="n">create_time_series</span><span class="p">(</span><span class="n">series_type</span><span class="o">=</span><span class="s2">&quot;path&quot;</span><span class="p">,</span>
+                                            <span class="n">filePath</span><span class="o">=</span><span class="s2">&quot;kobe.acc&quot;</span><span class="p">,</span>  <span class="c1"># Acceleration file</span>
+                                            <span class="n">fileTime</span><span class="o">=</span><span class="s2">&quot;kobe.time&quot;</span><span class="p">)</span> <span class="c1"># Time steps file</span>
+
+<span class="c1"># Create a pattern for the uniform excitation (base shaking)</span>
+<span class="n">kobe</span> <span class="o">=</span> <span class="n">fm</span><span class="o">.</span><span class="n">pattern</span><span class="o">.</span><span class="n">create_pattern</span><span class="p">(</span><span class="n">pattern_type</span><span class="o">=</span><span class="s2">&quot;uniformexcitation&quot;</span><span class="p">,</span>
+                               <span class="n">dof</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>  <span class="c1"># X-direction excitation</span>
+                               <span class="n">time_series</span><span class="o">=</span><span class="n">timeseries</span><span class="p">)</span>
+
+<span class="c1"># Apply laminar boundary conditions</span>
+<span class="n">fm</span><span class="o">.</span><span class="n">constraint</span><span class="o">.</span><span class="n">mp</span><span class="o">.</span><span class="n">create_laminar_boundary</span><span class="p">(</span><span class="n">dofs</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">],</span> <span class="n">direction</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+
+<span class="c1"># Fix the bottom of the model</span>
+<span class="n">fm</span><span class="o">.</span><span class="n">constraint</span><span class="o">.</span><span class="n">sp</span><span class="o">.</span><span class="n">fixMacroZmin</span><span class="p">(</span><span class="n">dofs</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">])</span>
+
+<span class="c1"># Create a recorder for the whole model</span>
+<span class="n">recorder</span> <span class="o">=</span> <span class="n">fm</span><span class="o">.</span><span class="n">recorder</span><span class="o">.</span><span class="n">create_recorder</span><span class="p">(</span><span class="s2">&quot;vtkhdf&quot;</span><span class="p">,</span>                    <span class="c1"># VTK HDF format for ParaView visualization</span>
+                                     <span class="n">file_base_name</span><span class="o">=</span><span class="s2">&quot;result.vtkhdf&quot;</span><span class="p">,</span> <span class="c1"># Base name for output files</span>
+                                     <span class="n">resp_types</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;disp&quot;</span><span class="p">,</span> <span class="s2">&quot;vel&quot;</span><span class="p">,</span> <span class="s2">&quot;accel&quot;</span><span class="p">,</span> <span class="s2">&quot;stress3D6&quot;</span><span class="p">,</span> <span class="s2">&quot;strain3D6&quot;</span><span class="p">],</span> <span class="c1"># Response quantities to record</span>
+                                     <span class="n">delta_t</span><span class="o">=</span><span class="mf">0.02</span><span class="p">)</span>                  <span class="c1"># Time interval between recordings (seconds)</span>
+
+<span class="c1"># Create a gravity analysis step (initialize the model under gravitational forces)</span>
+<span class="n">gravity</span> <span class="o">=</span> <span class="n">fm</span><span class="o">.</span><span class="n">analysis</span><span class="o">.</span><span class="n">create_default_transient_analysis</span><span class="p">(</span><span class="n">username</span><span class="o">=</span><span class="s2">&quot;gravity&quot;</span><span class="p">,</span>
+                                                      <span class="n">dt</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span>      <span class="c1"># Time step size (seconds)</span>
+                                                      <span class="n">num_steps</span><span class="o">=</span><span class="mi">50</span><span class="p">)</span> <span class="c1"># Total number of time steps</span>
+
+<span class="c1"># Add components to the process in sequence</span>
+<span class="n">fm</span><span class="o">.</span><span class="n">process</span><span class="o">.</span><span class="n">add_step</span><span class="p">(</span><span class="n">kobe</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Uniform Excitation (Kobe record)&quot;</span><span class="p">)</span>
+<span class="n">fm</span><span class="o">.</span><span class="n">process</span><span class="o">.</span><span class="n">add_step</span><span class="p">(</span><span class="n">recorder</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Recorder of the whole model&quot;</span><span class="p">)</span>
+<span class="n">fm</span><span class="o">.</span><span class="n">process</span><span class="o">.</span><span class="n">add_step</span><span class="p">(</span><span class="n">gravity</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Gravity Analysis Step&quot;</span><span class="p">)</span>
+
+<span class="c1"># Export to OpenSees Tcl file</span>
+<span class="n">fm</span><span class="o">.</span><span class="n">export_to_tcl</span><span class="p">(</span><span class="s2">&quot;mesh.tcl&quot;</span><span class="p">)</span>
+
+<span class="c1"># Launch the GUI for visualization</span>
+<span class="n">fm</span><span class="o">.</span><span class="n">gui</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+<section id="next-steps">
+<h2>Next Steps<a class="headerlink" href="#next-steps" title="Link to this heading"></a></h2>
+<p>Now that you’ve created your first model with Femora, you can:</p>
+<ul class="simple">
+<li><p>Explore more complex geometries</p></li>
+<li><p>Try different materials</p></li>
+<li><p>Learn about advanced meshing techniques</p></li>
+<li><p>Check out the <a class="reference internal" href="examples.html"><span class="doc">Examples and Tutorials</span></a> for more inspiration</p></li>
+</ul>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="installation.html" class="btn btn-neutral float-left" title="Installation Guide" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="examples.html" class="btn btn-neutral float-right" title="Examples and Tutorials" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Amin Pakzad.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

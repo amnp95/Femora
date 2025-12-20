@@ -1,0 +1,236 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Newton Line Search Algorithm &mdash; Femora (Fast Efficient Meshing for OpenSees-based Resilience Analysis) 0.5.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/custom.css?v=bbbd0671" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=1dd76d02"></script>
+      <script src="../../../_static/doctools.js?v=9a2dae69"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../../../_static/js/copy-button.js?v=47d38097"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="next" title="Krylov Newton Algorithm" href="krylovnewton.html" />
+    <link rel="prev" title="Modified Newton Algorithm" href="modifiednewton.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html">
+            
+              <img src="../../../_static/Femoralogo.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Introduction:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../introduction/getting_started.html">Getting Started with Femora</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../introduction/installation.html">Installation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../introduction/quick_start.html">Quick Start Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../introduction/examples.html">Examples and Tutorials</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Technical Guide:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../../index.html">Technical Documentation</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../../materials.html">Material</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../elements.html">Element</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../damping.html">Damping</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../region.html">Region</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../meshparts.html">MeshPart</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../assembler.html">Assembler</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../constraint.html">Constraints</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../timeseries.html">TimeSeries</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../pattern.html">Pattern</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="../../analysis.html">Analysis</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="../../analysis.html#understanding-the-analysis-component">Understanding the Analysis Component</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../analysis.html#accessing-the-analysis-component">Accessing the Analysis Component</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../analysis.html#how-analysis-works">How Analysis Works</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../analysis.html#analysis-types">Analysis Types</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../analysis.html#analysis-components">Analysis Components</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../analysis.html#analysismanager-api-reference">AnalysisManager API Reference</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../analysis.html#analysis-creation">Analysis Creation</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="../../analysis.html#available-analysis-components">Available Analysis Components</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="../integrators/index.html">Integrators</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../constraint_handlers/index.html">Constraint Handlers</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../numberers/index.html">Equation Numberers</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../systems/index.html">System Solvers</a></li>
+<li class="toctree-l4 current"><a class="reference internal" href="index.html">Solution Algorithms</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../convergence_tests/index.html">Convergence Tests</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../process.html">Process</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../drm.html">DRM</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer Documentation:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../developer/index.html">Developer Documentation</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">Femora (Fast Efficient Meshing for OpenSees-based Resilience Analysis)</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Technical Documentation</a></li>
+          <li class="breadcrumb-item"><a href="../../analysis.html">Analysis</a></li>
+          <li class="breadcrumb-item"><a href="index.html">Solution Algorithms</a></li>
+      <li class="breadcrumb-item active">Newton Line Search Algorithm</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../../_sources/technical/analysis/algorithms/newtonlinesearch.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="newton-line-search-algorithm">
+<h1>Newton Line Search Algorithm<a class="headerlink" href="#newton-line-search-algorithm" title="Link to this heading"></a></h1>
+<p>The Newton Line Search algorithm enhances the Newton-Raphson method by introducing a line search to determine the optimal step size. This can improve convergence when the standard Newton method struggles.</p>
+<section id="description">
+<h2>Description<a class="headerlink" href="#description" title="Link to this heading"></a></h2>
+<p>The Newton Line Search algorithm:
+- Uses the Newton-Raphson method to determine the search direction
+- Performs a line search to find the optimal step size
+- Updates the geometry and internal forces based on the displacement increment
+- Repeats until convergence is achieved
+- Offers multiple line search strategies to adapt to different problem characteristics</p>
+</section>
+<section id="parameters">
+<h2>Parameters<a class="headerlink" href="#parameters" title="Link to this heading"></a></h2>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 25.0%" />
+<col style="width: 10.0%" />
+<col style="width: 65.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Parameter</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">type_search</span></code></p></td>
+<td><p>str</p></td>
+<td><p>Line search algorithm type: “Bisection”, “Secant”, “RegulaFalsi”, or “InitialInterpolated” (default: “InitialInterpolated”)</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">tol</span></code></p></td>
+<td><p>float</p></td>
+<td><p>Tolerance for search (default: 0.8)</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">max_iter</span></code></p></td>
+<td><p>int</p></td>
+<td><p>Maximum number of iterations to try (default: 10)</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">min_eta</span></code></p></td>
+<td><p>float</p></td>
+<td><p>Minimum η value (default: 0.1)</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">max_eta</span></code></p></td>
+<td><p>float</p></td>
+<td><p>Maximum η value (default: 10.0)</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="usage-example">
+<h2>Usage Example<a class="headerlink" href="#usage-example" title="Link to this heading"></a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create a Femora instance</span>
+
+
+<span class="c1"># Create a Newton Line Search algorithm with default settings</span>
+<span class="n">fm</span><span class="o">.</span><span class="n">analysis</span><span class="o">.</span><span class="n">algorithm</span><span class="o">.</span><span class="n">create_algorithm</span><span class="p">(</span><span class="s2">&quot;NewtonLineSearch&quot;</span><span class="p">)</span>
+
+<span class="c1"># Create a Newton Line Search algorithm with custom settings</span>
+<span class="n">fm</span><span class="o">.</span><span class="n">analysis</span><span class="o">.</span><span class="n">algorithm</span><span class="o">.</span><span class="n">create_algorithm</span><span class="p">(</span>
+    <span class="s2">&quot;NewtonLineSearch&quot;</span><span class="p">,</span>
+    <span class="n">type_search</span><span class="o">=</span><span class="s2">&quot;Bisection&quot;</span><span class="p">,</span>
+    <span class="n">tol</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
+    <span class="n">max_iter</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span>
+    <span class="n">min_eta</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span>
+    <span class="n">max_eta</span><span class="o">=</span><span class="mf">5.0</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="notes">
+<h2>Notes<a class="headerlink" href="#notes" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>The Newton Line Search algorithm can be more robust than standard Newton for difficult problems</p></li>
+<li><p>It may require more computational effort per iteration, but often requires fewer iterations</p></li>
+<li><p>Different search types may be more effective for different problem types</p></li>
+<li><p>The “InitialInterpolated” search type is generally a good starting choice</p></li>
+<li><p>The tolerance parameter controls the line search accuracy (smaller values are more accurate but may require more iterations)</p></li>
+</ul>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="modifiednewton.html" class="btn btn-neutral float-left" title="Modified Newton Algorithm" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="krylovnewton.html" class="btn btn-neutral float-right" title="Krylov Newton Algorithm" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Amin Pakzad.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
