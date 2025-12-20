@@ -2,7 +2,7 @@ import os
 import random
 import glob
 from dataclasses import dataclass
-import google.generativeai as genai
+from google import genai
 import time
 
 @dataclass
@@ -30,8 +30,8 @@ def main():
         print("Skipping: GEMINI_API_KEY not found.")
         return
 
-    genai.configure(api_key=api_key)
-    model = genai.GenerativeModel('gemini-1.5-flash')
+    # Updated to use the new Google GenAI SDK
+    client = genai.Client(api_key=api_key)
     
     # 1. Load Context
     try:
@@ -65,7 +65,11 @@ def main():
 
     # 4. Agent Execution
     try:
-        response = model.generate_content(prompt)
+        # Use simple generate_content
+        response = client.models.generate_content(
+            model='gemini-1.5-flash', 
+            contents=prompt
+        )
         new_code = response.text
     except Exception as e:
         print(f"Error generating content: {e}")
