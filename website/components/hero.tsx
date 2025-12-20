@@ -10,7 +10,7 @@ export function Hero() {
           <div className="space-y-8">
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full glass text-sm text-muted-foreground">
               <Sparkles className="w-4 h-4 text-primary" />
-              <span>Fast Efficient Meshing for OpenSees</span>
+              <span>Fast Efficient Meshing for OpenSees-based Resilience Analysis</span>
             </div>
 
             <div className="space-y-4">
@@ -50,7 +50,7 @@ export function Hero() {
               </div>
               <div className="w-px h-12 bg-border"></div>
               <div>
-                <div className="text-2xl font-bold text-accent">3D</div>
+                <div className="text-2xl font-bold text-accent">3D &amp; 2D    </div>
                 <div className="text-sm text-muted-foreground">Mesh Generation</div>
               </div>
               <div className="w-px h-12 bg-border"></div>
