@@ -31,7 +31,7 @@ def main():
         return
 
     genai.configure(api_key=api_key)
-    model = genai.GenerativeModel('gemini-pro')
+    model = genai.GenerativeModel('gemini-1.5-flash')
     
     # 1. Load Context
     try:
