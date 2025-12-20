@@ -1,0 +1,48 @@
+{
+    "$schema": "https://mintlify.com/schema.json",
+    "name": "Femora",
+    "logo": {
+        "light": "/logo/light.svg",
+        "dark": "/logo/dark.svg"
+    },
+    "favicon": "/favicon.png",
+    "colors": {
+        "primary": "#3B82F6",
+        "light": "#60A5FA",
+        "dark": "#1D4ED8",
+        "anchors": "#2563EB"
+    },
+    "topbarLinks": [
+        {
+            "name": "Support",
+            "url": "mailto:support@femora.io"
+        }
+    ],
+    "topbarCtaButton": {
+        "name": "GitHub",
+        "url": "https://github.com/amnp95/Femora"
+    },
+    "primaryTab": {
+        "name": "API Reference"
+    },
+    "tabs": [
+        {
+            "name": "API Reference",
+            "url": "docs"
+        }
+    ],
+    "anchors": [],
+    "navigation": [
+        {
+            "group": "API Reference",
+            "pages": [
+                "docs/introduction",
+                "docs/quickstart"
+            ]
+        }
+    ],
+    "footerSocials": {
+        "github": "https://github.com/amnp95/Femora",
+        "twitter": "https://twitter.com/femora"
+    }
+}
