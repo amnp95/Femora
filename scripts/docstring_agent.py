@@ -30,7 +30,6 @@ def main():
         print("Skipping: GEMINI_API_KEY not found.")
         return
 
-    # Updated to use the new Google GenAI SDK
     client = genai.Client(api_key=api_key)
     
     # 1. Load Context
@@ -63,19 +62,42 @@ def main():
     {original_code}
     """
 
-    try:
-        # Try gemini-1.5-flash first
-        response = client.models.generate_content(
-            model='gemini-1.5-flash', 
-            contents=prompt
-        )
-        new_code = response.text
-    except Exception as e:
-        print(f"Error generating content: {e}")
+    # 4. Agent Execution with Retry Logic
+    models_to_try = [
+        'gemini-1.5-flash',
+        'gemini-1.5-flash-001',
+        'gemini-1.5-flash-002',
+        'gemini-1.5-pro',
+        'gemini-1.0-pro'
+    ]
+    
+    new_code = None
+    
+    for model_name in models_to_try:
+        print(f"Trying model: {model_name}...")
+        try:
+            response = client.models.generate_content(
+                model=model_name, 
+                contents=prompt
+            )
+            new_code = response.text
+            print(f"Success with {model_name}!")
+            break
+        except Exception as e:
+            print(f"Failed with {model_name}: {e}")
+            
+    if not new_code:
+        print("ALL models failed.")
         print("DEBUG: Listing available models for this API Key:")
         try:
             for m in client.models.list():
-                print(f" - {m.name} (Supported: {m.supported_generation_methods})")
+                # Safely inspect the model object
+                try:
+                    name = getattr(m, 'name', 'Unknown')
+                    disp = getattr(m, 'display_name', '')
+                    print(f" - {name} ({disp})")
+                except:
+                    print(f" - {m}")
         except Exception as e2:
             print(f"Error listing models: {e2}")
         return
