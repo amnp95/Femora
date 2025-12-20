@@ -4,80 +4,81 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  /* Creating ultra-modern dark theme with cyan/blue accent for technical/scientific aesthetic */
-  --background: oklch(0.09 0.01 265);
-  --foreground: oklch(0.98 0.005 265);
-  --card: oklch(0.12 0.015 265);
-  --card-foreground: oklch(0.98 0.005 265);
-  --popover: oklch(0.11 0.015 265);
-  --popover-foreground: oklch(0.98 0.005 265);
-  --primary: oklch(0.75 0.19 230);
-  --primary-foreground: oklch(0.09 0.01 265);
-  --secondary: oklch(0.18 0.02 265);
-  --secondary-foreground: oklch(0.98 0.005 265);
-  --muted: oklch(0.16 0.015 265);
-  --muted-foreground: oklch(0.62 0.01 265);
-  --accent: oklch(0.68 0.22 195);
-  --accent-foreground: oklch(0.09 0.01 265);
+  /* Updated to warm color scheme with orange and coral accents */
+  --background: oklch(0.99 0.002 75);
+  --foreground: oklch(0.12 0.015 45);
+  --card: oklch(0.98 0.003 75);
+  --card-foreground: oklch(0.12 0.015 45);
+  --popover: oklch(0.99 0.002 75);
+  --popover-foreground: oklch(0.12 0.015 45);
+  --primary: oklch(0.58 0.18 35);
+  --primary-foreground: oklch(0.99 0.002 75);
+  --secondary: oklch(0.94 0.01 75);
+  --secondary-foreground: oklch(0.12 0.015 45);
+  --muted: oklch(0.96 0.005 75);
+  --muted-foreground: oklch(0.48 0.015 45);
+  --accent: oklch(0.65 0.21 45);
+  --accent-foreground: oklch(0.99 0.002 75);
   --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: oklch(0.98 0.005 265);
-  --border: oklch(0.22 0.02 265);
-  --input: oklch(0.22 0.02 265);
-  --ring: oklch(0.75 0.19 230);
-  --chart-1: oklch(0.75 0.19 230);
-  --chart-2: oklch(0.68 0.22 195);
-  --chart-3: oklch(0.72 0.18 285);
-  --chart-4: oklch(0.7 0.2 165);
-  --chart-5: oklch(0.65 0.21 310);
+  --destructive-foreground: oklch(0.99 0.002 75);
+  --border: oklch(0.88 0.01 75);
+  --input: oklch(0.88 0.01 75);
+  --ring: oklch(0.58 0.18 35);
+  --chart-1: oklch(0.58 0.18 35);
+  --chart-2: oklch(0.65 0.21 45);
+  --chart-3: oklch(0.62 0.19 55);
+  --chart-4: oklch(0.6 0.2 25);
+  --chart-5: oklch(0.64 0.18 15);
   --radius: 0.75rem;
-  --sidebar: oklch(0.11 0.015 265);
-  --sidebar-foreground: oklch(0.98 0.005 265);
-  --sidebar-primary: oklch(0.75 0.19 230);
-  --sidebar-primary-foreground: oklch(0.09 0.01 265);
-  --sidebar-accent: oklch(0.18 0.02 265);
-  --sidebar-accent-foreground: oklch(0.98 0.005 265);
-  --sidebar-border: oklch(0.22 0.02 265);
-  --sidebar-ring: oklch(0.75 0.19 230);
+  --sidebar: oklch(0.98 0.003 75);
+  --sidebar-foreground: oklch(0.12 0.015 45);
+  --sidebar-primary: oklch(0.58 0.18 35);
+  --sidebar-primary-foreground: oklch(0.99 0.002 75);
+  --sidebar-accent: oklch(0.94 0.01 75);
+  --sidebar-accent-foreground: oklch(0.12 0.015 45);
+  --sidebar-border: oklch(0.88 0.01 75);
+  --sidebar-ring: oklch(0.58 0.18 35);
 }
 
 .dark {
-  --background: oklch(0.09 0.01 265);
-  --foreground: oklch(0.98 0.005 265);
-  --card: oklch(0.12 0.015 265);
-  --card-foreground: oklch(0.98 0.005 265);
-  --popover: oklch(0.11 0.015 265);
-  --popover-foreground: oklch(0.98 0.005 265);
-  --primary: oklch(0.75 0.19 230);
-  --primary-foreground: oklch(0.09 0.01 265);
-  --secondary: oklch(0.18 0.02 265);
-  --secondary-foreground: oklch(0.98 0.005 265);
-  --muted: oklch(0.16 0.015 265);
-  --muted-foreground: oklch(0.62 0.01 265);
-  --accent: oklch(0.68 0.22 195);
-  --accent-foreground: oklch(0.09 0.01 265);
+  /* Updated dark mode to warm tones with orange and amber accents */
+  --background: oklch(0.09 0.01 45);
+  --foreground: oklch(0.98 0.005 75);
+  --card: oklch(0.12 0.015 45);
+  --card-foreground: oklch(0.98 0.005 75);
+  --popover: oklch(0.11 0.015 45);
+  --popover-foreground: oklch(0.98 0.005 75);
+  --primary: oklch(0.72 0.19 45);
+  --primary-foreground: oklch(0.09 0.01 45);
+  --secondary: oklch(0.18 0.02 45);
+  --secondary-foreground: oklch(0.98 0.005 75);
+  --muted: oklch(0.16 0.015 45);
+  --muted-foreground: oklch(0.62 0.01 75);
+  --accent: oklch(0.68 0.22 35);
+  --accent-foreground: oklch(0.09 0.01 45);
   --destructive: oklch(0.396 0.141 25.723);
-  --destructive-foreground: oklch(0.98 0.005 265);
-  --border: oklch(0.22 0.02 265);
-  --input: oklch(0.22 0.02 265);
-  --ring: oklch(0.75 0.19 230);
-  --chart-1: oklch(0.75 0.19 230);
-  --chart-2: oklch(0.68 0.22 195);
-  --chart-3: oklch(0.72 0.18 285);
-  --chart-4: oklch(0.7 0.2 165);
-  --chart-5: oklch(0.65 0.21 310);
-  --sidebar: oklch(0.11 0.015 265);
-  --sidebar-foreground: oklch(0.98 0.005 265);
-  --sidebar-primary: oklch(0.75 0.19 230);
-  --sidebar-primary-foreground: oklch(0.09 0.01 265);
-  --sidebar-accent: oklch(0.18 0.02 265);
-  --sidebar-accent-foreground: oklch(0.98 0.005 265);
-  --sidebar-border: oklch(0.22 0.02 265);
-  --sidebar-ring: oklch(0.75 0.19 230);
+  --destructive-foreground: oklch(0.98 0.005 75);
+  --border: oklch(0.22 0.02 45);
+  --input: oklch(0.22 0.02 45);
+  --ring: oklch(0.72 0.19 45);
+  --chart-1: oklch(0.72 0.19 45);
+  --chart-2: oklch(0.68 0.22 35);
+  --chart-3: oklch(0.7 0.2 55);
+  --chart-4: oklch(0.66 0.21 25);
+  --chart-5: oklch(0.69 0.18 15);
+  --sidebar: oklch(0.11 0.015 45);
+  --sidebar-foreground: oklch(0.98 0.005 75);
+  --sidebar-primary: oklch(0.72 0.19 45);
+  --sidebar-primary-foreground: oklch(0.09 0.01 45);
+  --sidebar-accent: oklch(0.18 0.02 45);
+  --sidebar-accent-foreground: oklch(0.98 0.005 75);
+  --sidebar-border: oklch(0.22 0.02 45);
+  --sidebar-ring: oklch(0.72 0.19 45);
 }
 
 @theme inline {
-  --font-sans: "Geist", "Geist Fallback";
-  --font-mono: "Geist Mono", "Geist Mono Fallback";
+  --font-sans: 'Geist', 'Geist Fallback';
+  --font-mono: 'Geist Mono', 'Geist Mono Fallback';
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -114,7 +115,7 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
-}
+  --font-serif: 'Bree Serif', 'Bree Serif Fallback';}
 
 @layer base {
   * {
@@ -125,19 +126,13 @@
   }
 }
 
-/* Adding custom glassmorphism and mesh effect styles */
+/* Update glassmorphism to work in both light and dark modes */
 @layer utilities {
   .glass {
-    background: rgba(255, 255, 255, 0.02);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.05);
+    @apply bg-card/30 backdrop-blur-xl border border-border/50;
   }
 
   .glass-strong {
-    background: rgba(255, 255, 255, 0.04);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    @apply bg-card/50 backdrop-blur-xl border border-border/70;
   }
 }

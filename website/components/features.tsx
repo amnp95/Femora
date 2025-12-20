@@ -1,4 +1,4 @@
-import { Box, Layers, Zap, Code2, Eye, FileCode } from "lucide-react"
+import { Box, Network, Layers, Radio, Eye, FileCode } from "lucide-react"
 import { Card } from "@/components/ui/card"
 
 const features = [
@@ -8,19 +8,19 @@ const features = [
     description: "Create complex 3D soil and structural models with minimal code and intuitive API",
   },
   {
+    icon: Network,
+    title: "Domain Decomposition",
+    description: "HPC-ready parallel computing with advanced domain decomposition for large-scale simulations",
+  },
+  {
     icon: Layers,
-    title: "Domain Reduction Method",
-    description: "Advanced DRM technique for realistic seismic wave propagation in your models",
+    title: "Comprehensive Interface",
+    description: "Support all materials, analysis types, elements, and everything available in OpenSees",
   },
   {
-    icon: Zap,
-    title: "Comprehensive Material Library",
-    description: "Extensive collection of soil and structural materials ready to use",
-  },
-  {
-    icon: Code2,
-    title: "Analysis Components",
-    description: "Full suite of solvers, algorithms, integrators, and convergence tests",
+    icon: Radio,
+    title: "Domain Reduction & PML",
+    description: "Advanced DRM technique and Perfectly Matched Layer elements for realistic seismic wave propagation",
   },
   {
     icon: Eye,

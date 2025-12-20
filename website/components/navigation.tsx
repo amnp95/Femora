@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Github } from "lucide-react"
+import { ThemeToggle } from "@/components/theme-toggle"
 
 export function Navigation() {
   return (
@@ -30,8 +31,9 @@ export function Navigation() {
           </div>
 
           <div className="flex items-center gap-3">
+            <ThemeToggle />
             <Button variant="ghost" size="sm" asChild>
-              <a href="https://github.com/amnp95/Femora" target="_blank" rel="noopener noreferrer">
+              <a href="https://github.com/GeotechUW/Femora.git" target="_blank" rel="noopener noreferrer">
                 <Github className="w-4 h-4" />
               </a>
             </Button>
