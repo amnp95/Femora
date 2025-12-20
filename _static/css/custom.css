@@ -1,0 +1,81 @@
+/* Custom styles for API documentation */
+
+/* API method containers */
+.api-methods {
+    background-color: #FCF5ED;
+    border-left: 3px solid #2980b9;
+    padding: 10px 15px;
+    margin-bottom: 15px;
+    border-radius: 0 3px 3px 0;
+}
+
+.api-methods ul {
+    margin-bottom: 0;
+}
+
+/* API attribute containers */
+.api-attributes {
+    background-color: #FCF5ED;
+    border-left: 3px solid #27ae60;
+    padding: 10px 15px;
+    margin-bottom: 15px;
+    border-radius: 0 3px 3px 0;
+}
+
+/* Method details */
+dl.method, dl.function {
+    padding: 10px;
+    border-bottom: 1px solid #eaeaea;
+    margin-bottom: 20px;
+    background-color: #FCF5ED; /* Changed from #fcfcfc */
+}
+
+dl.method:hover, dl.function:hover {
+    background-color: #FCF5ED;
+}
+
+/* Method signatures */
+dl.method > dt, dl.function > dt {
+    padding: 8px;
+    border-radius: 3px;
+    border-left: 4px solid #2980b9;
+    background-color: #FCF5ED;
+    font-family: monospace;
+}
+
+/* Rubric headers */
+p.rubric {
+    font-size: 1.3em;
+    color: #2c3e50;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 5px;
+    margin-top: 25px;
+}
+
+/* Class header */
+h1.class-title {
+    background: #FCF5ED;
+    padding: 10px 15px;
+    border-radius: 5px;
+    border-left: 5px solid #3572A5;
+}
+
+/* Custom styling for just the logo area */
+.wy-side-nav-search {
+    background-color: #FCF5ED !important;
+    border: 1px solid #ddd !important;
+    padding: 10px !important;
+    margin: 0 !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+    transition: all 0.3s ease !important;
+}
+
+/* Documentation page background */
+body, .wy-body-for-nav, .wy-nav-content-wrap {
+    background-color: #FCF5ED !important;
+}
+
+/* Ensure the main content area also has the background color */
+.wy-nav-content {
+    background-color: #FCF5ED !important;
+}

@@ -1,0 +1,276 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Process &mdash; Femora (Fast Efficient Meshing for OpenSees-based Resilience Analysis) 0.5.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/custom.css?v=bbbd0671" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=1dd76d02"></script>
+      <script src="../_static/doctools.js?v=9a2dae69"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../_static/js/copy-button.js?v=47d38097"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="DRM" href="drm.html" />
+    <link rel="prev" title="Norm Disp Or Unbalance Convergence Test" href="analysis/convergence_tests/norm_disp_or_unbalance.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html">
+            
+              <img src="../_static/Femoralogo.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Introduction:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../introduction/getting_started.html">Getting Started with Femora</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../introduction/installation.html">Installation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../introduction/quick_start.html">Quick Start Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../introduction/examples.html">Examples and Tutorials</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Technical Guide:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Technical Documentation</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="materials.html">Material</a></li>
+<li class="toctree-l2"><a class="reference internal" href="elements.html">Element</a></li>
+<li class="toctree-l2"><a class="reference internal" href="damping.html">Damping</a></li>
+<li class="toctree-l2"><a class="reference internal" href="region.html">Region</a></li>
+<li class="toctree-l2"><a class="reference internal" href="meshparts.html">MeshPart</a></li>
+<li class="toctree-l2"><a class="reference internal" href="assembler.html">Assembler</a></li>
+<li class="toctree-l2"><a class="reference internal" href="constraint.html">Constraints</a></li>
+<li class="toctree-l2"><a class="reference internal" href="timeseries.html">TimeSeries</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pattern.html">Pattern</a></li>
+<li class="toctree-l2"><a class="reference internal" href="analysis.html">Analysis</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Process</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#understanding-the-process-component">Understanding the Process Component</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#accessing-the-process-component">Accessing the Process Component</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#how-process-works">How Process Works</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#supported-component-types">Supported Component Types</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#processmanager-api-reference">ProcessManager API Reference</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#process-management">Process Management</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="drm.html">DRM</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer Documentation:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../developer/index.html">Developer Documentation</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Femora (Fast Efficient Meshing for OpenSees-based Resilience Analysis)</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">Technical Documentation</a></li>
+      <li class="breadcrumb-item active">Process</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/technical/process.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="process">
+<h1>Process<a class="headerlink" href="#process" title="Link to this heading"></a></h1>
+<section id="understanding-the-process-component">
+<h2>Understanding the Process Component<a class="headerlink" href="#understanding-the-process-component" title="Link to this heading"></a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">Process</span></code> component is a core part of the Femora library that manages the sequence of operations in a structural analysis. It implements a system for defining, organizing, and executing analysis steps in a coherent order.</p>
+<p>The Process component provides functionality to:
+- Add steps to the analysis process
+- Insert steps at specific positions
+- Remove steps
+- Track the current step during execution
+- Convert the entire process to OpenSees TCL commands</p>
+<p>Each step in the process consists of a component object (such as a constraint, pattern, recorder, or analysis) and an optional description.</p>
+</section>
+<section id="accessing-the-process-component">
+<h2>Accessing the Process Component<a class="headerlink" href="#accessing-the-process-component" title="Link to this heading"></a></h2>
+<p>There are two ways to access the Process component in your code:</p>
+<ol class="arabic">
+<li><p><strong>Direct Access</strong>: Import and use the ProcessManager class directly</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">femora.components.Process.process</span><span class="w"> </span><span class="kn">import</span> <span class="n">ProcessManager</span>
+
+<span class="c1"># Get the singleton instance</span>
+<span class="n">process_manager</span> <span class="o">=</span> <span class="n">ProcessManager</span><span class="p">()</span>
+
+<span class="c1"># Use the process manager directly</span>
+<span class="n">process_manager</span><span class="o">.</span><span class="n">add_step</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+</pre></div>
+</div>
+</li>
+<li><p><strong>Through Femora</strong> (Recommended): Access via the Femora class’s .process property</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">femora</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">fm</span>
+
+<span class="c1"># Create a Femora instance</span>
+
+
+<span class="c1"># Access the ProcessManager through the .process property</span>
+<span class="n">fm</span><span class="o">.</span><span class="n">process</span><span class="o">.</span><span class="n">add_step</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+</pre></div>
+</div>
+</li>
+</ol>
+<p>The second approach is recommended as it provides a unified interface to all of Femora’s components and ensures proper initialization of all dependencies.</p>
+</section>
+<section id="how-process-works">
+<h2>How Process Works<a class="headerlink" href="#how-process-works" title="Link to this heading"></a></h2>
+<p>The Process component provides several key capabilities:</p>
+<ol class="arabic simple">
+<li><p><strong>Step Management</strong>: Add, insert, remove, and clear steps in the analysis process</p></li>
+<li><p><strong>Step Tracking</strong>: Keep track of the current step during execution</p></li>
+<li><p><strong>Process Iteration</strong>: Iterate through all steps in the process</p></li>
+<li><p><strong>TCL Generation</strong>: Convert the entire process to OpenSees TCL commands</p></li>
+</ol>
+<p>When a step is added to the process:</p>
+<ol class="arabic simple">
+<li><p>A weak reference to the component is stored (to avoid circular references)</p></li>
+<li><p>The step description is stored alongside the component reference</p></li>
+<li><p>The step is added to the internal list of steps</p></li>
+</ol>
+</section>
+<section id="supported-component-types">
+<h2>Supported Component Types<a class="headerlink" href="#supported-component-types" title="Link to this heading"></a></h2>
+<p>The Process component supports the following types of components:</p>
+<ol class="arabic simple">
+<li><p><strong>SPConstraint</strong>: Single-point constraints that fix specific degrees of freedom</p></li>
+<li><p><strong>mpConstraint</strong>: Multi-point constraints that relate degrees of freedom between nodes</p></li>
+<li><p><strong>Pattern</strong>: Load patterns that define how loads are applied to the structure</p></li>
+<li><p><strong>Recorder</strong>: Recorders that capture the response of the structure during analysis</p></li>
+<li><p><strong>Analysis</strong>: Analysis objects that define how the solution is performed</p></li>
+</ol>
+</section>
+<section id="processmanager-api-reference">
+<h2>ProcessManager API Reference<a class="headerlink" href="#processmanager-api-reference" title="Link to this heading"></a></h2>
+</section>
+<section id="process-management">
+<h2>Process Management<a class="headerlink" href="#process-management" title="Link to this heading"></a></h2>
+<p>Managing the analysis process is the primary function of the ProcessManager. There are several operations available:</p>
+<ol class="arabic simple">
+<li><p><strong>Adding Steps</strong>
+- Appends a new step to the end of the process
+- Requires a component object and an optional description</p></li>
+<li><p><strong>Inserting Steps</strong>
+- Inserts a step at a specific position in the process
+- Useful for modifying an existing process</p></li>
+<li><p><strong>Removing Steps</strong>
+- Removes a step at a specific position
+- Automatically adjusts the current step tracking if needed</p></li>
+<li><p><strong>Clearing Steps</strong>
+- Removes all steps from the process
+- Resets the current step tracking</p></li>
+<li><p><strong>Getting Steps</strong>
+- Retrieves all steps or a specific step
+- Useful for inspecting the current process state</p></li>
+</ol>
+<p>Example of creating and managing a process:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">femora</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">fm</span>
+
+<span class="c1"># Create a Femora instance</span>
+
+
+<span class="c1"># Create components for the process</span>
+<span class="n">sp_constraint</span> <span class="o">=</span> <span class="n">fm</span><span class="o">.</span><span class="n">constraint</span><span class="o">.</span><span class="n">sp</span><span class="o">.</span><span class="n">create_constraint</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+<span class="n">pattern</span> <span class="o">=</span> <span class="n">fm</span><span class="o">.</span><span class="n">pattern</span><span class="o">.</span><span class="n">create_pattern</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+<span class="n">analysis</span> <span class="o">=</span> <span class="n">fm</span><span class="o">.</span><span class="n">analysis</span><span class="o">.</span><span class="n">create_analysis</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+<span class="n">recorder</span> <span class="o">=</span> <span class="n">fm</span><span class="o">.</span><span class="n">recorder</span><span class="o">.</span><span class="n">create_node_recorder</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+
+<span class="c1"># Add steps to the process</span>
+<span class="n">fm</span><span class="o">.</span><span class="n">process</span><span class="o">.</span><span class="n">add_step</span><span class="p">(</span><span class="n">sp_constraint</span><span class="p">,</span> <span class="s2">&quot;Apply boundary conditions&quot;</span><span class="p">)</span>
+<span class="n">fm</span><span class="o">.</span><span class="n">process</span><span class="o">.</span><span class="n">add_step</span><span class="p">(</span><span class="n">pattern</span><span class="p">,</span> <span class="s2">&quot;Apply gravity loads&quot;</span><span class="p">)</span>
+<span class="n">fm</span><span class="o">.</span><span class="n">process</span><span class="o">.</span><span class="n">add_step</span><span class="p">(</span><span class="n">recorder</span><span class="p">,</span> <span class="s2">&quot;Set up recorder&quot;</span><span class="p">)</span>
+<span class="n">fm</span><span class="o">.</span><span class="n">process</span><span class="o">.</span><span class="n">add_step</span><span class="p">(</span><span class="n">analysis</span><span class="p">,</span> <span class="s2">&quot;Run analysis&quot;</span><span class="p">)</span>
+
+<span class="c1"># Insert a step at position 2</span>
+<span class="n">mp_constraint</span> <span class="o">=</span> <span class="n">fm</span><span class="o">.</span><span class="n">constraint</span><span class="o">.</span><span class="n">mp</span><span class="o">.</span><span class="n">create_constraint</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+<span class="n">fm</span><span class="o">.</span><span class="n">process</span><span class="o">.</span><span class="n">insert_step</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">mp_constraint</span><span class="p">,</span> <span class="s2">&quot;Apply multi-point constraints&quot;</span><span class="p">)</span>
+
+<span class="c1"># Remove a step</span>
+<span class="n">fm</span><span class="o">.</span><span class="n">process</span><span class="o">.</span><span class="n">remove_step</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+<span class="c1"># Get all steps</span>
+<span class="n">steps</span> <span class="o">=</span> <span class="n">fm</span><span class="o">.</span><span class="n">process</span><span class="o">.</span><span class="n">get_steps</span><span class="p">()</span>
+
+<span class="c1"># Get a specific step</span>
+<span class="n">step</span> <span class="o">=</span> <span class="n">fm</span><span class="o">.</span><span class="n">process</span><span class="o">.</span><span class="n">get_step</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+<span class="c1"># Clear all steps</span>
+<span class="n">fm</span><span class="o">.</span><span class="n">process</span><span class="o">.</span><span class="n">clear_steps</span><span class="p">()</span>
+
+<span class="c1"># Generate TCL script for the process</span>
+<span class="n">tcl_script</span> <span class="o">=</span> <span class="n">fm</span><span class="o">.</span><span class="n">process</span><span class="o">.</span><span class="n">to_tcl</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Each step in the process is executed in sequence when the analysis is run, generating the appropriate OpenSees TCL commands based on the components in each step.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="analysis/convergence_tests/norm_disp_or_unbalance.html" class="btn btn-neutral float-left" title="Norm Disp Or Unbalance Convergence Test" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="drm.html" class="btn btn-neutral float-right" title="DRM" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Amin Pakzad.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

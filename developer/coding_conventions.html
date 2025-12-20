@@ -1,0 +1,212 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Coding Style and Naming Conventions &mdash; Femora (Fast Efficient Meshing for OpenSees-based Resilience Analysis) 0.5.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/custom.css?v=bbbd0671" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=1dd76d02"></script>
+      <script src="../_static/doctools.js?v=9a2dae69"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../_static/js/copy-button.js?v=47d38097"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html">
+            
+              <img src="../_static/Femoralogo.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Introduction:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../introduction/getting_started.html">Getting Started with Femora</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../introduction/installation.html">Installation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../introduction/quick_start.html">Quick Start Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../introduction/examples.html">Examples and Tutorials</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Technical Guide:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../technical/index.html">Technical Documentation</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer Documentation:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="index.html">Developer Documentation</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Femora (Fast Efficient Meshing for OpenSees-based Resilience Analysis)</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Coding Style and Naming Conventions</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/developer/coding_conventions.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="coding-style-and-naming-conventions">
+<h1>Coding Style and Naming Conventions<a class="headerlink" href="#coding-style-and-naming-conventions" title="Link to this heading"></a></h1>
+<p>This library follows the official Python style guide (PEP 8) for code consistency, readability, and maintainability. Below are the naming conventions and practices used throughout the codebase.</p>
+<section id="class-naming">
+<h2>Class Naming<a class="headerlink" href="#class-naming" title="Link to this heading"></a></h2>
+<ul>
+<li><p>Use <code class="docutils literal notranslate"><span class="pre">PascalCase</span></code> for class names.</p></li>
+<li><p>Class names are typically nouns that represent data structures or objects.</p>
+<p><strong>Examples</strong>:
+- <code class="docutils literal notranslate"><span class="pre">SoilProfile</span></code>
+- <code class="docutils literal notranslate"><span class="pre">TransferFunction</span></code>
+- <code class="docutils literal notranslate"><span class="pre">MeshGenerator</span></code></p>
+</li>
+</ul>
+</section>
+<section id="function-and-method-naming">
+<h2>Function and Method Naming<a class="headerlink" href="#function-and-method-naming" title="Link to this heading"></a></h2>
+<ul>
+<li><p>Use <code class="docutils literal notranslate"><span class="pre">snake_case</span></code> for function and method names.</p></li>
+<li><p>Names should be descriptive and indicate the function’s purpose.</p>
+<p><strong>Examples</strong>:
+- <code class="docutils literal notranslate"><span class="pre">compute_tf()</span></code>
+- <code class="docutils literal notranslate"><span class="pre">plot_profile()</span></code>
+- <code class="docutils literal notranslate"><span class="pre">load_input_data()</span></code></p>
+</li>
+</ul>
+</section>
+<section id="variable-naming">
+<h2>Variable Naming<a class="headerlink" href="#variable-naming" title="Link to this heading"></a></h2>
+<ul>
+<li><p>Use <code class="docutils literal notranslate"><span class="pre">snake_case</span></code> for variable names.</p></li>
+<li><p>Choose clear and meaningful names.</p></li>
+<li><p>Boolean variables should read like yes/no questions.</p>
+<p><strong>Examples</strong>:
+- <code class="docutils literal notranslate"><span class="pre">vs_profile</span></code>
+- <code class="docutils literal notranslate"><span class="pre">input_motion</span></code>
+- <code class="docutils literal notranslate"><span class="pre">is_valid</span></code>, <code class="docutils literal notranslate"><span class="pre">has_converged</span></code></p>
+</li>
+</ul>
+</section>
+<section id="constant-naming">
+<h2>Constant Naming<a class="headerlink" href="#constant-naming" title="Link to this heading"></a></h2>
+<ul>
+<li><p>Use <code class="docutils literal notranslate"><span class="pre">ALL_CAPS_WITH_UNDERSCORES</span></code> for constants.</p></li>
+<li><p>Constants are defined at the module level and not expected to change.</p>
+<p><strong>Examples</strong>:
+- <code class="docutils literal notranslate"><span class="pre">MAX_ITERATIONS</span></code>
+- <code class="docutils literal notranslate"><span class="pre">DEFAULT_DAMPING_RATIO</span></code></p>
+</li>
+</ul>
+</section>
+<section id="module-and-file-naming">
+<h2>Module and File Naming<a class="headerlink" href="#module-and-file-naming" title="Link to this heading"></a></h2>
+<ul>
+<li><p>File names (modules) use <code class="docutils literal notranslate"><span class="pre">snake_case</span></code>.</p></li>
+<li><p>Names are short and descriptive.</p></li>
+<li><p>Avoid using names that shadow Python built-in modules (e.g., <code class="docutils literal notranslate"><span class="pre">math.py</span></code>).</p>
+<p><strong>Examples</strong>:
+- <code class="docutils literal notranslate"><span class="pre">transfer_function.py</span></code>
+- <code class="docutils literal notranslate"><span class="pre">soil_profile.py</span></code>
+- <code class="docutils literal notranslate"><span class="pre">mesh_generator.py</span></code>
+- <code class="docutils literal notranslate"><span class="pre">io_handler.py</span></code></p>
+</li>
+</ul>
+</section>
+<section id="package-naming">
+<h2>Package Naming<a class="headerlink" href="#package-naming" title="Link to this heading"></a></h2>
+<ul>
+<li><p>Package (folder) names are all lowercase and typically a single word.</p>
+<p><strong>Example</strong>:
+- <code class="docutils literal notranslate"><span class="pre">femora</span></code></p>
+</li>
+</ul>
+</section>
+<section id="private-functions-and-methods">
+<h2>Private Functions and Methods<a class="headerlink" href="#private-functions-and-methods" title="Link to this heading"></a></h2>
+<ul>
+<li><p>Prefix with an underscore <code class="docutils literal notranslate"><span class="pre">_</span></code> to indicate internal use only.</p>
+<p><strong>Example</strong>:
+- <code class="docutils literal notranslate"><span class="pre">_compute_internal_values()</span></code></p>
+</li>
+</ul>
+</section>
+<section id="dunder-magic-methods">
+<h2>Dunder (Magic) Methods<a class="headerlink" href="#dunder-magic-methods" title="Link to this heading"></a></h2>
+<ul>
+<li><p>Special Python methods use double underscores before and after.</p></li>
+<li><p>Use only for protocol behaviors (e.g., initialization, string representation).</p>
+<p><strong>Examples</strong>:
+- <code class="docutils literal notranslate"><span class="pre">__init__()</span></code>
+- <code class="docutils literal notranslate"><span class="pre">__repr__()</span></code>
+- <code class="docutils literal notranslate"><span class="pre">__call__()</span></code></p>
+</li>
+</ul>
+<p>Following these conventions ensures the code remains intuitive, maintainable, and welcoming for contributors.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Amin Pakzad.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

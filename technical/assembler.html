@@ -1,0 +1,310 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Assembler &mdash; Femora (Fast Efficient Meshing for OpenSees-based Resilience Analysis) 0.5.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/custom.css?v=bbbd0671" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=1dd76d02"></script>
+      <script src="../_static/doctools.js?v=9a2dae69"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../_static/js/copy-button.js?v=47d38097"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Constraints" href="constraint.html" />
+    <link rel="prev" title="Geometric Rectangular Grid" href="meshparts/volume/GeometricRectangularGrid.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html">
+            
+              <img src="../_static/Femoralogo.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Introduction:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../introduction/getting_started.html">Getting Started with Femora</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../introduction/installation.html">Installation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../introduction/quick_start.html">Quick Start Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../introduction/examples.html">Examples and Tutorials</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Technical Guide:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Technical Documentation</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="materials.html">Material</a></li>
+<li class="toctree-l2"><a class="reference internal" href="elements.html">Element</a></li>
+<li class="toctree-l2"><a class="reference internal" href="damping.html">Damping</a></li>
+<li class="toctree-l2"><a class="reference internal" href="region.html">Region</a></li>
+<li class="toctree-l2"><a class="reference internal" href="meshparts.html">MeshPart</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Assembler</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#introduction">Introduction</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#understanding-the-assembler">Understanding the Assembler</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#accessing-the-assembler">Accessing the Assembler</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#structure-of-the-assembler">Structure of the Assembler</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#understanding-assembly-sections">Understanding Assembly Sections</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#creating-assembly-sections">Creating Assembly Sections</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#merging-points-in-assembly-sections">Merging Points in Assembly Sections</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#partitioning-strategies">Partitioning Strategies</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#assembled-mesh-structure">Assembled Mesh Structure</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#assembling-the-complete-mesh">Assembling the Complete Mesh</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#api-reference">API Reference</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#best-practices">Best Practices</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#use-cases">Use Cases</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="constraint.html">Constraints</a></li>
+<li class="toctree-l2"><a class="reference internal" href="timeseries.html">TimeSeries</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pattern.html">Pattern</a></li>
+<li class="toctree-l2"><a class="reference internal" href="analysis.html">Analysis</a></li>
+<li class="toctree-l2"><a class="reference internal" href="process.html">Process</a></li>
+<li class="toctree-l2"><a class="reference internal" href="drm.html">DRM</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer Documentation:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../developer/index.html">Developer Documentation</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Femora (Fast Efficient Meshing for OpenSees-based Resilience Analysis)</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">Technical Documentation</a></li>
+      <li class="breadcrumb-item active">Assembler</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/technical/assembler.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="assembler">
+<h1>Assembler<a class="headerlink" href="#assembler" title="Link to this heading"></a></h1>
+<section id="introduction">
+<h2>Introduction<a class="headerlink" href="#introduction" title="Link to this heading"></a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">Assembler</span></code> component in Femora is responsible for combining multiple mesh parts into a unified model, partitioning the model for parallel computing, and managing the combined mesh. It provides a centralized system for creating and managing assembly sections, which are groups of mesh parts that are combined into a single mesh.</p>
+<p>The Assembler system consists of two main classes:</p>
+<ol class="arabic simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">Assembler</span></code>: A singleton class that manages multiple <code class="docutils literal notranslate"><span class="pre">AssemblySection</span></code> instances</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">AssemblySection</span></code>: A class that represents a group of mesh parts combined into a single mesh</p></li>
+</ol>
+</section>
+<section id="understanding-the-assembler">
+<h2>Understanding the Assembler<a class="headerlink" href="#understanding-the-assembler" title="Link to this heading"></a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">Assembler</span></code> class implements the Singleton pattern, ensuring that only one instance exists throughout the application. This provides a centralized point for managing assembly sections and accessing the assembled mesh.</p>
+<section id="accessing-the-assembler">
+<h3>Accessing the Assembler<a class="headerlink" href="#accessing-the-assembler" title="Link to this heading"></a></h3>
+<p>There are two ways to access the Assembler:</p>
+<ol class="arabic">
+<li><p><strong>Direct Access</strong>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">femora.components.Assemble.Assembler</span><span class="w"> </span><span class="kn">import</span> <span class="n">Assembler</span>
+
+<span class="c1"># Get the singleton instance</span>
+<span class="n">assembler</span> <span class="o">=</span> <span class="n">Assembler</span><span class="p">()</span>
+
+<span class="c1"># Or use the class method</span>
+<span class="n">assembler</span> <span class="o">=</span> <span class="n">Assembler</span><span class="o">.</span><span class="n">get_instance</span><span class="p">()</span>
+</pre></div>
+</div>
+</li>
+<li><p><strong>Through Femora</strong> (recommended):</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">femora</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">fm</span>
+
+<span class="c1"># Create a Femora instance</span>
+
+
+<span class="c1"># Access the Assembler through femora</span>
+<span class="n">assembler</span> <span class="o">=</span> <span class="n">fm</span><span class="o">.</span><span class="n">assembler</span>
+</pre></div>
+</div>
+</li>
+</ol>
+<p>The second approach is recommended as it ensures proper initialization of dependencies.</p>
+</section>
+<section id="structure-of-the-assembler">
+<h3>Structure of the Assembler<a class="headerlink" href="#structure-of-the-assembler" title="Link to this heading"></a></h3>
+<p>The Assembler maintains:</p>
+<ul class="simple">
+<li><p>A dictionary of AssemblySection instances, each with a unique tag</p></li>
+<li><p>A reference to the completely assembled mesh</p></li>
+<li><p>Methods for creating, retrieving, and managing assembly sections</p></li>
+</ul>
+<p>Key features of the Assembler include:</p>
+<ul class="simple">
+<li><p><strong>Automatic tagging</strong>: Each assembly section receives a unique numeric tag</p></li>
+<li><p><strong>Tag management</strong>: When sections are deleted, remaining sections are retagged to maintain sequential numbering</p></li>
+<li><p><strong>Mesh merging</strong>: Combines all sections into a unified mesh</p></li>
+<li><p><strong>Partitioning</strong>: Divides the mesh for parallel processing</p></li>
+</ul>
+</section>
+</section>
+<section id="understanding-assembly-sections">
+<h2>Understanding Assembly Sections<a class="headerlink" href="#understanding-assembly-sections" title="Link to this heading"></a></h2>
+<p>An <code class="docutils literal notranslate"><span class="pre">AssemblySection</span></code> represents a collection of mesh parts that are combined into a single mesh. Each section has its own mesh, which can be partitioned for parallel computing.</p>
+<section id="creating-assembly-sections">
+<h3>Creating Assembly Sections<a class="headerlink" href="#creating-assembly-sections" title="Link to this heading"></a></h3>
+<p>There are two ways to create an AssemblySection:</p>
+<ol class="arabic">
+<li><p><strong>Directly through the Assembler</strong> (recommended):</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create an assembly section with two mesh parts</span>
+<span class="n">section</span> <span class="o">=</span> <span class="n">assembler</span><span class="o">.</span><span class="n">create_section</span><span class="p">(</span>
+    <span class="n">meshparts</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;cube1&quot;</span><span class="p">,</span> <span class="s2">&quot;cube2&quot;</span><span class="p">],</span>
+    <span class="n">num_partitions</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+    <span class="n">partition_algorithm</span><span class="o">=</span><span class="s2">&quot;kd-tree&quot;</span><span class="p">,</span>
+    <span class="n">merging_points</span><span class="o">=</span><span class="kc">True</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</li>
+<li><p><strong>Creating an AssemblySection instance</strong>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">femora.components.Assemble.Assembler</span><span class="w"> </span><span class="kn">import</span> <span class="n">AssemblySection</span>
+
+<span class="c1"># Create an assembly section with two mesh parts</span>
+<span class="n">section</span> <span class="o">=</span> <span class="n">AssemblySection</span><span class="p">(</span>
+    <span class="n">meshparts</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;cube1&quot;</span><span class="p">,</span> <span class="s2">&quot;cube2&quot;</span><span class="p">],</span>
+    <span class="n">num_partitions</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+    <span class="n">partition_algorithm</span><span class="o">=</span><span class="s2">&quot;kd-tree&quot;</span><span class="p">,</span>
+    <span class="n">merging_points</span><span class="o">=</span><span class="kc">True</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</li>
+</ol>
+<p>The first approach is recommended as it ensures proper registration with the Assembler.</p>
+</section>
+<section id="merging-points-in-assembly-sections">
+<h3>Merging Points in Assembly Sections<a class="headerlink" href="#merging-points-in-assembly-sections" title="Link to this heading"></a></h3>
+<p>When combining mesh parts, the <code class="docutils literal notranslate"><span class="pre">merging_points</span></code> parameter controls whether overlapping or close points should be merged:</p>
+<ul class="simple">
+<li><p><strong>merging_points=True</strong>: Points that are within a tolerance distance are merged into a single point, creating a continuous mesh. This is useful when mesh parts share boundaries.</p></li>
+<li><p><strong>merging_points=False</strong>: All points are preserved, even if they overlap. This can be useful when mesh parts should remain distinct or when degrees of freedom differ.</p></li>
+</ul>
+</section>
+<section id="partitioning-strategies">
+<h3>Partitioning Strategies<a class="headerlink" href="#partitioning-strategies" title="Link to this heading"></a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">AssemblySection</span></code> supports partitioning the mesh for parallel processing using different algorithms:</p>
+<ul class="simple">
+<li><p><strong>kd-tree</strong>: Divides the mesh into regions based on spatial coordinates using a k-dimensional tree. This creates balanced partitions based on geometry.</p></li>
+</ul>
+<p>The <code class="docutils literal notranslate"><span class="pre">num_partitions</span></code> parameter controls how many partitions are created. For the <code class="docutils literal notranslate"><span class="pre">kd-tree</span></code> algorithm, the actual number of partitions will be rounded up to the next power of 2 (e.g., if you specify 3, you’ll get 4 partitions).</p>
+</section>
+<section id="assembled-mesh-structure">
+<h3>Assembled Mesh Structure<a class="headerlink" href="#assembled-mesh-structure" title="Link to this heading"></a></h3>
+<p>When mesh parts are assembled, the resulting mesh includes several data arrays:</p>
+<ul class="simple">
+<li><p><strong>ElementTag</strong>: Identifies the element type for each cell</p></li>
+<li><p><strong>MaterialTag</strong>: Identifies the material assigned to each cell</p></li>
+<li><p><strong>Region</strong>: Identifies the region each cell belongs to</p></li>
+<li><p><strong>ndf</strong>: Number of degrees of freedom for each point</p></li>
+<li><p><strong>Core</strong>: Identifies which partition each cell belongs to (only when partitioned)</p></li>
+</ul>
+</section>
+</section>
+<section id="assembling-the-complete-mesh">
+<h2>Assembling the Complete Mesh<a class="headerlink" href="#assembling-the-complete-mesh" title="Link to this heading"></a></h2>
+<p>After creating assembly sections, you can combine all sections into a single mesh using the <code class="docutils literal notranslate"><span class="pre">Assemble</span></code> method:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Assemble all sections into a single mesh</span>
+<span class="n">assembler</span><span class="o">.</span><span class="n">Assemble</span><span class="p">(</span><span class="n">merge_points</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="c1"># Access the assembled mesh</span>
+<span class="n">mesh</span> <span class="o">=</span> <span class="n">assembler</span><span class="o">.</span><span class="n">AssembeledMesh</span>
+</pre></div>
+</div>
+<p>This creates a unified mesh from all assembly sections, with consistent cell data and optional point merging.</p>
+</section>
+<section id="api-reference">
+<h2>API Reference<a class="headerlink" href="#api-reference" title="Link to this heading"></a></h2>
+</section>
+<section id="best-practices">
+<h2>Best Practices<a class="headerlink" href="#best-practices" title="Link to this heading"></a></h2>
+<ol class="arabic simple">
+<li><p><strong>Create assembly sections through the Assembler</strong> for proper registration</p></li>
+<li><p><strong>Use merge_points=True</strong> when mesh parts share boundaries</p></li>
+<li><p><strong>Choose partition numbers that are powers of 2</strong> for the kd-tree algorithm</p></li>
+<li><p><strong>Check for consistent degrees of freedom</strong> when merging points</p></li>
+</ol>
+</section>
+<section id="use-cases">
+<h2>Use Cases<a class="headerlink" href="#use-cases" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><strong>Combined Models</strong>: Assembling individual parts into a complete structural model</p></li>
+<li><p><strong>Parallel Analysis</strong>: Partitioning large models for distributed computing</p></li>
+<li><p><strong>Multi-Material Models</strong>: Combining regions with different material properties</p></li>
+<li><p><strong>Component Analysis</strong>: Analyzing interactions between different parts of a model</p></li>
+</ul>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="meshparts/volume/GeometricRectangularGrid.html" class="btn btn-neutral float-left" title="Geometric Rectangular Grid" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="constraint.html" class="btn btn-neutral float-right" title="Constraints" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Amin Pakzad.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

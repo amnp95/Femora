@@ -1,0 +1,262 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SP Constraints &mdash; Femora (Fast Efficient Meshing for OpenSees-based Resilience Analysis) 0.5.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/custom.css?v=bbbd0671" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=1dd76d02"></script>
+      <script src="../../../_static/doctools.js?v=9a2dae69"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../../../_static/js/copy-button.js?v=47d38097"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="next" title="Fix Constraint" href="fix.html" />
+    <link rel="prev" title="Constraints" href="../../constraint.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html">
+            
+              <img src="../../../_static/Femoralogo.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Introduction:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../introduction/getting_started.html">Getting Started with Femora</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../introduction/installation.html">Installation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../introduction/quick_start.html">Quick Start Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../introduction/examples.html">Examples and Tutorials</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Technical Guide:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../../index.html">Technical Documentation</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../../materials.html">Material</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../elements.html">Element</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../damping.html">Damping</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../region.html">Region</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../meshparts.html">MeshPart</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../assembler.html">Assembler</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="../../constraint.html">Constraints</a><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">SP Constraints</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#understanding-the-sp-constraint-manager">Understanding the SP Constraint Manager</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#accessing-the-sp-constraint-manager">Accessing the SP Constraint Manager</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#how-sp-constraint-manager-works">How SP Constraint Manager Works</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#creating-sp-constraints">Creating SP Constraints</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#dof-specification-format">DOF Specification Format</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#best-practices-for-sp-constraints">Best Practices for SP Constraints</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#sp-constraint-manager-api-reference">SP Constraint Manager API Reference</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#sp-constraint-types">SP Constraint Types</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../mp/index.html">MP Constraints</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../timeseries.html">TimeSeries</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../pattern.html">Pattern</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../analysis.html">Analysis</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../process.html">Process</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../drm.html">DRM</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer Documentation:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../developer/index.html">Developer Documentation</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">Femora (Fast Efficient Meshing for OpenSees-based Resilience Analysis)</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Technical Documentation</a></li>
+          <li class="breadcrumb-item"><a href="../../constraint.html">Constraints</a></li>
+      <li class="breadcrumb-item active">SP Constraints</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../../_sources/technical/constraint/sp/index.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="sp-constraints">
+<h1>SP Constraints<a class="headerlink" href="#sp-constraints" title="Link to this heading"></a></h1>
+<p>Single-point constraints fix or control degrees of freedom at specific nodes.</p>
+<section id="understanding-the-sp-constraint-manager">
+<h2>Understanding the SP Constraint Manager<a class="headerlink" href="#understanding-the-sp-constraint-manager" title="Link to this heading"></a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">SPConstraintManager</span></code> is a core component of Femora that provides a centralized system for creating, managing, and applying single-point constraints to your model. It implements the Singleton pattern to ensure a single, consistent point of constraint management across the entire application.</p>
+<p>SP constraints should typically be created after assembling the whole mesh, as they are applied directly to nodes in the assembled mesh.</p>
+</section>
+<section id="accessing-the-sp-constraint-manager">
+<h2>Accessing the SP Constraint Manager<a class="headerlink" href="#accessing-the-sp-constraint-manager" title="Link to this heading"></a></h2>
+<p>There are two ways to access the SP Constraint Manager:</p>
+<ol class="arabic">
+<li><p><strong>Direct Access</strong>: Import and use the SPConstraintManager class directly</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">femora.components.Constraint.spConstraint</span><span class="w"> </span><span class="kn">import</span> <span class="n">SPConstraintManager</span>
+
+<span class="c1"># Get the singleton instance</span>
+<span class="n">sp_manager</span> <span class="o">=</span> <span class="n">SPConstraintManager</span><span class="p">()</span>
+
+<span class="c1"># Use SP manager directly</span>
+<span class="n">sp_manager</span><span class="o">.</span><span class="n">fix</span><span class="p">(</span><span class="n">node_tag</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">dofs</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
+</pre></div>
+</div>
+</li>
+<li><p><strong>Through Femora</strong> (Recommended): Access via the Femora class and the Constraint module</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">femora</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">fm</span>
+
+<span class="c1"># Create a Femora instance</span>
+
+
+<span class="c1"># Access the SPConstraintManager through the constraint property</span>
+<span class="n">sp_manager</span> <span class="o">=</span> <span class="n">fm</span><span class="o">.</span><span class="n">constraint</span><span class="o">.</span><span class="n">sp</span>
+
+<span class="c1"># Add constraints using the manager</span>
+<span class="n">sp_manager</span><span class="o">.</span><span class="n">fix</span><span class="p">(</span><span class="n">node_tag</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">dofs</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
+</pre></div>
+</div>
+</li>
+</ol>
+<p>The second approach is recommended as it provides a unified interface to all of Femora’s components and ensures proper initialization of all dependencies.</p>
+</section>
+<section id="how-sp-constraint-manager-works">
+<h2>How SP Constraint Manager Works<a class="headerlink" href="#how-sp-constraint-manager-works" title="Link to this heading"></a></h2>
+<p>The SP Constraint Manager provides several key capabilities:</p>
+<ol class="arabic simple">
+<li><p><strong>Constraint Creation</strong>: Creates single-point constraint objects with appropriate parameters</p></li>
+<li><p><strong>Constraint Registry</strong>: Maintains an internal registry of all constraints</p></li>
+<li><p><strong>Constraint Management</strong>: Allows retrieving and removing constraints by tag</p></li>
+<li><p><strong>TCL Generation</strong>: Transforms constraint definitions into OpenSees TCL commands</p></li>
+</ol>
+</section>
+<section id="creating-sp-constraints">
+<h2>Creating SP Constraints<a class="headerlink" href="#creating-sp-constraints" title="Link to this heading"></a></h2>
+<p>To create SP constraints, you must first assemble your mesh, as constraints are applied to nodes in the assembled model:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># First, assemble the mesh</span>
+<span class="n">fm</span><span class="o">.</span><span class="n">assembler</span><span class="o">.</span><span class="n">Assemble</span><span class="p">(</span><span class="n">merge_points</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+
+<span class="c1"># Now add constraints to nodes</span>
+<span class="c1"># Fix translations (DOFs 1-3) but allow rotations (DOFs 4-6) at node 10</span>
+<span class="n">fm</span><span class="o">.</span><span class="n">constraint</span><span class="o">.</span><span class="n">sp</span><span class="o">.</span><span class="n">fix</span><span class="p">(</span><span class="n">node_tag</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">dofs</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
+
+<span class="c1"># Fix all DOFs at a specific X coordinate</span>
+<span class="n">fm</span><span class="o">.</span><span class="n">constraint</span><span class="o">.</span><span class="n">sp</span><span class="o">.</span><span class="n">fixX</span><span class="p">(</span><span class="n">xCoordinate</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">dofs</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+</pre></div>
+</div>
+</section>
+<section id="dof-specification-format">
+<h2>DOF Specification Format<a class="headerlink" href="#dof-specification-format" title="Link to this heading"></a></h2>
+<p>All constraint methods take a <code class="docutils literal notranslate"><span class="pre">dofs</span></code> parameter that specifies which degrees of freedom to constrain. The format is a list of 0s and 1s:</p>
+<ul class="simple">
+<li><p><strong>0</strong>: Unconstrained (free) degree of freedom</p></li>
+<li><p><strong>1</strong>: Constrained (fixed) degree of freedom</p></li>
+</ul>
+<p>For example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Fix X, Y, Z translations (1,2,3) but free rotations (4,5,6)</span>
+<span class="n">dofs</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+
+<span class="c1"># Fix only X direction</span>
+<span class="n">dofs</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+
+<span class="c1"># Fix all degrees of freedom</span>
+<span class="n">dofs</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
+</pre></div>
+</div>
+</section>
+<section id="best-practices-for-sp-constraints">
+<h2>Best Practices for SP Constraints<a class="headerlink" href="#best-practices-for-sp-constraints" title="Link to this heading"></a></h2>
+<ol class="arabic simple">
+<li><p><strong>Create SP constraints after mesh assembly</strong> to ensure nodes are properly merged</p></li>
+<li><p><strong>Use coordinate-based constraints</strong> (fixX, fixY, fixZ) for applying boundary conditions to planar surfaces</p></li>
+<li><p><strong>Use macro-based constraints</strong> when generating TCL scripts that use model dimension variables</p></li>
+<li><p><strong>Be careful with overconstrained systems</strong> as they may lead to numerical issues</p></li>
+<li><p><strong>Verify boundary conditions</strong> visually by inspecting constrained nodes</p></li>
+</ol>
+</section>
+<section id="sp-constraint-manager-api-reference">
+<h2>SP Constraint Manager API Reference<a class="headerlink" href="#sp-constraint-manager-api-reference" title="Link to this heading"></a></h2>
+<p>Below is the complete API reference for the SPConstraintManager class:</p>
+</section>
+<section id="sp-constraint-types">
+<h2>SP Constraint Types<a class="headerlink" href="#sp-constraint-types" title="Link to this heading"></a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="fix.html">Fix Constraint</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fixmacro.html">Macro-Based Constraints</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fixx.html">FixX Constraint</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fixy.html">FixY Constraint</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fixz.html">FixZ Constraint</a></li>
+</ul>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../../constraint.html" class="btn btn-neutral float-left" title="Constraints" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="fix.html" class="btn btn-neutral float-right" title="Fix Constraint" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Amin Pakzad.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

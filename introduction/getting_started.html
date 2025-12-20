@@ -1,0 +1,211 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Getting Started with Femora &mdash; Femora (Fast Efficient Meshing for OpenSees-based Resilience Analysis) 0.5.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/custom.css?v=bbbd0671" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=1dd76d02"></script>
+      <script src="../_static/doctools.js?v=9a2dae69"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../_static/js/copy-button.js?v=47d38097"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Installation Guide" href="installation.html" />
+    <link rel="prev" title="Welcome to Femora Documentation" href="../index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html">
+            
+              <img src="../_static/Femoralogo.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Introduction:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Getting Started with Femora</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#what-is-femora">What is Femora?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#core-purpose-and-philosophy">Core Purpose and Philosophy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#key-features-and-capabilities">Key Features and Capabilities</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#advanced-mesh-partitioning">Advanced Mesh Partitioning</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#material-and-element-management">Material and Element Management</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#domain-customization">Domain Customization</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#visualization-without-gui-dependency">Visualization Without GUI Dependency</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#opensees-integration">OpenSees Integration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#component-based-architecture">Component-Based Architecture</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#exceptional-extensibility">Exceptional Extensibility</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#target-users">Target Users</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#what-makes-femora-unique">What Makes Femora Unique</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quick_start.html">Quick Start Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Examples and Tutorials</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Technical Guide:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../technical/index.html">Technical Documentation</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer Documentation:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../developer/index.html">Developer Documentation</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Femora (Fast Efficient Meshing for OpenSees-based Resilience Analysis)</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Getting Started with Femora</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/introduction/getting_started.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="getting-started-with-femora">
+<h1>Getting Started with Femora<a class="headerlink" href="#getting-started-with-femora" title="Link to this heading"></a></h1>
+<section id="what-is-femora">
+<h2>What is Femora?<a class="headerlink" href="#what-is-femora" title="Link to this heading"></a></h2>
+<p>Femora (Fast Efficient Meshing for OpenSees-based Resilience Analysis) is a specialized Python framework designed for creating and managing finite element meshes for structural and geotechnical engineering simulations using OpenSees. It addresses a critical gap in high-performance computing workflows for civil engineering applications.</p>
+</section>
+<section id="core-purpose-and-philosophy">
+<h2>Core Purpose and Philosophy<a class="headerlink" href="#core-purpose-and-philosophy" title="Link to this heading"></a></h2>
+<p>Femora provides a dual-mode workflow that serves both expert users working on supercomputers and modelers who prefer visual feedback:</p>
+<ol class="arabic simple">
+<li><p><strong>Headless Library Mode</strong>: Create complex meshes through pure Python scripting without requiring a graphical interface, making it suitable for supercomputing environments where GUI access is limited or unavailable.</p></li>
+<li><p><strong>Qt-based GUI Mode</strong>: Access a graphical interface for interactive mesh creation and visualization while maintaining full separation between the core library and GUI components.</p></li>
+</ol>
+</section>
+<section id="key-features-and-capabilities">
+<h2>Key Features and Capabilities<a class="headerlink" href="#key-features-and-capabilities" title="Link to this heading"></a></h2>
+<section id="advanced-mesh-partitioning">
+<h3>Advanced Mesh Partitioning<a class="headerlink" href="#advanced-mesh-partitioning" title="Link to this heading"></a></h3>
+<p>Femora can partition different sections of a mesh using various algorithms (like kd-tree) and combine them in customizable ways to optimize for parallel processing.</p>
+</section>
+<section id="material-and-element-management">
+<h3>Material and Element Management<a class="headerlink" href="#material-and-element-management" title="Link to this heading"></a></h3>
+<p>The library includes comprehensive systems for defining materials and elements with proper validation and compatibility checking.</p>
+</section>
+<section id="domain-customization">
+<h3>Domain Customization<a class="headerlink" href="#domain-customization" title="Link to this heading"></a></h3>
+<p>Femora includes systems for regions, constraints, damping models, and boundary conditions specific to civil engineering needs.</p>
+</section>
+<section id="visualization-without-gui-dependency">
+<h3>Visualization Without GUI Dependency<a class="headerlink" href="#visualization-without-gui-dependency" title="Link to this heading"></a></h3>
+<p>Visualize meshes at any stage of creation without requiring the full GUI framework.</p>
+</section>
+<section id="opensees-integration">
+<h3>OpenSees Integration<a class="headerlink" href="#opensees-integration" title="Link to this heading"></a></h3>
+<p>Generate TCL script output specifically formatted for the OpenSees finite element software, which is widely used in civil engineering for soil-structure interaction analysis.</p>
+</section>
+<section id="component-based-architecture">
+<h3>Component-Based Architecture<a class="headerlink" href="#component-based-architecture" title="Link to this heading"></a></h3>
+<p>Femora uses a modular design with managers for materials, elements, regions, damping, assembly, and other aspects of mesh generation.</p>
+</section>
+</section>
+<section id="exceptional-extensibility">
+<h2>Exceptional Extensibility<a class="headerlink" href="#exceptional-extensibility" title="Link to this heading"></a></h2>
+<p>Femora is designed with extensibility as a core principle, making it remarkably easy to expand and customize:</p>
+<ul class="simple">
+<li><p><strong>Registry-Based Component System</strong>: Uses registry patterns for materials, elements, and mesh parts that allow new components to be added with minimal code changes.</p></li>
+<li><p><strong>Manager Singletons</strong>: Singleton manager classes provide consistent access points that make extending functionality straightforward.</p></li>
+<li><p><strong>Well-Defined Abstract Base Classes</strong>: Clear abstract base classes with defined interfaces make it simple to implement new components.</p></li>
+<li><p><strong>Separation of Interface and Implementation</strong>: Clean separation between interface definitions and implementations allows developers to add new implementations without disturbing the core library.</p></li>
+<li><p><strong>Plugin-Ready Architecture</strong>: The component registration system enables new components to be added simply by creating new Python modules that register with the appropriate managers.</p></li>
+<li><p><strong>Consistent Validation Patterns</strong>: Each component type includes standardized validation methods that new component implementations can leverage.</p></li>
+<li><p><strong>Explicit Documentation</strong>: Extensive documentation makes it clear how to extend each component type with appropriate examples and guidelines.</p></li>
+</ul>
+</section>
+<section id="target-users">
+<h2>Target Users<a class="headerlink" href="#target-users" title="Link to this heading"></a></h2>
+<p>Femora serves two primary user groups:</p>
+<ol class="arabic simple">
+<li><p><strong>Computational Researchers</strong>: Engineers and scientists who need to create complex meshes for supercomputer simulations without GUI tools.</p></li>
+<li><p><strong>Structural/Geotechnical Modelers</strong>: Civil engineers who want to create and visualize models interactively before running simulations.</p></li>
+</ol>
+</section>
+<section id="what-makes-femora-unique">
+<h2>What Makes Femora Unique<a class="headerlink" href="#what-makes-femora-unique" title="Link to this heading"></a></h2>
+<p>What distinguishes Femora from other mesh generation tools is its specific focus on:</p>
+<ul class="simple">
+<li><p><strong>Civil Engineering Applications</strong>: Tailored for soil-structure interaction and other civil engineering simulations.</p></li>
+<li><p><strong>Dual-Mode Operation</strong>: Functions equally well in scripting-only or GUI environments.</p></li>
+<li><p><strong>Partitioning Control</strong>: Gives users fine-grained control over how the mesh is partitioned for parallel computing.</p></li>
+<li><p><strong>OpenSees Integration</strong>: Seamless output to OpenSees TCL format for immediate use in simulations.</p></li>
+<li><p><strong>Extensibility First</strong>: Designed from the ground up to be extended with new elements, materials, and analysis components.</p></li>
+</ul>
+<p>Femora fills an important niche for OpenSees users who need to create complex models for high-performance computing environments while maintaining the ability to visualize and verify their models throughout the creation process.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../index.html" class="btn btn-neutral float-left" title="Welcome to Femora Documentation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="installation.html" class="btn btn-neutral float-right" title="Installation Guide" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Amin Pakzad.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

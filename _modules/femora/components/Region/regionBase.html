@@ -1,0 +1,1253 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>femora.components.Region.regionBase &mdash; Femora (Fast Efficient Meshing for OpenSees-based Resilience Analysis) 0.5.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/custom.css?v=bbbd0671" />
+
+  
+      <script src="../../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../../_static/documentation_options.js?v=1dd76d02"></script>
+      <script src="../../../../_static/doctools.js?v=9a2dae69"></script>
+      <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../../../../_static/js/copy-button.js?v=47d38097"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html">
+            
+              <img src="../../../../_static/Femoralogo.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Introduction:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../introduction/getting_started.html">Getting Started with Femora</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../introduction/installation.html">Installation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../introduction/quick_start.html">Quick Start Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../introduction/examples.html">Examples and Tutorials</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Technical Guide:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../technical/index.html">Technical Documentation</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer Documentation:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../developer/index.html">Developer Documentation</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">Femora (Fast Efficient Meshing for OpenSees-based Resilience Analysis)</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">femora.components.Region.regionBase</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for femora.components.Region.regionBase</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">femora.components.Damping.dampingBase</span><span class="w"> </span><span class="kn">import</span> <span class="n">DampingBase</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">weakref</span> 
+<span class="kn">from</span><span class="w"> </span><span class="nn">abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">ABC</span><span class="p">,</span> <span class="n">abstractmethod</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Type</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">RegionBase</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Abstract base class for defining regions in a structural model.</span>
+<span class="sd">    </span>
+<span class="sd">    RegionBase provides a foundation for defining and managing regions in a structural model,</span>
+<span class="sd">    which can be used to associate specific properties or behaviors (such as damping) </span>
+<span class="sd">    with parts of the model. Regions are automatically tracked with unique tags.</span>
+<span class="sd">    </span>
+<span class="sd">    The class maintains a registry of all region instances, including a special &quot;global region&quot;</span>
+<span class="sd">    with tag 0 that represents the entire model. Regions can be retrieved by their tags,</span>
+<span class="sd">    and the class ensures that tags remain unique.</span>
+<span class="sd">    </span>
+<span class="sd">    Attributes:</span>
+<span class="sd">        _regions (dict): Class-level dictionary mapping tags to region instances</span>
+<span class="sd">        _global_region (RegionBase): Reference to the global region instance (tag 0)</span>
+<span class="sd">        </span>
+<span class="sd">    Note:</span>
+<span class="sd">        This is an abstract class. Concrete region implementations should be created</span>
+<span class="sd">        through subclasses like ElementRegion, NodeRegion, or GlobalRegion.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">_regions</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># Dictionary to hold regions</span>
+    <span class="n">_global_region</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># Global region instance</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">tag</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">damping</span><span class="p">:</span> <span class="n">Type</span><span class="p">[</span><span class="n">DampingBase</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Control the creation of new region instances to maintain unique tags.</span>
+<span class="sd">        </span>
+<span class="sd">        This method ensures that:</span>
+<span class="sd">        1. If a region with the requested tag already exists, return that instance</span>
+<span class="sd">        2. If tag=0 is requested, create or return the global region</span>
+<span class="sd">        3. Otherwise create a new region instance</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            tag (int, optional): Unique identifier for the region</span>
+<span class="sd">            damping (Type[DampingBase], optional): Damping behavior to assign to this region</span>
+<span class="sd">            </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            RegionBase: Either an existing or new region instance</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">tag</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_regions</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_regions</span><span class="p">[</span><span class="n">tag</span><span class="p">]</span>
+        
+        <span class="k">if</span> <span class="n">tag</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="bp">cls</span><span class="o">.</span><span class="n">_global_region</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span>
+            <span class="bp">cls</span><span class="o">.</span><span class="n">_regions</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_global_region</span>
+            <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_global_region</span>
+
+        <span class="c1"># Create a new instance for a unique tag</span>
+        <span class="n">instance</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">instance</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tag</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">damping</span><span class="p">:</span> <span class="n">Type</span><span class="p">[</span><span class="n">DampingBase</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize a region with a tag and optional damping.</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            tag (int, optional): Unique identifier for the region. If None, a new tag is assigned.</span>
+<span class="sd">                                If 0, this creates or references the global region.</span>
+<span class="sd">            damping (Type[DampingBase], optional): Damping behavior to assign to this region</span>
+<span class="sd">            </span>
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If tag=0 is used with a class that is not GlobalRegion</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">tag</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="c1"># check the region is type of global region for tag 0</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">GlobalRegion</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Region with tag 0 should be of type GlobalRegion </span><span class="se">\</span>
+<span class="s2">                                 please use GlobalRegion class to create a global region&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_tag</span> <span class="o">=</span> <span class="n">tag</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_name</span> <span class="o">=</span> <span class="s2">&quot;GlobalRegion&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_regions</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">damping</span> <span class="o">=</span> <span class="n">damping</span>
+        <span class="k">elif</span> <span class="n">tag</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">tag</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_next_tag</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_tag</span> <span class="o">=</span> <span class="n">tag</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_name</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;region </span><span class="si">{</span><span class="n">tag</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_regions</span><span class="p">[</span><span class="n">tag</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">damping</span> <span class="o">=</span> <span class="n">damping</span>
+
+        <span class="c1"># Default values</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;active&quot;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">active</span> <span class="o">=</span> <span class="kc">True</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">tag</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the unique identifier for this region.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            int: The region&#39;s tag</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tag</span>
+    
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the name of this region.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            str: The region&#39;s name</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_name</span>
+    
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">damping</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the damping behavior assigned to this region.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            DampingBase or None: The damping instance, or None if not assigned</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_damping</span><span class="p">()</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_damping</span> <span class="k">else</span> <span class="kc">None</span>
+
+    <span class="nd">@damping</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">damping</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Type</span><span class="p">[</span><span class="n">DampingBase</span><span class="p">]]):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Assign a damping behavior to this region.</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            value (Type[DampingBase], optional): The damping instance to assign</span>
+<span class="sd">            </span>
+<span class="sd">        Raises:</span>
+<span class="sd">            TypeError: If value is not a subclass of DampingBase</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">issubclass</span><span class="p">(</span><span class="n">value</span><span class="o">.</span><span class="vm">__class__</span><span class="p">,</span> <span class="n">DampingBase</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;damping must be a subclass of DampingBase&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_damping</span> <span class="o">=</span> <span class="n">weakref</span><span class="o">.</span><span class="n">ref</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="k">if</span> <span class="n">value</span> <span class="k">else</span> <span class="kc">None</span> 
+
+    <span class="nd">@damping</span><span class="o">.</span><span class="n">deleter</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">damping</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Remove the damping behavior from this region.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_damping_ref</span> <span class="o">=</span> <span class="kc">None</span> 
+        
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_damping</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">damping_instance</span><span class="p">:</span> <span class="n">Type</span><span class="p">[</span><span class="n">DampingBase</span><span class="p">]):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set the damping behavior of this region.</span>
+<span class="sd">        </span>
+<span class="sd">        This method provides an alternative way to assign damping to a region,</span>
+<span class="sd">        with the same functionality as the damping property setter.</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            damping_instance (Type[DampingBase], required): The damping instance to assign</span>
+<span class="sd">            </span>
+<span class="sd">        Raises:</span>
+<span class="sd">            TypeError: If damping_instance is not a subclass of DampingBase</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">damping</span> <span class="o">=</span> <span class="n">damping_instance</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get a string representation of this region.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            str: A multi-line string describing the region&#39;s properties</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">type_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_type</span><span class="p">()</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Region class&quot;</span>
+        <span class="n">res</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n\t</span><span class="s2">Tag: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">tag</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="n">res</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n\t</span><span class="s2">Name: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="n">res</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n\t</span><span class="s2">Type: </span><span class="si">{</span><span class="n">type_name</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="n">res</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n\t</span><span class="s2">Active: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">active</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="n">res</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n\t</span><span class="s2">Damping: &quot;</span> <span class="o">+</span> <span class="p">(</span><span class="s2">&quot;</span><span class="se">\n\t</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">damping</span><span class="p">))</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="se">\n\t</span><span class="s2">&quot;</span><span class="p">)</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">damping</span> <span class="k">else</span> <span class="s2">&quot;</span><span class="se">\n\t</span><span class="s2">Damping: None&quot;</span>
+        <span class="k">return</span> <span class="n">res</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_get_next_tag</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the next available tag for a new region.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            int: Next available tag number</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">_regions</span><span class="p">)</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_update_tags</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Update tags and names of all regions except the global region.</span>
+<span class="sd">        </span>
+<span class="sd">        This method ensures that region tags remain sequential after</span>
+<span class="sd">        regions are removed.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">tags</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">_regions</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="k">if</span> <span class="mi">0</span> <span class="ow">in</span> <span class="n">tags</span><span class="p">:</span>
+            <span class="n">tags</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>  <span class="c1"># Preserve the global region tag</span>
+        <span class="n">new_regions</span> <span class="o">=</span> <span class="p">{</span><span class="mi">0</span><span class="p">:</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_regions</span><span class="p">[</span><span class="mi">0</span><span class="p">]}</span> <span class="k">if</span> <span class="mi">0</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_regions</span> <span class="k">else</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">old_tag</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">tags</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+            <span class="n">region</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_regions</span><span class="p">[</span><span class="n">old_tag</span><span class="p">]</span>
+            <span class="n">region</span><span class="o">.</span><span class="n">_tag</span> <span class="o">=</span> <span class="n">i</span>
+            <span class="n">region</span><span class="o">.</span><span class="n">_name</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;region</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="n">new_regions</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">region</span>
+        <span class="bp">cls</span><span class="o">.</span><span class="n">_regions</span> <span class="o">=</span> <span class="n">new_regions</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">remove_region</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">tag</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Remove a region by its tag.</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            tag (int): The tag of the region to remove</span>
+<span class="sd">            </span>
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If attempting to remove the global region (tag 0)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">tag</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Cannot remove the global region (tag 0)&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">tag</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_regions</span><span class="p">:</span>
+            <span class="k">del</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_regions</span><span class="p">[</span><span class="n">tag</span><span class="p">]</span>
+            <span class="bp">cls</span><span class="o">.</span><span class="n">_update_tags</span><span class="p">()</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_region</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">tag</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="s2">&quot;RegionBase&quot;</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get a region by its tag.</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            tag (int): The tag of the region to retrieve</span>
+<span class="sd">            </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            RegionBase or None: The region with the specified tag, or None if not found</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_regions</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">tag</span><span class="p">)</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_all_regions</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="s2">&quot;RegionBase&quot;</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get all registered regions.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            Dict[int, RegionBase]: Dictionary mapping tags to region instances</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_regions</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">clear</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Clear all regions, including the global region.</span>
+<span class="sd">        </span>
+<span class="sd">        This resets the region registry to an empty state.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">cls</span><span class="o">.</span><span class="n">_regions</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">cls</span><span class="o">.</span><span class="n">_global_region</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">print_regions</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Print information about all registered regions.</span>
+<span class="sd">        </span>
+<span class="sd">        Displays detailed information about each region instance currently registered.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">tag</span><span class="p">,</span> <span class="n">region</span> <span class="ow">in</span> <span class="n">RegionBase</span><span class="o">.</span><span class="n">get_all_regions</span><span class="p">()</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">region</span><span class="p">)</span>
+
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">to_tcl</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Convert the region to a TCL representation.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            str: TCL command string that defines this region</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span>
+
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">validate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Validate region parameters.</span>
+<span class="sd">        </span>
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If region parameters are invalid</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_Parameters</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get parameters for the region.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            Dict[str, str]: Dictionary mapping parameter names to their types</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">getNotes</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get notes for the region.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            Dict[str, list[str]]: Dictionary containing notes and references for the region</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the type name of this region.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            str: The region type name</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span>
+
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">setComponent</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">component</span><span class="p">:</span><span class="nb">str</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span><span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set components for this region.</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            component (str): The type of component to set</span>
+<span class="sd">            value (list[int]): List of component values</span>
+<span class="sd">            </span>
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If the component type is invalid for this region</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">GlobalRegion</span><span class="p">(</span><span class="n">RegionBase</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A special region representing the entire structural model.</span>
+<span class="sd">    </span>
+<span class="sd">    GlobalRegion is a singleton class that represents the entire model as a region.</span>
+<span class="sd">    It is automatically created with tag 0 and is used as the default region when</span>
+<span class="sd">    no specific region is specified.</span>
+<span class="sd">    </span>
+<span class="sd">    This class ensures that only one global region exists at any time.</span>
+<span class="sd">    </span>
+<span class="sd">    Args:</span>
+<span class="sd">        damping (Type[DampingBase], optional): Damping behavior to assign to this region</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">damping</span><span class="p">:</span> <span class="n">Type</span><span class="p">[</span><span class="n">DampingBase</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Create or return the singleton global region instance.</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            damping (Type[DampingBase], optional): Damping behavior to assign to this region</span>
+<span class="sd">            </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            GlobalRegion: The global region instance (tag 0)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">tag</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">damping</span><span class="p">:</span> <span class="n">Type</span><span class="p">[</span><span class="n">DampingBase</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize the global region.</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            damping (Type[DampingBase], optional): Damping behavior to assign to this region</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">tag</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">damping</span><span class="o">=</span><span class="n">damping</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">elements</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">element_range</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">node_range</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">to_tcl</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        TCL representation for global region.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            str: TCL command string for the global region</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="s2">&quot;region 0&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">validate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;No validation required for global region.&quot;&quot;&quot;</span>
+        <span class="k">pass</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_Parameters</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        No parameters for global region.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            Dict[str, str]: Empty dictionary as global region has no parameters</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">{}</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">getNotes</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Notes about global region.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            Dict[str, list[str]]: Dictionary containing notes and references for the global region</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s2">&quot;Notes&quot;</span><span class="p">:</span> <span class="p">[</span>
+                <span class="s2">&quot;Global region representing entire model&quot;</span>
+            <span class="p">],</span>
+            <span class="s2">&quot;References&quot;</span><span class="p">:</span> <span class="p">[]</span>    
+        <span class="p">}</span>
+        
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_type</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the type name of the global region.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            str: Always returns &quot;GlobalRegion&quot;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="s2">&quot;GlobalRegion&quot;</span>
+    
+    <span class="k">def</span><span class="w"> </span><span class="nf">setComponent</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">component</span><span class="p">:</span><span class="nb">str</span><span class="p">,</span> <span class="n">values</span><span class="p">:</span><span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set component values for the global region.</span>
+<span class="sd">        </span>
+<span class="sd">        The global region can have elements, element ranges, nodes, or node ranges</span>
+<span class="sd">        assigned to it.</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            component (str): One of &quot;element&quot;, &quot;elementRange&quot;, &quot;node&quot;, &quot;nodeRange&quot;</span>
+<span class="sd">            values (list[int]): List of element/node IDs or [start, end] range</span>
+<span class="sd">            </span>
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If the component type is invalid or range doesn&#39;t have exactly 2 elements</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">component</span> <span class="o">==</span> <span class="s2">&quot;element&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">elements</span> <span class="o">=</span> <span class="n">values</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">element_range</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">node_range</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">elif</span> <span class="n">component</span> <span class="o">==</span> <span class="s2">&quot;elementRange&quot;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">values</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;element_range should have 2 elements&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">element_range</span> <span class="o">=</span> <span class="n">values</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">elements</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">node_range</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">elif</span> <span class="n">component</span> <span class="o">==</span> <span class="s2">&quot;node&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span> <span class="o">=</span> <span class="n">values</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">node_range</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">elements</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">element_range</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">elif</span> <span class="n">component</span> <span class="o">==</span> <span class="s2">&quot;nodeRange&quot;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">values</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;node_range should have 2 elements&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">node_range</span> <span class="o">=</span> <span class="n">values</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">elements</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">element_range</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;&quot;&quot;Invalid component </span><span class="si">{</span><span class="n">component</span><span class="si">}</span><span class="s2"> for GlobalRegion</span>
+<span class="s2">                             valid components are element, elementRange, node, nodeRange&quot;&quot;&quot;</span><span class="p">)</span>
+        
+
+<span class="k">def</span><span class="w"> </span><span class="nf">initialize_region_base</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Initialize the RegionBase with the global region.</span>
+<span class="sd">    </span>
+<span class="sd">    This function creates the global region (tag 0) if it doesn&#39;t exist.</span>
+<span class="sd">    It&#39;s typically called when setting up a new model or resetting the region system.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">GlobalRegion</span><span class="p">()</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">ElementRegion</span><span class="p">(</span><span class="n">RegionBase</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A region defined by a set of elements or an element range.</span>
+<span class="sd">    </span>
+<span class="sd">    ElementRegion represents a collection of elements in a structural model</span>
+<span class="sd">    that can have specific properties or behaviors assigned to them, such as</span>
+<span class="sd">    damping characteristics. Elements can be specified either as a list of</span>
+<span class="sd">    individual element IDs or as a continuous range.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters:</span>
+<span class="sd">        damping (Type[DampingBase], optional): Damping behavior to assign to this region</span>
+<span class="sd">        **kwargs: Additional parameters including:</span>
+<span class="sd">            tag (int, optional): Unique identifier for the region</span>
+<span class="sd">            elements (list[int], optional): List of element IDs to include in the region</span>
+<span class="sd">            element_range (list[int], optional): Two-element list specifying start and end</span>
+<span class="sd">                of an element range [start, end]</span>
+<span class="sd">            element_only (bool, optional): If True, includes only the specified elements</span>
+<span class="sd">                </span>
+<span class="sd">    Note:</span>
+<span class="sd">        Cannot specify both elements and element_range simultaneously</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">damping</span><span class="p">:</span> <span class="n">Type</span><span class="p">[</span><span class="n">DampingBase</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Create a new ElementRegion instance.</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            damping (Type[DampingBase], optional): Damping behavior to assign to this region</span>
+<span class="sd">            **kwargs: Additional parameters including tag, elements, element_range, element_only</span>
+<span class="sd">            </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            ElementRegion: A new ElementRegion instance</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">tag</span><span class="o">=</span><span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;tag&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span>
+    
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">damping</span><span class="p">:</span> <span class="n">Type</span><span class="p">[</span><span class="n">DampingBase</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span> <span class="p">,</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize an ElementRegion instance.</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            damping (Type[DampingBase], optional): Damping behavior to assign to this region</span>
+<span class="sd">            **kwargs: Additional parameters including tag, elements, element_range, element_only</span>
+<span class="sd">            </span>
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If both elements and element_range are provided simultaneously</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">tag</span><span class="o">=</span><span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;tag&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span> <span class="n">damping</span><span class="o">=</span><span class="n">damping</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">elements</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">element_range</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">element_only</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="k">if</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="n">validated</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">elements</span> <span class="o">=</span> <span class="n">validated</span><span class="p">[</span><span class="s2">&quot;elements&quot;</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">element_range</span> <span class="o">=</span> <span class="n">validated</span><span class="p">[</span><span class="s2">&quot;element_range&quot;</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">element_only</span> <span class="o">=</span> <span class="n">validated</span><span class="p">[</span><span class="s2">&quot;element_only&quot;</span><span class="p">]</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">to_tcl</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generate TCL representation for the ElementRegion.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            str: TCL command string for the ElementRegion</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">cmd</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;eval </span><span class="se">\&quot;</span><span class="s2">region </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">tag</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">element_range</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">cmd</span> <span class="o">+=</span> <span class="s2">&quot; -eleRange </span><span class="si">{}</span><span class="s2"> </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">element_range</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">element_only</span><span class="p">:</span>
+                <span class="n">cmd</span> <span class="o">+=</span> <span class="s2">&quot;Only&quot;</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">elements</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">cmd</span> <span class="o">+=</span> <span class="s2">&quot; -ele&quot;</span> <span class="o">+</span> <span class="p">(</span><span class="s2">&quot;Only&quot;</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">element_only</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+            <span class="n">cmd</span> <span class="o">+=</span> <span class="s2">&quot; &quot;</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">elements</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">damping</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">damping</span><span class="o">.</span><span class="n">get_Type</span><span class="p">()</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;RayleighDamping&quot;</span><span class="p">,</span> <span class="s2">&quot;Frequency Rayleigh&quot;</span><span class="p">]:</span>
+                <span class="n">cmd</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot; -rayleigh </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">damping</span><span class="o">.</span><span class="n">alphaM</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">damping</span><span class="o">.</span><span class="n">betaK</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">damping</span><span class="o">.</span><span class="n">betaKInit</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">damping</span><span class="o">.</span><span class="n">betaKComm</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">cmd</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot; -damping </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">damping</span><span class="o">.</span><span class="n">tag</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="n">cmd</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="se">\&quot;</span><span class="s2">&quot;</span>
+        <span class="k">return</span> <span class="n">cmd</span>
+    
+    <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get a string representation of the ElementRegion.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            str: A multi-line string describing the ElementRegion&#39;s properties</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__str__</span><span class="p">()</span>
+        <span class="n">res</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n\t</span><span class="s2">Num of Elements: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">elements</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="n">res</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n\t</span><span class="s2">Element Range: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">element_range</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="n">res</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n\t</span><span class="s2">Element Only: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">element_only</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="k">return</span> <span class="n">res</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_Parameters</span><span class="p">():</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get parameters for the ElementRegion.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            Dict[str, str]: Dictionary mapping parameter names to their types</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s2">&quot;elements&quot;</span><span class="p">:</span> <span class="s2">&quot;lineEdit&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;element_range&quot;</span><span class="p">:</span> <span class="s2">&quot;lineEdit&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;element_only&quot;</span><span class="p">:</span> <span class="s2">&quot;checkbox&quot;</span>
+        <span class="p">}</span>
+    
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">getNotes</span><span class="p">()</span><span class="o">-&gt;</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get notes for the ElementRegion.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            Dict[str, list[str]]: Dictionary containing notes and references for the ElementRegion</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s2">&quot;Notes&quot;</span><span class="p">:</span> <span class="p">[</span>
+                <span class="s2">&quot;Use elements list for specific elements: [1, 2, 3, ...]&quot;</span>
+                <span class="s2">&quot;If you use GUI, use comma separated values 1, 2, 3, ...&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;Use element_range for a range: [start, end]&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;If you use GUI, use comma separated values start, end for range&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;Cannot use both elements and element_range simultaneously&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;Set element_only=True to include only elements (default is False)&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;If you use GUI, check the checkbox to include only elements&quot;</span>
+            <span class="p">],</span>
+            <span class="s2">&quot;References&quot;</span><span class="p">:</span> <span class="p">[]</span>
+        <span class="p">}</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">validate</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">bool</span><span class="p">,</span> <span class="nb">list</span><span class="p">]]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Validate parameters for the ElementRegion.</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            **kwargs: Parameters to validate</span>
+<span class="sd">            </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            Dict[str, Union[str, bool, list]]: Validated parameters</span>
+<span class="sd">            </span>
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If parameters are invalid</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="s2">&quot;elements&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span> <span class="ow">and</span> <span class="s2">&quot;element_range&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Both elements and element_range cannot be provided at the same time&quot;</span><span class="p">)</span>
+        
+        <span class="n">elements</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">element_range</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">element_only</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="k">if</span> <span class="s2">&quot;elements&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="n">elements</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;elements&quot;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">elements</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;elements should be a list of integers&quot;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">elements</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;elements should be a list of integers&quot;</span><span class="p">)</span>
+                
+
+        <span class="k">if</span> <span class="s2">&quot;element_range&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="n">element_range</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;element_range&quot;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">element_range</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;element_range should be a list of integers&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">element_range</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;element_range should have 2 elements&quot;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">element_range</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;element_range should be a list of integers&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="s2">&quot;element_only&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="n">element_only</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;element_only&quot;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">element_only</span><span class="p">,</span> <span class="nb">bool</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;element_only should be a boolean&quot;</span><span class="p">)</span>
+            
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s2">&quot;elements&quot;</span><span class="p">:</span> <span class="n">elements</span><span class="p">,</span>
+            <span class="s2">&quot;element_range&quot;</span><span class="p">:</span> <span class="n">element_range</span><span class="p">,</span>
+            <span class="s2">&quot;element_only&quot;</span><span class="p">:</span> <span class="n">element_only</span>
+        <span class="p">}</span>
+    
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_type</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the type name of the ElementRegion.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            str: Always returns &quot;ElementRegion&quot;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="s2">&quot;ElementRegion&quot;</span>
+    
+    <span class="k">def</span><span class="w"> </span><span class="nf">setComponent</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">component</span><span class="p">:</span><span class="nb">str</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span><span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set component values for the ElementRegion.</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            component (str): One of &quot;element&quot;, &quot;elementRange&quot;</span>
+<span class="sd">            value (list[int]): List of element IDs or [start, end] range</span>
+<span class="sd">            </span>
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If the component type is invalid or range doesn&#39;t have exactly 2 elements</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">component</span> <span class="o">==</span> <span class="s2">&quot;element&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">elements</span> <span class="o">=</span> <span class="n">value</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">element_range</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">elif</span> <span class="n">component</span> <span class="o">==</span> <span class="s2">&quot;elementRange&quot;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;element_range should have 2 elements&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">element_range</span> <span class="o">=</span> <span class="n">value</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">elements</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;&quot;&quot;Invalid component </span><span class="si">{</span><span class="n">component</span><span class="si">}</span><span class="s2"> for ElementRegion </span>
+<span class="s2">                             valid components are element and elementRange&quot;&quot;&quot;</span><span class="p">)</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">NodeRegion</span><span class="p">(</span><span class="n">RegionBase</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A region defined by a set of nodes or a node range.</span>
+<span class="sd">    </span>
+<span class="sd">    NodeRegion represents a collection of nodes in a structural model</span>
+<span class="sd">    that can have specific properties or behaviors assigned to them, such as</span>
+<span class="sd">    damping characteristics. Nodes can be specified either as a list of</span>
+<span class="sd">    individual node IDs or as a continuous range.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters:</span>
+<span class="sd">        damping (Type[DampingBase], optional): Damping behavior to assign to this region</span>
+<span class="sd">        **kwargs: Additional parameters including:</span>
+<span class="sd">            tag (int, optional): Unique identifier for the region</span>
+<span class="sd">            nodes (list[int], optional): List of node IDs to include in the region</span>
+<span class="sd">            node_range (list[int], optional): Two-element list specifying start and end</span>
+<span class="sd">                of a node range [start, end]</span>
+<span class="sd">            node_only (bool, optional): If True, includes only the specified nodes</span>
+<span class="sd">                </span>
+<span class="sd">    Note:</span>
+<span class="sd">        Cannot specify both nodes and node_range simultaneously</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">damping</span><span class="p">:</span> <span class="n">Type</span><span class="p">[</span><span class="n">DampingBase</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Create a new NodeRegion instance.</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            damping (Type[DampingBase], optional): Damping behavior to assign to this region</span>
+<span class="sd">            **kwargs: Additional parameters including tag, nodes, node_range, node_only</span>
+<span class="sd">            </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            NodeRegion: A new NodeRegion instance</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">tag</span><span class="o">=</span><span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;tag&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span>
+    
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">damping</span><span class="p">:</span> <span class="n">Type</span><span class="p">[</span><span class="n">DampingBase</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize a NodeRegion instance.</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            damping (Type[DampingBase], optional): Damping behavior to assign to this region</span>
+<span class="sd">            **kwargs: Additional parameters including tag, nodes, node_range, node_only</span>
+<span class="sd">            </span>
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If both nodes and node_range are provided simultaneously</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">tag</span><span class="o">=</span><span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;tag&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span> <span class="n">damping</span><span class="o">=</span><span class="n">damping</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">node_range</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">node_only</span> <span class="o">=</span> <span class="kc">False</span>
+        
+        <span class="k">if</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="n">validated</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span> <span class="o">=</span> <span class="n">validated</span><span class="p">[</span><span class="s2">&quot;nodes&quot;</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">node_range</span> <span class="o">=</span> <span class="n">validated</span><span class="p">[</span><span class="s2">&quot;node_range&quot;</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">node_only</span> <span class="o">=</span> <span class="n">validated</span><span class="p">[</span><span class="s2">&quot;node_only&quot;</span><span class="p">]</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">to_tcl</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generate TCL representation for the NodeRegion.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            str: TCL command string for the NodeRegion</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">cmd</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;region </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">tag</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">node_range</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">cmd</span> <span class="o">+=</span> <span class="s2">&quot; -node&quot;</span> <span class="o">+</span> <span class="p">(</span><span class="s2">&quot;Only&quot;</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">node_only</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;Range&quot;</span>
+            <span class="n">cmd</span> <span class="o">+=</span> <span class="s2">&quot; </span><span class="si">{}</span><span class="s2"> </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">node_range</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">cmd</span> <span class="o">+=</span> <span class="s2">&quot; -node&quot;</span> <span class="o">+</span> <span class="p">(</span><span class="s2">&quot;Only&quot;</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">node_only</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+            <span class="n">cmd</span> <span class="o">+=</span> <span class="s2">&quot; &quot;</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">n</span><span class="p">)</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">damping</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">damping</span><span class="o">.</span><span class="n">get_Type</span><span class="p">()</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;RayleighDamping&quot;</span><span class="p">,</span> <span class="s2">&quot;Frequency Rayleigh&quot;</span><span class="p">]:</span>
+                <span class="n">cmd</span> <span class="o">+=</span> <span class="sa">F</span><span class="s2">&quot;-rayleigh </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">damping</span><span class="o">.</span><span class="n">alphaM</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">damping</span><span class="o">.</span><span class="n">betaK</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">damping</span><span class="o">.</span><span class="n">betaKInit</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">damping</span><span class="o">.</span><span class="n">betaKComm</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">cmd</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;-damping </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">damping</span><span class="o">.</span><span class="n">tag</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="k">return</span> <span class="n">cmd</span>
+    
+    <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get a string representation of the NodeRegion.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            str: A multi-line string describing the NodeRegion&#39;s properties</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__str__</span><span class="p">()</span>
+        <span class="n">res</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n\t</span><span class="s2">Num of Nodes: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="n">res</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n\t</span><span class="s2">Node Range: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">node_range</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="k">return</span> <span class="n">res</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_Parameters</span><span class="p">():</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get parameters for the NodeRegion.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            Dict[str, str]: Dictionary mapping parameter names to their types</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s2">&quot;nodes&quot;</span><span class="p">:</span> <span class="s2">&quot;lineEdit&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;node_range&quot;</span><span class="p">:</span> <span class="s2">&quot;lineEdit&quot;</span>
+        <span class="p">}</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">getNotes</span><span class="p">()</span><span class="o">-&gt;</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get notes for the NodeRegion.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            Dict[str, list[str]]: Dictionary containing notes and references for the NodeRegion</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s2">&quot;Notes&quot;</span><span class="p">:</span> <span class="p">[</span>
+                <span class="s2">&quot;Use nodes list for specific nodes: [1, 2, 3, ...]&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;If you use GUI, use comma separated values 1, 2, 3, ...&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;Use node_range for a range: [start, end]&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;If you use GUI, use comma separated values start, end for range&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;Cannot use both nodes and node_range simultaneously&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;Set node_only=True to include only nodes (default is False)&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;If you use GUI, check the checkbox to include only nodes&quot;</span><span class="p">,</span>
+            <span class="p">],</span>
+            <span class="s2">&quot;References&quot;</span><span class="p">:</span> <span class="p">[]</span>
+        <span class="p">}</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">validate</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">]]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Validate parameters for the NodeRegion.</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            **kwargs: Parameters to validate</span>
+<span class="sd">            </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            Dict[str, Union[str, list]]: Validated parameters</span>
+<span class="sd">            </span>
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If parameters are invalid</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="s2">&quot;nodes&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span> <span class="ow">and</span> <span class="s2">&quot;node_range&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Both nodes and node_range cannot be provided at the same time&quot;</span><span class="p">)</span>
+        
+        <span class="n">nodes</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">node_range</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">node_only</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="k">if</span> <span class="s2">&quot;nodes&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="n">nodes</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;nodes&quot;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">nodes</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;nodes should be a list of integers&quot;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">nodes</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;nodes should be a list of integers&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="s2">&quot;node_range&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="n">node_range</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;node_range&quot;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">node_range</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;node_range should be a list of integers&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">node_range</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;node_range should have 2 elements&quot;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">node_range</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;node_range should be a list of integers&quot;</span><span class="p">)</span>
+                
+        <span class="k">if</span> <span class="s2">&quot;node_only&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="n">node_only</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;node_only&quot;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">node_only</span><span class="p">,</span> <span class="nb">bool</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;node_only should be a boolean&quot;</span><span class="p">)</span>
+            
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s2">&quot;nodes&quot;</span><span class="p">:</span> <span class="n">nodes</span><span class="p">,</span>
+            <span class="s2">&quot;node_range&quot;</span><span class="p">:</span> <span class="n">node_range</span><span class="p">,</span>
+            <span class="s2">&quot;node_only&quot;</span><span class="p">:</span> <span class="n">node_only</span>
+        <span class="p">}</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_type</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the type name of the NodeRegion.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            str: Always returns &quot;NodeRegion&quot;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="s2">&quot;NodeRegion&quot;</span>
+    
+    <span class="k">def</span><span class="w"> </span><span class="nf">setComponent</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">component</span><span class="p">:</span><span class="nb">str</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span><span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set component values for the NodeRegion.</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            component (str): One of &quot;node&quot;, &quot;nodeRange&quot;</span>
+<span class="sd">            value (list[int]): List of node IDs or [start, end] range</span>
+<span class="sd">            </span>
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If the component type is invalid or range doesn&#39;t have exactly 2 elements</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">component</span> <span class="o">==</span> <span class="s2">&quot;node&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span> <span class="o">=</span> <span class="n">value</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">node_range</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">elif</span> <span class="n">component</span> <span class="o">==</span> <span class="s2">&quot;nodeRange&quot;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;node_range should have 2 elements&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">node_range</span> <span class="o">=</span> <span class="n">value</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;&quot;&quot;Invalid component </span><span class="si">{</span><span class="n">component</span><span class="si">}</span><span class="s2"> for NodeRegion</span>
+<span class="s2">                             valid components are node and nodeRange&quot;&quot;&quot;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="RegionManager">
+<a class="viewcode-back" href="../../../../technical/region.html#femora.components.Region.regionBase.RegionManager">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">RegionManager</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A centralized manager for all region instances in MeshMaker.</span>
+<span class="sd">    </span>
+<span class="sd">    The RegionManager implements the Singleton pattern to ensure a single, consistent</span>
+<span class="sd">    point of region management across the entire application. It provides methods for</span>
+<span class="sd">    creating, retrieving, and managing region objects used to define specific parts</span>
+<span class="sd">    of structural models for analysis and damping assignments.</span>
+<span class="sd">    </span>
+<span class="sd">    All region objects created through this manager are automatically tracked and tagged,</span>
+<span class="sd">    simplifying the process of defining and managing model regions. A special GlobalRegion</span>
+<span class="sd">    with tag 0 is automatically created when the RegionManager is initialized.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">_instance</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Create a new RegionManager instance or return the existing one if already created.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            RegionManager: The singleton instance of the RegionManager</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_instance</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">cls</span><span class="o">.</span><span class="n">_instance</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">RegionManager</span><span class="p">,</span> <span class="bp">cls</span><span class="p">)</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span>
+            <span class="bp">cls</span><span class="o">.</span><span class="n">_instance</span><span class="o">.</span><span class="n">_initialized</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_instance</span>
+
+<div class="viewcode-block" id="RegionManager.__init__">
+<a class="viewcode-back" href="../../../../technical/region.html#femora.components.Region.regionBase.RegionManager.__init__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize the RegionManager and create the GlobalRegion.</span>
+<span class="sd">        </span>
+<span class="sd">        This method ensures that the global region (tag 0) is automatically created</span>
+<span class="sd">        when the RegionManager is initialized. The initialization only happens once</span>
+<span class="sd">        due to the singleton pattern.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_initialized</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_initialized</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="n">initialize_region_base</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">elementRegion</span> <span class="o">=</span> <span class="n">ElementRegion</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nodeRegion</span> <span class="o">=</span> <span class="n">NodeRegion</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">globalRegion</span> <span class="o">=</span> <span class="n">GlobalRegion</span><span class="p">()</span></div>
+
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">regions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get all regions as a dictionary mapping tags to region instances.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            Dict[int, RegionBase]: A dictionary mapping tags to region instances</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">RegionBase</span><span class="o">.</span><span class="n">get_all_regions</span><span class="p">()</span>
+
+<div class="viewcode-block" id="RegionManager.get_region">
+<a class="viewcode-back" href="../../../../technical/region.html#femora.components.Region.regionBase.RegionManager.get_region">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_region</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tag</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get a region by its tag.</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            tag (int): The unique identifier of the region instance</span>
+<span class="sd">            </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            RegionBase: The region instance with the specified tag, or None if not found</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">RegionBase</span><span class="o">.</span><span class="n">get_region</span><span class="p">(</span><span class="n">tag</span><span class="p">)</span></div>
+
+    
+<div class="viewcode-block" id="RegionManager.create_region">
+<a class="viewcode-back" href="../../../../technical/region.html#femora.components.Region.regionBase.RegionManager.create_region">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">create_region</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">regionType</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">damping</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Create a new region instance of the specified type.</span>
+<span class="sd">        </span>
+<span class="sd">        This method creates and returns a new region object based on the provided type</span>
+<span class="sd">        and parameters. The region is automatically registered and tracked.</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            regionType (str): The type of region to create. Available types include:</span>
+<span class="sd">                &#39;ElementRegion&#39;: A region defined by a set of elements or element range</span>
+<span class="sd">                &#39;NodeRegion&#39;: A region defined by a set of nodes or node range</span>
+<span class="sd">                &#39;GlobalRegion&#39;: The global region representing the entire model</span>
+<span class="sd">            damping: Optional damping instance to associate with the region</span>
+<span class="sd">            **kwargs: Specific parameters for the region type being created</span>
+<span class="sd">                (e.g., elements, element_range for ElementRegion,</span>
+<span class="sd">                nodes, node_range for NodeRegion)</span>
+<span class="sd">        </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            RegionBase: A new instance of the requested region type</span>
+<span class="sd">            </span>
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If the region type is unknown or if required parameters are missing or invalid</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">regionType</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;elementregion&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">ElementRegion</span><span class="p">(</span><span class="n">damping</span><span class="o">=</span><span class="n">damping</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">regionType</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;noderegion&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">NodeRegion</span><span class="p">(</span><span class="n">damping</span><span class="o">=</span><span class="n">damping</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">regionType</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;globalregion&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">GlobalRegion</span><span class="p">(</span><span class="n">damping</span><span class="o">=</span><span class="n">damping</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;&quot;&quot;Invalid region type </span><span class="si">{</span><span class="n">regionType</span><span class="si">}</span>
+<span class="s2">                             valid region types are ElementRegion, NodeRegion, GlobalRegion&quot;&quot;&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="RegionManager.remove_region">
+<a class="viewcode-back" href="../../../../technical/region.html#femora.components.Region.regionBase.RegionManager.remove_region">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">remove_region</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tag</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Remove a region by its tag.</span>
+<span class="sd">        </span>
+<span class="sd">        This method removes the specified region instance and automatically</span>
+<span class="sd">        updates the tags of the remaining region instances to maintain sequential numbering.</span>
+<span class="sd">        The GlobalRegion (tag 0) cannot be removed.</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            tag (int): The unique identifier of the region instance to remove</span>
+<span class="sd">            </span>
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If attempting to remove the GlobalRegion (tag 0)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">RegionBase</span><span class="o">.</span><span class="n">remove_region</span><span class="p">(</span><span class="n">tag</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="RegionManager.clear_regions">
+<a class="viewcode-back" href="../../../../technical/region.html#femora.components.Region.regionBase.RegionManager.clear_regions">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">clear_regions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Remove all regions and reinitialize the GlobalRegion.</span>
+<span class="sd">        </span>
+<span class="sd">        This method clears all region instances, including the GlobalRegion,</span>
+<span class="sd">        and then recreates the GlobalRegion with tag 0.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">RegionBase</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+        <span class="n">initialize_region_base</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="RegionManager.print_regions">
+<a class="viewcode-back" href="../../../../technical/region.html#femora.components.Region.regionBase.RegionManager.print_regions">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">print_regions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Print information about all regions.</span>
+<span class="sd">        </span>
+<span class="sd">        This method prints detailed information about all region instances</span>
+<span class="sd">        including their tags, types, elements/nodes, and damping assignments.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">RegionBase</span><span class="o">.</span><span class="n">print_regions</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="RegionManager.GlobalRegion">
+<a class="viewcode-back" href="../../../../technical/region.html#femora.components.Region.regionBase.RegionManager.GlobalRegion">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">GlobalRegion</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the GlobalRegion instance.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            GlobalRegion: The global region instance</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">RegionBase</span><span class="o">.</span><span class="n">get_region</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span></div>
+</div>
+
+    
+    
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">femora.components.Damping.dampingBase</span><span class="w"> </span><span class="kn">import</span> <span class="n">RayleighDamping</span><span class="p">,</span> <span class="n">ModalDamping</span>
+    <span class="c1"># ---- Test Global Region ----</span>
+    <span class="c1"># test the DampingBase class</span>
+    <span class="n">damping1</span> <span class="o">=</span> <span class="n">DampingBase</span><span class="p">()</span>
+    <span class="n">damping2</span> <span class="o">=</span> <span class="n">DampingBase</span><span class="p">()</span>
+    <span class="n">damping3</span> <span class="o">=</span> <span class="n">DampingBase</span><span class="p">()</span>
+
+    <span class="n">RayleighDamping1</span> <span class="o">=</span> <span class="n">RayleighDamping</span><span class="p">(</span><span class="n">alphaM</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">betaK</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">betaKInit</span><span class="o">=</span><span class="mf">0.3</span><span class="p">,</span> <span class="n">betaKComm</span><span class="o">=</span><span class="mf">0.4</span><span class="p">)</span>
+    <span class="n">RayleighDamping2</span> <span class="o">=</span> <span class="n">RayleighDamping</span><span class="p">(</span><span class="n">alphaM</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">betaK</span><span class="o">=</span><span class="mf">0.6</span><span class="p">,</span> <span class="n">betaKInit</span><span class="o">=</span><span class="mf">0.7</span><span class="p">,</span> <span class="n">betaKComm</span><span class="o">=</span><span class="mf">0.8</span><span class="p">)</span>
+    <span class="n">ModalDamping1</span> <span class="o">=</span> <span class="n">ModalDamping</span><span class="p">(</span><span class="n">numberofModes</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">dampingFactors</span><span class="o">=</span><span class="s2">&quot;0.1,0.2&quot;</span><span class="p">)</span>
+    <span class="n">ModalDamping2</span> <span class="o">=</span> <span class="n">ModalDamping</span><span class="p">(</span><span class="n">numberofModes</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">dampingFactors</span><span class="o">=</span><span class="s2">&quot;0.3,0.4,0.5&quot;</span><span class="p">)</span>
+
+    <span class="n">initialize_region_base</span><span class="p">()</span>
+    <span class="n">global_region</span> <span class="o">=</span> <span class="n">RegionBase</span><span class="o">.</span><span class="n">get_region</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">global_region2</span> <span class="o">=</span> <span class="n">GlobalRegion</span><span class="p">()</span>
+    <span class="n">global_region3</span> <span class="o">=</span> <span class="n">GlobalRegion</span><span class="p">()</span>
+
+
+
+    <span class="k">assert</span> <span class="n">global_region</span> <span class="o">==</span> <span class="n">global_region2</span><span class="p">,</span> <span class="s2">&quot;Global regions should be equal&quot;</span>
+    <span class="k">assert</span> <span class="n">global_region</span> <span class="ow">is</span> <span class="n">global_region3</span><span class="p">,</span> <span class="s2">&quot;Global regions should be the same instance&quot;</span>
+    <span class="k">assert</span> <span class="n">global_region</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;Global region should exist&quot;</span>
+    <span class="k">assert</span> <span class="n">global_region</span><span class="o">.</span><span class="n">tag</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;Global region tag should be 0&quot;</span>
+    <span class="k">assert</span> <span class="n">global_region</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;GlobalRegion&quot;</span><span class="p">,</span> <span class="s2">&quot;Global region name incorrect&quot;</span>
+    <span class="n">global_region</span><span class="o">.</span><span class="n">damping</span> <span class="o">=</span> <span class="n">DampingBase</span><span class="o">.</span><span class="n">get_damping</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
+
+
+    <span class="n">eleregion1</span> <span class="o">=</span> <span class="n">ElementRegion</span><span class="p">(</span><span class="n">elements</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">])</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Global Region tests passed&quot;</span><span class="p">)</span>
+
+
+
+    <span class="n">eleregion1</span> <span class="o">=</span> <span class="n">ElementRegion</span><span class="p">(</span><span class="n">elements</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">])</span>
+    <span class="n">eleregion2</span> <span class="o">=</span> <span class="n">ElementRegion</span><span class="p">(</span><span class="n">element_range</span><span class="o">=</span><span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">10</span><span class="p">])</span>
+    <span class="n">eleregion4</span> <span class="o">=</span> <span class="n">ElementRegion</span><span class="p">()</span>
+    <span class="n">eleregion5</span> <span class="o">=</span> <span class="n">ElementRegion</span><span class="p">(</span><span class="n">tag</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+    <span class="c1"># Test Element Regions</span>
+    <span class="k">assert</span> <span class="n">eleregion1</span><span class="o">.</span><span class="n">tag</span> <span class="o">==</span> <span class="mi">2</span><span class="p">,</span> <span class="s2">&quot;Element region 1 tag should be 1&quot;</span>
+    <span class="k">assert</span> <span class="n">eleregion2</span><span class="o">.</span><span class="n">tag</span> <span class="o">==</span> <span class="mi">3</span><span class="p">,</span> <span class="s2">&quot;Element region 2 tag should be 2&quot;</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">eleregion1</span><span class="o">.</span><span class="n">elements</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">,</span> <span class="s2">&quot;Element region 1 should have 3 elements&quot;</span>
+    <span class="k">assert</span> <span class="n">eleregion2</span><span class="o">.</span><span class="n">element_range</span> <span class="o">==</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">10</span><span class="p">],</span> <span class="s2">&quot;Element region 2 range incorrect&quot;</span>
+    <span class="n">eleregion3</span> <span class="o">=</span> <span class="n">ElementRegion</span><span class="p">(</span><span class="n">tag</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">eleregion3</span><span class="o">.</span><span class="n">tag</span> <span class="o">==</span> <span class="mi">2</span><span class="p">,</span> <span class="s2">&quot;Element region 3 tag should be 2&quot;</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">eleregion3</span><span class="o">.</span><span class="n">elements</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;Element region 3 should have 0 elements&quot;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Element Region tests passed&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Test Node Regions</span>
+    <span class="n">noderegion1</span> <span class="o">=</span> <span class="n">NodeRegion</span><span class="p">(</span><span class="n">nodes</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">])</span>
+    <span class="n">noderegion2</span> <span class="o">=</span> <span class="n">NodeRegion</span><span class="p">(</span><span class="n">node_range</span><span class="o">=</span><span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">10</span><span class="p">])</span>
+
+    <span class="k">assert</span> <span class="n">noderegion1</span><span class="o">.</span><span class="n">tag</span> <span class="o">==</span> <span class="mi">5</span><span class="p">,</span> <span class="s2">&quot;Node region 1 tag should be 3&quot;</span>
+    <span class="k">assert</span> <span class="n">noderegion2</span><span class="o">.</span><span class="n">tag</span> <span class="o">==</span> <span class="mi">6</span><span class="p">,</span> <span class="s2">&quot;Node region 2 tag should be 4&quot;</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">noderegion1</span><span class="o">.</span><span class="n">nodes</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">,</span> <span class="s2">&quot;Node region 1 should have 3 nodes&quot;</span>
+    <span class="k">assert</span> <span class="n">noderegion2</span><span class="o">.</span><span class="n">node_range</span> <span class="o">==</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">10</span><span class="p">],</span> <span class="s2">&quot;Node region 2 range incorrect&quot;</span>
+    <span class="n">noderegion3</span> <span class="o">=</span> <span class="n">NodeRegion</span><span class="p">(</span><span class="n">tag</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">noderegion3</span><span class="o">.</span><span class="n">tag</span> <span class="o">==</span> <span class="mi">5</span><span class="p">,</span> <span class="s2">&quot;Node region 3 tag should be 3&quot;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Node Region tests passed&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Test region removal and tag updates</span>
+    <span class="c1"># Test removing global region (should raise ValueError)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">RegionBase</span><span class="o">.</span><span class="n">remove_region</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;Should have raised ValueError&quot;</span>
+    <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="kc">True</span>
+
+    <span class="c1"># assign with damping </span>
+    <span class="n">eleDamping</span> <span class="o">=</span> <span class="n">ElementRegion</span><span class="p">(</span><span class="n">elements</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">],</span> <span class="n">damping</span><span class="o">=</span><span class="n">RayleighDamping1</span><span class="p">)</span>
+    <span class="n">nodeDamping</span> <span class="o">=</span> <span class="n">NodeRegion</span><span class="p">(</span><span class="n">nodes</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">],</span> <span class="n">damping</span><span class="o">=</span><span class="n">ModalDamping1</span><span class="p">)</span>
+    <span class="n">baseDamping</span> <span class="o">=</span> <span class="n">GlobalRegion</span><span class="p">(</span><span class="n">damping</span><span class="o">=</span><span class="n">RayleighDamping1</span><span class="p">)</span>
+    <span class="c1"># print(eleDamping)</span>
+    <span class="c1"># print(nodeDamping)</span>
+    <span class="c1"># print(baseDamping)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Region assignment with damping passed&quot;</span><span class="p">)</span>
+    
+    <span class="c1"># Test damping assignment</span>
+    <span class="n">noderegion1</span><span class="o">.</span><span class="n">damping</span> <span class="o">=</span> <span class="n">RayleighDamping2</span>
+    <span class="k">assert</span> <span class="n">noderegion1</span><span class="o">.</span><span class="n">damping</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;Damping should be assigned&quot;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Damping assignment test passed&quot;</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">All tests passed successfully!&quot;</span><span class="p">)</span>
+
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Amin Pakzad.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

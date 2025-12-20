@@ -1,0 +1,732 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Example 2: Multi-layer Soil Model with Absorbing Boundaries &mdash; Femora (Fast Efficient Meshing for OpenSees-based Resilience Analysis) 0.5.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/custom.css?v=bbbd0671" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=1dd76d02"></script>
+      <script src="../../_static/doctools.js?v=9a2dae69"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      <script src="../../_static/js/copy-button.js?v=47d38097"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Example 3: Seismic Wave Basin Effects Model with External Mesh" href="example3.html" />
+    <link rel="prev" title="Example 1: Domain Reduction Method (DRM) Site Response Analysis" href="example1.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html">
+            
+              <img src="../../_static/Femoralogo.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Introduction:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../getting_started.html">Getting Started with Femora</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quick_start.html">Quick Start Guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../examples.html">Examples and Tutorials</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../quick_start.html">Quick Start Example (Layered Soil Profile)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../SiteResponseExamples/SiteResponse.html">Site Response Examples</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="DRM.html">Domain Reduction Method (DRM) Examples</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="example1.html">Example 1: Domain Reduction Method (DRM) Site Response Analysis</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Example 2: Multi-layer Soil Model with Absorbing Boundaries</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#overview">Overview</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#model-description">Model Description</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#domain-reduction-method-drm-explained">Domain Reduction Method (DRM) Explained</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#perfectly-matched-layer-pml-explained">Perfectly Matched Layer (PML) Explained</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#absorbing-layer-parameters-in-detail">Absorbing Layer Parameters in Detail</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#frequency-rayleigh-damping-in-femora">Frequency Rayleigh Damping in Femora</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#region-assignment-in-layered-soil-model">Region Assignment in Layered Soil Model</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#global-region-and-region-management-in-femora">Global Region and Region Management in Femora</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#step-by-step-code-walkthrough">Step-by-Step Code Walkthrough</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#code-access">Code Access</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#key-concepts-demonstrated">Key Concepts Demonstrated</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="example3.html">Example 3: Seismic Wave Basin Effects Model with External Mesh</a></li>
+<li class="toctree-l3"><a class="reference internal" href="DRM.html#references">References</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Technical Guide:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../technical/index.html">Technical Documentation</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer Documentation:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../developer/index.html">Developer Documentation</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Femora (Fast Efficient Meshing for OpenSees-based Resilience Analysis)</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../examples.html">Examples and Tutorials</a></li>
+          <li class="breadcrumb-item"><a href="DRM.html">Domain Reduction Method (DRM) Examples</a></li>
+      <li class="breadcrumb-item active">Example 2: Multi-layer Soil Model with Absorbing Boundaries</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/introduction/DRMExamples/example2.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="example-2-multi-layer-soil-model-with-absorbing-boundaries">
+<h1>Example 2: Multi-layer Soil Model with Absorbing Boundaries<a class="headerlink" href="#example-2-multi-layer-soil-model-with-absorbing-boundaries" title="Link to this heading"></a></h1>
+<section id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Link to this heading"></a></h2>
+<p>This example demonstrates how to create a larger-scale soil domain with multiple layers and absorbing boundary conditions using Perfectly Matched Layers (PML). The model is designed for wave propagation analysis with domain reduction method (DRM) loading.</p>
+<p>The model created in this example consists of:</p>
+<ul class="simple">
+<li><p>Six distinct soil layers with depth-varying properties</p></li>
+<li><p>3D brick elements with elastic-isotropic materials</p></li>
+<li><p>Rayleigh damping applied to control dynamic response</p></li>
+<li><p>PML absorbing boundaries to prevent wave reflections</p></li>
+<li><p>DRM loading applied from an external file</p></li>
+</ul>
+<figure class="align-center" id="id1">
+<a class="reference internal image-reference" href="introduction/images/femora_logo.png"><img alt="Multi-layer Soil Model with PML Boundaries" src="introduction/images/femora_logo.png" style="width: 600px;" />
+</a>
+<figcaption>
+<p><span class="caption-text">Conceptual visualization of the multi-layer soil model with absorbing boundaries</span><a class="headerlink" href="#id1" title="Link to this image"></a></p>
+</figcaption>
+</figure>
+</section>
+<section id="model-description">
+<h2>Model Description<a class="headerlink" href="#model-description" title="Link to this heading"></a></h2>
+<p><strong>Soil Domain:</strong></p>
+<ul class="simple">
+<li><p>128m × 128m domain (-64m to 64m in both X and Y directions)</p></li>
+<li><p>Total depth of 48m</p></li>
+<li><p>Six distinct soil layers, each 8m thick</p></li>
+<li><p>Properties that vary with depth (density, wave velocities, and damping)</p></li>
+</ul>
+<p><strong>Materials:</strong></p>
+<ul class="simple">
+<li><p>Elastic-isotropic materials with properties calculated from wave velocities</p></li>
+<li><p>Density (rho) increasing with depth from 2142 to 2162 kg/m³</p></li>
+<li><p>Shear wave velocity (Vs) increasing with depth from 353 to 599 m/s</p></li>
+<li><p>P-wave velocity (Vp) increasing with depth from 669 to 1135 m/s</p></li>
+<li><p>Damping ratio decreasing with depth</p></li>
+</ul>
+<p><strong>Mesh:</strong></p>
+<ul class="simple">
+<li><p>Element sizes: 4.0m × 4.0m × 4.0m uniform grid</p></li>
+<li><p>32 × 32 elements in horizontal directions</p></li>
+<li><p>2 elements per layer in vertical direction</p></li>
+</ul>
+<p><strong>Damping:</strong></p>
+<ul class="simple">
+<li><p>Frequency-dependent Rayleigh damping</p></li>
+<li><p>Target frequencies: f1=3Hz and f2=15Hz</p></li>
+<li><p>Damping ratio varying by layer (from 2.1% to 3.0%)</p></li>
+</ul>
+<p><strong>Boundary Conditions:</strong></p>
+<ul class="simple">
+<li><p>Perfectly Matched Layer (PML) absorbing boundaries</p></li>
+<li><p>4 element layers in PML</p></li>
+<li><p>Rayleigh damping coefficient of 0.95 in PML region</p></li>
+</ul>
+<p><strong>Loading:</strong></p>
+<ul class="simple">
+<li><p>Domain Reduction Method (DRM) loading</p></li>
+<li><p>Input from external H5DRM file</p></li>
+<li><p>Simulation duration: 30 seconds with 0.01s time step</p></li>
+</ul>
+</section>
+<section id="domain-reduction-method-drm-explained">
+<h2>Domain Reduction Method (DRM) Explained<a class="headerlink" href="#domain-reduction-method-drm-explained" title="Link to this heading"></a></h2>
+<p>The Domain Reduction Method (DRM) is a two-step computational approach for simulating seismic wave propagation in a localized region of interest:</p>
+<ol class="arabic simple">
+<li><p><strong>Background Analysis</strong>: First, a large domain is analyzed to capture the regional seismic wave propagation from the source to the site.</p></li>
+<li><p><strong>Local Analysis</strong>: The results from step 1 are then used as boundary conditions for a smaller domain of interest, allowing for detailed analysis without modeling the entire domain.</p></li>
+</ol>
+<p>Key features and benefits of DRM:</p>
+<ul class="simple">
+<li><p><strong>Computational Efficiency</strong>: Enables detailed analysis of a small region without the computational cost of modeling the entire wave propagation path from source to site</p></li>
+<li><p><strong>Wave Input Flexibility</strong>: Can input waves from any direction and source mechanism</p></li>
+<li><p><strong>Realistic Boundary Conditions</strong>: Accounts for complex wave propagation effects more accurately than direct force inputs</p></li>
+<li><p><strong>Localized Refinement</strong>: Allows for mesh refinement in the region of interest without needing to refine the entire domain</p></li>
+</ul>
+<p>In this example, DRM is implemented through:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">h5pattern</span> <span class="o">=</span> <span class="n">fm</span><span class="o">.</span><span class="n">pattern</span><span class="o">.</span><span class="n">create_pattern</span><span class="p">(</span><span class="s1">&#39;h5drm&#39;</span><span class="p">,</span>
+                                    <span class="n">filepath</span><span class="o">=</span><span class="s1">&#39;drmload.h5drm&#39;</span><span class="p">,</span>
+                                    <span class="n">factor</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+                                    <span class="n">crd_scale</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+                                    <span class="n">distance_tolerance</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span>
+                                    <span class="n">do_coordinate_transformation</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                                    <span class="n">transform_matrix</span><span class="o">=</span><span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">],</span>
+                                    <span class="n">origin</span><span class="o">=</span><span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">])</span>
+<span class="n">fm</span><span class="o">.</span><span class="n">drm</span><span class="o">.</span><span class="n">set_pattern</span><span class="p">(</span><span class="n">h5pattern</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">h5drm</span></code> file contains pre-computed wave field information that is applied to the DRM boundary elements, effectively injecting the desired seismic waves into the computational domain.</p>
+</section>
+<section id="perfectly-matched-layer-pml-explained">
+<h2>Perfectly Matched Layer (PML) Explained<a class="headerlink" href="#perfectly-matched-layer-pml-explained" title="Link to this heading"></a></h2>
+<p>PML is an advanced absorbing boundary technique developed to prevent artificial reflections of waves at computational domain boundaries:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">fm</span><span class="o">.</span><span class="n">drm</span><span class="o">.</span><span class="n">addAbsorbingLayer</span><span class="p">(</span><span class="n">numLayers</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+                        <span class="n">numPartitions</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span>
+                        <span class="n">partitionAlgo</span><span class="o">=</span><span class="s2">&quot;kd-tree&quot;</span><span class="p">,</span>
+                        <span class="n">geometry</span><span class="o">=</span><span class="s2">&quot;Rectangular&quot;</span><span class="p">,</span>
+                        <span class="n">rayleighDamping</span><span class="o">=</span><span class="mf">0.95</span><span class="p">,</span>
+                        <span class="n">matchDamping</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                        <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;PML&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Key features of PML:</p>
+<ul class="simple">
+<li><p><strong>Wave Absorption</strong>: PML gradually attenuates waves as they enter the boundary region, preventing them from reflecting back into the domain</p></li>
+<li><p><strong>Angle Independence</strong>: Designed to have minimal reflections regardless of wave incidence angle or frequency content</p></li>
+<li><p><strong>Computational Efficiency</strong>: More efficient than extending the physical domain to prevent reflections</p></li>
+<li><p><strong>Implementation Parameters</strong>:
+- <code class="docutils literal notranslate"><span class="pre">numLayers</span></code>: Controls thickness of the absorbing region (4 elements in this example)
+- <code class="docutils literal notranslate"><span class="pre">rayleighDamping</span></code>: Sets the damping coefficient in the PML region (0.95 in this example)</p></li>
+</ul>
+<p>PML works by creating an artificial absorbing material whose damping properties gradually increase with distance from the computational domain boundary. This gradual transition ensures waves are absorbed without creating spurious reflections at the PML interface.</p>
+</section>
+<section id="absorbing-layer-parameters-in-detail">
+<h2>Absorbing Layer Parameters in Detail<a class="headerlink" href="#absorbing-layer-parameters-in-detail" title="Link to this heading"></a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">addAbsorbingLayer</span></code> method creates boundary regions that absorb outgoing waves to prevent them from reflecting back into the computational domain. Let’s examine each parameter in detail:</p>
+<ol class="arabic">
+<li><p><strong>numLayers</strong> (int):</p>
+<ul class="simple">
+<li><p>Defines the thickness of the absorbing boundary in terms of element layers</p></li>
+<li><p>More layers typically provide better absorption but increase computational cost</p></li>
+<li><p>Recommended values range from 3-8 layers, with 4 being a good balance in many cases</p></li>
+<li><p>In this example, 4 layers effectively absorb most seismic waves while maintaining efficiency</p></li>
+</ul>
+</li>
+<li><p><strong>numPartitions</strong> (int):</p>
+<ul class="simple">
+<li><p>Controls how the boundary regions are divided for parallel processing</p></li>
+<li><p>Higher values can improve load balancing but may increase overhead</p></li>
+<li><p>Value should typically scale with the number of available CPU cores</p></li>
+<li><p>In this example, 8 partitions are used for efficient parallel computation</p></li>
+</ul>
+</li>
+<li><p><strong>partitionAlgo</strong> (str):</p>
+<ul class="simple">
+<li><p>Specifies the algorithm used to divide the model for parallel processing</p></li>
+<li><p>Currently implemented options:</p>
+<ul>
+<li><p>“kd-tree”: Spatially balanced partitioning (used in this example)</p></li>
+<li><p>“metis”: Graph-based partitioning for complex geometries</p></li>
+</ul>
+</li>
+<li><p>“kd-tree” is generally recommended for soil models as it provides good load balancing</p></li>
+</ul>
+</li>
+<li><p><strong>geometry</strong> (str):</p>
+<ul class="simple">
+<li><p>Defines the shape of the computational domain and absorbing boundaries</p></li>
+<li><p>Currently only “Rectangular” is fully implemented</p></li>
+<li><p>Future implementations will include:</p>
+<ul>
+<li><p>“Cylindrical”: For cylindrical domains</p></li>
+<li><p>“Spherical”: For spherical domains</p></li>
+</ul>
+</li>
+<li><p>The “Rectangular” option is appropriate for this layered soil model with a rectangular footprint</p></li>
+</ul>
+</li>
+<li><p><strong>rayleighDamping</strong> (float):</p>
+<ul class="simple">
+<li><p>Controls the strength of the Rayleigh damping in the absorbing layer</p></li>
+<li><p>Ranges from 0.0 (no damping) to 1.0 (maximum damping)</p></li>
+<li><p>Higher values (like 0.95 in this example) absorb more energy but may cause numerical issues</p></li>
+<li><p>This parameter sets a scalar multiplier for the damping coefficients that increases with distance into the boundary</p></li>
+<li><p>The damping strength gradually increases from the inner boundary (computational domain) to the outer boundary</p></li>
+</ul>
+</li>
+<li><p><strong>matchDamping</strong> (bool):</p>
+<ul class="simple">
+<li><p>When True, matches the damping properties between the computational domain and absorbing layers</p></li>
+<li><p>When False (as in this example), uses the damping properties defined specifically for the absorbing layer</p></li>
+<li><p>Setting to False allows for stronger damping in the absorbing layers than in the computational domain</p></li>
+<li><p>This parameter is particularly relevant when the computational domain already has some level of damping</p></li>
+</ul>
+</li>
+<li><p><strong>type</strong> (str):</p>
+<ul class="simple">
+<li><p>Specifies the type of absorbing boundary to use</p></li>
+<li><p>Currently implemented options:</p>
+<ul>
+<li><p>“PML”: Perfectly Matched Layer (used in this example)</p></li>
+<li><p>“Rayleigh”: Standard Rayleigh damping layer</p></li>
+<li><p>“ASDA”: Combined PML and Rayleigh approach</p></li>
+</ul>
+</li>
+</ul>
+<p><strong>Comparing Absorbing Layer Types:</strong></p>
+<ul class="simple">
+<li><p><strong>PML</strong> (Perfectly Matched Layer):</p>
+<ul>
+<li><p>More effective at absorbing waves at any angle of incidence</p></li>
+<li><p>Better performance for complex wave fields</p></li>
+<li><p>More computationally intensive</p></li>
+<li><p>Preferred for high-precision wave propagation simulations</p></li>
+</ul>
+</li>
+<li><p><strong>Rayleigh</strong> damping layers:</p>
+<ul>
+<li><p>Simpler implementation</p></li>
+<li><p>Less computationally demanding</p></li>
+<li><p>More numerically stable than PML</p></li>
+<li><p>May require more layers to achieve the same absorption quality</p></li>
+<li><p>Recommended for models with stability concerns</p></li>
+</ul>
+</li>
+<li><p><strong>ASDA</strong> (Combined approach):</p>
+<ul>
+<li><p>Combines benefits of both PML and Rayleigh approaches</p></li>
+<li><p>Can provide better stability than pure PML</p></li>
+<li><p>More computationally intensive than Rayleigh alone</p></li>
+</ul>
+</li>
+</ul>
+</li>
+</ol>
+<p>In this example, PML is chosen because it provides superior absorption characteristics for seismic wave propagation problems, particularly when waves may approach the boundary at various angles. However, if you experience numerical instabilities, switching to “Rayleigh” type may help stabilize the solution at the cost of some absorption efficiency.</p>
+</section>
+<section id="frequency-rayleigh-damping-in-femora">
+<h2>Frequency Rayleigh Damping in Femora<a class="headerlink" href="#frequency-rayleigh-damping-in-femora" title="Link to this heading"></a></h2>
+<p>In this example, each soil layer is assigned its own frequency-dependent Rayleigh damping:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">damp</span> <span class="o">=</span> <span class="n">fm</span><span class="o">.</span><span class="n">damping</span><span class="o">.</span><span class="n">create_damping</span><span class="p">(</span><span class="s2">&quot;frequency rayleigh&quot;</span><span class="p">,</span> <span class="n">dampingFactor</span><span class="o">=</span><span class="n">xi_s</span><span class="p">,</span> <span class="n">f1</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">f2</span><span class="o">=</span><span class="mi">15</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Frequency Rayleigh damping is a more intuitive approach to specifying damping than conventional Rayleigh damping. Instead of directly setting the mass and stiffness proportional coefficients (αₘ and βₖ), users can specify:</p>
+<ol class="arabic simple">
+<li><p><strong>dampingFactor</strong>: The target damping ratio ξ (between 0 and 1) - in our example, this varies by layer (xi_s)</p></li>
+<li><p><strong>f1</strong>: Lower bound target frequency in Hz (3 Hz in this model)</p></li>
+<li><p><strong>f2</strong>: Upper bound target frequency in Hz (15 Hz in this model)</p></li>
+</ol>
+<p><strong>How Frequency Rayleigh Damping Works:</strong></p>
+<p>Rayleigh damping combines mass-proportional and stiffness-proportional damping through the equation:</p>
+<div class="math notranslate nohighlight">
+\[[C] = \alpha_M [M] + \beta_K [K]\]</div>
+<p>Where:
+- [C] is the damping matrix
+- [M] is the mass matrix
+- [K] is the stiffness matrix
+- αₘ and βₖ are the mass and stiffness proportional coefficients</p>
+<p>Traditional Rayleigh damping requires specifying αₘ and βₖ directly, which is not intuitive. In frequency Rayleigh damping, Femora automatically calculates these coefficients from more practical inputs:</p>
+<div class="math notranslate nohighlight">
+\[ \begin{align}\begin{aligned}\omega_1 = 2\pi f_1, \quad \omega_2 = 2\pi f_2\\\alpha_M = \frac{2\omega_1\omega_2}{\omega_1 + \omega_2}\xi\\\beta_K = \frac{2}{\omega_1 + \omega_2}\xi\end{aligned}\end{align} \]</div>
+<p>This approach is implemented in Femora because:</p>
+<ul class="simple">
+<li><p>It’s more intuitive for geotechnical engineers who think in terms of frequency ranges and damping ratios</p></li>
+<li><p>It automatically ensures the damping ratio equals the target value exactly at the two specified frequencies</p></li>
+<li><p>It simplifies the process of creating realistic energy dissipation in dynamic models</p></li>
+<li><p>It allows for frequency-calibrated damping that properly accounts for the predominant frequencies in seismic analysis</p></li>
+</ul>
+<p><strong>Mathematical Background:</strong></p>
+<p>The damping ratio at any frequency ω is given by:</p>
+<div class="math notranslate nohighlight">
+\[\xi(\omega) = \frac{\alpha_M}{2\omega} + \frac{\beta_K\omega}{2}\]</div>
+<p>By selecting two target frequencies (ω₁ and ω₂) and setting the damping ratio to the desired value (ξ) at these frequencies, we can solve for the Rayleigh coefficients αₘ and βₖ. This calibration ensures that the damping ratio is exactly ξ at frequencies f₁ and f₂, and varies gradually for other frequencies.</p>
+</section>
+<section id="region-assignment-in-layered-soil-model">
+<h2>Region Assignment in Layered Soil Model<a class="headerlink" href="#region-assignment-in-layered-soil-model" title="Link to this heading"></a></h2>
+<p>In this example, each soil layer is assigned to its own region with specific damping properties:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create frequency-dependent damping for this layer</span>
+<span class="n">damp</span> <span class="o">=</span> <span class="n">fm</span><span class="o">.</span><span class="n">damping</span><span class="o">.</span><span class="n">create_damping</span><span class="p">(</span><span class="s2">&quot;frequency rayleigh&quot;</span><span class="p">,</span> <span class="n">dampingFactor</span><span class="o">=</span><span class="n">xi_s</span><span class="p">,</span> <span class="n">f1</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">f2</span><span class="o">=</span><span class="mi">15</span><span class="p">)</span>
+
+<span class="c1"># Create region with this layer&#39;s specific damping</span>
+<span class="n">reg</span> <span class="o">=</span> <span class="n">fm</span><span class="o">.</span><span class="n">region</span><span class="o">.</span><span class="n">create_region</span><span class="p">(</span><span class="s2">&quot;elementRegion&quot;</span><span class="p">,</span> <span class="n">damping</span><span class="o">=</span><span class="n">damp</span><span class="p">)</span>
+
+<span class="c1"># Assign the region when creating the mesh part for this layer</span>
+<span class="n">fm</span><span class="o">.</span><span class="n">meshPart</span><span class="o">.</span><span class="n">create_mesh_part</span><span class="p">(</span><span class="s2">&quot;Volume mesh&quot;</span><span class="p">,</span> <span class="s2">&quot;Uniform Rectangular Grid&quot;</span><span class="p">,</span>
+                        <span class="n">user_name</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Layer</span><span class="si">{</span><span class="n">layer</span><span class="p">[</span><span class="s1">&#39;layer&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                        <span class="n">element</span><span class="o">=</span><span class="n">ele</span><span class="p">,</span>
+                        <span class="n">region</span><span class="o">=</span><span class="n">reg</span><span class="p">,</span>
+                        <span class="c1"># ... other parameters ...)</span>
+</pre></div>
+</div>
+<p><strong>Region Assignment Process:</strong></p>
+<ol class="arabic simple">
+<li><p>For each layer in the soil profile, we:</p>
+<ul class="simple">
+<li><p>Create a layer-specific damping object with damping ratio corresponding to that layer</p></li>
+<li><p>Create a new element region and associate it with this damping</p></li>
+<li><p>Assign this region to the mesh part when creating the layer geometry</p></li>
+</ul>
+</li>
+</ol>
+<p>This workflow allows for:</p>
+<ol class="arabic simple">
+<li><p><strong>Layer-specific damping</strong>: Each soil layer can have different damping properties based on its material characteristics</p></li>
+<li><p><strong>Depth-dependent behavior</strong>: Properties can vary with depth, reflecting real soil conditions</p></li>
+<li><p><strong>Independent energy dissipation</strong>: Each region’s response to dynamic loading is calibrated separately</p></li>
+</ol>
+</section>
+<section id="global-region-and-region-management-in-femora">
+<h2>Global Region and Region Management in Femora<a class="headerlink" href="#global-region-and-region-management-in-femora" title="Link to this heading"></a></h2>
+<p>All Femora models have a “global region” that serves as the default assignment when no explicit region is provided.</p>
+<p><strong>Region System Architecture in Femora:</strong></p>
+<p>Femora implements a sophisticated region management system with these key components:</p>
+<ol class="arabic simple">
+<li><p><strong>Global Region</strong>:</p>
+<ul class="simple">
+<li><p>Automatically created when Femora initializes</p></li>
+<li><p>Has tag 0 and name “GlobalRegion”</p></li>
+<li><p>Serves as a fallback when no specific region is assigned</p></li>
+<li><p>Can have its own damping properties that apply model-wide</p></li>
+</ul>
+</li>
+<li><p><strong>Element Regions</strong>:</p>
+<ul class="simple">
+<li><p>Created explicitly with <code class="docutils literal notranslate"><span class="pre">fm.region.create_region(&quot;elementRegion&quot;,</span> <span class="pre">...)</span></code></p></li>
+<li><p>Can have specific damping assigned</p></li>
+<li><p>Can be associated with specific elements or element groups</p></li>
+</ul>
+</li>
+<li><p><strong>Region Assignment Rules</strong>:</p>
+<ul class="simple">
+<li><p>When creating a mesh part, a region must be specified or the global region is used</p></li>
+<li><p>The statement <code class="docutils literal notranslate"><span class="pre">region=reg</span></code> explicitly assigns a specific region to that mesh part</p></li>
+<li><p>Without this assignment, all elements would use the global region’s properties</p></li>
+</ul>
+</li>
+</ol>
+<p><strong>Implementation Details:</strong></p>
+<p>The global region is implemented through a singleton pattern to ensure there is always exactly one global region with tag 0:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">tag</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">damping</span><span class="p">:</span> <span class="n">Type</span><span class="p">[</span><span class="n">DampingBase</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">tag</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_regions</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_regions</span><span class="p">[</span><span class="n">tag</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="n">tag</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="bp">cls</span><span class="o">.</span><span class="n">_global_region</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span>
+        <span class="bp">cls</span><span class="o">.</span><span class="n">_regions</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_global_region</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_global_region</span>
+</pre></div>
+</div>
+<p>When creating a mesh part without specifying a region:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># This would implicitly use the global region</span>
+<span class="n">fm</span><span class="o">.</span><span class="n">meshPart</span><span class="o">.</span><span class="n">create_mesh_part</span><span class="p">(</span><span class="s2">&quot;Volume mesh&quot;</span><span class="p">,</span> <span class="s2">&quot;Uniform Rectangular Grid&quot;</span><span class="p">,</span>
+                        <span class="n">user_name</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;SomeLayer&quot;</span><span class="p">,</span>
+                        <span class="n">element</span><span class="o">=</span><span class="n">ele</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>In our soil model example, explicit region creation ensures that each soil layer has its own properly configured damping behavior rather than using global defaults. If we had omitted the region assignment:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Without explicit region, would use global region</span>
+<span class="n">fm</span><span class="o">.</span><span class="n">meshPart</span><span class="o">.</span><span class="n">create_mesh_part</span><span class="p">(</span><span class="s2">&quot;Volume mesh&quot;</span><span class="p">,</span> <span class="s2">&quot;Uniform Rectangular Grid&quot;</span><span class="p">,</span>
+                        <span class="n">user_name</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Layer</span><span class="si">{</span><span class="n">layer</span><span class="p">[</span><span class="s1">&#39;layer&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                        <span class="n">element</span><span class="o">=</span><span class="n">ele</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Then all soil layers would have inherited the same damping properties from the global region, which would not accurately represent the depth-varying damping characteristics of real soil profiles.</p>
+<p>This region-based approach allows Femora to implement element-level, region-level, or global-level damping in a consistent way, giving users flexibility to model complex systems with varying properties in different zones while maintaining a simple default behavior through the global region.</p>
+</section>
+<section id="step-by-step-code-walkthrough">
+<h2>Step-by-Step Code Walkthrough<a class="headerlink" href="#step-by-step-code-walkthrough" title="Link to this heading"></a></h2>
+<p>Let’s examine the key components of the Example 2 code:</p>
+<ol class="arabic">
+<li><p><strong>Setting up the Environment and Layer Properties</strong>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">femora</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">fm</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+
+<span class="c1"># Change directory to the current file&#39;s location</span>
+<span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)))</span>
+
+<span class="c1"># Layer properties as a dictionary</span>
+<span class="n">layers</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">{</span><span class="s2">&quot;layer&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;rho&quot;</span><span class="p">:</span> <span class="mf">2142.0500</span><span class="p">,</span> <span class="s2">&quot;vp&quot;</span><span class="p">:</span> <span class="mf">669.0500</span><span class="p">,</span> <span class="s2">&quot;vs&quot;</span><span class="p">:</span> <span class="mf">353.1000</span><span class="p">,</span> <span class="s2">&quot;xi_s&quot;</span><span class="p">:</span> <span class="mf">0.0296</span><span class="p">,</span> <span class="s2">&quot;xi_p&quot;</span><span class="p">:</span> <span class="mf">0.0148</span><span class="p">,</span> <span class="s2">&quot;thickness&quot;</span><span class="p">:</span> <span class="mi">8</span><span class="p">},</span>
+    <span class="c1"># ... more layers</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+<p>The code begins by importing the Femora library and defining six soil layers with varying properties:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">rho</span></code>: Material density (kg/m³)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">vp</span></code>: P-wave velocity (m/s)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">vs</span></code>: S-wave velocity (m/s)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">xi_s</span></code>, <code class="docutils literal notranslate"><span class="pre">xi_p</span></code>: Damping ratios for shear and pressure waves</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">thickness</span></code>: Layer thickness (8m each)</p></li>
+</ul>
+</li>
+<li><p><strong>Defining Rayleigh Damping Parameters</strong>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">pi</span> <span class="o">=</span> <span class="mf">3.1415926</span>
+<span class="n">f1</span> <span class="o">=</span> <span class="mi">15</span><span class="p">;</span> <span class="c1"># Hz</span>
+<span class="n">f2</span> <span class="o">=</span> <span class="mi">3</span><span class="p">;</span> <span class="c1"># Hz</span>
+<span class="n">w1</span> <span class="o">=</span> <span class="mi">2</span><span class="o">*</span><span class="n">pi</span><span class="o">*</span><span class="n">f1</span>
+<span class="n">w2</span> <span class="o">=</span> <span class="mi">2</span><span class="o">*</span><span class="n">pi</span><span class="o">*</span><span class="n">f2</span>
+</pre></div>
+</div>
+<p>Rayleigh damping requires two target frequencies for calibration. These frequencies (3Hz and 15Hz) cover the primary frequency range of interest for seismic analysis.</p>
+</li>
+<li><p><strong>Creating the Soil Layers</strong>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">index</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="k">for</span> <span class="n">layer</span> <span class="ow">in</span> <span class="n">layers</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
+    <span class="c1"># Calculate elastic properties from wave velocities</span>
+    <span class="n">vp_vs_ratio</span> <span class="o">=</span> <span class="p">(</span><span class="n">vp</span> <span class="o">/</span> <span class="n">vs</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span>
+    <span class="n">nu</span>  <span class="o">=</span> <span class="p">(</span><span class="n">vp_vs_ratio</span> <span class="o">-</span> <span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="p">(</span><span class="n">vp_vs_ratio</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span>  <span class="c1"># Poisson&#39;s ratio</span>
+    <span class="n">E</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">rho</span> <span class="o">*</span> <span class="p">(</span><span class="n">vs</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">nu</span><span class="p">)</span>  <span class="c1"># Young&#39;s modulus</span>
+
+    <span class="c1"># Create material, element, and damping objects</span>
+    <span class="n">mat</span> <span class="o">=</span> <span class="n">fm</span><span class="o">.</span><span class="n">material</span><span class="o">.</span><span class="n">create_material</span><span class="p">(</span><span class="s2">&quot;nDMaterial&quot;</span><span class="p">,</span> <span class="s2">&quot;ElasticIsotropic&quot;</span><span class="p">,</span>
+                                <span class="n">user_name</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Layer</span><span class="si">{</span><span class="n">layer</span><span class="p">[</span><span class="s1">&#39;layer&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                                <span class="n">E</span><span class="o">=</span><span class="n">E</span><span class="p">,</span> <span class="n">nu</span><span class="o">=</span><span class="n">nu</span><span class="p">,</span> <span class="n">rho</span><span class="o">=</span><span class="n">rho</span><span class="p">)</span>
+    <span class="c1"># ... create elements and mesh</span>
+</pre></div>
+</div>
+<p>This loop processes layers from bottom to top and:</p>
+<ol class="arabic simple">
+<li><p>Converts wave velocities to mechanical properties (E and ν)</p></li>
+<li><p>Creates elastic material models</p></li>
+<li><p>Applies frequency-dependent Rayleigh damping</p></li>
+<li><p>Creates a uniform 3D mesh grid for each layer</p></li>
+</ol>
+</li>
+<li><p><strong>Model Assembly and Boundary Conditions</strong>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create a list of mesh parts</span>
+<span class="n">mesh_parts</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">layer</span> <span class="ow">in</span> <span class="n">layers</span><span class="p">:</span>
+    <span class="n">mesh_parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Layer</span><span class="si">{</span><span class="n">layer</span><span class="p">[</span><span class="s1">&#39;layer&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="n">fm</span><span class="o">.</span><span class="n">assembler</span><span class="o">.</span><span class="n">create_section</span><span class="p">(</span><span class="n">mesh_parts</span><span class="p">,</span> <span class="n">num_partitions</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+<span class="n">fm</span><span class="o">.</span><span class="n">assembler</span><span class="o">.</span><span class="n">Assemble</span><span class="p">()</span>
+
+<span class="c1"># Add absorbing boundary layers (PML)</span>
+<span class="n">fm</span><span class="o">.</span><span class="n">drm</span><span class="o">.</span><span class="n">addAbsorbingLayer</span><span class="p">(</span><span class="n">numLayers</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+                        <span class="n">numPartitions</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span>
+                        <span class="n">partitionAlgo</span><span class="o">=</span><span class="s2">&quot;kd-tree&quot;</span><span class="p">,</span>
+                        <span class="n">geometry</span><span class="o">=</span><span class="s2">&quot;Rectangular&quot;</span><span class="p">,</span>
+                        <span class="n">rayleighDamping</span><span class="o">=</span><span class="mf">0.95</span><span class="p">,</span>
+                        <span class="n">matchDamping</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                        <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;PML&quot;</span><span class="p">,</span>
+                        <span class="p">)</span>
+</pre></div>
+</div>
+<p>After creating all layers, the code assembles all mesh parts and adds PML absorbing boundaries.</p>
+</li>
+<li><p><strong>Loading and Analysis Setup</strong>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">h5pattern</span> <span class="o">=</span> <span class="n">fm</span><span class="o">.</span><span class="n">pattern</span><span class="o">.</span><span class="n">create_pattern</span><span class="p">(</span><span class="s1">&#39;h5drm&#39;</span><span class="p">,</span>
+                                    <span class="n">filepath</span><span class="o">=</span><span class="s1">&#39;drmload.h5drm&#39;</span><span class="p">,</span>
+                                    <span class="n">factor</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+                                    <span class="n">crd_scale</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+                                    <span class="n">distance_tolerance</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span>
+                                    <span class="n">do_coordinate_transformation</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                                    <span class="n">transform_matrix</span><span class="o">=</span><span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">],</span>
+                                    <span class="n">origin</span><span class="o">=</span><span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">])</span>
+<span class="n">fm</span><span class="o">.</span><span class="n">drm</span><span class="o">.</span><span class="n">set_pattern</span><span class="p">(</span><span class="n">h5pattern</span><span class="p">)</span>
+<span class="n">fm</span><span class="o">.</span><span class="n">drm</span><span class="o">.</span><span class="n">createDefaultProcess</span><span class="p">(</span><span class="n">finalTime</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span> <span class="n">dT</span><span class="o">=</span><span class="mf">0.01</span><span class="p">)</span>
+<span class="n">fm</span><span class="o">.</span><span class="n">export_to_tcl</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="s2">&quot;model.tcl&quot;</span><span class="p">)</span>
+<span class="n">fm</span><span class="o">.</span><span class="n">gui</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Finally, the code sets up DRM loading from an H5DRM file, configures the time-domain analysis (30s duration with 0.01s steps), exports the model to a TCL file for analysis, and launches the Femora GUI for visualization.</p>
+</li>
+</ol>
+</section>
+<section id="code-access">
+<h2>Code Access<a class="headerlink" href="#code-access" title="Link to this heading"></a></h2>
+<p>The full source code for this example is available in the Femora repository:</p>
+<div class="literal-block-wrapper docutils container" id="example2-code">
+<div class="code-block-caption"><span class="caption-text">Example 2 - Multi-layer Soil Model with Absorbing Boundaries</span><a class="headerlink" href="#example2-code" title="Link to this code"></a></div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">femora</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">fm</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+
+<span class="c1"># change the direcotto the current file</span>
+<span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)))</span>
+
+
+<span class="c1"># Layer properties as a dictionary</span>
+<span class="n">layers</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">{</span><span class="s2">&quot;layer&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;rho&quot;</span><span class="p">:</span> <span class="mf">2142.0500</span><span class="p">,</span> <span class="s2">&quot;vp&quot;</span><span class="p">:</span> <span class="mf">669.0500</span><span class="p">,</span> <span class="s2">&quot;vs&quot;</span><span class="p">:</span> <span class="mf">353.1000</span><span class="p">,</span> <span class="s2">&quot;xi_s&quot;</span><span class="p">:</span> <span class="mf">0.0296</span><span class="p">,</span> <span class="s2">&quot;xi_p&quot;</span><span class="p">:</span> <span class="mf">0.0148</span><span class="p">,</span> <span class="s2">&quot;thickness&quot;</span><span class="p">:</span> <span class="mi">8</span><span class="p">},</span>
+    <span class="p">{</span><span class="s2">&quot;layer&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="s2">&quot;rho&quot;</span><span class="p">:</span> <span class="mf">2146.2000</span><span class="p">,</span> <span class="s2">&quot;vp&quot;</span><span class="p">:</span> <span class="mf">785.2500</span><span class="p">,</span> <span class="s2">&quot;vs&quot;</span><span class="p">:</span> <span class="mf">414.4000</span><span class="p">,</span> <span class="s2">&quot;xi_s&quot;</span><span class="p">:</span> <span class="mf">0.0269</span><span class="p">,</span> <span class="s2">&quot;xi_p&quot;</span><span class="p">:</span> <span class="mf">0.0134</span><span class="p">,</span> <span class="s2">&quot;thickness&quot;</span><span class="p">:</span> <span class="mi">8</span><span class="p">},</span>
+    <span class="p">{</span><span class="s2">&quot;layer&quot;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span> <span class="s2">&quot;rho&quot;</span><span class="p">:</span> <span class="mf">2150.3500</span><span class="p">,</span> <span class="s2">&quot;vp&quot;</span><span class="p">:</span> <span class="mf">886.0500</span><span class="p">,</span> <span class="s2">&quot;vs&quot;</span><span class="p">:</span> <span class="mf">467.6000</span><span class="p">,</span> <span class="s2">&quot;xi_s&quot;</span><span class="p">:</span> <span class="mf">0.0249</span><span class="p">,</span> <span class="s2">&quot;xi_p&quot;</span><span class="p">:</span> <span class="mf">0.0125</span><span class="p">,</span> <span class="s2">&quot;thickness&quot;</span><span class="p">:</span> <span class="mi">8</span><span class="p">},</span>
+    <span class="p">{</span><span class="s2">&quot;layer&quot;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span> <span class="s2">&quot;rho&quot;</span><span class="p">:</span> <span class="mf">2154.4500</span><span class="p">,</span> <span class="s2">&quot;vp&quot;</span><span class="p">:</span> <span class="mf">976.4000</span><span class="p">,</span> <span class="s2">&quot;vs&quot;</span><span class="p">:</span> <span class="mf">515.3000</span><span class="p">,</span> <span class="s2">&quot;xi_s&quot;</span><span class="p">:</span> <span class="mf">0.0234</span><span class="p">,</span> <span class="s2">&quot;xi_p&quot;</span><span class="p">:</span> <span class="mf">0.0117</span><span class="p">,</span> <span class="s2">&quot;thickness&quot;</span><span class="p">:</span> <span class="mi">8</span><span class="p">},</span>
+    <span class="p">{</span><span class="s2">&quot;layer&quot;</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span> <span class="s2">&quot;rho&quot;</span><span class="p">:</span> <span class="mf">2158.6000</span><span class="p">,</span> <span class="s2">&quot;vp&quot;</span><span class="p">:</span> <span class="mf">1059.0500</span><span class="p">,</span> <span class="s2">&quot;vs&quot;</span><span class="p">:</span> <span class="mf">558.9500</span><span class="p">,</span> <span class="s2">&quot;xi_s&quot;</span><span class="p">:</span> <span class="mf">0.0221</span><span class="p">,</span> <span class="s2">&quot;xi_p&quot;</span><span class="p">:</span> <span class="mf">0.0111</span><span class="p">,</span> <span class="s2">&quot;thickness&quot;</span><span class="p">:</span> <span class="mi">8</span><span class="p">},</span>
+    <span class="p">{</span><span class="s2">&quot;layer&quot;</span><span class="p">:</span> <span class="mi">6</span><span class="p">,</span> <span class="s2">&quot;rho&quot;</span><span class="p">:</span> <span class="mf">2162.7500</span><span class="p">,</span> <span class="s2">&quot;vp&quot;</span><span class="p">:</span> <span class="mf">1135.6500</span><span class="p">,</span> <span class="s2">&quot;vs&quot;</span><span class="p">:</span> <span class="mf">599.4000</span><span class="p">,</span> <span class="s2">&quot;xi_s&quot;</span><span class="p">:</span> <span class="mf">0.0211</span><span class="p">,</span> <span class="s2">&quot;xi_p&quot;</span><span class="p">:</span> <span class="mf">0.0105</span><span class="p">,</span> <span class="s2">&quot;thickness&quot;</span><span class="p">:</span> <span class="mi">8</span><span class="p">}</span>
+<span class="p">]</span>
+
+
+<span class="n">pi</span> <span class="o">=</span> <span class="mf">3.1415926</span>
+<span class="n">f1</span> <span class="o">=</span> <span class="mi">15</span><span class="p">;</span> <span class="c1"># Hz</span>
+<span class="n">f2</span> <span class="o">=</span> <span class="mi">3</span><span class="p">;</span> <span class="c1"># Hz</span>
+<span class="n">w1</span> <span class="o">=</span> <span class="mi">2</span><span class="o">*</span><span class="n">pi</span><span class="o">*</span><span class="n">f1</span>
+<span class="n">w2</span> <span class="o">=</span> <span class="mi">2</span><span class="o">*</span><span class="n">pi</span><span class="o">*</span><span class="n">f2</span>
+
+
+<span class="n">index</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="k">for</span> <span class="n">layer</span> <span class="ow">in</span> <span class="n">layers</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
+    <span class="n">rho</span> <span class="o">=</span> <span class="n">layer</span><span class="p">[</span><span class="s2">&quot;rho&quot;</span><span class="p">]</span>
+    <span class="n">vp</span> <span class="o">=</span> <span class="n">layer</span><span class="p">[</span><span class="s2">&quot;vp&quot;</span><span class="p">]</span>
+    <span class="n">vs</span> <span class="o">=</span> <span class="n">layer</span><span class="p">[</span><span class="s2">&quot;vs&quot;</span><span class="p">]</span>
+    <span class="n">xi_s</span> <span class="o">=</span> <span class="n">layer</span><span class="p">[</span><span class="s2">&quot;xi_s&quot;</span><span class="p">]</span>
+    <span class="n">xi_p</span> <span class="o">=</span> <span class="n">layer</span><span class="p">[</span><span class="s2">&quot;xi_p&quot;</span><span class="p">]</span>
+    <span class="n">thickness</span> <span class="o">=</span> <span class="n">layer</span><span class="p">[</span><span class="s2">&quot;thickness&quot;</span><span class="p">]</span>
+    <span class="n">vp_vs_ratio</span> <span class="o">=</span> <span class="p">(</span><span class="n">vp</span> <span class="o">/</span> <span class="n">vs</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span>
+    <span class="n">nu</span>  <span class="o">=</span> <span class="p">(</span><span class="n">vp_vs_ratio</span> <span class="o">-</span> <span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="p">(</span><span class="n">vp_vs_ratio</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span>
+    <span class="n">E</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">rho</span> <span class="o">*</span> <span class="p">(</span><span class="n">vs</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">nu</span><span class="p">)</span>
+    <span class="n">E</span> <span class="o">=</span> <span class="n">E</span> <span class="o">/</span> <span class="mi">1000</span>
+    <span class="n">rho</span> <span class="o">=</span> <span class="n">rho</span> <span class="o">/</span> <span class="mi">1000</span>
+    <span class="n">mat</span> <span class="o">=</span> <span class="n">fm</span><span class="o">.</span><span class="n">material</span><span class="o">.</span><span class="n">create_material</span><span class="p">(</span><span class="s2">&quot;nDMaterial&quot;</span><span class="p">,</span> <span class="s2">&quot;ElasticIsotropic&quot;</span><span class="p">,</span>
+                                <span class="n">user_name</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Layer</span><span class="si">{</span><span class="n">layer</span><span class="p">[</span><span class="s1">&#39;layer&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                                <span class="n">E</span><span class="o">=</span><span class="n">E</span><span class="p">,</span> <span class="n">nu</span><span class="o">=</span><span class="n">nu</span><span class="p">,</span> <span class="n">rho</span><span class="o">=</span><span class="n">rho</span><span class="p">)</span>
+    <span class="n">ele</span> <span class="o">=</span> <span class="n">fm</span><span class="o">.</span><span class="n">element</span><span class="o">.</span><span class="n">create_element</span><span class="p">(</span><span class="n">element_type</span><span class="o">=</span><span class="s2">&quot;stdBrick&quot;</span><span class="p">,</span>
+                                    <span class="n">ndof</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+                                    <span class="n">material</span><span class="o">=</span><span class="n">mat</span><span class="p">,</span>
+                                    <span class="n">b1</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                                    <span class="n">b2</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                                    <span class="n">b3</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+    <span class="n">damp</span> <span class="o">=</span> <span class="n">fm</span><span class="o">.</span><span class="n">damping</span><span class="o">.</span><span class="n">create_damping</span><span class="p">(</span><span class="s2">&quot;frequency rayleigh&quot;</span><span class="p">,</span> <span class="n">dampingFactor</span><span class="o">=</span><span class="n">xi_s</span><span class="p">,</span> <span class="n">f1</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">f2</span><span class="o">=</span><span class="mi">15</span><span class="p">)</span>
+    <span class="c1"># reg = fm.region.create_region(&quot;elementRegion&quot;, damping=damp)</span>
+
+    <span class="n">zmin</span> <span class="o">=</span> <span class="o">-</span><span class="mi">48</span> <span class="o">+</span> <span class="n">index</span> <span class="o">*</span> <span class="n">thickness</span>
+    <span class="n">zmax</span> <span class="o">=</span> <span class="n">zmin</span> <span class="o">+</span> <span class="n">thickness</span>
+    <span class="n">dx</span> <span class="o">=</span> <span class="mf">4.0</span>
+    <span class="n">dy</span> <span class="o">=</span> <span class="mf">4.0</span>
+    <span class="n">dz</span> <span class="o">=</span> <span class="mf">4.0</span>
+    <span class="n">Nx</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="mi">128</span> <span class="o">/</span> <span class="n">dx</span><span class="p">)</span>
+    <span class="n">Ny</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="mi">128</span> <span class="o">/</span> <span class="n">dy</span><span class="p">)</span>
+    <span class="n">Nz</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">thickness</span> <span class="o">/</span> <span class="n">dz</span><span class="p">)</span>
+    <span class="n">reg</span> <span class="o">=</span> <span class="n">fm</span><span class="o">.</span><span class="n">region</span><span class="o">.</span><span class="n">create_region</span><span class="p">(</span><span class="s2">&quot;elementRegion&quot;</span><span class="p">,</span> <span class="n">damping</span><span class="o">=</span><span class="n">damp</span><span class="p">)</span>
+    <span class="n">fm</span><span class="o">.</span><span class="n">meshPart</span><span class="o">.</span><span class="n">create_mesh_part</span><span class="p">(</span><span class="s2">&quot;Volume mesh&quot;</span><span class="p">,</span> <span class="s2">&quot;Uniform Rectangular Grid&quot;</span><span class="p">,</span>
+                            <span class="n">user_name</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Layer</span><span class="si">{</span><span class="n">layer</span><span class="p">[</span><span class="s1">&#39;layer&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                            <span class="n">element</span><span class="o">=</span><span class="n">ele</span><span class="p">,</span>
+                            <span class="n">region</span><span class="o">=</span><span class="n">reg</span><span class="p">,</span>
+                            <span class="o">**</span><span class="p">{</span><span class="s1">&#39;X Min&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mi">64</span><span class="p">,</span> <span class="s1">&#39;X Max&#39;</span><span class="p">:</span> <span class="mi">64</span><span class="p">,</span>
+                                <span class="s1">&#39;Y Min&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mi">64</span><span class="p">,</span> <span class="s1">&#39;Y Max&#39;</span><span class="p">:</span> <span class="mi">64</span><span class="p">,</span>
+                                <span class="s1">&#39;Z Min&#39;</span><span class="p">:</span> <span class="n">zmin</span><span class="p">,</span> <span class="s1">&#39;Z Max&#39;</span><span class="p">:</span> <span class="n">zmax</span><span class="p">,</span>
+                                <span class="s1">&#39;Nx Cells&#39;</span><span class="p">:</span> <span class="n">Nx</span><span class="p">,</span> <span class="s1">&#39;Ny Cells&#39;</span><span class="p">:</span> <span class="n">Ny</span><span class="p">,</span> <span class="s1">&#39;Nz Cells&#39;</span><span class="p">:</span> <span class="n">Nz</span><span class="p">})</span>
+    <span class="n">index</span> <span class="o">+=</span> <span class="mi">1</span>
+
+
+<span class="c1"># create a list of mesh parts</span>
+<span class="n">mesh_parts</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">layer</span> <span class="ow">in</span> <span class="n">layers</span><span class="p">:</span>
+    <span class="n">mesh_parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Layer</span><span class="si">{</span><span class="n">layer</span><span class="p">[</span><span class="s1">&#39;layer&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="n">fm</span><span class="o">.</span><span class="n">assembler</span><span class="o">.</span><span class="n">create_section</span><span class="p">(</span><span class="n">mesh_parts</span><span class="p">,</span> <span class="n">num_partitions</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+
+<span class="n">fm</span><span class="o">.</span><span class="n">assembler</span><span class="o">.</span><span class="n">Assemble</span><span class="p">()</span>
+<span class="c1"># fm.addAbsorbingLayer(numLayers=10,</span>
+<span class="c1">#                         numPartitions=8,</span>
+<span class="c1">#                         partitionAlgo=&quot;kd-tree&quot;,</span>
+<span class="c1">#                         geometry=&quot;Rectangular&quot;,</span>
+<span class="c1">#                         rayleighDamping=0.95,</span>
+<span class="c1">#                         matchDamping=False,</span>
+<span class="c1">#                         type=&quot;Rayleigh&quot;,</span>
+<span class="c1">#                         )</span>
+<span class="n">fm</span><span class="o">.</span><span class="n">drm</span><span class="o">.</span><span class="n">addAbsorbingLayer</span><span class="p">(</span><span class="n">numLayers</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+                        <span class="n">numPartitions</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span>
+                        <span class="n">partitionAlgo</span><span class="o">=</span><span class="s2">&quot;kd-tree&quot;</span><span class="p">,</span>
+                        <span class="n">geometry</span><span class="o">=</span><span class="s2">&quot;Rectangular&quot;</span><span class="p">,</span>
+                        <span class="n">rayleighDamping</span><span class="o">=</span><span class="mf">0.95</span><span class="p">,</span>
+                        <span class="n">matchDamping</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                        <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;PML&quot;</span><span class="p">,</span>
+                        <span class="p">)</span>
+<span class="n">h5pattern</span> <span class="o">=</span> <span class="n">fm</span><span class="o">.</span><span class="n">pattern</span><span class="o">.</span><span class="n">create_pattern</span><span class="p">(</span> <span class="s1">&#39;h5drm&#39;</span><span class="p">,</span>
+                                        <span class="n">filepath</span><span class="o">=</span><span class="s1">&#39;drmload.h5drm&#39;</span><span class="p">,</span>
+                                        <span class="n">factor</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+                                        <span class="n">crd_scale</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+                                        <span class="n">distance_tolerance</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span>
+                                        <span class="n">do_coordinate_transformation</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                                        <span class="n">transform_matrix</span><span class="o">=</span><span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">],</span>
+                                        <span class="n">origin</span><span class="o">=</span><span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">])</span>
+<span class="n">fm</span><span class="o">.</span><span class="n">drm</span><span class="o">.</span><span class="n">set_pattern</span><span class="p">(</span><span class="n">h5pattern</span><span class="p">)</span>
+<span class="n">fm</span><span class="o">.</span><span class="n">drm</span><span class="o">.</span><span class="n">createDefaultProcess</span><span class="p">(</span><span class="n">finalTime</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span> <span class="n">dT</span><span class="o">=</span><span class="mf">0.01</span><span class="p">)</span>
+<span class="n">fm</span><span class="o">.</span><span class="n">export_to_tcl</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="s2">&quot;model.tcl&quot;</span><span class="p">)</span>
+
+<span class="c1"># fm.export_to_vtk(&quot;mesh.vtk&quot;)</span>
+<span class="n">fm</span><span class="o">.</span><span class="n">gui</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<ul class="simple">
+<li><p>Example directory: <code class="docutils literal notranslate"><span class="pre">examples/Example2/</span></code></p></li>
+<li><p>Python script: <code class="docutils literal notranslate"><span class="pre">examples/Example2/femoramodel.py</span></code></p></li>
+<li><p>Data file: <code class="docutils literal notranslate"><span class="pre">drmload.h5drm</span></code> (required for running the example)</p></li>
+</ul>
+</section>
+<section id="key-concepts-demonstrated">
+<h2>Key Concepts Demonstrated<a class="headerlink" href="#key-concepts-demonstrated" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Creating a multi-layer soil model with depth-varying properties</p></li>
+<li><p>Calculating material properties from wave velocities</p></li>
+<li><p>Implementing frequency-dependent Rayleigh damping</p></li>
+<li><p>Setting up PML absorbing boundaries to prevent wave reflections</p></li>
+<li><p>Applying DRM loading for seismic wave propagation analysis</p></li>
+<li><p>Organizing a large-scale soil domain for efficient computation</p></li>
+<li><p>Assigning regions with specific damping properties</p></li>
+<li><p>Understanding global region functionality in Femora</p></li>
+</ul>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="example1.html" class="btn btn-neutral float-left" title="Example 1: Domain Reduction Method (DRM) Site Response Analysis" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="example3.html" class="btn btn-neutral float-right" title="Example 3: Seismic Wave Basin Effects Model with External Mesh" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Amin Pakzad.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

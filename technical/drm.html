@@ -1,0 +1,403 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DRM &mdash; Femora (Fast Efficient Meshing for OpenSees-based Resilience Analysis) 0.5.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/custom.css?v=bbbd0671" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=1dd76d02"></script>
+      <script src="../_static/doctools.js?v=9a2dae69"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../_static/js/copy-button.js?v=47d38097"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Developer Documentation" href="../developer/index.html" />
+    <link rel="prev" title="Process" href="process.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html">
+            
+              <img src="../_static/Femoralogo.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Introduction:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../introduction/getting_started.html">Getting Started with Femora</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../introduction/installation.html">Installation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../introduction/quick_start.html">Quick Start Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../introduction/examples.html">Examples and Tutorials</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Technical Guide:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Technical Documentation</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="materials.html">Material</a></li>
+<li class="toctree-l2"><a class="reference internal" href="elements.html">Element</a></li>
+<li class="toctree-l2"><a class="reference internal" href="damping.html">Damping</a></li>
+<li class="toctree-l2"><a class="reference internal" href="region.html">Region</a></li>
+<li class="toctree-l2"><a class="reference internal" href="meshparts.html">MeshPart</a></li>
+<li class="toctree-l2"><a class="reference internal" href="assembler.html">Assembler</a></li>
+<li class="toctree-l2"><a class="reference internal" href="constraint.html">Constraints</a></li>
+<li class="toctree-l2"><a class="reference internal" href="timeseries.html">TimeSeries</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pattern.html">Pattern</a></li>
+<li class="toctree-l2"><a class="reference internal" href="analysis.html">Analysis</a></li>
+<li class="toctree-l2"><a class="reference internal" href="process.html">Process</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">DRM</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#understanding-the-drm-component">Understanding the DRM Component</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#accessing-the-drm-component">Accessing the DRM Component</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#how-drm-works">How DRM Works</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#technical-implementation">Technical Implementation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#key-features">Key Features</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#creating-a-drm-analysis">Creating a DRM Analysis</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#default-analysis-process-configuration">Default Analysis Process Configuration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#absorbing-layer-implementation">Absorbing Layer Implementation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#absorbing-layer-types">Absorbing Layer Types</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#partitioning-and-parallelization">Partitioning and Parallelization</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#technical-details-of-pml-implementation">Technical Details of PML Implementation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#performance-considerations">Performance Considerations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#api-reference">API Reference</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer Documentation:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../developer/index.html">Developer Documentation</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Femora (Fast Efficient Meshing for OpenSees-based Resilience Analysis)</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">Technical Documentation</a></li>
+      <li class="breadcrumb-item active">DRM</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/technical/drm.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="drm">
+<h1>DRM<a class="headerlink" href="#drm" title="Link to this heading"></a></h1>
+<section id="understanding-the-drm-component">
+<h2>Understanding the DRM Component<a class="headerlink" href="#understanding-the-drm-component" title="Link to this heading"></a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">DRM</span></code> (Domain Reduction Method) component is a specialized part of the Femora library designed for seismic wave propagation analysis. It provides functionality for implementing the Domain Reduction Method, which is used to efficiently model seismic wave propagation in large domains by reducing the computational domain size.</p>
+<p>The DRM component provides functionality to:
+- Create default analysis processes for DRM simulations
+- Add absorbing layers to the model boundary
+- Configure proper boundary conditions for wave propagation
+- Set up appropriate patterns and recorders
+- Manage the integration of DRM with other analysis components</p>
+<p>Domain Reduction Method is particularly useful for:
+- Seismic wave propagation analysis
+- Site-specific earthquake simulations
+- Soil-structure interaction problems
+- Analysis of wave scattering effects</p>
+</section>
+<section id="accessing-the-drm-component">
+<h2>Accessing the DRM Component<a class="headerlink" href="#accessing-the-drm-component" title="Link to this heading"></a></h2>
+<p>The DRM component can only be accessed through the Femora class’s analysis.drm property:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">Femora</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">fm</span>
+
+<span class="c1"># Create a Femora instance</span>
+
+
+<span class="c1"># Access the DRM component through the analysis.drm property</span>
+<span class="n">fm</span><span class="o">.</span><span class="n">analysis</span><span class="o">.</span><span class="n">drm</span><span class="o">.</span><span class="n">createDefaultProcess</span><span class="p">(</span><span class="n">dT</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span> <span class="n">finalTime</span><span class="o">=</span><span class="mf">10.0</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="how-drm-works">
+<h2>How DRM Works<a class="headerlink" href="#how-drm-works" title="Link to this heading"></a></h2>
+<p>The Domain Reduction Method allows efficient modeling of seismic wave propagation by:</p>
+<ol class="arabic simple">
+<li><p><strong>Domain Reduction</strong>: Reducing the computational domain size by focusing on a specific region of interest</p></li>
+<li><p><strong>Wave Propagation</strong>: Properly propagating seismic waves from a source to the structure</p></li>
+<li><p><strong>Absorbing Boundaries</strong>: Preventing artificial wave reflections at domain boundaries</p></li>
+<li><p><strong>Efficient Analysis</strong>: Enabling more detailed analysis of the region of interest</p></li>
+</ol>
+<p>The DRM component in Femora provides tools to set up:</p>
+<ol class="arabic simple">
+<li><p><strong>Absorbing Layers</strong>: Add PML (Perfectly Matched Layer) or Rayleigh-damped absorbing boundaries</p></li>
+<li><p><strong>Analysis Process</strong>: Create preconfigured analysis processes for DRM simulations</p></li>
+<li><p><strong>H5DRM Patterns</strong>: Configure special loading patterns for the DRM method</p></li>
+<li><p><strong>Boundary Conditions</strong>: Set appropriate boundary conditions for wave propagation</p></li>
+</ol>
+</section>
+<section id="technical-implementation">
+<h2>Technical Implementation<a class="headerlink" href="#technical-implementation" title="Link to this heading"></a></h2>
+<p>The DRM component is implemented as a singleton class to ensure consistent state throughout an analysis. This means that only one instance of the DRM class exists at any time, accessible through the Femora’s analysis property.</p>
+<p>The implementation includes several key aspects:</p>
+<ol class="arabic">
+<li><p><strong>Singleton Pattern</strong>: The DRM class uses a singleton pattern to maintain a single, consistent state across all references:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">if</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_instance</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">cls</span><span class="o">.</span><span class="n">_instance</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">DRM</span><span class="p">,</span> <span class="bp">cls</span><span class="p">)</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span>
+        <span class="bp">cls</span><span class="o">.</span><span class="n">_instance</span><span class="o">.</span><span class="n">_initialized</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_instance</span>
+</pre></div>
+</div>
+</li>
+<li><p><strong>H5DRM Pattern Integration</strong>: The component integrates with specialized H5DRM patterns for applying seismic loads:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">set_pattern</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pattern</span><span class="p">:</span> <span class="n">H5DRMPattern</span><span class="p">):</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">h5drmpattern</span> <span class="o">=</span> <span class="n">pattern</span>
+</pre></div>
+</div>
+</li>
+<li><p><strong>Multi-Stage Analysis Process</strong>: The DRM analysis process typically involves multiple stages:
+- Gravity equilibrium (elastic phase)
+- Gravity equilibrium (plastic phase)
+- Dynamic analysis with seismic inputs</p></li>
+<li><p><strong>Mesh Manipulation</strong>: Extensive use of PyVista for mesh operations and KDTree for efficient spatial searches</p></li>
+</ol>
+</section>
+<section id="key-features">
+<h2>Key Features<a class="headerlink" href="#key-features" title="Link to this heading"></a></h2>
+<p>The DRM component includes several key features:</p>
+<ol class="arabic simple">
+<li><p><strong>Create Default Process</strong>: Generate a complete analysis process for DRM simulations with a single function call</p></li>
+<li><p><strong>Add Absorbing Layers</strong>: Add absorbing boundaries to the model to prevent wave reflections</p></li>
+<li><p><strong>Pattern Integration</strong>: Set up H5DRM patterns for realistic seismic loading</p></li>
+<li><p><strong>Domain Preparation</strong>: Configure the domain properly for wave propagation analysis</p></li>
+</ol>
+</section>
+<section id="creating-a-drm-analysis">
+<h2>Creating a DRM Analysis<a class="headerlink" href="#creating-a-drm-analysis" title="Link to this heading"></a></h2>
+<p>Setting up a DRM analysis typically involves the following steps:</p>
+<ol class="arabic simple">
+<li><p><strong>Create or load a model</strong>: Set up your finite element model</p></li>
+<li><p><strong>Set up an H5DRM pattern</strong>: Create and configure an H5DRM pattern</p></li>
+<li><p><strong>Set the pattern in the DRM component</strong>: Provide the pattern to the DRM component</p></li>
+<li><p><strong>Add absorbing layers</strong>: Add absorbing boundaries to prevent reflections</p></li>
+<li><p><strong>Create the analysis process</strong>: Generate the complete analysis process</p></li>
+</ol>
+<p>Example of creating a DRM analysis:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">Femora</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">fm</span>
+
+<span class="c1"># Create a Femora instance</span>
+
+
+<span class="c1"># Assume a model has been set up already...</span>
+
+<span class="c1"># Create an H5DRM pattern</span>
+<span class="n">drm_pattern</span> <span class="o">=</span> <span class="n">fm</span><span class="o">.</span><span class="n">pattern</span><span class="o">.</span><span class="n">create_pattern</span><span class="p">(</span><span class="s2">&quot;h5drm&quot;</span><span class="p">,</span>
+                                     <span class="n">h5file</span><span class="o">=</span><span class="s2">&quot;seismicData.h5&quot;</span><span class="p">,</span>
+                                     <span class="n">timeScaleFactor</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
+
+<span class="c1"># Set the pattern in the DRM component</span>
+<span class="n">fm</span><span class="o">.</span><span class="n">analysis</span><span class="o">.</span><span class="n">drm</span><span class="o">.</span><span class="n">set_pattern</span><span class="p">(</span><span class="n">drm_pattern</span><span class="p">)</span>
+
+<span class="c1"># Add absorbing layers (PML in this case)</span>
+<span class="n">fm</span><span class="o">.</span><span class="n">analysis</span><span class="o">.</span><span class="n">drm</span><span class="o">.</span><span class="n">addAbsorbingLayer</span><span class="p">(</span><span class="n">numLayers</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+                                <span class="n">numPartitions</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+                                <span class="n">partitionAlgo</span><span class="o">=</span><span class="s2">&quot;kd-tree&quot;</span><span class="p">,</span>
+                                <span class="n">geometry</span><span class="o">=</span><span class="s2">&quot;Rectangular&quot;</span><span class="p">,</span>
+                                <span class="n">rayleighDamping</span><span class="o">=</span><span class="mf">0.95</span><span class="p">,</span>
+                                <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;PML&quot;</span><span class="p">)</span>
+
+<span class="c1"># Create the default DRM analysis process</span>
+<span class="n">fm</span><span class="o">.</span><span class="n">analysis</span><span class="o">.</span><span class="n">drm</span><span class="o">.</span><span class="n">createDefaultProcess</span><span class="p">(</span><span class="n">dT</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span> <span class="n">finalTime</span><span class="o">=</span><span class="mf">10.0</span><span class="p">)</span>
+
+<span class="c1"># Generate TCL script for the process</span>
+<span class="n">tcl_script</span> <span class="o">=</span> <span class="n">fm</span><span class="o">.</span><span class="n">process</span><span class="o">.</span><span class="n">to_tcl</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+<section id="default-analysis-process-configuration">
+<h2>Default Analysis Process Configuration<a class="headerlink" href="#default-analysis-process-configuration" title="Link to this heading"></a></h2>
+<p>When you call <code class="docutils literal notranslate"><span class="pre">createDefaultProcess</span></code>, the DRM component sets up a complete analysis process with multiple steps:</p>
+<ol class="arabic simple">
+<li><p><strong>Boundary Condition Setup</strong>: Fixes appropriate degrees of freedom on model boundaries</p></li>
+<li><p><strong>Recorder Setup</strong>: Creates VTK/HDF5 recorders to capture simulation results</p></li>
+<li><p><strong>Analysis Sequence Setup</strong>: Creates a sequence of analysis steps:
+- Gravity-Elastic analysis (initial equilibrium)
+- Gravity-Plastic analysis (material stabilization)
+- Time reset to zero
+- Dynamic analysis (seismic simulation)</p></li>
+</ol>
+<p>The default process uses a range of pre-configured solvers and algorithms:</p>
+<ul class="simple">
+<li><p><strong>Constraint Handler</strong>: Plain constraint handler</p></li>
+<li><p><strong>Numberer</strong>: ParallelRCM for optimized node numbering</p></li>
+<li><p><strong>System</strong>: MUMPS sparse solver with optimized parameters (icntl14=200, icntl7=7)</p></li>
+<li><p><strong>Algorithm</strong>: Modified Newton algorithm with initial factorization</p></li>
+<li><p><strong>Test</strong>: Energy increment test with specified tolerance (default 1e-4)</p></li>
+<li><p><strong>Integrator</strong>: Newmark method for time integration (gamma=0.5, beta=0.25)</p></li>
+</ul>
+<p>The process is fully customizable through option dictionaries:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">Femora</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">fm</span>
+
+<span class="c1"># Custom configuration for gravity elastic phase</span>
+<span class="n">elastic_options</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;constraint_handler&quot;</span><span class="p">:</span> <span class="n">my_custom_constraint</span><span class="p">,</span>
+    <span class="s2">&quot;numberer&quot;</span><span class="p">:</span> <span class="n">my_custom_numberer</span><span class="p">,</span>
+    <span class="s2">&quot;system&quot;</span><span class="p">:</span> <span class="n">my_custom_system</span><span class="p">,</span>
+    <span class="s2">&quot;algorithm&quot;</span><span class="p">:</span> <span class="n">my_custom_algorithm</span><span class="p">,</span>
+    <span class="s2">&quot;test&quot;</span><span class="p">:</span> <span class="n">my_custom_test</span><span class="p">,</span>
+    <span class="s2">&quot;integrator&quot;</span><span class="p">:</span> <span class="n">my_custom_integrator</span><span class="p">,</span>
+    <span class="s2">&quot;dt&quot;</span><span class="p">:</span> <span class="mf">0.005</span><span class="p">,</span>
+    <span class="s2">&quot;num_steps&quot;</span><span class="p">:</span> <span class="mi">30</span>
+<span class="p">}</span>
+
+<span class="c1"># Custom configuration for dynamic analysis</span>
+<span class="n">dynamic_options</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;system&quot;</span><span class="p">:</span> <span class="n">my_custom_system</span><span class="p">,</span>
+    <span class="s2">&quot;algorithm&quot;</span><span class="p">:</span> <span class="n">my_custom_algorithm</span><span class="p">,</span>
+    <span class="s2">&quot;final_time&quot;</span><span class="p">:</span> <span class="mf">15.0</span>
+<span class="p">}</span>
+
+<span class="c1"># Create process with custom options</span>
+<span class="n">fm</span><span class="o">.</span><span class="n">drm</span><span class="o">.</span><span class="n">createDefaultProcess</span><span class="p">(</span>
+    <span class="n">dT</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span>
+    <span class="n">finalTime</span><span class="o">=</span><span class="mf">15.0</span><span class="p">,</span>
+    <span class="n">vtkhdfrecorder_delta_t</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span>
+    <span class="n">vtkhdfrecorder_resp_types</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;disp&quot;</span><span class="p">,</span> <span class="s2">&quot;vel&quot;</span><span class="p">,</span> <span class="s2">&quot;accel&quot;</span><span class="p">],</span>
+    <span class="n">GravityElasticOptions</span><span class="o">=</span><span class="n">elastic_options</span><span class="p">,</span>
+    <span class="n">DynamicAnalysisOptions</span><span class="o">=</span><span class="n">dynamic_options</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="absorbing-layer-implementation">
+<h2>Absorbing Layer Implementation<a class="headerlink" href="#absorbing-layer-implementation" title="Link to this heading"></a></h2>
+<p>Adding absorbing layers is a critical aspect of DRM analysis to prevent artificial wave reflections. The implementation process is detailed and involves several steps:</p>
+<ol class="arabic simple">
+<li><p><strong>Boundary Detection</strong>: The code identifies the boundaries of the computational domain</p></li>
+<li><p><strong>Region Classification</strong>: Classifies boundary cells into different regions (faces, edges, corners)</p></li>
+<li><p><strong>Layer Generation</strong>: Creates multiple absorbing layers extending outward from the boundary</p></li>
+<li><p><strong>Property Assignment</strong>: Assigns appropriate material properties and element types to the absorbing layers</p></li>
+<li><p><strong>Mesh Integration</strong>: Merges the absorbing layers with the original mesh</p></li>
+<li><p><strong>Constraint Setup</strong>: For PML elements, creates multi-point constraints to link the original mesh with the PML elements</p></li>
+</ol>
+<p>The absorbing layer algorithm supports different geometries:</p>
+<ul class="simple">
+<li><p><strong>Rectangular</strong>: Box-shaped domain with layers on all sides (currently implemented)</p></li>
+<li><p><strong>Cylindrical</strong>: Cylindrical domain with radial absorbing layers (planned for future implementation)</p></li>
+</ul>
+</section>
+<section id="absorbing-layer-types">
+<h2>Absorbing Layer Types<a class="headerlink" href="#absorbing-layer-types" title="Link to this heading"></a></h2>
+<p>The DRM component supports several types of absorbing layers:</p>
+<ol class="arabic simple">
+<li><p><strong>PML (Perfectly Matched Layer)</strong>:
+- Uses specialized PML elements with 9 degrees of freedom per node
+- Most effective at absorbing waves of all frequencies and incident angles
+- Requires careful implementation at interfaces (automatic multi-point constraints)
+- Uses specially formulated PML3D elements with absorption parameters
+- Automatically creates equal DOF constraints at the interface between standard and PML elements</p></li>
+<li><p><strong>Rayleigh Damping</strong>:
+- Uses standard elements with increased Rayleigh damping
+- Simpler to implement but less effective than PML
+- Works with standard 3-DOF nodes
+- No special constraints required at the interface
+- Particularly useful for models with complex material properties</p></li>
+<li><p><strong>ASDA (to be implemented)</strong>:
+- Advanced absorbing boundary condition based on stiffness and damping adjustment
+- Will be implemented in future versions</p></li>
+</ol>
+</section>
+<section id="partitioning-and-parallelization">
+<h2>Partitioning and Parallelization<a class="headerlink" href="#partitioning-and-parallelization" title="Link to this heading"></a></h2>
+<p>For large models, the DRM component supports partitioning of the absorbing layer for parallel processing:</p>
+<ol class="arabic simple">
+<li><p><strong>KD-Tree Partitioning</strong>: Spatial partitioning using KD-Tree algorithm for balanced domain decomposition</p></li>
+<li><p><strong>METIS Partitioning</strong>: Graph-based partitioning for optimized load balancing (planned for future implementation)</p></li>
+</ol>
+<p>Partitioning helps distribute the computational load across multiple processors for more efficient analysis of large models.</p>
+</section>
+<section id="technical-details-of-pml-implementation">
+<h2>Technical Details of PML Implementation<a class="headerlink" href="#technical-details-of-pml-implementation" title="Link to this heading"></a></h2>
+<p>The PML (Perfectly Matched Layer) implementation includes several sophisticated features:</p>
+<ol class="arabic simple">
+<li><p><strong>Element Conversion</strong>: Standard brick elements at the boundary are converted to specialized PML3D elements</p></li>
+<li><p><strong>Material Compatibility</strong>: Checks for compatible material properties in the original elements</p></li>
+<li><p><strong>Parameter Configuration</strong>: Sets up PML parameters based on the geometry and desired absorption characteristics</p></li>
+<li><p><strong>Multi-Point Constraints</strong>: Automatically creates equal DOF constraints at the interface between regular and PML elements</p></li>
+</ol>
+<p>PML elements use 9 degrees of freedom per node (compared to 3 DOF for standard elements) to capture both the primary wave field and its derivatives, enabling more effective wave absorption.</p>
+</section>
+<section id="performance-considerations">
+<h2>Performance Considerations<a class="headerlink" href="#performance-considerations" title="Link to this heading"></a></h2>
+<p>When using the DRM component, consider the following performance aspects:</p>
+<ol class="arabic simple">
+<li><p><strong>Number of Layers</strong>: More absorbing layers provide better absorption but increase computational cost</p></li>
+<li><p><strong>Partitioning</strong>: For large models, partitioning the absorbing layers can significantly improve performance</p></li>
+<li><p><strong>Element Types</strong>: PML elements are more effective but more computationally intensive than Rayleigh-damped elements</p></li>
+<li><p><strong>Mesh Resolution</strong>: Finer meshes in the absorbing layers improve wave absorption but increase computational cost</p></li>
+</ol>
+</section>
+<section id="api-reference">
+<h2>API Reference<a class="headerlink" href="#api-reference" title="Link to this heading"></a></h2>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="process.html" class="btn btn-neutral float-left" title="Process" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../developer/index.html" class="btn btn-neutral float-right" title="Developer Documentation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Amin Pakzad.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,457 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Example 3: 3D Multi-Processor Site Response Analysis &mdash; Femora (Fast Efficient Meshing for OpenSees-based Resilience Analysis) 0.5.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/custom.css?v=bbbd0671" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=1dd76d02"></script>
+      <script src="../../_static/doctools.js?v=9a2dae69"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../../_static/js/copy-button.js?v=47d38097"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Example 4: Site Response Analysis with Deconvolution Using TransferFunction Tool" href="example4.html" />
+    <link rel="prev" title="Example 2: Multi-Material Site Response Analysis with Transfer Function Comparison" href="example2.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html">
+            
+              <img src="../../_static/Femoralogo.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Introduction:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../getting_started.html">Getting Started with Femora</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quick_start.html">Quick Start Guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../examples.html">Examples and Tutorials</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../quick_start.html">Quick Start Example (Layered Soil Profile)</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="SiteResponse.html">Site Response Examples</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="example1.html">Example 1: Single-Column Site Response Analysis with Frequency Sweep</a></li>
+<li class="toctree-l3"><a class="reference internal" href="example2.html">Example 2: Multi-Material Site Response Analysis with Transfer Function Comparison</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Example 3: 3D Multi-Processor Site Response Analysis</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#overview">Overview</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#model-description">Model Description</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#implementation-details">Implementation Details</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#results-and-analysis">Results and Analysis</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#conclusion">Conclusion</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#code-access">Code Access</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="example4.html">Example 4: Site Response Analysis with Deconvolution Using TransferFunction Tool</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../DRMExamples/DRM.html">Domain Reduction Method (DRM) Examples</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Technical Guide:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../technical/index.html">Technical Documentation</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer Documentation:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../developer/index.html">Developer Documentation</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Femora (Fast Efficient Meshing for OpenSees-based Resilience Analysis)</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../examples.html">Examples and Tutorials</a></li>
+          <li class="breadcrumb-item"><a href="SiteResponse.html">Site Response Examples</a></li>
+      <li class="breadcrumb-item active">Example 3: 3D Multi-Processor Site Response Analysis</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/introduction/SiteResponseExamples/example3.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="example-3-3d-multi-processor-site-response-analysis">
+<h1>Example 3: 3D Multi-Processor Site Response Analysis<a class="headerlink" href="#example-3-3d-multi-processor-site-response-analysis" title="Link to this heading"></a></h1>
+<section id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Link to this heading"></a></h2>
+<p>This example extends Example 2 by transforming the single-column model into a full 3D domain that can be distributed across multiple processors. While site response is inherently a 1D problem, this example demonstrates:</p>
+<ol class="arabic simple">
+<li><p>How to create wider 3D models with multiple elements in the horizontal plane</p></li>
+<li><p>How to configure parallel processing for larger models</p></li>
+<li><p>That the 1D response remains consistent even with 3D domain modeling</p></li>
+<li><p>How to process and visualize the results of multi-processor simulations</p></li>
+</ol>
+<figure class="align-center" id="id1">
+<a class="reference internal image-reference" href="../../_images/Model3D.png"><img alt="3D Site Response Model" src="../../_images/Model3D.png" style="width: 600px;" />
+</a>
+<figcaption>
+<p><span class="caption-text">3D multi-processor site response model with 10×10m horizontal dimensions</span><a class="headerlink" href="#id1" title="Link to this image"></a></p>
+</figcaption>
+</figure>
+</section>
+<section id="model-description">
+<h2>Model Description<a class="headerlink" href="#model-description" title="Link to this heading"></a></h2>
+<p><strong>Soil Domain:</strong></p>
+<ul class="simple">
+<li><p>10m × 10m soil domain in horizontal dimensions (compared to 1×1m in Examples 1-2)</p></li>
+<li><p>Total depth of 18m (identical to previous examples)</p></li>
+<li><p>Three distinct soil layers with the same material properties as Example 2</p></li>
+</ul>
+<p><strong>Parallel Configuration:</strong></p>
+<ul class="simple">
+<li><p>Domain partitioned across 8 processors</p></li>
+<li><p>Automatic domain decomposition for load balancing</p></li>
+<li><p>Synchronized at layer interfaces for wave propagation continuity</p></li>
+</ul>
+<p><strong>Analysis Setup:</strong></p>
+<p>The frequency sweep input, boundary conditions, material properties, and damping setup remain identical to Example 2, ensuring comparable results with the previous examples.</p>
+</section>
+<section id="implementation-details">
+<h2>Implementation Details<a class="headerlink" href="#implementation-details" title="Link to this heading"></a></h2>
+<p>Let’s focus on the key differences in implementation from the previous examples:</p>
+<section id="d-domain-configuration">
+<h3>3D Domain Configuration<a class="headerlink" href="#d-domain-configuration" title="Link to this heading"></a></h3>
+<p>The most significant difference is the expanded horizontal dimensions, creating a true 3D domain:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Expanded horizontal dimensions</span>
+<span class="n">Xmin</span> <span class="o">=</span> <span class="o">-</span><span class="mf">5.0</span> <span class="p">;</span><span class="n">Xmax</span> <span class="o">=</span> <span class="mf">5.0</span>
+<span class="n">Ymin</span> <span class="o">=</span> <span class="o">-</span><span class="mf">5.0</span> <span class="p">;</span><span class="n">Ymax</span> <span class="o">=</span> <span class="mf">5.0</span>
+<span class="n">Zmin</span> <span class="o">=</span> <span class="o">-</span><span class="mf">18.</span><span class="p">;</span><span class="n">Zmax</span> <span class="o">=</span> <span class="mf">0.0</span>
+<span class="n">dx</span>   <span class="o">=</span> <span class="mf">1.0</span><span class="p">;</span> <span class="n">dy</span>   <span class="o">=</span> <span class="mf">1.0</span>
+<span class="n">Nx</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="n">Xmax</span> <span class="o">-</span> <span class="n">Xmin</span><span class="p">)</span><span class="o">/</span><span class="n">dx</span><span class="p">)</span>
+<span class="n">Ny</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="n">Ymax</span> <span class="o">-</span> <span class="n">Ymin</span><span class="p">)</span><span class="o">/</span><span class="n">dy</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>This creates a 10×10m horizontal domain (with 10 elements in each direction) instead of the 1×1m domain used in previous examples.</p>
+</section>
+<section id="layer-and-material-definition">
+<h3>Layer and Material Definition<a class="headerlink" href="#layer-and-material-definition" title="Link to this heading"></a></h3>
+<p>The layer definitions remain similar to Example 2, but we use a more concise approach to define and create all layers in a single loop:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">layers_properties</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">{</span><span class="s2">&quot;user_name&quot;</span><span class="p">:</span> <span class="s2">&quot;Dense Ottawa1&quot;</span><span class="p">,</span>  <span class="s2">&quot;G&quot;</span><span class="p">:</span> <span class="mf">145.0e6</span><span class="p">,</span> <span class="s2">&quot;gamma&quot;</span><span class="p">:</span> <span class="mf">19.9</span><span class="p">,</span>  <span class="s2">&quot;nu&quot;</span><span class="p">:</span> <span class="mf">0.3</span><span class="p">,</span> <span class="s2">&quot;thickness&quot;</span><span class="p">:</span> <span class="mf">2.6</span><span class="p">,</span> <span class="s2">&quot;dz&quot;</span><span class="p">:</span> <span class="mf">1.3</span><span class="p">},</span>
+    <span class="p">{</span><span class="s2">&quot;user_name&quot;</span><span class="p">:</span> <span class="s2">&quot;Dense Ottawa2&quot;</span><span class="p">,</span>  <span class="s2">&quot;G&quot;</span><span class="p">:</span> <span class="mf">145.0e6</span><span class="p">,</span> <span class="s2">&quot;gamma&quot;</span><span class="p">:</span> <span class="mf">19.9</span><span class="p">,</span>  <span class="s2">&quot;nu&quot;</span><span class="p">:</span> <span class="mf">0.3</span><span class="p">,</span> <span class="s2">&quot;thickness&quot;</span><span class="p">:</span> <span class="mf">2.4</span><span class="p">,</span> <span class="s2">&quot;dz&quot;</span><span class="p">:</span> <span class="mf">1.2</span><span class="p">},</span>
+    <span class="p">{</span><span class="s2">&quot;user_name&quot;</span><span class="p">:</span> <span class="s2">&quot;Dense Ottawa3&quot;</span><span class="p">,</span>  <span class="s2">&quot;G&quot;</span><span class="p">:</span> <span class="mf">145.0e6</span><span class="p">,</span> <span class="s2">&quot;gamma&quot;</span><span class="p">:</span> <span class="mf">19.9</span><span class="p">,</span>  <span class="s2">&quot;nu&quot;</span><span class="p">:</span> <span class="mf">0.3</span><span class="p">,</span> <span class="s2">&quot;thickness&quot;</span><span class="p">:</span> <span class="mf">5.0</span><span class="p">,</span> <span class="s2">&quot;dz&quot;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">},</span>
+    <span class="p">{</span><span class="s2">&quot;user_name&quot;</span><span class="p">:</span> <span class="s2">&quot;Loose Ottawa&quot;</span><span class="p">,</span>   <span class="s2">&quot;G&quot;</span><span class="p">:</span> <span class="mf">75.0e6</span><span class="p">,</span>  <span class="s2">&quot;gamma&quot;</span><span class="p">:</span> <span class="mf">19.1</span><span class="p">,</span>  <span class="s2">&quot;nu&quot;</span><span class="p">:</span> <span class="mf">0.3</span><span class="p">,</span> <span class="s2">&quot;thickness&quot;</span><span class="p">:</span> <span class="mf">6.0</span><span class="p">,</span> <span class="s2">&quot;dz&quot;</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">},</span>
+    <span class="p">{</span><span class="s2">&quot;user_name&quot;</span><span class="p">:</span> <span class="s2">&quot;Dense Montrey&quot;</span><span class="p">,</span>  <span class="s2">&quot;G&quot;</span><span class="p">:</span> <span class="mf">42.0e6</span><span class="p">,</span>  <span class="s2">&quot;gamma&quot;</span><span class="p">:</span> <span class="mf">19.8</span><span class="p">,</span>  <span class="s2">&quot;nu&quot;</span><span class="p">:</span> <span class="mf">0.3</span><span class="p">,</span> <span class="s2">&quot;thickness&quot;</span><span class="p">:</span> <span class="mf">2.0</span><span class="p">,</span> <span class="s2">&quot;dz&quot;</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">}</span>
+<span class="p">]</span>
+
+<span class="k">for</span> <span class="n">layer</span> <span class="ow">in</span> <span class="n">layers_properties</span><span class="p">:</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">layer</span><span class="p">[</span><span class="s2">&quot;user_name&quot;</span><span class="p">]</span>
+    <span class="n">nu</span>   <span class="o">=</span> <span class="n">layer</span><span class="p">[</span><span class="s2">&quot;nu&quot;</span><span class="p">]</span>
+    <span class="n">rho</span>  <span class="o">=</span> <span class="n">layer</span><span class="p">[</span><span class="s2">&quot;gamma&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="mi">1000</span> <span class="o">/</span> <span class="mf">9.81</span>        <span class="c1"># Density in kg/m^3</span>
+    <span class="n">Vs</span>   <span class="o">=</span> <span class="p">(</span><span class="n">layer</span><span class="p">[</span><span class="s2">&quot;G&quot;</span><span class="p">]</span> <span class="o">/</span> <span class="n">rho</span><span class="p">)</span> <span class="o">**</span> <span class="mf">0.5</span>           <span class="c1"># Shear wave velocity in m/s</span>
+    <span class="n">E</span>    <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">layer</span><span class="p">[</span><span class="s2">&quot;G&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">layer</span><span class="p">[</span><span class="s2">&quot;nu&quot;</span><span class="p">])</span>  <span class="c1"># Young&#39;s modulus in Pa</span>
+    <span class="n">E</span>    <span class="o">=</span> <span class="n">E</span> <span class="o">/</span> <span class="mf">1000.</span>                           <span class="c1"># Convert to kPa</span>
+    <span class="n">rho</span>  <span class="o">=</span> <span class="n">rho</span> <span class="o">/</span> <span class="mf">1000.</span>                         <span class="c1"># Convert to kg/m^3</span>
+
+    <span class="c1"># Define material and element for each layer</span>
+    <span class="n">fm</span><span class="o">.</span><span class="n">material</span><span class="o">.</span><span class="n">create_material</span><span class="p">(</span><span class="n">material_category</span><span class="o">=</span><span class="s2">&quot;nDMaterial&quot;</span><span class="p">,</span>
+                              <span class="n">material_type</span><span class="o">=</span><span class="s2">&quot;ElasticIsotropic&quot;</span><span class="p">,</span>
+                              <span class="n">user_name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">E</span><span class="o">=</span><span class="n">E</span><span class="p">,</span> <span class="n">nu</span><span class="o">=</span><span class="n">nu</span><span class="p">,</span> <span class="n">rho</span><span class="o">=</span><span class="n">rho</span><span class="p">)</span>
+
+    <span class="n">ele</span> <span class="o">=</span> <span class="n">fm</span><span class="o">.</span><span class="n">element</span><span class="o">.</span><span class="n">create_element</span><span class="p">(</span><span class="n">element_type</span><span class="o">=</span><span class="s2">&quot;stdBrick&quot;</span><span class="p">,</span> <span class="n">ndof</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+                                  <span class="n">material</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">b1</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">b2</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">b3</span><span class="o">=-</span><span class="mf">9.81</span> <span class="o">*</span> <span class="n">rho</span><span class="p">)</span>
+
+    <span class="c1"># Create mesh part for the layer</span>
+    <span class="n">fm</span><span class="o">.</span><span class="n">meshPart</span><span class="o">.</span><span class="n">create_mesh_part</span><span class="p">(</span><span class="n">category</span><span class="o">=</span><span class="s2">&quot;Volume mesh&quot;</span><span class="p">,</span>
+                               <span class="n">mesh_part_type</span><span class="o">=</span><span class="s2">&quot;Uniform Rectangular Grid&quot;</span><span class="p">,</span>
+                               <span class="n">user_name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">element</span><span class="o">=</span><span class="n">ele</span><span class="p">,</span> <span class="n">region</span><span class="o">=</span><span class="n">region</span><span class="p">,</span>
+                               <span class="o">**</span><span class="p">{</span>
+                                  <span class="s1">&#39;X Min&#39;</span><span class="p">:</span> <span class="n">Xmin</span><span class="p">,</span> <span class="s1">&#39;X Max&#39;</span><span class="p">:</span> <span class="n">Xmax</span><span class="p">,</span>
+                                  <span class="s1">&#39;Y Min&#39;</span><span class="p">:</span> <span class="n">Ymin</span><span class="p">,</span> <span class="s1">&#39;Y Max&#39;</span><span class="p">:</span> <span class="n">Ymax</span><span class="p">,</span>
+                                  <span class="s1">&#39;Z Min&#39;</span><span class="p">:</span> <span class="n">Zmin</span><span class="p">,</span> <span class="s1">&#39;Z Max&#39;</span><span class="p">:</span> <span class="n">Zmin</span> <span class="o">+</span> <span class="n">layer</span><span class="p">[</span><span class="s2">&quot;thickness&quot;</span><span class="p">],</span>
+                                  <span class="s1">&#39;Nx Cells&#39;</span><span class="p">:</span> <span class="n">Nx</span><span class="p">,</span> <span class="s1">&#39;Ny Cells&#39;</span><span class="p">:</span> <span class="n">Ny</span><span class="p">,</span>
+                                  <span class="s1">&#39;Nz Cells&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">layer</span><span class="p">[</span><span class="s2">&quot;thickness&quot;</span><span class="p">]</span> <span class="o">/</span> <span class="n">layer</span><span class="p">[</span><span class="s2">&quot;dz&quot;</span><span class="p">])</span>
+                               <span class="p">})</span>
+    <span class="n">Zmin</span> <span class="o">+=</span> <span class="n">layer</span><span class="p">[</span><span class="s2">&quot;thickness&quot;</span><span class="p">]</span>
+</pre></div>
+</div>
+</section>
+<section id="parallel-processing-configuration">
+<h3>Parallel Processing Configuration<a class="headerlink" href="#parallel-processing-configuration" title="Link to this heading"></a></h3>
+<p>The key difference in this example is the parallel processing setup. Instead of specifying <cite>num_partitions=0</cite> as in Example 1, we use <cite>num_partitions=8</cite> to distribute the model across 8 processors:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Configure for parallel processing with 8 partitions</span>
+<span class="n">fm</span><span class="o">.</span><span class="n">assembler</span><span class="o">.</span><span class="n">create_section</span><span class="p">(</span><span class="n">meshparts</span><span class="o">=</span><span class="p">[</span><span class="n">layer</span><span class="p">[</span><span class="s2">&quot;user_name&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">layer</span> <span class="ow">in</span> <span class="n">layers_properties</span><span class="p">],</span>
+                         <span class="n">num_partitions</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
+
+<span class="c1"># Assemble the mesh parts</span>
+<span class="n">fm</span><span class="o">.</span><span class="n">assembler</span><span class="o">.</span><span class="n">Assemble</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>This setup automatically partitions the domain for parallel execution. For larger models, this significantly reduces computation time.</p>
+</section>
+<section id="analysis-system-and-equations">
+<h3>Analysis System and Equations<a class="headerlink" href="#analysis-system-and-equations" title="Link to this heading"></a></h3>
+<p>Unlike Example 1 which specified serial solvers, Example 3 uses the default parallel solvers in Femora:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Dynamic analysis with default parallel solvers</span>
+<span class="n">dynamic</span> <span class="o">=</span> <span class="n">fm</span><span class="o">.</span><span class="n">analysis</span><span class="o">.</span><span class="n">create_default_transient_analysis</span><span class="p">(</span><span class="n">username</span><span class="o">=</span><span class="s2">&quot;dynamic&quot;</span><span class="p">,</span>
+                                                    <span class="n">final_time</span><span class="o">=</span><span class="mf">40.0</span><span class="p">,</span> <span class="n">dt</span><span class="o">=</span><span class="mf">0.001</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The parallel configuration automatically selects appropriate solvers and equation numbering schemes for distributed computation.</p>
+</section>
+</section>
+<section id="results-and-analysis">
+<h2>Results and Analysis<a class="headerlink" href="#results-and-analysis" title="Link to this heading"></a></h2>
+<p>Despite the significantly larger domain and parallel execution, the results remain essentially identical to Example 2. This demonstrates that:</p>
+<ol class="arabic simple">
+<li><p>The site response problem remains one-dimensional in nature</p></li>
+<li><p>The parallel implementation correctly maintains wave propagation physics</p></li>
+<li><p>The transfer function approach is valid regardless of horizontal domain size</p></li>
+</ol>
+<section id="transfer-function-comparison">
+<h3>Transfer Function Comparison<a class="headerlink" href="#transfer-function-comparison" title="Link to this heading"></a></h3>
+<p>The transfer function calculated from the 3D model’s surface response shows excellent agreement with both the analytical solution and the single-column model from Example 2:</p>
+<figure class="align-center" id="id2">
+<a class="reference internal image-reference" href="../../_images/TFCompare3D.png"><img alt="Transfer Function Comparison for 3D Model" src="../../_images/TFCompare3D.png" style="width: 600px;" />
+</a>
+<figcaption>
+<p><span class="caption-text">Comparison of numerical (from 3D model) and analytical transfer functions</span><a class="headerlink" href="#id2" title="Link to this image"></a></p>
+</figcaption>
+</figure>
+<p>The only noticeable differences are minor numerical artifacts due to the domain decomposition and parallel execution, but these differences are negligible for practical purposes.</p>
+</section>
+<section id="d-visualization-of-wave-propagation">
+<h3>3D Visualization of Wave Propagation<a class="headerlink" href="#d-visualization-of-wave-propagation" title="Link to this heading"></a></h3>
+<p>The expanded domain allows for better visualization of wave propagation through the soil layers:</p>
+<video width="600" controls>
+  <source src="../images/SiteResponse/Example3/movie.mp4" type="video/mp4">
+  Your browser does not support the video tag.
+</video><p>The visualization demonstrates:</p>
+<ol class="arabic simple">
+<li><p>The uniform horizontal motion at each elevation (confirming 1D behavior)</p></li>
+<li><p>Wave propagation through the layered soil profile</p></li>
+<li><p>Amplification effects near the surface</p></li>
+<li><p>The uniform response across the entire horizontal domain</p></li>
+</ol>
+</section>
+<section id="post-processing-multi-processor-results">
+<h3>Post-Processing Multi-Processor Results<a class="headerlink" href="#post-processing-multi-processor-results" title="Link to this heading"></a></h3>
+<p>When running analyses across multiple processors, each processor generates its own output files. The post-processing script (<cite>plot.py</cite>) demonstrates how to:</p>
+<ol class="arabic simple">
+<li><p>Read and combine results from multiple VTKHDF files</p></li>
+<li><p>Extract time histories from multiple sections of the domain</p></li>
+<li><p>Calculate average responses across the domain</p></li>
+<li><p>Generate transfer functions from parallel simulation results</p></li>
+</ol>
+<p>The movie generation script (<cite>movie.py</cite>) shows how to:</p>
+<ol class="arabic simple">
+<li><p>Process distributed VTKHDF files into a coherent animation</p></li>
+<li><p>Visualize wave propagation through different parts of the domain</p></li>
+<li><p>Create animations that show the full 3D behavior of the system</p></li>
+</ol>
+</section>
+</section>
+<section id="conclusion">
+<h2>Conclusion<a class="headerlink" href="#conclusion" title="Link to this heading"></a></h2>
+<p>This example demonstrates:</p>
+<ol class="arabic simple">
+<li><p>How to configure Femora for parallel execution of larger 3D models</p></li>
+<li><p>That site response analyses maintain physical accuracy when expanded to 3D</p></li>
+<li><p>The correct functioning of domain decomposition for wave propagation problems</p></li>
+<li><p>How to post-process results from multi-processor simulations</p></li>
+</ol>
+<p>While a single-column model is sufficient for many site response analyses, this 3D capability becomes essential when:</p>
+<ol class="arabic simple">
+<li><p>Modeling topographic effects on site response</p></li>
+<li><p>Analyzing basin effects and 3D wave propagation</p></li>
+<li><p>Studying soil-structure interaction problems</p></li>
+<li><p>Running large-scale regional simulations</p></li>
+</ol>
+<p>The techniques demonstrated in this example provide a foundation for these more complex analyses.</p>
+</section>
+<section id="code-access">
+<h2>Code Access<a class="headerlink" href="#code-access" title="Link to this heading"></a></h2>
+<p>The full source code for this example is available in the Femora repository:</p>
+<ul class="simple">
+<li><p>Example directory: <code class="docutils literal notranslate"><span class="pre">examples/SiteResponse/Example3/</span></code></p></li>
+<li><p>Python script: <code class="docutils literal notranslate"><span class="pre">examples/SiteResponse/Example3/femoramodel.py</span></code></p></li>
+<li><p>Post-processing script: <code class="docutils literal notranslate"><span class="pre">examples/SiteResponse/Example3/plot.py</span></code></p></li>
+<li><p>Animation script: <code class="docutils literal notranslate"><span class="pre">examples/SiteResponse/Example3/movie.py</span></code></p></li>
+</ul>
+<p>Below is the complete code for this example:</p>
+<div class="literal-block-wrapper docutils container" id="site-response-example3-code">
+<div class="code-block-caption"><span class="caption-text">Example 3 - 3D Multi-Processor Site Response Analysis</span><a class="headerlink" href="#site-response-example3-code" title="Link to this code"></a></div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">femora</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">fm</span>
+<span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">))</span>
+
+
+
+<span class="c1"># create one damping for all the meshParts</span>
+<span class="n">uniformDamp</span> <span class="o">=</span> <span class="n">fm</span><span class="o">.</span><span class="n">damping</span><span class="o">.</span><span class="n">frequencyRayleigh</span><span class="p">(</span><span class="n">f1</span> <span class="o">=</span> <span class="mf">2.76</span><span class="p">,</span> <span class="n">f2</span> <span class="o">=</span> <span class="mf">13.84</span><span class="p">,</span> <span class="n">dampingFactor</span><span class="o">=</span><span class="mf">0.03</span><span class="p">)</span>
+<span class="n">region</span> <span class="o">=</span> <span class="n">fm</span><span class="o">.</span><span class="n">region</span><span class="o">.</span><span class="n">elementRegion</span><span class="p">(</span><span class="n">damping</span><span class="o">=</span><span class="n">uniformDamp</span><span class="p">)</span>
+
+<span class="c1"># defining the mesh parts</span>
+<span class="n">Xmin</span> <span class="o">=</span> <span class="o">-</span><span class="mf">5.0</span> <span class="p">;</span><span class="n">Xmax</span> <span class="o">=</span> <span class="mf">5.0</span>
+<span class="n">Ymin</span> <span class="o">=</span> <span class="o">-</span><span class="mf">5.0</span> <span class="p">;</span><span class="n">Ymax</span> <span class="o">=</span> <span class="mf">5.0</span>
+<span class="n">Zmin</span> <span class="o">=</span> <span class="o">-</span><span class="mf">18.</span><span class="p">;</span><span class="n">Zmax</span> <span class="o">=</span> <span class="mf">0.0</span>
+<span class="n">dx</span>   <span class="o">=</span> <span class="mf">1.0</span><span class="p">;</span> <span class="n">dy</span>   <span class="o">=</span> <span class="mf">1.0</span>
+<span class="n">Nx</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="n">Xmax</span> <span class="o">-</span> <span class="n">Xmin</span><span class="p">)</span><span class="o">/</span><span class="n">dx</span><span class="p">)</span>
+<span class="n">Ny</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="n">Ymax</span> <span class="o">-</span> <span class="n">Ymin</span><span class="p">)</span><span class="o">/</span><span class="n">dy</span><span class="p">)</span>
+
+
+<span class="n">layers_properties</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">{</span><span class="s2">&quot;user_name&quot;</span><span class="p">:</span> <span class="s2">&quot;Dense Ottawa1&quot;</span><span class="p">,</span>  <span class="s2">&quot;G&quot;</span><span class="p">:</span> <span class="mf">145.0e6</span><span class="p">,</span> <span class="s2">&quot;gamma&quot;</span><span class="p">:</span> <span class="mf">19.9</span><span class="p">,</span>  <span class="s2">&quot;nu&quot;</span><span class="p">:</span> <span class="mf">0.3</span><span class="p">,</span> <span class="s2">&quot;thickness&quot;</span><span class="p">:</span> <span class="mf">2.6</span><span class="p">,</span> <span class="s2">&quot;dz&quot;</span><span class="p">:</span> <span class="mf">1.3</span><span class="p">},</span> 
+    <span class="p">{</span><span class="s2">&quot;user_name&quot;</span><span class="p">:</span> <span class="s2">&quot;Dense Ottawa2&quot;</span><span class="p">,</span>  <span class="s2">&quot;G&quot;</span><span class="p">:</span> <span class="mf">145.0e6</span><span class="p">,</span> <span class="s2">&quot;gamma&quot;</span><span class="p">:</span> <span class="mf">19.9</span><span class="p">,</span>  <span class="s2">&quot;nu&quot;</span><span class="p">:</span> <span class="mf">0.3</span><span class="p">,</span> <span class="s2">&quot;thickness&quot;</span><span class="p">:</span> <span class="mf">2.4</span><span class="p">,</span> <span class="s2">&quot;dz&quot;</span><span class="p">:</span> <span class="mf">1.2</span><span class="p">},</span>
+    <span class="p">{</span><span class="s2">&quot;user_name&quot;</span><span class="p">:</span> <span class="s2">&quot;Dense Ottawa3&quot;</span><span class="p">,</span>  <span class="s2">&quot;G&quot;</span><span class="p">:</span> <span class="mf">145.0e6</span><span class="p">,</span> <span class="s2">&quot;gamma&quot;</span><span class="p">:</span> <span class="mf">19.9</span><span class="p">,</span>  <span class="s2">&quot;nu&quot;</span><span class="p">:</span> <span class="mf">0.3</span><span class="p">,</span> <span class="s2">&quot;thickness&quot;</span><span class="p">:</span> <span class="mf">5.0</span><span class="p">,</span> <span class="s2">&quot;dz&quot;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">},</span>
+    <span class="p">{</span><span class="s2">&quot;user_name&quot;</span><span class="p">:</span> <span class="s2">&quot;Loose Ottawa&quot;</span><span class="p">,</span>   <span class="s2">&quot;G&quot;</span><span class="p">:</span> <span class="mf">75.0e6</span><span class="p">,</span>  <span class="s2">&quot;gamma&quot;</span><span class="p">:</span> <span class="mf">19.1</span><span class="p">,</span>  <span class="s2">&quot;nu&quot;</span><span class="p">:</span> <span class="mf">0.3</span><span class="p">,</span> <span class="s2">&quot;thickness&quot;</span><span class="p">:</span> <span class="mf">6.0</span><span class="p">,</span> <span class="s2">&quot;dz&quot;</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">},</span> 
+    <span class="p">{</span><span class="s2">&quot;user_name&quot;</span><span class="p">:</span> <span class="s2">&quot;Dense Montrey&quot;</span><span class="p">,</span>  <span class="s2">&quot;G&quot;</span><span class="p">:</span> <span class="mf">42.0e6</span><span class="p">,</span>  <span class="s2">&quot;gamma&quot;</span><span class="p">:</span> <span class="mf">19.8</span><span class="p">,</span>  <span class="s2">&quot;nu&quot;</span><span class="p">:</span> <span class="mf">0.3</span><span class="p">,</span> <span class="s2">&quot;thickness&quot;</span><span class="p">:</span> <span class="mf">2.0</span><span class="p">,</span> <span class="s2">&quot;dz&quot;</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">}</span> 
+<span class="p">]</span>
+
+
+<span class="k">for</span> <span class="n">layer</span> <span class="ow">in</span> <span class="n">layers_properties</span><span class="p">:</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">layer</span><span class="p">[</span><span class="s2">&quot;user_name&quot;</span><span class="p">]</span>
+    <span class="n">nu</span>   <span class="o">=</span> <span class="n">layer</span><span class="p">[</span><span class="s2">&quot;nu&quot;</span><span class="p">]</span>
+    <span class="n">rho</span>  <span class="o">=</span> <span class="n">layer</span><span class="p">[</span><span class="s2">&quot;gamma&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="mi">1000</span> <span class="o">/</span> <span class="mf">9.81</span>        <span class="c1"># Density in kg/m^3</span>
+    <span class="n">Vs</span>   <span class="o">=</span> <span class="p">(</span><span class="n">layer</span><span class="p">[</span><span class="s2">&quot;G&quot;</span><span class="p">]</span> <span class="o">/</span> <span class="n">rho</span><span class="p">)</span> <span class="o">**</span> <span class="mf">0.5</span>           <span class="c1"># Shear wave velocity in m/s</span>
+    <span class="n">E</span>    <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">layer</span><span class="p">[</span><span class="s2">&quot;G&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">layer</span><span class="p">[</span><span class="s2">&quot;nu&quot;</span><span class="p">])</span>  <span class="c1"># Young&#39;s modulus in Pa</span>
+    <span class="n">E</span>    <span class="o">=</span> <span class="n">E</span> <span class="o">/</span> <span class="mf">1000.</span>                           <span class="c1"># Convert to kPa</span>
+    <span class="n">rho</span>  <span class="o">=</span> <span class="n">rho</span> <span class="o">/</span> <span class="mf">1000.</span>                         <span class="c1"># Convert to kg/m^3</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Layer: </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">, Vs: </span><span class="si">{</span><span class="n">Vs</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+
+    <span class="c1"># Define the material</span>
+    <span class="n">fm</span><span class="o">.</span><span class="n">material</span><span class="o">.</span><span class="n">create_material</span><span class="p">(</span><span class="n">material_category</span><span class="o">=</span><span class="s2">&quot;nDMaterial&quot;</span><span class="p">,</span> <span class="n">material_type</span><span class="o">=</span><span class="s2">&quot;ElasticIsotropic&quot;</span><span class="p">,</span> <span class="n">user_name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">E</span><span class="o">=</span><span class="n">E</span><span class="p">,</span> <span class="n">nu</span><span class="o">=</span><span class="n">nu</span><span class="p">,</span> <span class="n">rho</span><span class="o">=</span><span class="n">rho</span><span class="p">)</span>
+
+    <span class="c1"># Define the element</span>
+    <span class="n">ele</span> <span class="o">=</span> <span class="n">fm</span><span class="o">.</span><span class="n">element</span><span class="o">.</span><span class="n">create_element</span><span class="p">(</span><span class="n">element_type</span><span class="o">=</span><span class="s2">&quot;stdBrick&quot;</span><span class="p">,</span> <span class="n">ndof</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">material</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">b1</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">b2</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">b3</span><span class="o">=-</span><span class="mf">9.81</span> <span class="o">*</span> <span class="n">rho</span><span class="p">)</span>
+
+    <span class="n">fm</span><span class="o">.</span><span class="n">meshPart</span><span class="o">.</span><span class="n">create_mesh_part</span><span class="p">(</span><span class="n">category</span><span class="o">=</span><span class="s2">&quot;Volume mesh&quot;</span><span class="p">,</span> <span class="n">mesh_part_type</span><span class="o">=</span><span class="s2">&quot;Uniform Rectangular Grid&quot;</span><span class="p">,</span> 
+                                 <span class="n">user_name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">element</span><span class="o">=</span><span class="n">ele</span><span class="p">,</span> <span class="n">region</span><span class="o">=</span><span class="n">region</span><span class="p">,</span>
+                                <span class="o">**</span><span class="p">{</span>
+                                    <span class="s1">&#39;X Min&#39;</span><span class="p">:</span> <span class="n">Xmin</span><span class="p">,</span> <span class="s1">&#39;X Max&#39;</span><span class="p">:</span> <span class="n">Xmax</span><span class="p">,</span>
+                                    <span class="s1">&#39;Y Min&#39;</span><span class="p">:</span> <span class="n">Ymin</span><span class="p">,</span> <span class="s1">&#39;Y Max&#39;</span><span class="p">:</span> <span class="n">Ymax</span><span class="p">,</span>
+                                    <span class="s1">&#39;Z Min&#39;</span><span class="p">:</span> <span class="n">Zmin</span><span class="p">,</span> <span class="s1">&#39;Z Max&#39;</span><span class="p">:</span> <span class="n">Zmin</span> <span class="o">+</span> <span class="n">layer</span><span class="p">[</span><span class="s2">&quot;thickness&quot;</span><span class="p">],</span>
+                                    <span class="s1">&#39;Nx Cells&#39;</span><span class="p">:</span> <span class="n">Nx</span><span class="p">,</span> <span class="s1">&#39;Ny Cells&#39;</span><span class="p">:</span> <span class="n">Ny</span><span class="p">,</span> <span class="s1">&#39;Nz Cells&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">layer</span><span class="p">[</span><span class="s2">&quot;thickness&quot;</span><span class="p">]</span> <span class="o">/</span> <span class="n">layer</span><span class="p">[</span><span class="s2">&quot;dz&quot;</span><span class="p">])</span>
+                                <span class="p">})</span>
+    <span class="n">Zmin</span> <span class="o">+=</span> <span class="n">layer</span><span class="p">[</span><span class="s2">&quot;thickness&quot;</span><span class="p">]</span>
+
+
+<span class="c1"># #  Create assembly Sections</span>
+<span class="n">fm</span><span class="o">.</span><span class="n">assembler</span><span class="o">.</span><span class="n">create_section</span><span class="p">(</span><span class="n">meshparts</span><span class="o">=</span><span class="p">[</span><span class="n">layer</span><span class="p">[</span><span class="s2">&quot;user_name&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">layer</span> <span class="ow">in</span> <span class="n">layers_properties</span><span class="p">],</span> <span class="n">num_partitions</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
+
+
+<span class="c1"># Assemble the mesh parts</span>
+<span class="n">fm</span><span class="o">.</span><span class="n">assembler</span><span class="o">.</span><span class="n">Assemble</span><span class="p">()</span>
+
+<span class="c1"># Create a TimeSeries for the uniform excitation</span>
+<span class="n">timeseries</span> <span class="o">=</span> <span class="n">fm</span><span class="o">.</span><span class="n">timeSeries</span><span class="o">.</span><span class="n">create_time_series</span><span class="p">(</span><span class="n">series_type</span><span class="o">=</span><span class="s2">&quot;path&quot;</span><span class="p">,</span>
+                                              <span class="n">filePath</span><span class="o">=</span><span class="s2">&quot;FrequencySweep.acc&quot;</span><span class="p">,</span>
+                                              <span class="n">fileTime</span><span class="o">=</span><span class="s2">&quot;FrequencySweep.time&quot;</span><span class="p">,</span>
+                                              <span class="n">factor</span><span class="o">=</span> <span class="mf">9.81</span><span class="p">)</span>
+
+<span class="c1"># Create a pattern for the uniform excitation</span>
+<span class="n">kobe</span> <span class="o">=</span> <span class="n">fm</span><span class="o">.</span><span class="n">pattern</span><span class="o">.</span><span class="n">create_pattern</span><span class="p">(</span><span class="n">pattern_type</span><span class="o">=</span><span class="s2">&quot;uniformexcitation&quot;</span><span class="p">,</span><span class="n">dof</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">time_series</span><span class="o">=</span><span class="n">timeseries</span><span class="p">)</span>
+
+
+<span class="c1"># boundary conditions</span>
+<span class="n">fm</span><span class="o">.</span><span class="n">constraint</span><span class="o">.</span><span class="n">mp</span><span class="o">.</span><span class="n">create_laminar_boundary</span><span class="p">(</span><span class="n">bounds</span><span class="o">=</span><span class="p">(</span><span class="o">-</span><span class="mf">17.9</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span><span class="n">dofs</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">],</span> <span class="n">direction</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+<span class="n">fm</span><span class="o">.</span><span class="n">constraint</span><span class="o">.</span><span class="n">sp</span><span class="o">.</span><span class="n">fixMacroZmin</span><span class="p">(</span><span class="n">dofs</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span><span class="n">tol</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">)</span>
+
+
+<span class="c1"># Create a recorder for the whole model</span>
+<span class="n">mkdir</span> <span class="o">=</span> <span class="n">fm</span><span class="o">.</span><span class="n">actions</span><span class="o">.</span><span class="n">tcl</span><span class="p">(</span><span class="s2">&quot;file mkdir Results&quot;</span><span class="p">)</span>
+<span class="n">recorder</span> <span class="o">=</span> <span class="n">fm</span><span class="o">.</span><span class="n">recorder</span><span class="o">.</span><span class="n">create_recorder</span><span class="p">(</span><span class="s2">&quot;vtkhdf&quot;</span><span class="p">,</span> <span class="n">file_base_name</span><span class="o">=</span><span class="s2">&quot;Results/result.vtkhdf&quot;</span><span class="p">,</span><span class="n">resp_types</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;accel&quot;</span><span class="p">,</span> <span class="s2">&quot;disp&quot;</span><span class="p">],</span> <span class="n">delta_t</span><span class="o">=</span><span class="mf">0.001</span><span class="p">)</span>
+
+<span class="c1"># gravity analysis</span>
+<span class="n">newmark_gamma</span> <span class="o">=</span> <span class="mf">0.6</span>
+<span class="n">newnark_beta</span> <span class="o">=</span> <span class="p">(</span><span class="n">newmark_gamma</span> <span class="o">+</span> <span class="mf">0.5</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span> <span class="o">/</span> <span class="mi">4</span>
+
+<span class="n">dampNewmark</span> <span class="o">=</span> <span class="n">fm</span><span class="o">.</span><span class="n">analysis</span><span class="o">.</span><span class="n">integrator</span><span class="o">.</span><span class="n">newmark</span><span class="p">(</span><span class="n">gamma</span><span class="o">=</span><span class="n">newmark_gamma</span><span class="p">,</span> <span class="n">beta</span><span class="o">=</span><span class="n">newnark_beta</span><span class="p">)</span>
+<span class="n">gravity</span> <span class="o">=</span> <span class="n">fm</span><span class="o">.</span><span class="n">analysis</span><span class="o">.</span><span class="n">create_default_transient_analysis</span><span class="p">(</span><span class="n">username</span><span class="o">=</span><span class="s2">&quot;gravity&quot;</span><span class="p">,</span> 
+                                                        <span class="n">dt</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">num_steps</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span>
+                                                        <span class="n">options</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;integrator&quot;</span><span class="p">:</span> <span class="n">dampNewmark</span><span class="p">})</span>
+
+<span class="c1"># dynamic analysis</span>
+<span class="n">dynamic</span> <span class="o">=</span> <span class="n">fm</span><span class="o">.</span><span class="n">analysis</span><span class="o">.</span><span class="n">create_default_transient_analysis</span><span class="p">(</span><span class="n">username</span><span class="o">=</span><span class="s2">&quot;dynamic&quot;</span><span class="p">,</span> 
+                                                        <span class="n">final_time</span><span class="o">=</span><span class="mf">40.0</span><span class="p">,</span> <span class="n">dt</span><span class="o">=</span><span class="mf">0.001</span><span class="p">)</span>
+
+
+<span class="n">reset</span> <span class="o">=</span> <span class="n">fm</span><span class="o">.</span><span class="n">actions</span><span class="o">.</span><span class="n">seTime</span><span class="p">(</span><span class="n">pseudo_time</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span>
+
+<span class="c1"># Add the recorder and gravity analysis step to the process</span>
+<span class="n">fm</span><span class="o">.</span><span class="n">process</span><span class="o">.</span><span class="n">add_step</span><span class="p">(</span><span class="n">gravity</span><span class="p">,</span>  <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Gravity Analysis Step&quot;</span><span class="p">)</span>
+<span class="n">fm</span><span class="o">.</span><span class="n">process</span><span class="o">.</span><span class="n">add_step</span><span class="p">(</span><span class="n">kobe</span><span class="p">,</span>     <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Uniform Excitation (Kobe record)&quot;</span><span class="p">)</span>
+<span class="n">fm</span><span class="o">.</span><span class="n">process</span><span class="o">.</span><span class="n">add_step</span><span class="p">(</span><span class="n">mkdir</span><span class="p">,</span>    <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Create Results Directory&quot;</span><span class="p">)</span>
+<span class="n">fm</span><span class="o">.</span><span class="n">process</span><span class="o">.</span><span class="n">add_step</span><span class="p">(</span><span class="n">recorder</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Recorder of the whole model&quot;</span><span class="p">)</span>
+<span class="n">fm</span><span class="o">.</span><span class="n">process</span><span class="o">.</span><span class="n">add_step</span><span class="p">(</span><span class="n">reset</span><span class="p">,</span>    <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Reset pseudo time&quot;</span><span class="p">)</span>
+<span class="n">fm</span><span class="o">.</span><span class="n">process</span><span class="o">.</span><span class="n">add_step</span><span class="p">(</span><span class="n">dynamic</span><span class="p">,</span>  <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Dynamic Analysis Step&quot;</span><span class="p">)</span>
+<span class="n">fm</span><span class="o">.</span><span class="n">export_to_tcl</span><span class="p">(</span><span class="s2">&quot;mesh.tcl&quot;</span><span class="p">)</span>
+
+
+<span class="c1"># fm.gui()</span>
+</pre></div>
+</div>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="example2.html" class="btn btn-neutral float-left" title="Example 2: Multi-Material Site Response Analysis with Transfer Function Comparison" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="example4.html" class="btn btn-neutral float-right" title="Example 4: Site Response Analysis with Deconvolution Using TransferFunction Tool" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Amin Pakzad.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
