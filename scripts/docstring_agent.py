@@ -63,9 +63,8 @@ def main():
     {original_code}
     """
 
-    # 4. Agent Execution
     try:
-        # Use simple generate_content
+        # Try gemini-1.5-flash first
         response = client.models.generate_content(
             model='gemini-1.5-flash', 
             contents=prompt
@@ -73,6 +72,12 @@ def main():
         new_code = response.text
     except Exception as e:
         print(f"Error generating content: {e}")
+        print("DEBUG: Listing available models for this API Key:")
+        try:
+            for m in client.models.list():
+                print(f" - {m.name} (Supported: {m.supported_generation_methods})")
+        except Exception as e2:
+            print(f"Error listing models: {e2}")
         return
     
     # Clean possible markdown fences
