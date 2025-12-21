@@ -39,9 +39,7 @@ export function Navigation() {
             </Button>
             <Button size="sm" asChild>
               <a
-                href="https://amnp95.github.io/Femora/introduction/getting_started.html"
-                target="_blank"
-                rel="noopener noreferrer"
+                href="/docs/getting_started/"
               >
                 Get Started
               </a>
