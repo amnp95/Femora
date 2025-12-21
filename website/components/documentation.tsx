@@ -7,25 +7,25 @@ const docSections = [
     icon: BookOpen,
     title: "Getting Started",
     description: "Installation, setup, and your first FEMORA model",
-    link: "https://amnp95.github.io/Femora/introduction/getting_started.html",
+    link: "/docs/getting_started/",
   },
   {
     icon: Code,
     title: "API Reference",
     description: "Complete documentation of classes, methods, and functions",
-    link: "https://amnp95.github.io/Femora/technical/index.html",
+    link: "/docs/reference/",
   },
   {
     icon: GraduationCap,
     title: "Examples & Tutorials",
     description: "Practical examples from simple to advanced applications",
-    link: "https://amnp95.github.io/Femora/introduction/examples.html",
+    link: "/docs/advanced/",
   },
   {
     icon: FileText,
     title: "Developer Guide",
     description: "Contributing, code style, and development setup",
-    link: "https://amnp95.github.io/Femora/developer/index.html",
+    link: "/docs/reference/",
   },
 ]
 
@@ -46,7 +46,7 @@ export function Documentation() {
         <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto mb-12">
           {docSections.map((section, index) => (
             <Card key={index} className="glass-strong p-6 hover:bg-card/50 transition-all group cursor-pointer" asChild>
-              <a href={section.link} target="_blank" rel="noopener noreferrer">
+              <a href={section.link}>
                 <div className="flex items-start gap-4">
                   <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors flex-shrink-0">
                     <section.icon className="w-6 h-6 text-primary" />
@@ -78,9 +78,7 @@ export function Documentation() {
             <div className="flex flex-col gap-3">
               <Button size="lg" asChild>
                 <a
-                  href="https://amnp95.github.io/Femora/introduction/quick_start.html"
-                  target="_blank"
-                  rel="noopener noreferrer"
+                  href="/docs/getting_started/"
                 >
                   Quick Start Guide
                 </a>

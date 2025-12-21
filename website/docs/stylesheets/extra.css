@@ -1,0 +1,43 @@
+/* Base overrides for all schemes - ensure variables are available */
+:root {
+    /* Define the colors locally as variables for reuse if needed, or directly assign to md vars */
+}
+
+/* Light Mode Overrides (Default) */
+[data-md-color-scheme="default"] {
+    /* Primary Color - Warm Red/Brown from Landing Page (oklch(0.58 0.18 35)) */
+    --md-primary-fg-color: oklch(0.58 0.18 35);
+    --md-primary-fg-color--light: oklch(0.65 0.21 45);
+    --md-primary-fg-color--dark: oklch(0.50 0.15 30);
+
+    /* Accent Color */
+    --md-accent-fg-color: oklch(0.65 0.21 45);
+
+    /* Background Colors - Warm Off-White (oklch(0.99 0.002 75)) */
+    --md-default-bg-color: oklch(0.99 0.002 75);
+    --md-default-fg-color: oklch(0.12 0.015 45);
+    /* Dark text */
+
+    /* Surface/Card Colors */
+    --md-code-bg-color: oklch(0.96 0.005 75);
+    /* Muted/Code background */
+}
+
+/* Dark Mode Overrides (Slate) */
+[data-md-color-scheme="slate"] {
+    /* Primary Color - Orange/Rust (oklch(0.72 0.19 45)) */
+    --md-primary-fg-color: oklch(0.72 0.19 45);
+    --md-primary-fg-color--light: oklch(0.75 0.20 50);
+    --md-primary-fg-color--dark: oklch(0.68 0.22 35);
+
+    /* Accent Color */
+    --md-accent-fg-color: oklch(0.68 0.22 35);
+
+    /* Background Colors - Dark Warm Gray (oklch(0.09 0.01 45)) */
+    --md-default-bg-color: oklch(0.09 0.01 45);
+    --md-default-fg-color: oklch(0.98 0.005 75);
+
+    /* Surface/Card Colors */
+    --md-code-bg-color: oklch(0.12 0.015 45);
+    /* Card background for code */
+}
