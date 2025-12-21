@@ -14,18 +14,31 @@ except Exception:
     SpLoad = None  # type: ignore
 
 class Pattern(ABC):
-    """
-    Base abstract class for all load patterns
+    """Base abstract class for all load patterns in OpenSees.
+
+    This class provides a foundation for creating and managing load pattern
+    objects for structural analysis. It handles automatic tag assignment and
+    pattern registration.
+
+    Attributes:
+        tag: The unique sequential identifier for this pattern.
+        pattern_type: The type of pattern (e.g., 'UniformExcitation', 'H5DRM', 'Plain').
+
+    Example:
+        >>> from femora.components.Pattern.patternBase import PatternManager
+        >>> # Create a pattern through the manager
+        >>> # manager = PatternManager()
+        >>> # pattern = manager.create_pattern('plain', time_series=my_ts)
+        >>> # print(pattern.tag)
     """
     _patterns = {}  # Class-level dictionary to track all patterns
     _start_tag = 1  # Class variable to track the starting tag
 
     def __init__(self, pattern_type: str):
-        """
-        Initialize a new pattern with a sequential tag
-        
+        """Initializes the Pattern with a sequential tag.
+
         Args:
-            pattern_type (str): The type of pattern (e.g., 'UniformExcitation', 'H5DRM')
+            pattern_type: The type of pattern (e.g., 'UniformExcitation', 'H5DRM').
         """
         self.tag = len(Pattern._patterns) + Pattern._start_tag
         
@@ -36,17 +49,16 @@ class Pattern(ABC):
 
     @classmethod
     def get_pattern(cls, tag: int) -> 'Pattern':
-        """
-        Retrieve a specific pattern by its tag.
-        
+        """Retrieves a specific pattern by its tag.
+
         Args:
-            tag (int): The tag of the pattern
-        
+            tag: The tag of the pattern.
+
         Returns:
-            Pattern: The pattern with the specified tag
-        
+            The pattern with the specified tag.
+
         Raises:
-            KeyError: If no pattern with the given tag exists
+            KeyError: If no pattern with the given tag exists.
         """
         if tag not in cls._patterns:
             raise KeyError(f"No pattern found with tag {tag}")
@@ -54,11 +66,10 @@ class Pattern(ABC):
 
     @classmethod
     def remove_pattern(cls, tag: int) -> None:
-        """
-        Delete a pattern by its tag.
-        
+        """Deletes a pattern by its tag and reassigns remaining tags.
+
         Args:
-            tag (int): The tag of the pattern to delete
+            tag: The tag of the pattern to delete.
         """
         if tag in cls._patterns:
             del cls._patterns[tag]
@@ -67,35 +78,45 @@ class Pattern(ABC):
 
     @classmethod
     def get_all_patterns(cls) -> Dict[int, 'Pattern']:
-        """
-        Retrieve all created patterns.
-        
+        """Retrieves all created patterns.
+
         Returns:
-            Dict[int, Pattern]: A dictionary of all patterns, keyed by their unique tags
+            A dictionary of all patterns, keyed by their unique tags.
         """
         return cls._patterns
     
     @classmethod
     def clear_all(cls) -> None:
-        """
-        Clear all patterns and reset tags.
+        """Clears all patterns and resets tags.
+
+        This method removes all registered patterns.
         """
         cls._patterns.clear()
 
     @classmethod
     def reset(cls):
+        """Resets all patterns and tag counter to initial state.
+
+        This method clears all patterns and resets the starting tag to 1.
+        """
         cls._patterns.clear()
         cls._start_tag = 1
 
     @classmethod
     def set_tag_start(cls, start_tag: int):
+        """Sets the starting tag number and reassigns all pattern tags.
+
+        Args:
+            start_tag: The new starting tag number.
+        """
         cls._start_tag = start_tag
         cls._reassign_tags()
 
     @classmethod
     def _reassign_tags(cls) -> None:
-        """
-        Reassign tags to all patterns sequentially starting from _start_tag.
+        """Reassigns tags to all patterns sequentially starting from _start_tag.
+
+        This method rebuilds the pattern tracking dictionary with new sequential tags.
         """
         new_patterns = {}
         for idx, pattern in enumerate(sorted(cls._patterns.values(), key=lambda p: p.tag), start=cls._start_tag):
@@ -105,59 +126,80 @@ class Pattern(ABC):
 
     @abstractmethod
     def to_tcl(self) -> str:
-        """
-        Convert the pattern to a TCL command string for OpenSees
-        
+        """Converts the pattern to a TCL command string for OpenSees.
+
+        Subclasses must implement this method to generate the appropriate
+        TCL command for use with OpenSees.
+
         Returns:
-            str: The TCL command string
+            TCL command string representation of the pattern.
         """
         pass
 
     @staticmethod
     def get_parameters() -> List[tuple]:
-        """
-        Get the parameters defining this pattern
-        
+        """Gets the parameters defining this pattern.
+
+        Subclasses should implement this method to return parameter metadata.
+
         Returns:
-            List[tuple]: List of (parameter name, description) tuples
+            List of (parameter name, description) tuples.
         """
         pass
 
     @abstractmethod
     def get_values(self) -> Dict[str, Union[str, int, float, list]]:
-        """
-        Get the parameters defining this pattern
-        
+        """Gets the parameters defining this pattern.
+
+        Subclasses must implement this method to return current parameter values.
+
         Returns:
-            Dict[str, Union[str, int, float, list]]: Dictionary of parameter values
+            Dictionary of parameter values.
         """
         pass
 
     @abstractmethod
     def update_values(self, **kwargs) -> None:
-        """
-        Update the values of the pattern
-        
+        """Updates the values of the pattern.
+
+        Subclasses must implement this method to update pattern parameters.
+
         Args:
-            **kwargs: Parameters for pattern update
+            **kwargs: Parameters for pattern update.
         """
         pass
 
 
 class UniformExcitation(Pattern):
-    """
-    UniformExcitation pattern allows applying a uniform excitation to a model
-    acting in a certain direction.
+    """UniformExcitation pattern for applying uniform ground motion to a model.
+
+    This pattern allows applying a uniform excitation (typically ground motion)
+    to all fixed nodes in a model acting in a specified direction.
+
+    Attributes:
+        dof: DOF direction the ground motion acts (1-based index).
+        time_series: TimeSeries defining the acceleration history.
+        vel0: Initial velocity at time zero.
+        factor: Constant factor multiplying the time series values.
+
+    Example:
+        >>> from femora.components.Pattern.patternBase import UniformExcitation
+        >>> # Create a time series first
+        >>> # ts = TimeSeries(...)
+        >>> # pattern = UniformExcitation(dof=1, time_series=ts, vel0=0.0, factor=1.0)
+        >>> # print(pattern.tag)
     """
     def __init__(self, **kwargs):
-        """
-        Initialize a UniformExcitation pattern
-        
+        """Initializes the UniformExcitation pattern.
+
         Args:
-            dof (int): DOF direction the ground motion acts
-            time_series (TimeSeries): TimeSeries defining the acceleration history
-            vel0 (float, optional): Initial velocity (default=0.0)
-            factor (float, optional): Constant factor (default=1.0)
+            dof: DOF direction the ground motion acts (1-based index).
+            time_series: TimeSeries defining the acceleration history.
+            vel0: Initial velocity at time zero. Defaults to 0.0.
+            factor: Constant factor multiplying time series. Defaults to 1.0.
+
+        Raises:
+            ValueError: If required parameters are missing or invalid.
         """
         super().__init__("UniformExcitation")
         validated_params = self.validate(**kwargs)
@@ -281,22 +323,47 @@ class UniformExcitation(Pattern):
 
 
 class H5DRMPattern(Pattern):
-    """
-    H5DRM pattern implements the Domain Reduction Method (DRM) 
-    using the H5DRM data format for seismic analysis.
+    """H5DRM pattern implementing the Domain Reduction Method for seismic analysis.
+
+    This pattern implements the Domain Reduction Method (DRM) using HDF5 data format
+    for efficient seismic wave propagation analysis.
+
+    Attributes:
+        filepath: Path to the H5DRM dataset file.
+        factor: Scale factor for DRM forces and displacements.
+        crd_scale: Scale factor for dataset coordinates.
+        distance_tolerance: Tolerance for matching DRM points to FE mesh nodes.
+        do_coordinate_transformation: Flag indicating whether to apply coordinate transformation (0 or 1).
+        transform_matrix: 3x3 transformation matrix as list of 9 values.
+        origin: Origin location after transformation as list of 3 coordinates.
+
+    Example:
+        >>> from femora.components.Pattern.patternBase import H5DRMPattern
+        >>> # pattern = H5DRMPattern(
+        >>> #     filepath="/path/to/drm.h5drm",
+        >>> #     factor=1.0,
+        >>> #     crd_scale=1.0,
+        >>> #     distance_tolerance=0.001,
+        >>> #     do_coordinate_transformation=0,
+        >>> #     transform_matrix=[1,0,0,0,1,0,0,0,1],
+        >>> #     origin=[0,0,0]
+        >>> # )
+        >>> # print(pattern.tag)
     """
     def __init__(self, **kwargs):
-        """
-        Initialize a H5DRM pattern
-        
+        """Initializes the H5DRM pattern.
+
         Args:
-            filepath (str): Path to the H5DRM dataset
-            factor (float): Scale factor for DRM forces and displacements
-            crd_scale (float): Scale factor for dataset coordinates
-            distance_tolerance (float): Tolerance for DRM point to FE mesh matching
-            do_coordinate_transformation (int): Whether to apply coordinate transformation
-            transform_matrix (list): 3x3 transformation matrix [T00, T01, T02, T10, T11, T12, T20, T21, T22]
-            origin (list): Origin location after transformation [x00, x01, x02]
+            filepath: Path to the H5DRM dataset file.
+            factor: Scale factor for DRM forces and displacements.
+            crd_scale: Scale factor for dataset coordinates.
+            distance_tolerance: Tolerance for DRM point to FE mesh matching.
+            do_coordinate_transformation: Whether to apply coordinate transformation (0 or 1).
+            transform_matrix: 3x3 transformation matrix as list [T00, T01, T02, T10, T11, T12, T20, T21, T22].
+            origin: Origin location after transformation as list [x00, x01, x02].
+
+        Raises:
+            ValueError: If required parameters are missing or invalid.
         """
         super().__init__("H5DRM")
         validated_params = self.validate(**kwargs)
@@ -757,8 +824,24 @@ class PlainPattern(Pattern):
         return PlainPattern._AddLoadProxy(self)
 
 class PatternRegistry:
-    """
-    A registry to manage pattern types and their creation.
+    """Registry for managing pattern types and their creation.
+
+    This class provides a centralized system for registering pattern classes
+    and creating pattern instances dynamically by type name.
+
+    Attributes:
+        _pattern_types: Class-level dictionary mapping pattern type names
+            to their pattern classes.
+
+    Example:
+        >>> from femora.components.Pattern.patternBase import PatternRegistry
+        >>> # Register a custom pattern type
+        >>> # PatternRegistry.register_pattern_type('custom', CustomPattern)
+        >>> # Create a pattern
+        >>> # pattern = PatternRegistry.create_pattern('plain', time_series=ts)
+        >>> types = PatternRegistry.get_pattern_types()
+        >>> print('plain' in types)
+        True
     """
     _pattern_types = {
         'uniformexcitation': UniformExcitation,
@@ -768,39 +851,36 @@ class PatternRegistry:
 
     @classmethod
     def register_pattern_type(cls, name: str, pattern_class: Type[Pattern]):
-        """
-        Register a new pattern type for easy creation.
-        
+        """Registers a new pattern type for easy creation.
+
         Args:
-            name (str): The name of the pattern type
-            pattern_class (Type[Pattern]): The class of the pattern
+            name: The name of the pattern type (case-insensitive).
+            pattern_class: The class of the pattern to register.
         """
         cls._pattern_types[name.lower()] = pattern_class
 
     @classmethod
     def get_pattern_types(cls):
-        """
-        Get available pattern types.
-        
+        """Gets available pattern types.
+
         Returns:
-            List[str]: Available pattern types
+            List of registered pattern type names.
         """
         return list(cls._pattern_types.keys())
 
     @classmethod
     def create_pattern(cls, pattern_type: str, **kwargs) -> Pattern:
-        """
-        Create a new pattern of a specific type.
-        
+        """Creates a new pattern of a specific type.
+
         Args:
-            pattern_type (str): Type of pattern to create
-            **kwargs: Parameters for pattern initialization
-        
+            pattern_type: Type of pattern to create (case-insensitive).
+            **kwargs: Parameters for pattern initialization.
+
         Returns:
-            Pattern: A new pattern instance
-        
+            A new pattern instance.
+
         Raises:
-            KeyError: If the pattern type is not registered
+            KeyError: If the pattern type is not registered.
         """
         if pattern_type.lower() not in cls._pattern_types:
             raise KeyError(f"Pattern type {pattern_type} not registered")
@@ -809,8 +889,27 @@ class PatternRegistry:
 
 
 class PatternManager:
-    """
-    Singleton class for managing load patterns
+    """Singleton manager class for creating and managing load patterns.
+
+    This class provides a unified interface for creating patterns with
+    convenient access to pattern types.
+
+    Attributes:
+        uniformexcitation: Reference to UniformExcitation class.
+        h5drm: Reference to H5DRMPattern class.
+        plain: Reference to PlainPattern class.
+
+    Example:
+        >>> from femora.components.Pattern.patternBase import PatternManager
+        >>> # Get the singleton instance
+        >>> manager = PatternManager()
+        >>> # Create a pattern
+        >>> # pattern = manager.create_pattern('plain', time_series=my_ts, factor=1.0)
+        >>> # Get all patterns
+        >>> all_patterns = manager.get_all_patterns()
+        >>> types = manager.get_available_types()
+        >>> print('plain' in types)
+        True
     """
     _instance = None
 
@@ -825,27 +924,63 @@ class PatternManager:
         return cls._instance
 
     def create_pattern(self, pattern_type: str, **kwargs) -> Pattern:
-        """Create a new pattern"""
+        """Creates a new pattern.
+
+        Args:
+            pattern_type: Type of pattern to create.
+            **kwargs: Parameters for pattern initialization.
+
+        Returns:
+            The created pattern instance.
+
+        Raises:
+            KeyError: If pattern type is not registered.
+        """
         return PatternRegistry.create_pattern(pattern_type, **kwargs)
 
     def get_pattern(self, tag: int) -> Pattern:
-        """Get pattern by tag"""
+        """Gets pattern by tag.
+
+        Args:
+            tag: The tag of the pattern.
+
+        Returns:
+            The pattern with the specified tag.
+
+        Raises:
+            KeyError: If no pattern with the given tag exists.
+        """
         return Pattern.get_pattern(tag)
 
     def remove_pattern(self, tag: int) -> None:
-        """Remove pattern by tag"""
+        """Removes pattern by tag.
+
+        Args:
+            tag: The tag of the pattern to remove.
+        """
         Pattern.remove_pattern(tag)
 
     def get_all_patterns(self) -> Dict[int, Pattern]:
-        """Get all patterns"""
+        """Gets all patterns.
+
+        Returns:
+            Dictionary of all patterns, keyed by their tags.
+        """
         return Pattern.get_all_patterns()
 
     def get_available_types(self) -> List[str]:
-        """Get list of available pattern types"""
+        """Gets list of available pattern types.
+
+        Returns:
+            List of registered pattern type names.
+        """
         return PatternRegistry.get_pattern_types()
-    
+
     def clear_all(self):
-        """Clear all patterns"""  
+        """Clears all patterns.
+
+        This method removes all registered patterns and resets the tag counter.
+        """
         Pattern.clear_all()
 
 
