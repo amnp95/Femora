@@ -5,22 +5,31 @@ from femora.components.interface.embedded_beam_solid_interface import EmbeddedBe
 from femora.components.interface.interface_base import InterfaceManager
 
 class Recorder(ABC):
-    """
-    Base abstract class for all recorder types in OpenSees.
-    
-    Recorders are used to monitor what is happening during the analysis 
-    and generate output for the user. The output may go to the screen, 
+    """Base abstract class for all recorder types in OpenSees.
+
+    Recorders are used to monitor what is happening during the analysis
+    and generate output for the user. The output may go to the screen,
     files, databases, or to remote processes through TCP/IP options.
+
+    Attributes:
+        tag: The unique sequential identifier for this recorder.
+        recorder_type: The type of recorder (e.g., 'Node', 'Element', 'VTKHDF').
+
+    Example:
+        >>> from femora.components.Recorder.recorderBase import RecorderManager
+        >>> # Create a recorder through the manager
+        >>> # manager = RecorderManager()
+        >>> # recorder = manager.create_recorder('node', file_name='output.txt', ...)
+        >>> # print(recorder.tag)
     """
     _recorders = {}  # Class-level dictionary to track all recorders
     _next_tag = 1   # Class variable to track the next tag to assign
 
     def __init__(self, recorder_type: str):
-        """
-        Initialize a new recorder with a sequential tag
-        
+        """Initializes the Recorder with a sequential tag.
+
         Args:
-            recorder_type (str): The type of recorder (e.g., 'Node', 'Element', 'VTKHDF')
+            recorder_type: The type of recorder (e.g., 'Node', 'Element', 'VTKHDF').
         """
         self.tag = Recorder._next_tag
         Recorder._next_tag += 1
@@ -32,17 +41,16 @@ class Recorder(ABC):
 
     @classmethod
     def get_recorder(cls, tag: int) -> 'Recorder':
-        """
-        Retrieve a specific recorder by its tag.
-        
+        """Retrieves a specific recorder by its tag.
+
         Args:
-            tag (int): The tag of the recorder
-        
+            tag: The tag of the recorder.
+
         Returns:
-            Recorder: The recorder with the specified tag
-        
+            The recorder with the specified tag.
+
         Raises:
-            KeyError: If no recorder with the given tag exists
+            KeyError: If no recorder with the given tag exists.
         """
         if tag not in cls._recorders:
             raise KeyError(f"No recorder found with tag {tag}")
@@ -50,11 +58,10 @@ class Recorder(ABC):
 
     @classmethod
     def remove_recorder(cls, tag: int) -> None:
-        """
-        Delete a recorder by its tag.
-        
+        """Deletes a recorder by its tag.
+
         Args:
-            tag (int): The tag of the recorder to delete
+            tag: The tag of the recorder to delete.
         """
         if tag in cls._recorders:
             del cls._recorders[tag]
@@ -66,49 +73,53 @@ class Recorder(ABC):
 
     @classmethod
     def get_all_recorders(cls) -> Dict[int, 'Recorder']:
-        """
-        Retrieve all created recorders.
-        
+        """Retrieves all created recorders.
+
         Returns:
-            Dict[int, Recorder]: A dictionary of all recorders, keyed by their unique tags
+            A dictionary of all recorders, keyed by their unique tags.
         """
         return cls._recorders
     
     @classmethod
     def clear_all(cls) -> None:
-        """
-        Clear all recorders and reset tags.
+        """Clears all recorders and resets tags.
+
+        This method removes all registered recorders and resets the tag counter to 1.
         """
         cls._recorders.clear()
         cls._next_tag = 1
 
     @abstractmethod
     def to_tcl(self) -> str:
-        """
-        Convert the recorder to a TCL command string for OpenSees
-        
+        """Converts the recorder to a TCL command string for OpenSees.
+
+        Subclasses must implement this method to generate the appropriate
+        TCL command for use with OpenSees.
+
         Returns:
-            str: The TCL command string
+            TCL command string representation of the recorder.
         """
         pass
 
     @staticmethod
     def get_parameters() -> List[tuple]:
-        """
-        Get the parameters defining this recorder
-        
+        """Gets the parameters defining this recorder.
+
+        Subclasses should implement this method to return parameter metadata.
+
         Returns:
-            List[tuple]: List of (parameter name, description) tuples
+            List of (parameter name, description) tuples.
         """
         pass
 
     @abstractmethod
     def get_values(self) -> Dict[str, Union[str, int, float, list]]:
-        """
-        Get the parameters defining this recorder
-        
+        """Gets the parameters defining this recorder.
+
+        Subclasses must implement this method to return current parameter values.
+
         Returns:
-            Dict[str, Union[str, int, float, list]]: Dictionary of parameter values
+            Dictionary of parameter values.
         """
         pass
 
@@ -262,9 +273,38 @@ class EmbeddedBeamSolidInterfaceRecorder(Recorder):
     
 
 class NodeRecorder(Recorder):
-    """
-    Node recorder class records the response of a number of nodes 
-    at every converged step.
+    """Node recorder for recording nodal responses at every converged step.
+
+    This recorder monitors the response of specified nodes throughout the
+    analysis, writing output to files, XML, binary format, or TCP/IP streams.
+
+    Attributes:
+        file_name: Name of file to which output is sent.
+        xml_file: Name of XML file to which output is sent.
+        binary_file: Name of binary file to which output is sent.
+        inet_addr: IP address of remote machine for TCP/IP output.
+        port: Port on remote machine awaiting TCP connection.
+        precision: Number of significant digits in output.
+        time_series: Tag of previously constructed TimeSeries.
+        time: Flag to place domain time in first output column.
+        delta_t: Time interval for recording.
+        close_on_write: Flag to open and close file on each write.
+        nodes: Tags of nodes whose response is being recorded.
+        node_range: Start and end node tags for range specification.
+        region: Tag of previously defined region.
+        dofs: List of DOF at nodes whose response is requested.
+        resp_type: String indicating response required.
+
+    Example:
+        >>> from femora.components.Recorder.recorderBase import NodeRecorder
+        >>> # recorder = NodeRecorder(
+        >>> #     file_name="displacement.out",
+        >>> #     time=True,
+        >>> #     nodes=[1, 2, 3],
+        >>> #     dofs=[1, 2],
+        >>> #     resp_type="disp"
+        >>> # )
+        >>> # print(recorder.to_tcl())
     """
     def __init__(self, **kwargs):
         """
@@ -1056,8 +1096,24 @@ class BeamForceRecorder(Recorder):
         return tags
 
 class RecorderRegistry:
-    """
-    A registry to manage recorder types and their creation.
+    """Registry for managing recorder types and their creation.
+
+    This class provides a centralized system for registering recorder classes
+    and creating recorder instances dynamically by type name.
+
+    Attributes:
+        _recorder_types: Class-level dictionary mapping recorder type names
+            to their recorder classes.
+
+    Example:
+        >>> from femora.components.Recorder.recorderBase import RecorderRegistry
+        >>> # Register a custom recorder type
+        >>> # RecorderRegistry.register_recorder_type('custom', CustomRecorder)
+        >>> # Create a recorder
+        >>> # recorder = RecorderRegistry.create_recorder('node', file_name='out.txt', ...)
+        >>> types = RecorderRegistry.get_recorder_types()
+        >>> print('node' in types)
+        True
     """
     _recorder_types = {
         'node': NodeRecorder,
@@ -1068,39 +1124,36 @@ class RecorderRegistry:
 
     @classmethod
     def register_recorder_type(cls, name: str, recorder_class: Type[Recorder]):
-        """
-        Register a new recorder type for easy creation.
-        
+        """Registers a new recorder type for easy creation.
+
         Args:
-            name (str): The name of the recorder type
-            recorder_class (Type[Recorder]): The class of the recorder
+            name: The name of the recorder type (case-insensitive).
+            recorder_class: The class of the recorder to register.
         """
         cls._recorder_types[name.lower()] = recorder_class
 
     @classmethod
     def get_recorder_types(cls):
-        """
-        Get available recorder types.
-        
+        """Gets available recorder types.
+
         Returns:
-            List[str]: Available recorder types
+            List of registered recorder type names.
         """
         return list(cls._recorder_types.keys())
 
     @classmethod
     def create_recorder(cls, recorder_type: str, **kwargs) -> Recorder:
-        """
-        Create a new recorder of a specific type.
-        
+        """Creates a new recorder of a specific type.
+
         Args:
-            recorder_type (str): Type of recorder to create
-            **kwargs: Parameters for recorder initialization
-        
+            recorder_type: Type of recorder to create (case-insensitive).
+            **kwargs: Parameters for recorder initialization.
+
         Returns:
-            Recorder: A new recorder instance
-        
+            A new recorder instance.
+
         Raises:
-            KeyError: If the recorder type is not registered
+            KeyError: If the recorder type is not registered.
         """
         if recorder_type.lower() not in cls._recorder_types:
             raise KeyError(f"Recorder type {recorder_type} not registered")
@@ -1109,8 +1162,29 @@ class RecorderRegistry:
 
 
 class RecorderManager:
-    """
-    Singleton class for managing recorders
+    """Singleton manager class for creating and managing recorders.
+
+    This class provides a unified interface for creating recorders with
+    convenient access to recorder types.
+
+    Attributes:
+        node: Reference to NodeRecorder class.
+        vtkhdf: Reference to VTKHDFRecorder class.
+        mpco: Reference to MPCORecorder class.
+        beam_force: Reference to BeamForceRecorder class.
+        embedded_beam_solid_interface: Reference to EmbeddedBeamSolidInterfaceRecorder class.
+
+    Example:
+        >>> from femora.components.Recorder.recorderBase import RecorderManager
+        >>> # Get the singleton instance
+        >>> manager = RecorderManager()
+        >>> # Create a recorder
+        >>> # recorder = manager.create_recorder('node', file_name='output.txt', ...)
+        >>> # Get all recorders
+        >>> all_recorders = manager.get_all_recorders()
+        >>> types = manager.get_available_types()
+        >>> print('node' in types)
+        True
     """
     _instance = None
 
@@ -1118,14 +1192,16 @@ class RecorderManager:
         if cls._instance is None:
             cls._instance = super(RecorderManager, cls).__new__(cls)
         return cls._instance
-        
-        
+
+
     def __init__(self):
-        """
-        Initialize the RecorderManager and register recorder types.
+        """Initializes the RecorderManager singleton instance.
+
+        This method only initializes on first creation. Subsequent calls
+        return the existing instance without re-initialization.
         """
         # Register recorder types
-        self.node = NodeRecorder    
+        self.node = NodeRecorder
         self.vtkhdf = VTKHDFRecorder
         self.mpco = MPCORecorder
         self.beam_force = BeamForceRecorder
@@ -1134,27 +1210,63 @@ class RecorderManager:
 
 
     def create_recorder(self, recorder_type: str, **kwargs) -> Recorder:
-        """Create a new recorder"""
+        """Creates a new recorder.
+
+        Args:
+            recorder_type: Type of recorder to create.
+            **kwargs: Parameters for recorder initialization.
+
+        Returns:
+            The created recorder instance.
+
+        Raises:
+            KeyError: If recorder type is not registered.
+        """
         return RecorderRegistry.create_recorder(recorder_type, **kwargs)
 
     def get_recorder(self, tag: int) -> Recorder:
-        """Get recorder by tag"""
+        """Gets recorder by tag.
+
+        Args:
+            tag: The tag of the recorder.
+
+        Returns:
+            The recorder with the specified tag.
+
+        Raises:
+            KeyError: If no recorder with the given tag exists.
+        """
         return Recorder.get_recorder(tag)
 
     def remove_recorder(self, tag: int) -> None:
-        """Remove recorder by tag"""
+        """Removes recorder by tag.
+
+        Args:
+            tag: The tag of the recorder to remove.
+        """
         Recorder.remove_recorder(tag)
 
     def get_all_recorders(self) -> Dict[int, Recorder]:
-        """Get all recorders"""
+        """Gets all recorders.
+
+        Returns:
+            Dictionary of all recorders, keyed by their tags.
+        """
         return Recorder.get_all_recorders()
 
     def get_available_types(self) -> List[str]:
-        """Get list of available recorder types"""
+        """Gets list of available recorder types.
+
+        Returns:
+            List of registered recorder type names.
+        """
         return RecorderRegistry.get_recorder_types()
-    
+
     def clear_all(self):
-        """Clear all recorders"""  
+        """Clears all recorders.
+
+        This method removes all registered recorders and resets the tag counter.
+        """
         Recorder.clear_all()
 
 
