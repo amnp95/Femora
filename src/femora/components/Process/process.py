@@ -13,11 +13,30 @@ from femora.components.Actions.action import Action
 ProcessComponent = Union[SPConstraint, mpConstraint, Pattern, Recorder, Analysis, Action]
 
 class ProcessManager:
-    """
-    Singleton class to manage the sequence of operations in the structural analysis process.
-    
-    This class maintains a list of steps as weak references to component objects.
-    Each step has only the object reference and an optional description.
+    """Singleton class to manage the sequence of operations in structural analysis.
+
+    This class maintains an ordered list of analysis steps, where each step
+    references a component object (constraint, pattern, recorder, analysis, or action).
+    Steps are stored as weak references to prevent circular dependencies, except
+    for Action objects which use strong references.
+
+    Attributes:
+        steps: List of step dictionaries, each containing a component reference
+            and optional description.
+        current_step: Index of the currently executing step (-1 if not started).
+
+    Example:
+        >>> from femora.components.Process.process import ProcessManager
+        >>> # Get the singleton instance
+        >>> process = ProcessManager()
+        >>> # Add steps to the process
+        >>> # process.add_step(my_constraint, "Apply boundary conditions")
+        >>> # process.add_step(my_pattern, "Apply loads")
+        >>> # process.add_step(my_analysis, "Run static analysis")
+        >>> # Get total number of steps
+        >>> num_steps = len(process)
+        >>> # Generate TCL script
+        >>> # tcl_script = process.to_tcl()
     """
     _instance = None
 
@@ -28,6 +47,11 @@ class ProcessManager:
         return cls._instance
 
     def __init__(self):
+        """Initializes the ProcessManager singleton instance.
+
+        This method only initializes the instance on first creation. Subsequent
+        calls return the existing instance without re-initialization.
+        """
         if not self._initialized:
             self.steps = []
             self.current_step = -1
@@ -35,22 +59,40 @@ class ProcessManager:
 
 
     def __iter__(self):
+        """Returns an iterator over the steps.
+
+        Returns:
+            Iterator over the steps list.
+        """
         return iter(self.steps)
-    
+
 
     def __len__(self):
+        """Returns the number of steps in the process.
+
+        Returns:
+            Number of steps currently in the process.
+        """
         return len(self.steps)
 
     def add_step(self, component: ProcessComponent, description: str = "") -> int:
-        """
-        Add a step to the process
-        
+        """Adds a step to the end of the process.
+
+        This method appends a new step to the process. Components are stored
+        as weak references (except Action objects which use strong references)
+        to prevent circular dependencies.
+
         Args:
-            component: The component object to use in this step (must be one of the allowed component types)
-            description: Description of the step
-            
+            component: The component object to use in this step. Must be one
+                of the allowed component types (SPConstraint, mpConstraint,
+                Pattern, Recorder, Analysis, or Action).
+            description: Optional description of the step. Defaults to empty string.
+
         Returns:
-            int: Index of the added step
+            Index of the newly added step.
+
+        Raises:
+            TypeError: If component is not one of the allowed types.
         """
         # Store a weak reference to the component
         if not isinstance(component, Action):
@@ -63,29 +105,36 @@ class ProcessManager:
             component_ref = component
         else:
             raise TypeError("Invalid component type. Must be one of the allowed types.")
-        
 
 
-        
+
         step = {
             "component": component_ref,
             "description": description
         }
-        
+
         self.steps.append(step)
         return len(self.steps) - 1
 
     def insert_step(self, index: int, component: ProcessComponent, description: str = "") -> bool:
-        """
-        Insert a step at a specific position. Allows for negative indexing.
-        
+        """Inserts a step at a specific position in the process.
+
+        This method allows insertion at any position, including negative indexing
+        (where -1 refers to the last position). The current step index is
+        automatically adjusted if necessary.
+
         Args:
-            index: Position to insert the step (negative index allowed)
-            component: The component object to use in this step (must be one of the allowed component types)
-            description: Description of the step
-            
+            index: Position to insert the step. Negative indices are supported
+                (e.g., -1 inserts before the last step).
+            component: The component object to use in this step. Must be one
+                of the allowed component types.
+            description: Optional description of the step. Defaults to empty string.
+
         Returns:
-            bool: True if successful, False otherwise
+            True if insertion was successful, False if index is out of range.
+
+        Raises:
+            TypeError: If component is not one of the allowed types.
         """
         # Adjust negative index to positive index
         if index < 0:
@@ -104,67 +153,86 @@ class ProcessManager:
             else:
                 raise TypeError("Invalid component type. Must be one of the allowed types.")
 
-            
+
             step = {
                 "component": component_ref,
                 "description": description
             }
-            
+
             self.steps.insert(index, step)
-            
+
             # Adjust current step if needed
             if index <= self.current_step:
                 self.current_step += 1
-                
+
             return True
         return False
 
 
     def remove_step(self, index: int) -> bool:
-        """
-        Remove a step at a specific position
-        
+        """Removes a step at a specific position.
+
+        The current step index is automatically adjusted if the removed step
+        is at or before the current position.
+
         Args:
-            index: Position of the step to remove
-            
+            index: Position of the step to remove (0-based indexing).
+
         Returns:
-            bool: True if successful, False otherwise
+            True if removal was successful, False if index is out of range.
         """
         if 0 <= index < len(self.steps):
             del self.steps[index]
-            
+
             # Adjust current step if needed
             if index <= self.current_step:
                 self.current_step -= 1
-                
+
             return True
         return False
 
     def clear_steps(self) -> None:
-        """Clear all steps"""
+        """Clears all steps from the process.
+
+        This method removes all steps and resets the current step index to -1.
+        """
         self.steps.clear()
         self.current_step = -1
 
     def get_steps(self) -> List[Dict]:
-        """Get all steps in the process"""
+        """Gets all steps in the process.
+
+        Returns:
+            List of step dictionaries, each containing 'component' and
+                'description' keys.
+        """
         return self.steps
 
     def get_step(self, index: int) -> Optional[Dict]:
-        """
-        Get a step at a specific position
-        
+        """Gets a step at a specific position.
+
         Args:
-            index: Position of the step
-            
+            index: Position of the step to retrieve (0-based indexing).
+
         Returns:
-            Optional[Dict]: The step or None if index is invalid
+            The step dictionary if index is valid, None otherwise. Each step
+                dictionary contains 'component' and 'description' keys.
         """
         if 0 <= index < len(self.steps):
             return self.steps[index]
         return None
-    
+
     def to_tcl(self):
-        """Convert the process to a TCL script"""
+        """Converts the process to a TCL script for OpenSees.
+
+        This method iterates through all steps and generates a complete TCL
+        script by calling the to_tcl() method on each component. Weak references
+        are automatically resolved.
+
+        Returns:
+            String containing the complete TCL script with comments separating
+                each step.
+        """
         tcl_script = ""
         for step in self.steps:
             component = step["component"]
