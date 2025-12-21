@@ -6,7 +6,7 @@ Handles creation and editing of beam-column elements with sections and transform
 from qtpy.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QFormLayout, QGridLayout,
     QLabel, QLineEdit, QComboBox, QPushButton, QCheckBox,
-    QMessageBox, QGroupBox
+    QMessageBox, QGroupBox, QWidget
 )
 from qtpy.QtCore import Qt
 
@@ -16,8 +16,32 @@ from femora.components.transformation.transformation import GeometricTransformat
 from femora.components.transformation.transformation_gui import TransformationWidget3D
 
 
-def setup_section_dropdown(combo_box, placeholder_text="Select Section"):
-    """Setup dropdown with available sections"""
+def setup_section_dropdown(combo_box: QComboBox, placeholder_text: str = "Select Section"):
+    """Populates a QComboBox with available section objects.
+
+    This function clears the given QComboBox and adds a placeholder item,
+    followed by all sections retrieved from the `Section` registry. Each
+    section is displayed using its `user_name` and `section_name`.
+
+    Args:
+        combo_box: The QComboBox widget to populate.
+        placeholder_text: The text for the initial, non-selectable item
+            in the dropdown.
+    
+    Example:
+        >>> from qtpy.QtWidgets import QApplication, QComboBox
+        >>> from femora.components.section.section_opensees import ElasticSection
+        >>> app = QApplication([])
+        >>> combo = QComboBox()
+        >>> # Assume ElasticSection is registered with 'get_all_sections'
+        >>> ElasticSection(tag=1, user_name="Concrete Rect", E=30e9, G=12e9, A=0.1, Iy=1e-3, Iz=2e-3, J=3e-3)
+        >>> setup_section_dropdown(combo)
+        >>> print(combo.itemText(0))
+        Select Section
+        >>> print(combo.itemText(1)) # Assuming 'Concrete Rect' is the first added section
+        Concrete Rect (ElasticSection)
+        >>> app.quit()
+    """
     combo_box.clear()
     combo_box.addItem(placeholder_text)
     
@@ -27,8 +51,45 @@ def setup_section_dropdown(combo_box, placeholder_text="Select Section"):
         combo_box.addItem(display_text, section)
 
 
-def validate_section_selection(combo_box, field_name="Section"):
-    """Validate section selection from combo box"""
+def validate_section_selection(combo_box: QComboBox, field_name: str = "Section") -> tuple[bool, Section | None, str]:
+    """Validates the selection in a QComboBox assumed to contain section objects.
+
+    Checks if a valid section has been selected from the dropdown (i.e., not
+    the placeholder item and the data associated with the item is a `Section` object).
+
+    Args:
+        combo_box: The QComboBox widget containing section selections.
+        field_name: The name of the field, used in error messages.
+
+    Returns:
+        A tuple containing:
+        - bool: True if a valid section is selected, False otherwise.
+        - Section | None: The selected Section object, or None if invalid.
+        - str: An empty string if valid, or an error message if invalid.
+    
+    Example:
+        >>> from qtpy.QtWidgets import QApplication, QComboBox
+        >>> from femora.components.section.section_opensees import ElasticSection
+        >>> app = QApplication([])
+        >>> combo = QComboBox()
+        >>> combo.addItem("Select Section") # Placeholder
+        >>> # Add a valid section
+        >>> section1 = ElasticSection(tag=1, user_name="Rect Section", E=200e9, A=0.01, Iz=1e-6)
+        >>> combo.addItem("Rect Section", section1)
+        >>> # Test invalid selection (placeholder)
+        >>> combo.setCurrentIndex(0)
+        >>> is_valid, sec, msg = validate_section_selection(combo)
+        >>> print(is_valid)
+        False
+        >>> # Test valid selection
+        >>> combo.setCurrentIndex(1)
+        >>> is_valid, sec, msg = validate_section_selection(combo)
+        >>> print(is_valid)
+        True
+        >>> print(sec.user_name)
+        Rect Section
+        >>> app.quit()
+    """
     if combo_box.currentIndex() == 0:
         return False, None, f"Please select a {field_name.lower()}."
     
@@ -40,9 +101,53 @@ def validate_section_selection(combo_box, field_name="Section"):
 
 
 class BeamElementCreationDialog(QDialog):
-    """Dialog for creating beam-column elements"""
+    """A dialog window for creating new beam-column elements in FEMORA.
+
+    This dialog allows users to define parameters such as degrees of freedom,
+    cross-section, geometric transformation, and other element-specific properties
+    before instantiating a new beam-column element.
+
+    Attributes:
+        element_type (str): The string identifier for the type of element being created.
+        created_element (object | None): The instantiated element object after successful creation,
+            or None if the creation was cancelled or failed.
+        element_class (type): The actual Python class corresponding to `element_type`.
+        dof_combo (QComboBox): Dropdown for selecting the degrees of freedom (e.g., 3D or 6D).
+        section_combo (QComboBox): Dropdown for selecting the cross-section.
+        transformation_widget (TransformationWidget3D): Widget for defining the geometric transformation.
+        param_inputs (dict[str, QLineEdit | QCheckBox]): Dictionary mapping parameter names to their
+            corresponding input widgets (QLineEdit or QCheckBox).
     
-    def __init__(self, element_type, parent=None):
+    Example:
+        >>> from qtpy.QtWidgets import QApplication
+        >>> import sys
+        >>> from femora.components.section.section_opensees import ElasticSection
+        >>> from femora.components.Element.elements_opensees_beam import ElasticBeamColumnElement # Required for setup
+        >>>
+        >>> app = QApplication(sys.argv)
+        >>>
+        >>> # Ensure a section is registered for selection in the dialog
+        >>> ElasticSection(tag=100, user_name="Default Rect", E=200e9, A=0.1, Iz=1e-6)
+        >>>
+        >>> dialog = BeamElementCreationDialog("ElasticBeamColumn")
+        >>> dialog.exec_() # Show the dialog for user interaction
+        >>>
+        >>> if dialog.created_element:
+        >>>     print(f"Element created: {dialog.created_element.element_type} with tag {dialog.created_element.tag}")
+        >>> else:
+        >>>     print("Element creation cancelled or failed.")
+        >>>
+        >>> app.quit()
+    """
+    
+    def __init__(self, element_type: str, parent: QWidget | None = None):
+        """Initializes the BeamElementCreationDialog.
+
+        Args:
+            element_type: The string identifier for the type of beam element
+                to be created (e.g., "ElasticBeamColumn").
+            parent: The parent widget for this dialog, defaults to None.
+        """
         super().__init__(parent)
         self.element_type = element_type
         self.setWindowTitle(f"Create {element_type} Element")
@@ -54,6 +159,12 @@ class BeamElementCreationDialog(QDialog):
         self.setup_ui()
     
     def setup_ui(self):
+        """Sets up the user interface for the element creation dialog.
+
+        This method initializes and arranges all widgets, including the DOF
+        selector, section dropdown, transformation widget, element parameters
+        group, and action buttons.
+        """
         layout = QVBoxLayout(self)
         
         # Form layout for main inputs
@@ -96,8 +207,17 @@ class BeamElementCreationDialog(QDialog):
         btn_layout.addWidget(cancel_btn)
         layout.addLayout(btn_layout)
     
-    def setup_parameters_group(self, main_layout):
-        """Setup element-specific parameters"""
+    def setup_parameters_group(self, main_layout: QVBoxLayout):
+        """Sets up the group box for element-specific parameters.
+
+        This method dynamically creates input fields (QLineEdit or QCheckBox)
+        for each parameter defined by the `element_class.get_parameters()` method,
+        along with their descriptions, and adds them to a QGroupBox.
+
+        Args:
+            main_layout: The main QVBoxLayout of the dialog to which the
+                parameters group box will be added.
+        """
         params_group = QGroupBox("Element Parameters")
         params_layout = QGridLayout(params_group)
         
@@ -127,7 +247,21 @@ class BeamElementCreationDialog(QDialog):
         main_layout.addWidget(params_group)
     
     def create_element(self):
-        """Create the beam element"""
+        """Creates the beam element based on the user inputs in the dialog.
+
+        This method validates all user inputs (DOF, section, transformation,
+        and element-specific parameters), then uses the `ElementRegistry`
+        to instantiate the element. Upon successful creation, an information
+        message is displayed, and the dialog is accepted.
+        If any input is invalid or an error occurs during element creation,
+        a warning or critical error message is displayed.
+
+        Raises:
+            ValueError: If any input field contains invalid data that cannot
+                be processed (e.g., non-numeric where a number is expected).
+            Exception: For any other unexpected errors during the element
+                creation process.
+        """
         try:
             # Validate DOF
             dof = int(self.dof_combo.currentText())
@@ -178,9 +312,61 @@ class BeamElementCreationDialog(QDialog):
 
 
 class BeamElementEditDialog(QDialog):
-    """Dialog for editing beam-column elements"""
+    """A dialog window for editing existing beam-column elements in FEMORA.
+
+    This dialog pre-populates its input fields with the current values of
+    an existing element and allows users to modify its degrees of freedom,
+    cross-section, geometric transformation, and other element-specific properties.
+
+    Attributes:
+        element (object): The existing element object to be edited. Expected to be
+            an instance of a class registered in `ElementRegistry`, with attributes
+            like `element_type`, `tag`, `_ndof`, `_section`, `_transformation`,
+            and methods like `get_values`, `update_values`, etc.
+        dof_combo (QComboBox): Dropdown for selecting the degrees of freedom (e.g., 3D or 6D).
+        section_combo (QComboBox): Dropdown for selecting the cross-section.
+        transformation_widget (TransformationWidget3D): Widget for defining the geometric transformation.
+        param_inputs (dict[str, QLineEdit | QCheckBox]): Dictionary mapping parameter names to their
+            corresponding input widgets (QLineEdit or QCheckBox).
     
-    def __init__(self, element, parent=None):
+    Example:
+        >>> from qtpy.QtWidgets import QApplication
+        >>> import sys
+        >>> from femora.components.section.section_opensees import ElasticSection
+        >>> from femora.components.transformation.transformation import GeometricTransformation3D
+        >>> from femora.components.Element.elements_opensees_beam import ElasticBeamColumnElement
+        >>>
+        >>> app = QApplication(sys.argv)
+        >>>
+        >>> # Create a dummy element for editing
+        >>> section_orig = ElasticSection(tag=1, user_name="Original Section", E=200e9, A=0.01, Iz=1e-6)
+        >>> transf_orig = GeometricTransformation3D(transf_type="Linear", vecxz_x=1, vecxz_y=0, vecxz_z=0)
+        >>> dummy_element = ElasticBeamColumnElement(ndof=6, section=section_orig, transformation=transf_orig, tag=99)
+        >>>
+        >>> # Ensure another section exists for selection in the dialog
+        >>> ElasticSection(tag=2, user_name="New Rect Section", E=210e9, A=0.015, Iz=1.5e-6)
+        >>>
+        >>> dialog = BeamElementEditDialog(dummy_element)
+        >>> dialog.exec_() # Show the dialog for user interaction
+        >>>
+        >>> if dialog.result() == QDialog.Accepted:
+        >>>     print(f"Element {dummy_element.tag} updated. New section: {dummy_element._section.user_name}")
+        >>> else:
+        >>>     print("Element editing cancelled.")
+        >>>
+        >>> app.quit()
+    """
+    
+    def __init__(self, element: object, parent: QWidget | None = None):
+        """Initializes the BeamElementEditDialog.
+
+        Args:
+            element: The existing element object to be edited. It is expected
+                to have attributes like `element_type`, `tag`, `_ndof`,
+                `_section`, `_transformation`, and methods like `get_values`,
+                `update_values`, `__class__.get_parameters()`, etc.
+            parent: The parent widget for this dialog, defaults to None.
+        """
         super().__init__(parent)
         self.element = element
         self.setWindowTitle(f"Edit {element.element_type} Element (Tag: {element.tag})")
@@ -189,6 +375,12 @@ class BeamElementEditDialog(QDialog):
         self.load_current_values()
     
     def setup_ui(self):
+        """Sets up the user interface for the element editing dialog.
+
+        This method initializes and arranges all widgets, including the DOF
+        selector, section dropdown, transformation widget, element parameters
+        group, and action buttons for saving or canceling changes.
+        """
         layout = QVBoxLayout(self)
         
         # Form layout for main inputs
@@ -231,8 +423,17 @@ class BeamElementEditDialog(QDialog):
         btn_layout.addWidget(cancel_btn)
         layout.addLayout(btn_layout)
     
-    def setup_parameters_group(self, main_layout):
-        """Setup element-specific parameters"""
+    def setup_parameters_group(self, main_layout: QVBoxLayout):
+        """Sets up the group box for element-specific parameters.
+
+        This method dynamically creates input fields (QLineEdit or QCheckBox)
+        for each parameter defined by the `element.__class__.get_parameters()` method,
+        along with their descriptions, and adds them to a QGroupBox.
+
+        Args:
+            main_layout: The main QVBoxLayout of the dialog to which the
+                parameters group box will be added.
+        """
         params_group = QGroupBox("Element Parameters")
         params_layout = QGridLayout(params_group)
         
@@ -261,7 +462,13 @@ class BeamElementEditDialog(QDialog):
         main_layout.addWidget(params_group)
     
     def load_current_values(self):
-        """Load current element values into the form"""
+        """Loads the current values of the `element` into the dialog's input fields.
+
+        This method populates the DOF combo box, sets the current section in
+        the section dropdown, loads the transformation data into the
+        `TransformationWidget3D`, and fills in all element-specific parameter
+        input fields (QLineEdit or QCheckBox) with the element's existing values.
+        """
         # Set DOF
         self.dof_combo.setCurrentText(str(self.element._ndof))
         
@@ -288,7 +495,22 @@ class BeamElementEditDialog(QDialog):
                     input_field.setText(str(value))
     
     def save_changes(self):
-        """Save changes to the element"""
+        """Saves the modified values from the dialog's input fields back to the element.
+
+        This method validates all user inputs (DOF, section, transformation,
+        and element-specific parameters). If valid, it updates the `element`'s
+        properties using its `update_values` method and adjusts the degrees
+        of freedom if changed. Upon successful update, an information message
+        is displayed, and the dialog is accepted.
+        If any input is invalid or an error occurs during the update process,
+        a warning or critical error message is displayed.
+
+        Raises:
+            ValueError: If any input field contains invalid data that cannot
+                be processed (e.g., non-numeric where a number is expected).
+            Exception: For any other unexpected errors during the element
+                update process.
+        """
         try:
             # Validate section
             is_valid, section, error_msg = validate_section_selection(self.section_combo)
@@ -334,9 +556,23 @@ class BeamElementEditDialog(QDialog):
             QMessageBox.critical(self, "Error", f"Failed to update element: {str(e)}")
 
 
-# Helper function to determine if element is a beam element
-def is_beam_element(element_type):
-    """Check if element type is a beam element"""
+def is_beam_element(element_type: str) -> bool:
+    """Checks if a given element type string corresponds to a known beam element.
+
+    Args:
+        element_type: The string identifier of the element type to check.
+
+    Returns:
+        True if the element type is a recognized beam element, False otherwise.
+    
+    Example:
+        >>> is_beam_element("ElasticBeamColumn")
+        True
+        >>> is_beam_element("truss")
+        False
+        >>> is_beam_element("elasticBeamColumn") # Case-insensitive check
+        True
+    """
     beam_types = [
         'elasticbeamcolumn',
         'dispbeamcolumn',
