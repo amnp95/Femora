@@ -180,14 +180,77 @@
 <dt class="sig sig-object py" id="femora.components.TimeSeries.timeSeriesBase.TimeSeriesManager">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">femora.components.TimeSeries.timeSeriesBase.</span></span><span class="sig-name descname"><span class="pre">TimeSeriesManager</span></span><a class="reference internal" href="../_modules/femora/components/TimeSeries/timeSeriesBase.html#TimeSeriesManager"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#femora.components.TimeSeries.timeSeriesBase.TimeSeriesManager" title="Link to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<p>Singleton class for managing time series objects in the application.</p>
-<p>This manager provides a centralized way to create, retrieve, and manage
-time series objects. It maintains a singleton instance to ensure consistent
-access to time series throughout the application.</p>
+<p>Singleton manager class for creating and managing time series.</p>
+<p>This class provides a unified interface for creating time series with
+convenient access to time series types.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="femora.components.TimeSeries.timeSeriesBase.TimeSeriesManager.path">
+<span class="sig-name descname"><span class="pre">path</span></span><a class="headerlink" href="#femora.components.TimeSeries.timeSeriesBase.TimeSeriesManager.path" title="Link to this definition"></a></dt>
+<dd><p>Reference to PathTimeSeries class.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="femora.components.TimeSeries.timeSeriesBase.TimeSeriesManager.constant">
+<span class="sig-name descname"><span class="pre">constant</span></span><a class="headerlink" href="#femora.components.TimeSeries.timeSeriesBase.TimeSeriesManager.constant" title="Link to this definition"></a></dt>
+<dd><p>Reference to ConstantTimeSeries class.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="femora.components.TimeSeries.timeSeriesBase.TimeSeriesManager.linear">
+<span class="sig-name descname"><span class="pre">linear</span></span><a class="headerlink" href="#femora.components.TimeSeries.timeSeriesBase.TimeSeriesManager.linear" title="Link to this definition"></a></dt>
+<dd><p>Reference to LinearTimeSeries class.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="femora.components.TimeSeries.timeSeriesBase.TimeSeriesManager.trig">
+<span class="sig-name descname"><span class="pre">trig</span></span><a class="headerlink" href="#femora.components.TimeSeries.timeSeriesBase.TimeSeriesManager.trig" title="Link to this definition"></a></dt>
+<dd><p>Reference to TrigTimeSeries class.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="femora.components.TimeSeries.timeSeriesBase.TimeSeriesManager.ramp">
+<span class="sig-name descname"><span class="pre">ramp</span></span><a class="headerlink" href="#femora.components.TimeSeries.timeSeriesBase.TimeSeriesManager.ramp" title="Link to this definition"></a></dt>
+<dd><p>Reference to RampTimeSeries class.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="femora.components.TimeSeries.timeSeriesBase.TimeSeriesManager.triangular">
+<span class="sig-name descname"><span class="pre">triangular</span></span><a class="headerlink" href="#femora.components.TimeSeries.timeSeriesBase.TimeSeriesManager.triangular" title="Link to this definition"></a></dt>
+<dd><p>Reference to TriangularTimeSeries class.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="femora.components.TimeSeries.timeSeriesBase.TimeSeriesManager.rectangular">
+<span class="sig-name descname"><span class="pre">rectangular</span></span><a class="headerlink" href="#femora.components.TimeSeries.timeSeriesBase.TimeSeriesManager.rectangular" title="Link to this definition"></a></dt>
+<dd><p>Reference to RectangularTimeSeries class.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="femora.components.TimeSeries.timeSeriesBase.TimeSeriesManager.pulse">
+<span class="sig-name descname"><span class="pre">pulse</span></span><a class="headerlink" href="#femora.components.TimeSeries.timeSeriesBase.TimeSeriesManager.pulse" title="Link to this definition"></a></dt>
+<dd><p>Reference to PulseTimeSeries class.</p>
+</dd></dl>
+
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">femora.components.TimeSeries.timeSeriesBase</span><span class="w"> </span><span class="kn">import</span> <span class="n">TimeSeriesManager</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Get the singleton instance</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">manager</span> <span class="o">=</span> <span class="n">TimeSeriesManager</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Create a time series</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># ts = manager.create_time_series(&#39;constant&#39;, factor=1.0)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Get all time series</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">all_ts</span> <span class="o">=</span> <span class="n">manager</span><span class="o">.</span><span class="n">get_all_time_series</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">types</span> <span class="o">=</span> <span class="n">manager</span><span class="o">.</span><span class="n">get_available_types</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="s1">&#39;constant&#39;</span> <span class="ow">in</span> <span class="n">types</span><span class="p">)</span>
+<span class="go">True</span>
+</pre></div>
+</div>
 <dl class="py method">
 <dt class="sig sig-object py" id="femora.components.TimeSeries.timeSeriesBase.TimeSeriesManager.__init__">
 <span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/femora/components/TimeSeries/timeSeriesBase.html#TimeSeriesManager.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#femora.components.TimeSeries.timeSeriesBase.TimeSeriesManager.__init__" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Initializes the TimeSeriesManager singleton instance.</p>
+<p>This method only initializes on first creation. Subsequent calls
+return the existing instance without re-initialization.</p>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="femora.components.TimeSeries.timeSeriesBase.TimeSeriesManager.clear_all">
@@ -195,37 +258,29 @@ access to time series throughout the application.</p>
 <dd><p>Clears all time series from the registry.</p>
 <p>This method clears all registered time series objects, effectively
 resetting the state of the time series management system.</p>
-<p class="rubric">Example</p>
-<p>manager = TimeSeriesManager()
-# Create some time series
-# …
-# Clear all time series when starting a new model
-manager.clear_all()</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="femora.components.TimeSeries.timeSeriesBase.TimeSeriesManager.create_time_series">
 <span class="sig-name descname"><span class="pre">create_time_series</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">series_type</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/femora/components/TimeSeries/timeSeriesBase.html#TimeSeriesManager.create_time_series"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#femora.components.TimeSeries.timeSeriesBase.TimeSeriesManager.create_time_series" title="Link to this definition"></a></dt>
-<dd><p>Create a new time series of the specified type.</p>
-<p>This method delegates to the TimeSeriesRegistry to create a new time
-series object with the provided parameters.</p>
+<dd><p>Creates a new time series of the specified type.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>series_type</strong> (<em>str</em>) – The type of time series to create (e.g., ‘constant’, ‘linear’)</p></li>
-<li><p><strong>**kwargs</strong> – Parameters specific to the time series type initialization</p></li>
+<li><p><strong>series_type</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – The type of time series to create (e.g., ‘constant’, ‘linear’).</p></li>
+<li><p><strong>**kwargs</strong> – Parameters specific to the time series type initialization.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>A new time series instance</p>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">TimeSeries</span></code></span></p>
 </dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>TimeSeries</p>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A new time series instance.</p>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
 <dd class="field-even"><ul class="simple">
-<li><p><strong>KeyError</strong> – If the requested time series type is not registered</p></li>
-<li><p><strong>ValueError</strong> – If validation of parameters fails</p></li>
+<li><p><strong>KeyError</strong> – If the requested time series type is not registered.</p></li>
+<li><p><strong>ValueError</strong> – If validation of parameters fails.</p></li>
 </ul>
 </dd>
 </dl>
@@ -234,13 +289,17 @@ series object with the provided parameters.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="femora.components.TimeSeries.timeSeriesBase.TimeSeriesManager.get_all_time_series">
 <span class="sig-name descname"><span class="pre">get_all_time_series</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/femora/components/TimeSeries/timeSeriesBase.html#TimeSeriesManager.get_all_time_series"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#femora.components.TimeSeries.timeSeriesBase.TimeSeriesManager.get_all_time_series" title="Link to this definition"></a></dt>
-<dd><p>Retrieve all registered time series objects.</p>
+<dd><p>Retrieves all registered time series objects.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>A dictionary of all time series objects, where keys are the tags and values are the TimeSeries objects</p>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">TimeSeries</span></code>]</span></p>
 </dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>Dict[int, TimeSeries]</p>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><dl class="simple">
+<dt>A dictionary of all time series objects, where keys are the tags</dt><dd><p>and values are the TimeSeries objects.</p>
+</dd>
+</dl>
+</p>
 </dd>
 </dl>
 </dd></dl>
@@ -248,37 +307,33 @@ series object with the provided parameters.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="femora.components.TimeSeries.timeSeriesBase.TimeSeriesManager.get_available_types">
 <span class="sig-name descname"><span class="pre">get_available_types</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/femora/components/TimeSeries/timeSeriesBase.html#TimeSeriesManager.get_available_types"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#femora.components.TimeSeries.timeSeriesBase.TimeSeriesManager.get_available_types" title="Link to this definition"></a></dt>
-<dd><p>Get a list of all available time series types that can be created.</p>
+<dd><p>Gets a list of all available time series types.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>A list of strings representing available time series types</p>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]</span></p>
 </dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>List[str]</p>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A list of strings representing available time series types.</p>
 </dd>
 </dl>
-<p class="rubric">Example</p>
-<p>manager = TimeSeriesManager()
-types = manager.get_available_types()
-print(“Available time series types:”, types)</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="femora.components.TimeSeries.timeSeriesBase.TimeSeriesManager.get_time_series">
 <span class="sig-name descname"><span class="pre">get_time_series</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tag</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/femora/components/TimeSeries/timeSeriesBase.html#TimeSeriesManager.get_time_series"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#femora.components.TimeSeries.timeSeriesBase.TimeSeriesManager.get_time_series" title="Link to this definition"></a></dt>
-<dd><p>Retrieve a specific time series by its tag.</p>
+<dd><p>Retrieves a specific time series by its tag.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>tag</strong> (<em>int</em>) – The unique identifier tag of the time series</p>
+<dd class="field-odd"><p><strong>tag</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></span>) – The unique identifier tag of the time series.</p>
 </dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>The time series object with the specified tag</p>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">TimeSeries</span></code></span></p>
 </dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>TimeSeries</p>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The time series object with the specified tag.</p>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>KeyError</strong> – If no time series with the given tag exists</p>
+<dd class="field-even"><p><strong>KeyError</strong> – If no time series with the given tag exists.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -286,12 +341,12 @@ print(“Available time series types:”, types)</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="femora.components.TimeSeries.timeSeriesBase.TimeSeriesManager.remove_time_series">
 <span class="sig-name descname"><span class="pre">remove_time_series</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tag</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/femora/components/TimeSeries/timeSeriesBase.html#TimeSeriesManager.remove_time_series"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#femora.components.TimeSeries.timeSeriesBase.TimeSeriesManager.remove_time_series" title="Link to this definition"></a></dt>
-<dd><p>Remove a time series by its tag.</p>
+<dd><p>Removes a time series by its tag.</p>
 <p>This method removes the time series with the given tag and
 reassigns sequential tags to all remaining time series objects.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>tag</strong> (<em>int</em>) – The tag of the time series to remove</p>
+<dd class="field-odd"><p><strong>tag</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></span>) – The tag of the time series to remove.</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>

@@ -194,11 +194,40 @@ exists, the MaterialManager will raise an error.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="femora.components.Material.materialBase.MaterialManager">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">femora.components.Material.materialBase.</span></span><span class="sig-name descname"><span class="pre">MaterialManager</span></span><a class="reference internal" href="../_modules/femora/components/Material/materialBase.html#MaterialManager"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#femora.components.Material.materialBase.MaterialManager" title="Link to this definition"></a></dt>
-<dd><p>Singleton class for managing mesh materials and properties</p>
+<dd><p>Singleton class for managing mesh materials and properties.</p>
+<p>This manager provides a unified interface for creating, retrieving, updating,
+and deleting materials in the finite element model. It implements the singleton
+pattern to ensure a single point of access throughout the application.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="femora.components.Material.materialBase.MaterialManager.nd">
+<span class="sig-name descname"><span class="pre">nd</span></span><a class="headerlink" href="#femora.components.Material.materialBase.MaterialManager.nd" title="Link to this definition"></a></dt>
+<dd><p>NDMaterialManager instance for managing nD materials.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="femora.components.Material.materialBase.MaterialManager.uniaxial">
+<span class="sig-name descname"><span class="pre">uniaxial</span></span><a class="headerlink" href="#femora.components.Material.materialBase.MaterialManager.uniaxial" title="Link to this definition"></a></dt>
+<dd><p>UniaxialMaterialManager instance for managing uniaxial materials.</p>
+</dd></dl>
+
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">manager</span> <span class="o">=</span> <span class="n">MaterialManager</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mat</span> <span class="o">=</span> <span class="n">manager</span><span class="o">.</span><span class="n">create_material</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="n">material_category</span><span class="o">=</span><span class="s1">&#39;nDMaterial&#39;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">material_type</span><span class="o">=</span><span class="s1">&#39;ElasticIsotropic&#39;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">user_name</span><span class="o">=</span><span class="s1">&#39;SoilMaterial&#39;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">E</span><span class="o">=</span><span class="mi">30000</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">nu</span><span class="o">=</span><span class="mf">0.3</span>
+<span class="gp">... </span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">retrieved</span> <span class="o">=</span> <span class="n">manager</span><span class="o">.</span><span class="n">get_material</span><span class="p">(</span><span class="s1">&#39;SoilMaterial&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">retrieved</span><span class="o">.</span><span class="n">tag</span><span class="p">)</span>
+<span class="go">1</span>
+</pre></div>
+</div>
 <dl class="py method">
 <dt class="sig sig-object py" id="femora.components.Material.materialBase.MaterialManager.clear_all_materials">
 <span class="sig-name descname"><span class="pre">clear_all_materials</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/femora/components/Material/materialBase.html#MaterialManager.clear_all_materials"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#femora.components.Material.materialBase.MaterialManager.clear_all_materials" title="Link to this definition"></a></dt>
-<dd><p>Clear all registered materials and reset tags</p>
+<dd><p>Clears all registered materials and resets tags.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
@@ -209,26 +238,26 @@ exists, the MaterialManager will raise an error.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="femora.components.Material.materialBase.MaterialManager.create_material">
 <span class="sig-name descname"><span class="pre">create_material</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">material_category</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">material_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">user_name</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">material_params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/femora/components/Material/materialBase.html#MaterialManager.create_material"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#femora.components.Material.materialBase.MaterialManager.create_material" title="Link to this definition"></a></dt>
-<dd><p>Create a new material with the given parameters</p>
+<dd><p>Creates a new material with the given parameters.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>material_category</strong> (<em>str</em>) – Category of material (e.g., ‘nDMaterial’)</p></li>
-<li><p><strong>material_type</strong> (<em>str</em>) – Type of material (e.g., ‘Concrete’)</p></li>
-<li><p><strong>user_name</strong> (<em>str</em>) – Unique name for the material</p></li>
-<li><p><strong>**material_params</strong> – Material-specific parameters</p></li>
+<li><p><strong>material_category</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Category of material (e.g., ‘nDMaterial’).</p></li>
+<li><p><strong>material_type</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Type of material (e.g., ‘Concrete’).</p></li>
+<li><p><strong>user_name</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Unique name for the material.</p></li>
+<li><p><strong>**material_params</strong> – Material-specific parameters.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>The created material instance</p>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Material</span></code></span></p>
 </dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Material</p>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The created material instance.</p>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
 <dd class="field-even"><ul class="simple">
-<li><p><strong>KeyError</strong> – If material category or type doesn’t exist</p></li>
-<li><p><strong>ValueError</strong> – If material name already exists</p></li>
+<li><p><strong>KeyError</strong> – If material category or type doesn’t exist.</p></li>
+<li><p><strong>ValueError</strong> – If material name already exists.</p></li>
 </ul>
 </dd>
 </dl>
@@ -237,13 +266,16 @@ exists, the MaterialManager will raise an error.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="femora.components.Material.materialBase.MaterialManager.delete_material">
 <span class="sig-name descname"><span class="pre">delete_material</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">identifier</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/femora/components/Material/materialBase.html#MaterialManager.delete_material"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#femora.components.Material.materialBase.MaterialManager.delete_material" title="Link to this definition"></a></dt>
-<dd><p>Delete a material by its identifier</p>
+<dd><p>Deletes a material by its identifier.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>identifier</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></span>) – Either material tag (int) or user_name (str)</p>
+<dd class="field-odd"><p><strong>identifier</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></span>) – Either material tag (int) or user_name (str).</p>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>KeyError</strong> – If material not found</p>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>KeyError</strong> – If material not found.</p></li>
+<li><p><strong>TypeError</strong> – If identifier type is invalid.</p></li>
+</ul>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
@@ -254,13 +286,13 @@ exists, the MaterialManager will raise an error.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="femora.components.Material.materialBase.MaterialManager.get_all_materials">
 <span class="sig-name descname"><span class="pre">get_all_materials</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/femora/components/Material/materialBase.html#MaterialManager.get_all_materials"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#femora.components.Material.materialBase.MaterialManager.get_all_materials" title="Link to this definition"></a></dt>
-<dd><p>Get all registered materials</p>
+<dd><p>Gets all registered materials.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Dictionary of all materials keyed by their tags</p>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Material</span></code>]</span></p>
 </dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>Dict[int, Material]</p>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dictionary of all materials keyed by their tags.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -268,16 +300,17 @@ exists, the MaterialManager will raise an error.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="femora.components.Material.materialBase.MaterialManager.get_available_material_types">
 <span class="sig-name descname"><span class="pre">get_available_material_types</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">category</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/femora/components/Material/materialBase.html#MaterialManager.get_available_material_types"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#femora.components.Material.materialBase.MaterialManager.get_available_material_types" title="Link to this definition"></a></dt>
-<dd><p>Get available material types, optionally filtered by category</p>
+<dd><p>Gets available material types, optionally filtered by category.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>category</strong> (<em>str</em><em>, </em><em>optional</em>) – Specific category to get types for</p>
+<dd class="field-odd"><p><strong>category</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]</span>) – Specific category to get types for. If None, returns
+all categories.</p>
 </dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Dictionary of categories and their material types</p>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]]</span></p>
 </dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Dict[str, List[str]]</p>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dictionary of categories and their material types.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -285,16 +318,14 @@ exists, the MaterialManager will raise an error.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="femora.components.Material.materialBase.MaterialManager.get_instance">
 <em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_instance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/femora/components/Material/materialBase.html#MaterialManager.get_instance"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#femora.components.Material.materialBase.MaterialManager.get_instance" title="Link to this definition"></a></dt>
-<dd><p>Get the singleton instance of MaterialManager</p>
+<dd><p>Gets the singleton instance of MaterialManager.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>**kwargs</strong> – Keyword arguments to pass to the constructor</p>
+<dd class="field-odd"><p><strong>**kwargs</strong> – Keyword arguments to pass to the constructor (ignored
+if instance already exists).</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>The singleton instance</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference internal" href="#femora.components.Material.materialBase.MaterialManager" title="femora.components.Material.materialBase.MaterialManager">MaterialManager</a></p>
+<dd class="field-even"><p>The singleton instance.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -302,21 +333,21 @@ exists, the MaterialManager will raise an error.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="femora.components.Material.materialBase.MaterialManager.get_material">
 <em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_material</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">identifier</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/femora/components/Material/materialBase.html#MaterialManager.get_material"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#femora.components.Material.materialBase.MaterialManager.get_material" title="Link to this definition"></a></dt>
-<dd><p>Get material by either tag or name</p>
+<dd><p>Gets material by either tag or name.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>identifier</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></span>) – Either material tag (int) or user_name (str)</p>
+<dd class="field-odd"><p><strong>identifier</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></span>) – Either material tag (int) or user_name (str).</p>
 </dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>The requested material</p>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Material</span></code></span></p>
 </dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Material</p>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The requested material.</p>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
 <dd class="field-even"><ul class="simple">
-<li><p><strong>KeyError</strong> – If material not found</p></li>
-<li><p><strong>TypeError</strong> – If identifier type is invalid</p></li>
+<li><p><strong>KeyError</strong> – If material not found.</p></li>
+<li><p><strong>TypeError</strong> – If identifier type is invalid.</p></li>
 </ul>
 </dd>
 </dl>
@@ -325,13 +356,13 @@ exists, the MaterialManager will raise an error.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="femora.components.Material.materialBase.MaterialManager.set_material_tag_start">
 <span class="sig-name descname"><span class="pre">set_material_tag_start</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start_number</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/femora/components/Material/materialBase.html#MaterialManager.set_material_tag_start"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#femora.components.Material.materialBase.MaterialManager.set_material_tag_start" title="Link to this definition"></a></dt>
-<dd><p>Set the starting number for material tags</p>
+<dd><p>Sets the starting number for material tags.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>start_number</strong> (<em>int</em>) – Starting tag number (must be &gt; 0)</p>
+<dd class="field-odd"><p><strong>start_number</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></span>) – Starting tag number (must be &gt; 0).</p>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>ValueError</strong> – If start_number &lt; 1</p>
+<dd class="field-even"><p><strong>ValueError</strong> – If start_number &lt; 1.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
@@ -342,16 +373,16 @@ exists, the MaterialManager will raise an error.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="femora.components.Material.materialBase.MaterialManager.update_material_params">
 <span class="sig-name descname"><span class="pre">update_material_params</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">identifier</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">new_params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/femora/components/Material/materialBase.html#MaterialManager.update_material_params"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#femora.components.Material.materialBase.MaterialManager.update_material_params" title="Link to this definition"></a></dt>
-<dd><p>Update parameters of an existing material</p>
+<dd><p>Updates parameters of an existing material.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>identifier</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></span>) – Either material tag (int) or user_name (str)</p></li>
-<li><p><strong>new_params</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>]</span>) – Dictionary of parameter names and new values</p></li>
+<li><p><strong>identifier</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></span>) – Either material tag (int) or user_name (str).</p></li>
+<li><p><strong>new_params</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>]</span>) – Dictionary of parameter names and new values.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>KeyError</strong> – If material not found</p>
+<dd class="field-even"><p><strong>KeyError</strong> – If material not found.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
