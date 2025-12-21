@@ -15,3 +15,4 @@ main.spec
 docs/_build
 dist/
 src/femora/tools/motions
+_local_test
