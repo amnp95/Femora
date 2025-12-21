@@ -87,18 +87,31 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Type</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span>
 
 <span class="k">class</span><span class="w"> </span><span class="nc">TimeSeries</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Base abstract class for all time series with simple sequential tagging</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Base abstract class for all time series in OpenSees.</span>
+
+<span class="sd">    This class provides a foundation for creating and managing time-dependent</span>
+<span class="sd">    functions (time series) for load patterns in structural analysis. It handles</span>
+<span class="sd">    automatic tag assignment and time series registration.</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        tag: The unique sequential identifier for this time series.</span>
+<span class="sd">        series_type: The type of time series (e.g., &#39;Constant&#39;, &#39;Linear&#39;, &#39;Path&#39;).</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; from femora.components.TimeSeries.timeSeriesBase import TimeSeriesManager</span>
+<span class="sd">        &gt;&gt;&gt; # Create a time series through the manager</span>
+<span class="sd">        &gt;&gt;&gt; # manager = TimeSeriesManager()</span>
+<span class="sd">        &gt;&gt;&gt; # ts = manager.create_time_series(&#39;constant&#39;, factor=1.0)</span>
+<span class="sd">        &gt;&gt;&gt; # print(ts.tag)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">_time_series</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># Class-level dictionary to track all time series</span>
     <span class="n">_start_tag</span> <span class="o">=</span> <span class="mi">1</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">series_type</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Initialize a new time series with a sequential tag</span>
-<span class="sd">        </span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initializes the TimeSeries with a sequential tag.</span>
+
 <span class="sd">        Args:</span>
-<span class="sd">            series_type (str): The type of time series (e.g., &#39;Constant&#39;, &#39;Linear&#39;)</span>
+<span class="sd">            series_type: The type of time series (e.g., &#39;Constant&#39;, &#39;Linear&#39;).</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">tag</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">TimeSeries</span><span class="o">.</span><span class="n">_time_series</span><span class="p">)</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_start_tag</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">series_type</span> <span class="o">=</span> <span class="n">series_type</span>
@@ -108,18 +121,16 @@
 
     <span class="nd">@classmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_time_series</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">tag</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;TimeSeries&#39;</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        :no-index:</span>
-<span class="sd">        Retrieve a specific time series by its tag.</span>
-<span class="sd">        </span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Retrieves a specific time series by its tag.</span>
+
 <span class="sd">        Args:</span>
-<span class="sd">            tag (int): The tag of the time series</span>
-<span class="sd">        </span>
+<span class="sd">            tag: The tag of the time series.</span>
+
 <span class="sd">        Returns:</span>
-<span class="sd">            TimeSeries: The time series with the specified tag</span>
-<span class="sd">        </span>
+<span class="sd">            The time series with the specified tag.</span>
+
 <span class="sd">        Raises:</span>
-<span class="sd">            KeyError: If no time series with the given tag exists</span>
+<span class="sd">            KeyError: If no time series with the given tag exists.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">tag</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_time_series</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;No time series found with tag </span><span class="si">{</span><span class="n">tag</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
@@ -127,12 +138,10 @@
 
     <span class="nd">@classmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">remove_time_series</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">tag</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        :no-index:</span>
-<span class="sd">        Delete a time series by its tag and re-tag all remaining series sequentially.</span>
-<span class="sd">        </span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Deletes a time series by its tag and reassigns remaining tags.</span>
+
 <span class="sd">        Args:</span>
-<span class="sd">            tag (int): The tag of the time series to delete</span>
+<span class="sd">            tag: The tag of the time series to delete.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">tag</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_time_series</span><span class="p">:</span>
             <span class="k">del</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_time_series</span><span class="p">[</span><span class="n">tag</span><span class="p">]</span>
@@ -141,8 +150,9 @@
 
     <span class="nd">@classmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">_reassign_tags</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Reassign tags to all time series sequentially starting from 1.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Reassigns tags to all time series sequentially starting from 1.</span>
+
+<span class="sd">        This method rebuilds the time series tracking dictionary with new sequential tags.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">new_time_series</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">series</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">_time_series</span><span class="o">.</span><span class="n">values</span><span class="p">(),</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">ts</span><span class="p">:</span> <span class="n">ts</span><span class="o">.</span><span class="n">tag</span><span class="p">),</span> <span class="n">start</span><span class="o">=</span><span class="bp">cls</span><span class="o">.</span><span class="n">_start_tag</span><span class="p">):</span>
@@ -152,89 +162,128 @@
 
     <span class="nd">@classmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_all_time_series</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="s1">&#39;TimeSeries&#39;</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        :no-index:</span>
-<span class="sd">        Retrieve all created time series.</span>
-<span class="sd">        </span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Retrieves all created time series.</span>
+
 <span class="sd">        Returns:</span>
-<span class="sd">            Dict[int, TimeSeries]: A dictionary of all time series, keyed by their tags</span>
+<span class="sd">            A dictionary of all time series, keyed by their tags.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_time_series</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
 
     <span class="nd">@classmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">reset</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Resets all time series and tag counter to initial state.</span>
+
+<span class="sd">        This method clears all time series and resets the starting tag to 1.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">cls</span><span class="o">.</span><span class="n">_time_series</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
         <span class="bp">cls</span><span class="o">.</span><span class="n">_start_tag</span> <span class="o">=</span> <span class="mi">1</span>
         <span class="bp">cls</span><span class="o">.</span><span class="n">_reassign_tags</span><span class="p">()</span>
 
     <span class="nd">@classmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">set_tag_start</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">start_tag</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Sets the starting tag number and reassigns all time series tags.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            start_tag: The new starting tag number.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">cls</span><span class="o">.</span><span class="n">_start_tag</span> <span class="o">=</span> <span class="n">start_tag</span>
         <span class="bp">cls</span><span class="o">.</span><span class="n">_reassign_tags</span><span class="p">()</span>
 
     <span class="nd">@classmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">clear_all</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Clears all time series.</span>
+
+<span class="sd">        This method removes all registered time series.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">cls</span><span class="o">.</span><span class="n">_time_series</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
 
 
     <span class="nd">@abstractmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">to_tcl</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Convert the time series to a TCL command string for OpenSees</span>
-<span class="sd">        </span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Converts the time series to a TCL command string for OpenSees.</span>
+
+<span class="sd">        Subclasses must implement this method to generate the appropriate</span>
+<span class="sd">        TCL command for use with OpenSees.</span>
+
 <span class="sd">        Returns:</span>
-<span class="sd">            str: The TCL command string</span>
+<span class="sd">            TCL command string representation of the time series.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">pass</span>
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_Parameters</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Get the parameters defining this time series</span>
-<span class="sd">        </span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Gets the parameters defining this time series.</span>
+
+<span class="sd">        Subclasses should implement this method to return parameter metadata.</span>
+
 <span class="sd">        Returns:</span>
-<span class="sd">            Dict[str, float]: Dictionary of parameter names and explanations</span>
+<span class="sd">            List of (parameter name, description) tuples.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">pass</span>
 
     <span class="nd">@abstractmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_values</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">list</span><span class="p">]]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Get the parameters defining this time series</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Gets the parameters defining this time series.</span>
+
+<span class="sd">        Subclasses must implement this method to return current parameter values.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Dictionary of parameter values.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">pass</span>
 
     <span class="nd">@abstractmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">update_values</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Update the values of the time series</span>
-<span class="sd">        </span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Updates the values of the time series.</span>
+
+<span class="sd">        Subclasses must implement this method to update time series parameters.</span>
+
 <span class="sd">        Args:</span>
-<span class="sd">            **kwargs: Parameters for time series initialization</span>
+<span class="sd">            **kwargs: Parameters for time series initialization.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">pass</span>
 
     <span class="nd">@staticmethod</span>
     <span class="nd">@abstractmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">validate</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Validate the input parameters for creating a TimeSeries</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Validates the input parameters for creating a TimeSeries.</span>
+
+<span class="sd">        Subclasses must implement this method to validate parameters before creation.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            **kwargs: Parameters to validate.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Dictionary of validated parameter values.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If any parameter is invalid.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">pass</span>
 
 
 
 <span class="k">class</span><span class="w"> </span><span class="nc">ConstantTimeSeries</span><span class="p">(</span><span class="n">TimeSeries</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    TimeSeries object with constant load factor</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Time series with a constant load factor throughout the analysis.</span>
+
+<span class="sd">    This time series applies a constant scaling factor to loads, useful for</span>
+<span class="sd">    static or constant-amplitude dynamic loads.</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        factor: The constant load factor value.</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; from femora.components.TimeSeries.timeSeriesBase import TimeSeriesManager</span>
+<span class="sd">        &gt;&gt;&gt; # Create a constant time series</span>
+<span class="sd">        &gt;&gt;&gt; # manager = TimeSeriesManager()</span>
+<span class="sd">        &gt;&gt;&gt; # ts = manager.create_time_series(&#39;constant&#39;, factor=1.5)</span>
+<span class="sd">        &gt;&gt;&gt; # print(ts.to_tcl())</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Initialize a Constant TimeSeries</span>
-<span class="sd">        </span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initializes a constant time series with the given factor.</span>
+
 <span class="sd">        Args:</span>
-<span class="sd">            factor (float): The constant load factor value</span>
-<span class="sd">            tag (int, optional): Specific tag to use. If None, auto-assigned.</span>
+<span class="sd">            factor: The constant load factor value. Defaults to 1.0 if not provided.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">kwargs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="s1">&#39;Constant&#39;</span><span class="p">)</span>
@@ -242,35 +291,35 @@
 
 
     <span class="k">def</span><span class="w"> </span><span class="nf">to_tcl</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Convert the time series to a TCL command string for OpenSees</span>
-<span class="sd">        </span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Converts the time series to a TCL command string for OpenSees.</span>
+
 <span class="sd">        Returns:</span>
-<span class="sd">            str: The TCL command string</span>
+<span class="sd">            TCL command string for the constant time series.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;timeSeries Constant </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">tag</span><span class="si">}</span><span class="s2"> -factor </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">factor</span><span class="si">}</span><span class="s2">&quot;</span>
 
-    
+
     <span class="nd">@staticmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_Parameters</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Get the parameters defining this time series</span>
-<span class="sd">        </span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Gets the parameters defining this time series.</span>
+
 <span class="sd">        Returns:</span>
-<span class="sd">            List[Tuple[str, str]]: List of parameter names and explanations</span>
+<span class="sd">            List of parameter names and explanations as tuples.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="p">[(</span><span class="s2">&quot;factor&quot;</span><span class="p">,</span> <span class="s2">&quot;The constant load factor value (optional , default: 1.0)&quot;</span><span class="p">)]</span>
     
     <span class="nd">@staticmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">validate</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span><span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Validate the input parameters for creating a Constant TimeSeries</span>
-<span class="sd">        </span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Validates the input parameters for creating a constant time series.</span>
+
 <span class="sd">        Args:</span>
-<span class="sd">            **kwargs: Parameters for time series initialization</span>
-<span class="sd">        </span>
+<span class="sd">            **kwargs: Parameters for time series initialization.</span>
+
 <span class="sd">        Returns:</span>
-<span class="sd">            Dict[str, Union[str, list, float, int]]: Dictionary of parameter names and values</span>
+<span class="sd">            Dictionary of validated parameter names and values.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If factor is not a number.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">factor</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;factor&quot;</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
         <span class="n">factor</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">factor</span><span class="p">)</span>
@@ -278,107 +327,135 @@
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">factor</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">)):</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;factor must be a number&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;factor&quot;</span><span class="p">:</span> <span class="n">factor</span><span class="p">}</span>
-    
+
     <span class="k">def</span><span class="w"> </span><span class="nf">get_values</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">list</span><span class="p">]]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Get the parameters defining this time series</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Gets the current parameter values of this time series.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Dictionary containing the factor value.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;factor&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">factor</span><span class="p">}</span>
-    
+
     <span class="k">def</span><span class="w"> </span><span class="nf">update_values</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Update the values of the time series</span>
-<span class="sd">        </span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Updates the factor value of the time series.</span>
+
 <span class="sd">        Args:</span>
-<span class="sd">            **kwargs: Parameters for time series initialization</span>
+<span class="sd">            **kwargs: Parameters for time series initialization.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">kwargs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">factor</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;factor&quot;</span><span class="p">]</span>
 
 
 <span class="k">class</span><span class="w"> </span><span class="nc">LinearTimeSeries</span><span class="p">(</span><span class="n">TimeSeries</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    TimeSeries object with linear load factor</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Time series with a load factor that varies linearly with time.</span>
+
+<span class="sd">    This time series applies a scaling factor that increases linearly with</span>
+<span class="sd">    pseudo-time, useful for proportional loading scenarios.</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        factor: The linear load factor scale multiplier.</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; from femora.components.TimeSeries.timeSeriesBase import TimeSeriesManager</span>
+<span class="sd">        &gt;&gt;&gt; # Create a linear time series</span>
+<span class="sd">        &gt;&gt;&gt; # manager = TimeSeriesManager()</span>
+<span class="sd">        &gt;&gt;&gt; # ts = manager.create_time_series(&#39;linear&#39;, factor=2.0)</span>
+<span class="sd">        &gt;&gt;&gt; # print(ts.to_tcl())</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Initialize a Linear TimeSeries</span>
-<span class="sd">        </span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initializes a linear time series with the given factor.</span>
+
 <span class="sd">        Args:</span>
-<span class="sd">            factor (float): The linear load factor scale</span>
-<span class="sd">            tag (int, optional): Specific tag to use. If None, auto-assigned.</span>
+<span class="sd">            factor: The linear load factor scale. Defaults to 1.0 if not provided.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">kwargs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="s1">&#39;Linear&#39;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">factor</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;factor&quot;</span><span class="p">]</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">to_tcl</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Convert the time series to a TCL command string for OpenSees</span>
-<span class="sd">        </span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Converts the time series to a TCL command string for OpenSees.</span>
+
 <span class="sd">        Returns:</span>
-<span class="sd">            str: The TCL command string</span>
+<span class="sd">            TCL command string for the linear time series.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;timeSeries Linear </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">tag</span><span class="si">}</span><span class="s2"> -factor </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">factor</span><span class="si">}</span><span class="s2">&quot;</span>
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_Parameters</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Get the parameters defining this time series</span>
-<span class="sd">        </span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Gets the parameters defining this time series.</span>
+
 <span class="sd">        Returns:</span>
-<span class="sd">            List[Tuple[str, str]]: List of parameter names and explanations</span>
+<span class="sd">            List of parameter names and explanations as tuples.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="p">[(</span><span class="s2">&quot;factor&quot;</span><span class="p">,</span> <span class="s2">&quot;The linear load factor scale (optional, default: 1.0)&quot;</span><span class="p">)]</span>
     
     <span class="nd">@staticmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">validate</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Validate the input parameters for creating a Linear TimeSeries</span>
-<span class="sd">        </span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Validates the input parameters for creating a linear time series.</span>
+
 <span class="sd">        Args:</span>
-<span class="sd">            **kwargs: Parameters for time series initialization</span>
-<span class="sd">        </span>
+<span class="sd">            **kwargs: Parameters for time series initialization.</span>
+
 <span class="sd">        Returns:</span>
-<span class="sd">            Dict[str, Union[str, list, float, int]]: Dictionary of parameter names and values</span>
+<span class="sd">            Dictionary of validated parameter names and values.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If factor is not a number.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">factor</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;factor&quot;</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
         <span class="n">factor</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">factor</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">factor</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">)):</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;factor must be a number&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;factor&quot;</span><span class="p">:</span> <span class="n">factor</span><span class="p">}</span>
-    
+
     <span class="k">def</span><span class="w"> </span><span class="nf">get_values</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">list</span><span class="p">]]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Get the parameters defining this time series</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Gets the current parameter values of this time series.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Dictionary containing the factor value.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;factor&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">factor</span><span class="p">}</span>
-    
+
     <span class="k">def</span><span class="w"> </span><span class="nf">update_values</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Update the values of the time series</span>
-<span class="sd">        </span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Updates the factor value of the time series.</span>
+
 <span class="sd">        Args:</span>
-<span class="sd">            **kwargs: Parameters for time series initialization</span>
+<span class="sd">            **kwargs: Parameters for time series initialization.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">kwargs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">factor</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;factor&quot;</span><span class="p">]</span>
 
 
 <span class="k">class</span><span class="w"> </span><span class="nc">TrigTimeSeries</span><span class="p">(</span><span class="n">TimeSeries</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    TimeSeries object with sinusoidal load factor</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Time series with a sinusoidal load factor.</span>
+
+<span class="sd">    This time series applies a sinusoidal (trigonometric) scaling factor,</span>
+<span class="sd">    useful for harmonic or cyclic loading scenarios.</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        tStart: Start time of the time series.</span>
+<span class="sd">        tEnd: End time of the time series.</span>
+<span class="sd">        period: Period of the sine wave.</span>
+<span class="sd">        factor: Load factor amplitude.</span>
+<span class="sd">        shift: Phase shift in radians.</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; from femora.components.TimeSeries.timeSeriesBase import TimeSeriesManager</span>
+<span class="sd">        &gt;&gt;&gt; # Create a sinusoidal time series</span>
+<span class="sd">        &gt;&gt;&gt; # manager = TimeSeriesManager()</span>
+<span class="sd">        &gt;&gt;&gt; # ts = manager.create_time_series(&#39;trig&#39;, tStart=0.0, tEnd=10.0,</span>
+<span class="sd">        &gt;&gt;&gt; #                                  period=1.0, factor=1.0, shift=0.0)</span>
+<span class="sd">        &gt;&gt;&gt; # print(ts.to_tcl())</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Initialize a Trig TimeSeries</span>
-<span class="sd">        </span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initializes a sinusoidal time series with the given parameters.</span>
+
 <span class="sd">        Args:</span>
-<span class="sd">            tStart (float): Start time of time series</span>
-<span class="sd">            tEnd (float): End time of time series</span>
-<span class="sd">            period (float): Period of sine wave</span>
-<span class="sd">            factor (float): Load factor amplitude</span>
-<span class="sd">            shift (float): Phase shift in radians</span>
+<span class="sd">            tStart: Start time of time series. Defaults to 0.0.</span>
+<span class="sd">            tEnd: End time of time series. Defaults to 1.0.</span>
+<span class="sd">            period: Period of sine wave. Defaults to 1.0.</span>
+<span class="sd">            factor: Load factor amplitude. Defaults to 1.0.</span>
+<span class="sd">            shift: Phase shift in radians. Defaults to 0.0.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">kwargs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="s1">&#39;Trig&#39;</span><span class="p">)</span>
@@ -389,11 +466,10 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">shift</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;shift&quot;</span><span class="p">]</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">to_tcl</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Convert the time series to a TCL command string for OpenSees</span>
-<span class="sd">        </span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Converts the time series to a TCL command string for OpenSees.</span>
+
 <span class="sd">        Returns:</span>
-<span class="sd">            str: The TCL command string</span>
+<span class="sd">            TCL command string for the trigonometric time series.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="p">(</span><span class="sa">f</span><span class="s2">&quot;timeSeries Trig </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">tag</span><span class="si">}</span><span class="s2"> &quot;</span>
                 <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">tStart</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">tEnd</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">period</span><span class="si">}</span><span class="s2"> &quot;</span>
@@ -401,11 +477,10 @@
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_Parameters</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Get the parameters defining this time series</span>
-<span class="sd">        </span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Gets the parameters defining this time series.</span>
+
 <span class="sd">        Returns:</span>
-<span class="sd">            List[Tuple[str, str]]: List of parameter names and explanations</span>
+<span class="sd">            List of parameter names and explanations as tuples.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="p">[</span>
             <span class="p">(</span><span class="s2">&quot;tStart&quot;</span><span class="p">,</span> <span class="s2">&quot;Start time of time series (optional, default: 0.0)&quot;</span><span class="p">),</span>
@@ -417,14 +492,16 @@
     
     <span class="nd">@staticmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">validate</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Validate the input parameters for creating a Trig TimeSeries</span>
-<span class="sd">        </span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Validates the input parameters for creating a trigonometric time series.</span>
+
 <span class="sd">        Args:</span>
-<span class="sd">            **kwargs: Parameters for time series initialization</span>
-<span class="sd">        </span>
+<span class="sd">            **kwargs: Parameters for time series initialization.</span>
+
 <span class="sd">        Returns:</span>
-<span class="sd">            Dict[str, Union[str, list, float, int]]: Dictionary of parameter names and values</span>
+<span class="sd">            Dictionary of validated parameter names and values.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If any parameter is not a number, tStart &gt;= tEnd, or period &lt;= 0.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">tStart</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;tStart&quot;</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
         <span class="n">tEnd</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;tEnd&quot;</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
@@ -472,8 +549,10 @@
         <span class="p">}</span>
     
     <span class="k">def</span><span class="w"> </span><span class="nf">get_values</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">list</span><span class="p">]]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Get the parameters defining this time series</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Gets the current parameter values of this time series.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Dictionary containing tStart, tEnd, period, factor, and shift values.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="p">{</span>
             <span class="s2">&quot;tStart&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">tStart</span><span class="p">,</span>
@@ -482,13 +561,12 @@
             <span class="s2">&quot;factor&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">factor</span><span class="p">,</span>
             <span class="s2">&quot;shift&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">shift</span><span class="p">,</span>
         <span class="p">}</span>
-    
+
     <span class="k">def</span><span class="w"> </span><span class="nf">update_values</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Update the values of the time series</span>
-<span class="sd">        </span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Updates the parameter values of the time series.</span>
+
 <span class="sd">        Args:</span>
-<span class="sd">            **kwargs: Parameters for time series initialization</span>
+<span class="sd">            **kwargs: Parameters for time series initialization.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">kwargs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">tStart</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;tStart&quot;</span><span class="p">]</span>
@@ -498,19 +576,35 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">shift</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;shift&quot;</span><span class="p">]</span>
 
 <span class="k">class</span><span class="w"> </span><span class="nc">RampTimeSeries</span><span class="p">(</span><span class="n">TimeSeries</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    TimeSeries object with ramped load factor from tStart to tEnd</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Time series with a ramped load factor from start to end time.</span>
+
+<span class="sd">    This time series applies a load that ramps from zero to a target value</span>
+<span class="sd">    over a specified duration, with optional smoothness and offset parameters.</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        tStart: Start time of the ramp.</span>
+<span class="sd">        tRamp: Length of time to perform the ramp.</span>
+<span class="sd">        smoothness: Smoothness parameter (0.0 to 1.0).</span>
+<span class="sd">        offset: Vertical offset amount.</span>
+<span class="sd">        cFactor: Load factor scale factor.</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; from femora.components.TimeSeries.timeSeriesBase import TimeSeriesManager</span>
+<span class="sd">        &gt;&gt;&gt; # Create a ramp time series</span>
+<span class="sd">        &gt;&gt;&gt; # manager = TimeSeriesManager()</span>
+<span class="sd">        &gt;&gt;&gt; # ts = manager.create_time_series(&#39;ramp&#39;, tStart=0.0, tRamp=5.0,</span>
+<span class="sd">        &gt;&gt;&gt; #                                  smoothness=0.5, cFactor=1.0)</span>
+<span class="sd">        &gt;&gt;&gt; # print(ts.to_tcl())</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Initialize a Ramp TimeSeries</span>
-<span class="sd">        </span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initializes a ramp time series with the given parameters.</span>
+
 <span class="sd">        Args:</span>
-<span class="sd">            tStart (float): Start time of ramp</span>
-<span class="sd">            tRamp (float): Length of time to perform the ramp</span>
-<span class="sd">            smoothness (float): Smoothness parameter (optional, default: 0.0)</span>
-<span class="sd">            offset (float): Vertical offset amount (optional, default: 0.0)</span>
-<span class="sd">            cFactor (float): Load factor scale factor (optional, default: 1.0)</span>
+<span class="sd">            tStart: Start time of ramp. Defaults to 0.0.</span>
+<span class="sd">            tRamp: Length of time to perform the ramp. Defaults to 1.0.</span>
+<span class="sd">            smoothness: Smoothness parameter (0.0 to 1.0). Defaults to 0.0.</span>
+<span class="sd">            offset: Vertical offset amount. Defaults to 0.0.</span>
+<span class="sd">            cFactor: Load factor scale factor. Defaults to 1.0.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">kwargs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="s1">&#39;Ramp&#39;</span><span class="p">)</span>
@@ -521,11 +615,10 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">cFactor</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;cFactor&quot;</span><span class="p">]</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">to_tcl</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Convert the time series to a TCL command string for OpenSees</span>
-<span class="sd">        </span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Converts the time series to a TCL command string for OpenSees.</span>
+
 <span class="sd">        Returns:</span>
-<span class="sd">            str: The TCL command string</span>
+<span class="sd">            TCL command string for the ramp time series.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">cmd</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;timeSeries Ramp </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">tag</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">tStart</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">tRamp</span><span class="si">}</span><span class="s2">&quot;</span>
         <span class="n">cmd</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot; -smooth </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">smoothness</span><span class="si">}</span><span class="s2">&quot;</span>
@@ -535,11 +628,10 @@
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_Parameters</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Get the parameters defining this time series</span>
-<span class="sd">        </span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Gets the parameters defining this time series.</span>
+
 <span class="sd">        Returns:</span>
-<span class="sd">            List[Tuple[str, str]]: List of parameter names and explanations</span>
+<span class="sd">            List of parameter names and explanations as tuples.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="p">[</span>
             <span class="p">(</span><span class="s2">&quot;tStart&quot;</span><span class="p">,</span> <span class="s2">&quot;Start time of ramp (optional, default: 0.0)&quot;</span><span class="p">),</span>
@@ -551,14 +643,16 @@
     
     <span class="nd">@staticmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">validate</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Validate the input parameters for creating a Ramp TimeSeries</span>
-<span class="sd">        </span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Validates the input parameters for creating a ramp time series.</span>
+
 <span class="sd">        Args:</span>
-<span class="sd">            **kwargs: Parameters for time series initialization</span>
-<span class="sd">        </span>
+<span class="sd">            **kwargs: Parameters for time series initialization.</span>
+
 <span class="sd">        Returns:</span>
-<span class="sd">            Dict[str, Union[str, list, float, int]]: Dictionary of parameter names and values</span>
+<span class="sd">            Dictionary of validated parameter names and values.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If any parameter is not a number or smoothness is not between 0 and 1.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">tStart</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;tStart&quot;</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
         <span class="n">tRamp</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;tRamp&quot;</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
@@ -604,8 +698,10 @@
         <span class="p">}</span>
     
     <span class="k">def</span><span class="w"> </span><span class="nf">get_values</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">list</span><span class="p">]]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Get the parameters defining this time series</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Gets the current parameter values of this time series.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Dictionary containing tStart, tRamp, smoothness, offset, and cFactor values.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="p">{</span>
             <span class="s2">&quot;tStart&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">tStart</span><span class="p">,</span>
@@ -614,13 +710,12 @@
             <span class="s2">&quot;offset&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">offset</span><span class="p">,</span>
             <span class="s2">&quot;cFactor&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">cFactor</span>
         <span class="p">}</span>
-    
+
     <span class="k">def</span><span class="w"> </span><span class="nf">update_values</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Update the values of the time series</span>
-<span class="sd">        </span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Updates the parameter values of the time series.</span>
+
 <span class="sd">        Args:</span>
-<span class="sd">            **kwargs: Parameters for time series initialization</span>
+<span class="sd">            **kwargs: Parameters for time series initialization.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">kwargs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">tStart</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;tStart&quot;</span><span class="p">]</span>
@@ -632,19 +727,35 @@
 
 
 <span class="k">class</span><span class="w"> </span><span class="nc">TriangularTimeSeries</span><span class="p">(</span><span class="n">TimeSeries</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    TimeSeries object with triangular load pattern</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Time series with a triangular wave load pattern.</span>
+
+<span class="sd">    This time series applies a triangular wave scaling factor, useful for</span>
+<span class="sd">    cyclic loading with linear ramps.</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        tStart: Start time of the series.</span>
+<span class="sd">        tEnd: End time of the series.</span>
+<span class="sd">        period: Period of the triangular wave.</span>
+<span class="sd">        factor: Load factor amplitude.</span>
+<span class="sd">        shift: Phase shift.</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; from femora.components.TimeSeries.timeSeriesBase import TimeSeriesManager</span>
+<span class="sd">        &gt;&gt;&gt; # Create a triangular time series</span>
+<span class="sd">        &gt;&gt;&gt; # manager = TimeSeriesManager()</span>
+<span class="sd">        &gt;&gt;&gt; # ts = manager.create_time_series(&#39;triangular&#39;, tStart=0.0, tEnd=10.0,</span>
+<span class="sd">        &gt;&gt;&gt; #                                  period=2.0, factor=1.0, shift=0.0)</span>
+<span class="sd">        &gt;&gt;&gt; # print(ts.to_tcl())</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Initialize a Triangular TimeSeries</span>
-<span class="sd">        </span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initializes a triangular time series with the given parameters.</span>
+
 <span class="sd">        Args:</span>
-<span class="sd">            tStart (float): Start time of series</span>
-<span class="sd">            tEnd (float): End time of series</span>
-<span class="sd">            period (float): Period of triangular wave</span>
-<span class="sd">            factor (float): Load factor amplitude</span>
-<span class="sd">            shift (float): Phase shift</span>
+<span class="sd">            tStart: Start time of series. Defaults to 0.0.</span>
+<span class="sd">            tEnd: End time of series. Defaults to 1.0.</span>
+<span class="sd">            period: Period of triangular wave. Defaults to 1.0.</span>
+<span class="sd">            factor: Load factor amplitude. Defaults to 1.0.</span>
+<span class="sd">            shift: Phase shift. Defaults to 0.0.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">kwargs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="s1">&#39;Triangular&#39;</span><span class="p">)</span>
@@ -655,11 +766,10 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">shift</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;shift&quot;</span><span class="p">]</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">to_tcl</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Convert the time series to a TCL command string for OpenSees</span>
-<span class="sd">        </span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Converts the time series to a TCL command string for OpenSees.</span>
+
 <span class="sd">        Returns:</span>
-<span class="sd">            str: The TCL command string</span>
+<span class="sd">            TCL command string for the triangular time series.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="p">(</span><span class="sa">f</span><span class="s2">&quot;timeSeries Triangular </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">tag</span><span class="si">}</span><span class="s2"> &quot;</span>
                 <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">tStart</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">tEnd</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">period</span><span class="si">}</span><span class="s2"> &quot;</span>
@@ -667,11 +777,10 @@
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_Parameters</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Get the parameters defining this time series</span>
-<span class="sd">        </span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Gets the parameters defining this time series.</span>
+
 <span class="sd">        Returns:</span>
-<span class="sd">            List[Tuple[str, str]]: List of parameter names and explanations</span>
+<span class="sd">            List of parameter names and explanations as tuples.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="p">[</span>
             <span class="p">(</span><span class="s2">&quot;tStart&quot;</span><span class="p">,</span> <span class="s2">&quot;Start time of series (optional, default: 0.0)&quot;</span><span class="p">),</span>
@@ -683,14 +792,16 @@
     
     <span class="nd">@staticmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">validate</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Validate the input parameters for creating a Triangular TimeSeries</span>
-<span class="sd">        </span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Validates the input parameters for creating a triangular time series.</span>
+
 <span class="sd">        Args:</span>
-<span class="sd">            **kwargs: Parameters for time series initialization</span>
-<span class="sd">        </span>
+<span class="sd">            **kwargs: Parameters for time series initialization.</span>
+
 <span class="sd">        Returns:</span>
-<span class="sd">            Dict[str, Union[str, list, float, int]]: Dictionary of parameter names and values</span>
+<span class="sd">            Dictionary of validated parameter names and values.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If any parameter is not a number, tStart &gt;= tEnd, or period &lt;= 0.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">tStart</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;tStart&quot;</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
         <span class="n">tEnd</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;tEnd&quot;</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
@@ -733,8 +844,10 @@
         <span class="p">}</span>
     
     <span class="k">def</span><span class="w"> </span><span class="nf">get_values</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">list</span><span class="p">]]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Get the parameters defining this time series</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Gets the current parameter values of this time series.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Dictionary containing tStart, tEnd, period, factor, and shift values.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="p">{</span>
             <span class="s2">&quot;tStart&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">tStart</span><span class="p">,</span>
@@ -743,13 +856,12 @@
             <span class="s2">&quot;factor&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">factor</span><span class="p">,</span>
             <span class="s2">&quot;shift&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">shift</span>
         <span class="p">}</span>
-    
+
     <span class="k">def</span><span class="w"> </span><span class="nf">update_values</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Update the values of the time series</span>
-<span class="sd">        </span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Updates the parameter values of the time series.</span>
+
 <span class="sd">        Args:</span>
-<span class="sd">            **kwargs: Parameters for time series initialization</span>
+<span class="sd">            **kwargs: Parameters for time series initialization.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">kwargs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">tStart</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;tStart&quot;</span><span class="p">]</span>
@@ -760,17 +872,35 @@
 
 
 <span class="k">class</span><span class="w"> </span><span class="nc">RectangularTimeSeries</span><span class="p">(</span><span class="n">TimeSeries</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    TimeSeries object with rectangular (step) load pattern</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Time series with a rectangular (step) wave load pattern.</span>
+
+<span class="sd">    This time series applies a rectangular wave scaling factor, creating</span>
+<span class="sd">    step-function loading patterns.</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        tStart: Start time of the series.</span>
+<span class="sd">        tEnd: End time of the series.</span>
+<span class="sd">        factor: Load factor amplitude.</span>
+<span class="sd">        period: Period of the rectangular wave.</span>
+<span class="sd">        shift: Phase shift.</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; from femora.components.TimeSeries.timeSeriesBase import TimeSeriesManager</span>
+<span class="sd">        &gt;&gt;&gt; # Create a rectangular time series</span>
+<span class="sd">        &gt;&gt;&gt; # manager = TimeSeriesManager()</span>
+<span class="sd">        &gt;&gt;&gt; # ts = manager.create_time_series(&#39;rectangular&#39;, tStart=0.0, tEnd=10.0,</span>
+<span class="sd">        &gt;&gt;&gt; #                                  period=2.0, factor=1.0, shift=0.0)</span>
+<span class="sd">        &gt;&gt;&gt; # print(ts.to_tcl())</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Initialize a Rectangular TimeSeries</span>
-<span class="sd">        </span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initializes a rectangular time series with the given parameters.</span>
+
 <span class="sd">        Args:</span>
-<span class="sd">            tStart (float): Start time of series</span>
-<span class="sd">            tEnd (float): End time of series</span>
-<span class="sd">            factor (float): Load factor amplitude</span>
+<span class="sd">            tStart: Start time of series. Defaults to 0.0.</span>
+<span class="sd">            tEnd: End time of series. Defaults to 1.0.</span>
+<span class="sd">            factor: Load factor amplitude. Defaults to 1.0.</span>
+<span class="sd">            period: Period of rectangular wave. Defaults to 0.0.</span>
+<span class="sd">            shift: Phase shift. Defaults to 0.0.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">kwargs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="s1">&#39;Rectangular&#39;</span><span class="p">)</span>
@@ -781,22 +911,20 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">shift</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;shift&quot;</span><span class="p">]</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">to_tcl</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Convert the time series to a TCL command string for OpenSees</span>
-<span class="sd">        </span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Converts the time series to a TCL command string for OpenSees.</span>
+
 <span class="sd">        Returns:</span>
-<span class="sd">            str: The TCL command string</span>
+<span class="sd">            TCL command string for the rectangular time series.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="p">(</span><span class="sa">f</span><span class="s2">&quot;timeSeries Rectangular </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">tag</span><span class="si">}</span><span class="s2"> &quot;</span>
                 <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">tStart</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">tEnd</span><span class="si">}</span><span class="s2">  </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">period</span><span class="si">}</span><span class="s2"> -shift </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">shift</span><span class="si">}</span><span class="s2"> -factor </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">factor</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_Parameters</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Get the parameters defining this time series</span>
-<span class="sd">        </span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Gets the parameters defining this time series.</span>
+
 <span class="sd">        Returns:</span>
-<span class="sd">            List[Tuple[str, str]]: List of parameter names and explanations</span>
+<span class="sd">            List of parameter names and explanations as tuples.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="p">[</span>
             <span class="p">(</span><span class="s2">&quot;tStart&quot;</span><span class="p">,</span> <span class="s2">&quot;Start time of series (optional, default: 0.0)&quot;</span><span class="p">),</span>
@@ -808,14 +936,16 @@
     
     <span class="nd">@staticmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">validate</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Validate the input parameters for creating a Rectangular TimeSeries</span>
-<span class="sd">        </span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Validates the input parameters for creating a rectangular time series.</span>
+
 <span class="sd">        Args:</span>
-<span class="sd">            **kwargs: Parameters for time series initialization</span>
-<span class="sd">        </span>
+<span class="sd">            **kwargs: Parameters for time series initialization.</span>
+
 <span class="sd">        Returns:</span>
-<span class="sd">            Dict[str, Union[str, list, float, int]]: Dictionary of parameter names and values</span>
+<span class="sd">            Dictionary of validated parameter names and values.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If any parameter is not a number, tStart &gt;= tEnd, or period &lt;= 0.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">tStart</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;tStart&quot;</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
         <span class="n">tEnd</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;tEnd&quot;</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
@@ -865,8 +995,10 @@
         <span class="p">}</span>
     
     <span class="k">def</span><span class="w"> </span><span class="nf">get_values</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">list</span><span class="p">]]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Get the parameters defining this time series</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Gets the current parameter values of this time series.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Dictionary containing tStart, tEnd, factor, period, and shift values.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="p">{</span>
             <span class="s2">&quot;tStart&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">tStart</span><span class="p">,</span>
@@ -875,13 +1007,12 @@
             <span class="s2">&quot;period&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">period</span><span class="p">,</span>
             <span class="s2">&quot;shift&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">shift</span>
         <span class="p">}</span>
-    
+
     <span class="k">def</span><span class="w"> </span><span class="nf">update_values</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Update the values of the time series</span>
-<span class="sd">        </span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Updates the parameter values of the time series.</span>
+
 <span class="sd">        Args:</span>
-<span class="sd">            **kwargs: Parameters for time series initialization</span>
+<span class="sd">            **kwargs: Parameters for time series initialization.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">kwargs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">tStart</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;tStart&quot;</span><span class="p">]</span>
@@ -893,20 +1024,37 @@
 
 
 <span class="k">class</span><span class="w"> </span><span class="nc">PulseTimeSeries</span><span class="p">(</span><span class="n">TimeSeries</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    TimeSeries object with pulse load pattern</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Time series with a pulsed load pattern.</span>
+
+<span class="sd">    This time series applies a periodic pulse scaling factor, useful for</span>
+<span class="sd">    intermittent or impulsive loading scenarios.</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        tStart: Start time of the pulse.</span>
+<span class="sd">        tEnd: End time of the pulse.</span>
+<span class="sd">        period: Period of the pulse.</span>
+<span class="sd">        width: Width of pulse as a fraction of period (0 to 1).</span>
+<span class="sd">        factor: Load factor amplitude.</span>
+<span class="sd">        shift: Phase shift.</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; from femora.components.TimeSeries.timeSeriesBase import TimeSeriesManager</span>
+<span class="sd">        &gt;&gt;&gt; # Create a pulse time series</span>
+<span class="sd">        &gt;&gt;&gt; # manager = TimeSeriesManager()</span>
+<span class="sd">        &gt;&gt;&gt; # ts = manager.create_time_series(&#39;pulse&#39;, tStart=0.0, tEnd=10.0,</span>
+<span class="sd">        &gt;&gt;&gt; #                                  period=1.0, width=0.3, factor=1.0, shift=0.0)</span>
+<span class="sd">        &gt;&gt;&gt; # print(ts.to_tcl())</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Initialize a Pulse TimeSeries</span>
-<span class="sd">        </span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initializes a pulse time series with the given parameters.</span>
+
 <span class="sd">        Args:</span>
-<span class="sd">            tStart (float): Start time of pulse</span>
-<span class="sd">            tEnd (float): End time of pulse</span>
-<span class="sd">            period (float): Period of pulse</span>
-<span class="sd">            width (float): Width of pulse as a fraction of period</span>
-<span class="sd">            factor (float): Load factor amplitude</span>
-<span class="sd">            shift (float): Phase shift</span>
+<span class="sd">            tStart: Start time of pulse. Defaults to 0.0.</span>
+<span class="sd">            tEnd: End time of pulse. Defaults to 1.0.</span>
+<span class="sd">            period: Period of pulse. Defaults to 1.0.</span>
+<span class="sd">            width: Width of pulse as a fraction of period (0 to 1). Defaults to 0.5.</span>
+<span class="sd">            factor: Load factor amplitude. Defaults to 1.0.</span>
+<span class="sd">            shift: Phase shift. Defaults to 0.0.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">kwargs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="s1">&#39;Pulse&#39;</span><span class="p">)</span>
@@ -918,11 +1066,10 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">shift</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;shift&quot;</span><span class="p">]</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">to_tcl</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Convert the time series to a TCL command string for OpenSees</span>
-<span class="sd">        </span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Converts the time series to a TCL command string for OpenSees.</span>
+
 <span class="sd">        Returns:</span>
-<span class="sd">            str: The TCL command string</span>
+<span class="sd">            TCL command string for the pulse time series.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="p">(</span><span class="sa">f</span><span class="s2">&quot;timeSeries Pulse </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">tag</span><span class="si">}</span><span class="s2"> &quot;</span>
                 <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">tStart</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">tEnd</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">period</span><span class="si">}</span><span class="s2"> -width </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">width</span><span class="si">}</span><span class="s2"> &quot;</span>
@@ -930,11 +1077,10 @@
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_Parameters</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Get the parameters defining this time series</span>
-<span class="sd">        </span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Gets the parameters defining this time series.</span>
+
 <span class="sd">        Returns:</span>
-<span class="sd">            List[Tuple[str, str]]: List of parameter names and explanations</span>
+<span class="sd">            List of parameter names and explanations as tuples.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="p">[</span>
             <span class="p">(</span><span class="s2">&quot;tStart&quot;</span><span class="p">,</span> <span class="s2">&quot;Start time of pulse (optional, default: 0.0)&quot;</span><span class="p">),</span>
@@ -947,14 +1093,17 @@
     
     <span class="nd">@staticmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">validate</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Validate the input parameters for creating a Pulse TimeSeries</span>
-<span class="sd">        </span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Validates the input parameters for creating a pulse time series.</span>
+
 <span class="sd">        Args:</span>
-<span class="sd">            **kwargs: Parameters for time series initialization</span>
-<span class="sd">        </span>
+<span class="sd">            **kwargs: Parameters for time series initialization.</span>
+
 <span class="sd">        Returns:</span>
-<span class="sd">            Dict[str, Union[str, list, float, int]]: Dictionary of parameter names and values</span>
+<span class="sd">            Dictionary of validated parameter names and values.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If any parameter is not a number, tStart &gt;= tEnd, period &lt;= 0,</span>
+<span class="sd">                or width is not between 0 and 1.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">tStart</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;tStart&quot;</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
         <span class="n">tEnd</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;tEnd&quot;</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
@@ -1005,8 +1154,10 @@
         <span class="p">}</span>
     
     <span class="k">def</span><span class="w"> </span><span class="nf">get_values</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">list</span><span class="p">]]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Get the parameters defining this time series</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Gets the current parameter values of this time series.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Dictionary containing tStart, tEnd, period, width, factor, and shift values.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="p">{</span>
             <span class="s2">&quot;tStart&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">tStart</span><span class="p">,</span>
@@ -1016,13 +1167,12 @@
             <span class="s2">&quot;factor&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">factor</span><span class="p">,</span>
             <span class="s2">&quot;shift&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">shift</span><span class="p">,</span>
         <span class="p">}</span>
-    
+
     <span class="k">def</span><span class="w"> </span><span class="nf">update_values</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Update the values of the time series</span>
-<span class="sd">        </span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Updates the parameter values of the time series.</span>
+
 <span class="sd">        Args:</span>
-<span class="sd">            **kwargs: Parameters for time series initialization</span>
+<span class="sd">            **kwargs: Parameters for time series initialization.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">kwargs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">tStart</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;tStart&quot;</span><span class="p">]</span>
@@ -1034,44 +1184,45 @@
 
 
 <span class="k">class</span><span class="w"> </span><span class="nc">PathTimeSeries</span><span class="p">(</span><span class="n">TimeSeries</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    TimeSeries object that interpolates between defined time and load factor points</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Time series that interpolates between defined time and load factor points.</span>
 
-<span class="sd">    Args:</span>
-<span class="sd">        dt (float): Time increment for path</span>
-<span class="sd">        values (list): List of force values</span>
-<span class="sd">        filePath (str): Path to file containing force values</span>
-<span class="sd">        factor (float): Scale factor for force values</span>
-<span class="sd">        useLast (bool): Use last force value beyond the last time point if true</span>
-<span class="sd">        prependZero (bool): Prepend a zero value at the start</span>
-<span class="sd">        startTime (float): Start time of the time series</span>
-<span class="sd">        time (list): List of time points</span>
-<span class="sd">        fileTime (str): Path to file containing time points</span>
+<span class="sd">    This time series loads values from a file or list and interpolates between</span>
+<span class="sd">    points, useful for earthquake ground motions or custom loading histories.</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        dt: Time increment for path.</span>
+<span class="sd">        values: List of force values (if not using filePath).</span>
+<span class="sd">        filePath: Path to file containing force values.</span>
+<span class="sd">        factor: Scale factor for force values.</span>
+<span class="sd">        useLast: Whether to use last force value beyond the last time point.</span>
+<span class="sd">        prependZero: Whether to prepend a zero value at the start.</span>
+<span class="sd">        startTime: Start time of the time series.</span>
+<span class="sd">        time: List of time points (if not using dt or fileTime).</span>
+<span class="sd">        fileTime: Path to file containing time points.</span>
 
 <span class="sd">    Example:</span>
-<span class="sd">        timeseries = fm.timeSeries.path(</span>
-<span class="sd">            dt=0.02,</span>
-<span class="sd">            values=[0.0, 1.0, 0.0],</span>
-<span class="sd">            filePath=&quot;CFG2_ax_base_02g_avg.acc&quot;,</span>
-<span class="sd">            factor=9.81,</span>
-<span class="sd">        )</span>
-
-<span class="sd">    </span>
+<span class="sd">        &gt;&gt;&gt; from femora.components.TimeSeries.timeSeriesBase import TimeSeriesManager</span>
+<span class="sd">        &gt;&gt;&gt; # Create a path time series from file</span>
+<span class="sd">        &gt;&gt;&gt; # manager = TimeSeriesManager()</span>
+<span class="sd">        &gt;&gt;&gt; # ts = manager.create_time_series(&#39;path&#39;, dt=0.02,</span>
+<span class="sd">        &gt;&gt;&gt; #                                  filePath=&quot;ground_motion.acc&quot;, factor=9.81)</span>
+<span class="sd">        &gt;&gt;&gt; # Create a path time series from values</span>
+<span class="sd">        &gt;&gt;&gt; # ts2 = manager.create_time_series(&#39;path&#39;, dt=0.01,</span>
+<span class="sd">        &gt;&gt;&gt; #                                   values=&quot;0.0,1.0,0.5,0.0&quot;, factor=1.0)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Initialize a Path TimeSeries</span>
-<span class="sd">        </span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initializes a path time series with the given parameters.</span>
+
 <span class="sd">        Args:</span>
-<span class="sd">            dt (float): Time increment for path</span>
-<span class="sd">            values (list): List of force values</span>
-<span class="sd">            filePath (str): Path to file containing force values</span>
-<span class="sd">            factor (float): Scale factor for force values</span>
-<span class="sd">            useLast (bool): Use last force value beyond the last time point if true</span>
-<span class="sd">            prependZero (bool): Prepend a zero value at the start</span>
-<span class="sd">            startTime (float): Start time of the time series</span>
-<span class="sd">            time (list): List of time points</span>
-<span class="sd">            fileTime (str): Path to file containing time points</span>
+<span class="sd">            dt: Time increment for path. Required if time or fileTime not provided.</span>
+<span class="sd">            values: List of force values. Required if filePath not provided.</span>
+<span class="sd">            filePath: Path to file containing force values. Required if values not provided.</span>
+<span class="sd">            factor: Scale factor for force values. Defaults to 1.0.</span>
+<span class="sd">            useLast: Use last force value beyond the last time point. Defaults to False.</span>
+<span class="sd">            prependZero: Prepend a zero value at the start. Defaults to False.</span>
+<span class="sd">            startTime: Start time of the time series. Defaults to 0.0.</span>
+<span class="sd">            time: List of time points. Alternative to dt or fileTime.</span>
+<span class="sd">            fileTime: Path to file containing time points. Alternative to dt or time.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">kwargs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="s1">&#39;Path&#39;</span><span class="p">)</span>
@@ -1086,11 +1237,10 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">fileTime</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;fileTime&quot;</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">to_tcl</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Convert the time series to a TCL command string for OpenSees</span>
-<span class="sd">        </span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Converts the time series to a TCL command string for OpenSees.</span>
+
 <span class="sd">        Returns:</span>
-<span class="sd">            str: The TCL command string</span>
+<span class="sd">            TCL command string for the path time series.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">cmd</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;timeSeries Path </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">tag</span><span class="si">}</span><span class="s2">&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dt</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -1117,11 +1267,10 @@
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_Parameters</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Get the parameters defining this time series</span>
-<span class="sd">        </span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Gets the parameters defining this time series.</span>
+
 <span class="sd">        Returns:</span>
-<span class="sd">            List[Tuple[str, str]]: List of parameter names and explanations</span>
+<span class="sd">            List of parameter names and explanations as tuples.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="p">[</span>
             <span class="p">(</span><span class="s2">&quot;dt&quot;</span><span class="p">,</span> <span class="s2">&quot;Time increment for path&quot;</span><span class="p">),</span>
@@ -1137,14 +1286,17 @@
     
     <span class="nd">@staticmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">validate</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">bool</span><span class="p">]]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Validate the input parameters for creating a Path TimeSeries</span>
-<span class="sd">        </span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Validates the input parameters for creating a path time series.</span>
+
 <span class="sd">        Args:</span>
-<span class="sd">            **kwargs: Parameters for time series initialization</span>
-<span class="sd">        </span>
+<span class="sd">            **kwargs: Parameters for time series initialization.</span>
+
 <span class="sd">        Returns:</span>
-<span class="sd">            Dict[str, Union[str, list, float, int, bool]]: Dictionary of parameter names and values</span>
+<span class="sd">            Dictionary of validated parameter names and values.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If required parameters are missing, invalid types provided,</span>
+<span class="sd">                or conflicting parameters are specified.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">dt</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;dt&quot;</span><span class="p">)</span>
         <span class="n">factor</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;factor&quot;</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
@@ -1229,8 +1381,10 @@
         <span class="p">}</span>
     
     <span class="k">def</span><span class="w"> </span><span class="nf">get_values</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">list</span><span class="p">,</span> <span class="nb">bool</span><span class="p">]]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Get the parameters defining this time series</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Gets the current parameter values of this time series.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Dictionary containing all path time series parameters.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="p">{</span>
             <span class="s2">&quot;dt&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">dt</span><span class="p">,</span>
@@ -1243,13 +1397,12 @@
             <span class="s2">&quot;time&quot;</span><span class="p">:</span> <span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">time</span><span class="p">))</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">time</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
             <span class="s2">&quot;fileTime&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">fileTime</span>
         <span class="p">}</span>
-    
+
     <span class="k">def</span><span class="w"> </span><span class="nf">update_values</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Update the values of the time series</span>
-<span class="sd">        </span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Updates the parameter values of the time series.</span>
+
 <span class="sd">        Args:</span>
-<span class="sd">            **kwargs: Parameters for time series initialization</span>
+<span class="sd">            **kwargs: Parameters for time series initialization.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">kwargs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">dt</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;dt&quot;</span><span class="p">]</span>
@@ -1266,8 +1419,24 @@
 
 
 <span class="k">class</span><span class="w"> </span><span class="nc">TimeSeriesRegistry</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    A registry to manage time series types and their creation.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Registry for managing time series types and their creation.</span>
+
+<span class="sd">    This class provides a centralized system for registering time series classes</span>
+<span class="sd">    and creating time series instances dynamically by type name.</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        _time_series_types: Class-level dictionary mapping time series type names</span>
+<span class="sd">            to their time series classes.</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; from femora.components.TimeSeries.timeSeriesBase import TimeSeriesRegistry</span>
+<span class="sd">        &gt;&gt;&gt; # Register a custom time series type</span>
+<span class="sd">        &gt;&gt;&gt; # TimeSeriesRegistry.register_time_series_type(&#39;custom&#39;, CustomTimeSeries)</span>
+<span class="sd">        &gt;&gt;&gt; # Create a time series</span>
+<span class="sd">        &gt;&gt;&gt; # ts = TimeSeriesRegistry.create_time_series(&#39;constant&#39;, factor=1.0)</span>
+<span class="sd">        &gt;&gt;&gt; types = TimeSeriesRegistry.get_time_series_types()</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;constant&#39; in types)</span>
+<span class="sd">        True</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">_time_series_types</span> <span class="o">=</span> <span class="p">{</span>
         <span class="s1">&#39;constant&#39;</span><span class="p">:</span> <span class="n">ConstantTimeSeries</span><span class="p">,</span>
@@ -1282,41 +1451,36 @@
 
     <span class="nd">@classmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">register_time_series_type</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">series_class</span><span class="p">:</span> <span class="n">Type</span><span class="p">[</span><span class="n">TimeSeries</span><span class="p">]):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Register a new time series type for easy creation.</span>
-<span class="sd">        </span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Registers a new time series type for easy creation.</span>
+
 <span class="sd">        Args:</span>
-<span class="sd">            name (str): The name of the time series type</span>
-<span class="sd">            series_class (Type[TimeSeries]): The class of the time series</span>
+<span class="sd">            name: The name of the time series type (case-insensitive).</span>
+<span class="sd">            series_class: The class of the time series to register.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">cls</span><span class="o">.</span><span class="n">_time_series_types</span><span class="p">[</span><span class="n">name</span><span class="o">.</span><span class="n">lower</span><span class="p">()]</span> <span class="o">=</span> <span class="n">series_class</span>
 
     <span class="nd">@classmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_time_series_types</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        :no-index:</span>
-<span class="sd">        Get available time series types.</span>
-<span class="sd">        </span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Gets available time series types.</span>
+
 <span class="sd">        Returns:</span>
-<span class="sd">            List[str]: Available time series types</span>
+<span class="sd">            List of registered time series type names.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">_time_series_types</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
 
     <span class="nd">@classmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">create_time_series</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">series_type</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TimeSeries</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        :no-index:</span>
-<span class="sd">        Create a new time series of a specific type.</span>
-<span class="sd">        </span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Creates a new time series of a specific type.</span>
+
 <span class="sd">        Args:</span>
-<span class="sd">            series_type (str): Type of time series to create</span>
-<span class="sd">            **kwargs: Parameters for time series initialization</span>
-<span class="sd">        </span>
+<span class="sd">            series_type: Type of time series to create (case-insensitive).</span>
+<span class="sd">            **kwargs: Parameters for time series initialization.</span>
+
 <span class="sd">        Returns:</span>
-<span class="sd">            TimeSeries: A new time series instance</span>
-<span class="sd">        </span>
+<span class="sd">            A new time series instance.</span>
+
 <span class="sd">        Raises:</span>
-<span class="sd">            KeyError: If the time series type is not registered</span>
+<span class="sd">            KeyError: If the time series type is not registered.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">series_type</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_time_series_types</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Time series type </span><span class="si">{</span><span class="n">series_type</span><span class="si">}</span><span class="s2"> not registered&quot;</span><span class="p">)</span>
@@ -1329,24 +1493,40 @@
 <div class="viewcode-block" id="TimeSeriesManager">
 <a class="viewcode-back" href="../../../../technical/timeseries.html#femora.components.TimeSeries.timeSeriesBase.TimeSeriesManager">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">TimeSeriesManager</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Singleton class for managing time series objects in the application.</span>
-<span class="sd">    </span>
-<span class="sd">    This manager provides a centralized way to create, retrieve, and manage </span>
-<span class="sd">    time series objects. It maintains a singleton instance to ensure consistent </span>
-<span class="sd">    access to time series throughout the application.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Singleton manager class for creating and managing time series.</span>
+
+<span class="sd">    This class provides a unified interface for creating time series with</span>
+<span class="sd">    convenient access to time series types.</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        path: Reference to PathTimeSeries class.</span>
+<span class="sd">        constant: Reference to ConstantTimeSeries class.</span>
+<span class="sd">        linear: Reference to LinearTimeSeries class.</span>
+<span class="sd">        trig: Reference to TrigTimeSeries class.</span>
+<span class="sd">        ramp: Reference to RampTimeSeries class.</span>
+<span class="sd">        triangular: Reference to TriangularTimeSeries class.</span>
+<span class="sd">        rectangular: Reference to RectangularTimeSeries class.</span>
+<span class="sd">        pulse: Reference to PulseTimeSeries class.</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; from femora.components.TimeSeries.timeSeriesBase import TimeSeriesManager</span>
+<span class="sd">        &gt;&gt;&gt; # Get the singleton instance</span>
+<span class="sd">        &gt;&gt;&gt; manager = TimeSeriesManager()</span>
+<span class="sd">        &gt;&gt;&gt; # Create a time series</span>
+<span class="sd">        &gt;&gt;&gt; # ts = manager.create_time_series(&#39;constant&#39;, factor=1.0)</span>
+<span class="sd">        &gt;&gt;&gt; # Get all time series</span>
+<span class="sd">        &gt;&gt;&gt; all_ts = manager.get_all_time_series()</span>
+<span class="sd">        &gt;&gt;&gt; types = manager.get_available_types()</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;constant&#39; in types)</span>
+<span class="sd">        True</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">_instance</span> <span class="o">=</span> <span class="kc">None</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Create a new instance of TimeSeriesManager if one doesn&#39;t exist.</span>
-<span class="sd">        </span>
-<span class="sd">        This implements the singleton pattern, ensuring only one instance </span>
-<span class="sd">        of TimeSeriesManager exists across the application.</span>
-<span class="sd">        </span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Creates a new instance if one doesn&#39;t exist (singleton pattern).</span>
+
 <span class="sd">        Returns:</span>
-<span class="sd">            TimeSeriesManager: The singleton instance of TimeSeriesManager</span>
+<span class="sd">            The singleton instance of TimeSeriesManager.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_instance</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">cls</span><span class="o">.</span><span class="n">_instance</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">TimeSeriesManager</span><span class="p">,</span> <span class="bp">cls</span><span class="p">)</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span>
@@ -1355,6 +1535,11 @@
 <div class="viewcode-block" id="TimeSeriesManager.__init__">
 <a class="viewcode-back" href="../../../../technical/timeseries.html#femora.components.TimeSeries.timeSeriesBase.TimeSeriesManager.__init__">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initializes the TimeSeriesManager singleton instance.</span>
+
+<span class="sd">        This method only initializes on first creation. Subsequent calls</span>
+<span class="sd">        return the existing instance without re-initialization.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">path</span> <span class="o">=</span> <span class="n">PathTimeSeries</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">constant</span> <span class="o">=</span> <span class="n">ConstantTimeSeries</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">linear</span> <span class="o">=</span> <span class="n">LinearTimeSeries</span>
@@ -1366,42 +1551,36 @@
 
     
     <span class="k">def</span><span class="w"> </span><span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Get the number of time series objects managed by this instance.</span>
-<span class="sd">        </span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Gets the number of time series objects.</span>
+
 <span class="sd">        Returns:</span>
-<span class="sd">            int: The number of time series objects</span>
+<span class="sd">            The number of time series objects.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="n">TimeSeries</span><span class="o">.</span><span class="n">_time_series</span><span class="p">)</span>
-    
+
     <span class="k">def</span><span class="w"> </span><span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Iterate over the time series objects managed by this instance.</span>
-<span class="sd">        </span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Iterates over the time series objects.</span>
+
 <span class="sd">        Returns:</span>
-<span class="sd">            Iterator[TimeSeries]: An iterator over the time series objects</span>
+<span class="sd">            An iterator over the time series objects.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="nb">iter</span><span class="p">(</span><span class="n">TimeSeries</span><span class="o">.</span><span class="n">_time_series</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
 
 <div class="viewcode-block" id="TimeSeriesManager.create_time_series">
 <a class="viewcode-back" href="../../../../technical/timeseries.html#femora.components.TimeSeries.timeSeriesBase.TimeSeriesManager.create_time_series">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">create_time_series</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">series_type</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TimeSeries</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Create a new time series of the specified type.</span>
-
-<span class="sd">        This method delegates to the TimeSeriesRegistry to create a new time</span>
-<span class="sd">        series object with the provided parameters.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Creates a new time series of the specified type.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            series_type (str): The type of time series to create (e.g., &#39;constant&#39;, &#39;linear&#39;)</span>
-<span class="sd">            **kwargs: Parameters specific to the time series type initialization</span>
+<span class="sd">            series_type: The type of time series to create (e.g., &#39;constant&#39;, &#39;linear&#39;).</span>
+<span class="sd">            **kwargs: Parameters specific to the time series type initialization.</span>
 
 <span class="sd">        Returns:</span>
-<span class="sd">            TimeSeries: A new time series instance</span>
+<span class="sd">            A new time series instance.</span>
 
 <span class="sd">        Raises:</span>
-<span class="sd">            KeyError: If the requested time series type is not registered</span>
-<span class="sd">            ValueError: If validation of parameters fails</span>
+<span class="sd">            KeyError: If the requested time series type is not registered.</span>
+<span class="sd">            ValueError: If validation of parameters fails.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">TimeSeriesRegistry</span><span class="o">.</span><span class="n">create_time_series</span><span class="p">(</span><span class="n">series_type</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
@@ -1409,17 +1588,16 @@
 <div class="viewcode-block" id="TimeSeriesManager.get_time_series">
 <a class="viewcode-back" href="../../../../technical/timeseries.html#femora.components.TimeSeries.timeSeriesBase.TimeSeriesManager.get_time_series">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_time_series</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tag</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TimeSeries</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Retrieve a specific time series by its tag.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Retrieves a specific time series by its tag.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            tag (int): The unique identifier tag of the time series</span>
+<span class="sd">            tag: The unique identifier tag of the time series.</span>
 
 <span class="sd">        Returns:</span>
-<span class="sd">            TimeSeries: The time series object with the specified tag</span>
+<span class="sd">            The time series object with the specified tag.</span>
 
 <span class="sd">        Raises:</span>
-<span class="sd">            KeyError: If no time series with the given tag exists</span>
+<span class="sd">            KeyError: If no time series with the given tag exists.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">TimeSeries</span><span class="o">.</span><span class="n">get_time_series</span><span class="p">(</span><span class="n">tag</span><span class="p">)</span></div>
 
@@ -1427,14 +1605,13 @@
 <div class="viewcode-block" id="TimeSeriesManager.remove_time_series">
 <a class="viewcode-back" href="../../../../technical/timeseries.html#femora.components.TimeSeries.timeSeriesBase.TimeSeriesManager.remove_time_series">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">remove_time_series</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tag</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Remove a time series by its tag.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Removes a time series by its tag.</span>
 
 <span class="sd">        This method removes the time series with the given tag and</span>
 <span class="sd">        reassigns sequential tags to all remaining time series objects.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            tag (int): The tag of the time series to remove</span>
+<span class="sd">            tag: The tag of the time series to remove.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">TimeSeries</span><span class="o">.</span><span class="n">remove_time_series</span><span class="p">(</span><span class="n">tag</span><span class="p">)</span></div>
 
@@ -1442,11 +1619,11 @@
 <div class="viewcode-block" id="TimeSeriesManager.get_all_time_series">
 <a class="viewcode-back" href="../../../../technical/timeseries.html#femora.components.TimeSeries.timeSeriesBase.TimeSeriesManager.get_all_time_series">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_all_time_series</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">TimeSeries</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Retrieve all registered time series objects.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Retrieves all registered time series objects.</span>
 
 <span class="sd">        Returns:</span>
-<span class="sd">            Dict[int, TimeSeries]: A dictionary of all time series objects, where keys are the tags and values are the TimeSeries objects</span>
+<span class="sd">            A dictionary of all time series objects, where keys are the tags</span>
+<span class="sd">                and values are the TimeSeries objects.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">TimeSeries</span><span class="o">.</span><span class="n">get_all_time_series</span><span class="p">()</span></div>
 
@@ -1454,35 +1631,21 @@
 <div class="viewcode-block" id="TimeSeriesManager.get_available_types">
 <a class="viewcode-back" href="../../../../technical/timeseries.html#femora.components.TimeSeries.timeSeriesBase.TimeSeriesManager.get_available_types">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_available_types</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Get a list of all available time series types that can be created.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Gets a list of all available time series types.</span>
 
 <span class="sd">        Returns:</span>
-<span class="sd">            List[str]: A list of strings representing available time series types</span>
-
-<span class="sd">        Example:</span>
-<span class="sd">            manager = TimeSeriesManager()</span>
-<span class="sd">            types = manager.get_available_types()</span>
-<span class="sd">            print(&quot;Available time series types:&quot;, types)</span>
+<span class="sd">            A list of strings representing available time series types.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">TimeSeriesRegistry</span><span class="o">.</span><span class="n">get_time_series_types</span><span class="p">()</span></div>
 
-    
+
 <div class="viewcode-block" id="TimeSeriesManager.clear_all">
 <a class="viewcode-back" href="../../../../technical/timeseries.html#femora.components.TimeSeries.timeSeriesBase.TimeSeriesManager.clear_all">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">clear_all</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Clears all time series from the registry.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Clears all time series from the registry.</span>
 
 <span class="sd">        This method clears all registered time series objects, effectively</span>
 <span class="sd">        resetting the state of the time series management system.</span>
-
-<span class="sd">        Example:</span>
-<span class="sd">            manager = TimeSeriesManager()</span>
-<span class="sd">            # Create some time series</span>
-<span class="sd">            # ...</span>
-<span class="sd">            # Clear all time series when starting a new model</span>
-<span class="sd">            manager.clear_all()</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">TimeSeries</span><span class="o">.</span><span class="n">_time_series</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span></div>
 </div>
