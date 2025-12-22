@@ -1,6 +1,10 @@
 """
 Browser-based plotting GUI for soil/foundation/piles using PyVista + trame.
-Redesigned based on working test.py patterns for better reliability.
+
+This module provides the `SoilFoundationPlotter` class, which offers a web-based
+interactive visualization tool for geotechnical models, including soil layers,
+foundation blocks, and pile systems. It integrates PyVista for 3D rendering
+and trame for creating the interactive web interface.
 
 Install requirements if missing:
     pip install pyvista trame trame-vtk trame-vuetify
@@ -14,9 +18,48 @@ import numpy as np
 
 
 class SoilFoundationPlotter:
-    """
-    Browser-based GUI for fast visualization of soil layers, foundation blocks,
-    and piles using PyVista + trame. Based on reliable patterns from test.py.
+    """Browser-based GUI for visualizing soil layers, foundations, and piles.
+
+    This class provides an interactive web interface using PyVista for 3D
+    rendering and trame for the UI, allowing users to visualize and
+    manipulate geotechnical models. It supports quick conceptual plots
+    and detailed discretized meshes from a model builder.
+
+    Attributes:
+        pv (module): The imported PyVista module.
+        title (str): The title displayed in the plotter's web interface.
+        port (int): The port number the trame server will run on.
+        structure_info (dict): Dictionary containing structural model information.
+        soil_info (dict): Dictionary containing soil layer information.
+        foundation_info (dict): Dictionary containing foundation block information.
+        pile_info (dict): Dictionary containing pile system information.
+        _mesh_file (Optional[str]): Path to an optional external mesh file for the building.
+        plotter (pyvista.Plotter): The PyVista plotter instance used for 3D rendering.
+        objects (dict): A dictionary storing references to added meshes and their actors.
+        state_defaults (dict): Default values for the trame server's state variables.
+        server (trame.app.Server): The trame server instance managing the UI and interactions.
+        html_view (trame.widgets.vtk.VtkRemoteView): The trame widget for displaying the 3D scene.
+        _actual_soil (pyvista.DataSet): Cached PyVista mesh for the discretized soil.
+        _actual_pile (pyvista.DataSet): Cached PyVista mesh for the discretized piles.
+        _actual_foundation (pyvista.DataSet): Cached PyVista mesh for the discretized foundation.
+        _discretized_exists (bool): Flag indicating if actual meshes have been computed and cached.
+        _scalars (list[str]): List of available scalar arrays for coloring.
+
+    Example:
+        >>> import os
+        >>> from femora_plotting import SoilFoundationPlotter
+        >>> # Assuming a 'config.json' file exists with structure, soil, foundation, pile info
+        >>> # OR provide dictionaries directly
+        >>> # plotter = SoilFoundationPlotter(info_file="config.json", port=8082)
+        >>> plotter = SoilFoundationPlotter(
+        ...     structure_info={"x_min":0, "x_max":10, "y_min":0, "y_max":10, "z_min":0, "z_max":5},
+        ...     soil_info={"x_min":-10, "x_max":20, "y_min":-10, "y_max":20,
+        ...                "soil_profile":[{"z_bot":-5, "z_top":0}, {"z_bot":-10, "z_top":-5}]},
+        ...     foundation_info={"foundation_profile":[{"x_min":0, "x_max":5, "y_min":0, "y_max":5, "z_bot":-1, "z_top":0}]},
+        ...     pile_info={"pile_profile":[{"type":"grid", "x_start":1, "y_start":1, "spacing_x":2, "spacing_y":2, "nx":2, "ny":2, "z_top":-0.5, "z_bot":-5, "r":0.2}]},
+        ...     port=8081
+        ... )
+        >>> # plotter.start_server() # Access at http://localhost:8081
     """
 
     def __init__(
@@ -30,17 +73,40 @@ class SoilFoundationPlotter:
         port: int = 8080,
         title: str = "Soil/Foundation Plotter",
     ) -> None:
+        """Initializes the SoilFoundationPlotter.
+
+        Args:
+            structure_info: Optional. A dictionary containing information about the
+                structural model, such as global bounds and base column locations.
+            soil_info: Optional. A dictionary describing the soil profile,
+                including layer depths, dimensions, and material properties.
+            foundation_info: Optional. A dictionary describing the foundation
+                blocks, including their geometry and material.
+            pile_info: Optional. A dictionary describing the pile systems,
+                including single piles or pile grids.
+            info_file: Optional. Path to a JSON file containing all configuration
+                information (structure_info, soil_info, etc.). If provided, and
+                individual info dicts are None, data will be loaded from this file.
+            server_name: The name for the trame server instance.
+            port: The port number on which the trame server will listen.
+            title: The title to display in the plotter's web interface.
+
+        Raises:
+            RuntimeError: If `pyvista` or `trame` packages are not installed.
+            FileNotFoundError: If `info_file` is provided but does not exist.
+        """
         try:
             import pyvista as pv
         except Exception as exc:
             raise RuntimeError(
-                "pyvista is required for SoilFoundationPlotter."
+                "pyvista is required for SoilFoundationPlotter. Install with: "
+                "pip install pyvista"
             ) from exc
 
         self.pv = pv
         self.title = title
         self.port = port
-        
+
         # Load configuration data
         (
             self.structure_info,
@@ -48,16 +114,12 @@ class SoilFoundationPlotter:
             self.foundation_info,
             self.pile_info,
         ) = self._load_infos(structure_info, soil_info, foundation_info, pile_info, info_file)
-        
+
         # In-memory cached actual meshes (no disk persistence)
         self._actual_soil = None
         self._actual_pile = None
         self._actual_foundation = None
         self._scalars = ["Mesh", "Core", "Region", "ElementTag", "MaterialTag"]
-        # Optional public aliases
-        # self.actual_soil = None
-        # self.actual_pile = None
-        # self.actual_foundation = None
         self._discretized_exists = False
         # Extra actors toggled from UI
         self._axes_actor = None
@@ -84,7 +146,7 @@ class SoilFoundationPlotter:
 
         # Store references to added objects
         self.objects = {}
-        
+
         # State defaults
         self.state_defaults = {
             "show_soil": True,
@@ -103,22 +165,30 @@ class SoilFoundationPlotter:
 
         # Setup server
         self._setup_server(server_name)
-        
+
         # Pre-populate scene
         self.quick_plot()
 
     def _setup_server(self, server_name: str):
-        """Setup the trame server and UI"""
+        """Sets up the trame server and UI components.
+
+        Args:
+            server_name: The name for the trame server instance.
+
+        Raises:
+            RuntimeError: If `trame` stack packages (`trame`, `trame-vtk`,
+                `trame-vuetify`) are not installed.
+        """
         try:
             from trame.app import get_server
             import trame_vuetify as _tv
-            
+
             # Get Vuetify version
             _tv_ver = getattr(_tv, "__version__", "2.0.0")
             _tv_major = int(str(_tv_ver).split(".")[0])
-            
+
             self.server = get_server(server_name)
-            
+
             # Configure client type based on Vuetify version
             if _tv_major >= 3:
                 self.server.client_type = "vue3"
@@ -128,9 +198,9 @@ class SoilFoundationPlotter:
                 self.server.client_type = "vue2"
                 from trame.ui.vuetify import SinglePageWithDrawerLayout
                 from trame.widgets import vuetify
-                
+
             from trame.widgets import html, vtk as vtk_widgets
-            
+
         except Exception as exc:
             raise RuntimeError(
                 "SoilFoundationPlotter requires 'trame' stack. Install with: "
@@ -138,7 +208,7 @@ class SoilFoundationPlotter:
             ) from exc
 
         state, ctrl = self.server.state, self.server.controller
-        
+
         # Initialize state variables
         state.update(self.state_defaults)
         # Provide scalar items via state to avoid string-splitting in VSelect
@@ -154,24 +224,24 @@ class SoilFoundationPlotter:
             state.show_grid_color = "grey"
         except Exception:
             pass
-        
+
         # Define controller methods
         @ctrl.set("quick_plot")
         def quick_plot_handler():
             self.quick_plot()
-            
+
         @ctrl.set("actual_plot")
         def actual_plot_handler():
             self.actual_plot()
-            
+
         @ctrl.set("discretize")
         def discretize_handler():
             self.discretize_and_save()
-            
+
         @ctrl.set("clear_all")
         def clear_all_handler():
             self.clear_all()
-            
+
         @ctrl.set("reset_camera")
         def reset_camera_handler():
             self.reset_camera()
@@ -244,7 +314,7 @@ class SoilFoundationPlotter:
         @state.change("show_soil", "show_foundation", "show_piles", "show_mesh")
         def on_visibility_change(**kwargs):
             self._apply_visibility()
-            
+
         @state.change("soil_opacity", "foundation_opacity", "piles_opacity", "mesh_opacity")
         def on_opacity_change(**kwargs):
             self._apply_opacity()
@@ -364,9 +434,9 @@ class SoilFoundationPlotter:
                 # Action buttons
                 vuetify.VDivider()
                 vuetify.VBtn(
-                    "Quick Plot", 
-                    color="primary", 
-                    click=ctrl.quick_plot, 
+                    "Quick Plot",
+                    color="primary",
+                    click=ctrl.quick_plot,
                     block=True,
                     prepend_icon="mdi-chart-scatter-plot" if _tv_major >= 3 else None
                 )
@@ -408,23 +478,23 @@ class SoilFoundationPlotter:
                 vuetify.VDivider(classes="my-3")
                 html.Div("Visibility", classes="text-subtitle-2 mt-1 mb-1")
                 vuetify.VSwitch(
-                    v_model=("show_soil", self.state_defaults["show_soil"]), 
-                    label="Show Soil", 
+                    v_model=("show_soil", self.state_defaults["show_soil"]),
+                    label="Show Soil",
                     dense=True
                 )
                 vuetify.VSwitch(
-                    v_model=("show_foundation", self.state_defaults["show_foundation"]), 
-                    label="Show Foundation", 
+                    v_model=("show_foundation", self.state_defaults["show_foundation"]),
+                    label="Show Foundation",
                     dense=True
                 )
                 vuetify.VSwitch(
-                    v_model=("show_piles", self.state_defaults["show_piles"]), 
-                    label="Show Piles", 
+                    v_model=("show_piles", self.state_defaults["show_piles"]),
+                    label="Show Piles",
                     dense=True
                 )
                 vuetify.VSwitch(
-                    v_model=("show_mesh", self.state_defaults["show_mesh"]), 
-                    label="Show Building", 
+                    v_model=("show_mesh", self.state_defaults["show_mesh"]),
+                    label="Show Building",
                     dense=True
                 )
 
@@ -432,35 +502,35 @@ class SoilFoundationPlotter:
                 vuetify.VDivider(classes="my-3")
                 html.Div("Opacity", classes="text-subtitle-2 mt-1 mb-1")
                 vuetify.VSlider(
-                    v_model=("soil_opacity", self.state_defaults["soil_opacity"]), 
-                    min=0.0, 
-                    max=1.0, 
-                    step=0.05, 
-                    label="Soil", 
+                    v_model=("soil_opacity", self.state_defaults["soil_opacity"]),
+                    min=0.0,
+                    max=1.0,
+                    step=0.05,
+                    label="Soil",
                     hide_details=True
                 )
                 vuetify.VSlider(
-                    v_model=("foundation_opacity", self.state_defaults["foundation_opacity"]), 
-                    min=0.0, 
-                    max=1.0, 
-                    step=0.05, 
-                    label="Foundation", 
+                    v_model=("foundation_opacity", self.state_defaults["foundation_opacity"]),
+                    min=0.0,
+                    max=1.0,
+                    step=0.05,
+                    label="Foundation",
                     hide_details=True
                 )
                 vuetify.VSlider(
-                    v_model=("piles_opacity", self.state_defaults["piles_opacity"]), 
-                    min=0.0, 
-                    max=1.0, 
-                    step=0.05, 
-                    label="Piles", 
+                    v_model=("piles_opacity", self.state_defaults["piles_opacity"]),
+                    min=0.0,
+                    max=1.0,
+                    step=0.05,
+                    label="Piles",
                     hide_details=True
                 )
                 vuetify.VSlider(
-                    v_model=("mesh_opacity", self.state_defaults["mesh_opacity"]), 
-                    min=0.0, 
-                    max=1.0, 
-                    step=0.05, 
-                    label="Building", 
+                    v_model=("mesh_opacity", self.state_defaults["mesh_opacity"]),
+                    min=0.0,
+                    max=1.0,
+                    step=0.05,
+                    label="Building",
                     hide_details=True
                 )
 
@@ -536,7 +606,7 @@ class SoilFoundationPlotter:
                                 depressed=("show_axes", False),
                                 color=("show_axes_color", "grey"),
                                 click=ctrl.toggle_axes,
-                                children=[vuetify.VIcon("mdi-axis-arrow")] 
+                                children=[vuetify.VIcon("mdi-axis-arrow")]
                             )
                             vuetify.VBtn(
                                 icon=True,
@@ -544,35 +614,35 @@ class SoilFoundationPlotter:
                                 depressed=("show_grid", False),
                                 color=("show_grid_color", "grey"),
                                 click=ctrl.toggle_grid,
-                                children=[vuetify.VIcon("mdi-grid")] 
+                                children=[vuetify.VIcon("mdi-grid")]
                             )
                             vuetify.VBtn(
                                 icon=True,
                                 large=True,
                                 color="secondary",
                                 click=ctrl.view_iso,
-                                children=[vuetify.VIcon("mdi-cube-scan")] 
+                                children=[vuetify.VIcon("mdi-cube-scan")]
                             )
                             vuetify.VBtn(
                                 icon=True,
                                 large=True,
                                 color="secondary",
                                 click=ctrl.view_xy,
-                                children=[vuetify.VIcon("mdi-axis-z-arrow")] 
+                                children=[vuetify.VIcon("mdi-axis-z-arrow")]
                             )
                             vuetify.VBtn(
                                 icon=True,
                                 large=True,
                                 color="secondary",
                                 click=ctrl.view_xz,
-                                children=[vuetify.VIcon("mdi-axis-y-arrow")] 
+                                children=[vuetify.VIcon("mdi-axis-y-arrow")]
                             )
                             vuetify.VBtn(
                                 icon=True,
                                 large=True,
                                 color="secondary",
                                 click=ctrl.view_yz,
-                                children=[vuetify.VIcon("mdi-axis-x-arrow")] 
+                                children=[vuetify.VIcon("mdi-axis-x-arrow")]
                             )
 
             with layout.content:
@@ -586,15 +656,29 @@ class SoilFoundationPlotter:
                         still_quality=98,
                         style="width: 100%; height: 100vh;",
                     )
-                    
+
                     # Set controller methods for view updates
                     ctrl.view_update = self.html_view.update
                     ctrl.view_reset_camera = self.html_view.reset_camera
 
     def quick_plot(self) -> None:
-        """Fast scene build: soil/foundation as boxes, piles as cylinders."""
+        """Builds a fast, conceptual scene with soil, foundation, and piles.
+
+        This method generates simplified geometric representations (boxes for
+        soil/foundation, cylinders for piles) for a quick overview of the
+        geotechnical model. It clears any existing objects before plotting.
+
+        Example:
+            >>> from femora_plotting import SoilFoundationPlotter
+            >>> plotter = SoilFoundationPlotter(
+            ...     soil_info={"x_min":-10, "x_max":10, "y_min":-10, "y_max":10,
+            ...                "soil_profile":[{"z_bot":-5, "z_top":0}]},
+            ...     foundation_info={"foundation_profile":[{"x_min":-2, "x_max":2, "y_min":-2, "y_max":2, "z_bot":-1, "z_top":0}]}
+            ... )
+            >>> plotter.quick_plot()
+        """
         print("Building quick plot...")
-        
+
         # Clear existing objects
         self.clear_all()
 
@@ -617,7 +701,7 @@ class SoilFoundationPlotter:
         # Apply current visibility and opacity settings
         self._apply_visibility()
         self._apply_opacity()
-        
+
         # Reset camera and update view
         self.reset_camera()
         self.update_view()
@@ -625,31 +709,31 @@ class SoilFoundationPlotter:
 
 
     def _add_soil_layers(self):
-        """Add soil layers to the scene"""
+        """Adds conceptual soil layers as colored boxes to the scene."""
         khaki_colors = [
             "#F0E68C", "#DEB887", "#D2B48C", "#BDB76B", "#F4A460", "#CD853F",
             "#A0522D", "#8B7355", "#6B8E23", "#556B2F", "#8FBC8F", "#9ACD32",
         ]
-        
+
         x_min = self.soil_info.get("x_min", 0.0)
         x_max = self.soil_info.get("x_max", 0.0)
         y_min = self.soil_info.get("y_min", 0.0)
         y_max = self.soil_info.get("y_max", 0.0)
-        
+
         for idx, layer in enumerate(self.soil_info["soil_profile"]):
             z_bot = layer.get("z_bot", 0.0)
             z_top = layer.get("z_top", 0.0)
             if z_top <= z_bot:
                 continue
-                
+
             center = ((x_min + x_max) * 0.5, (y_min + y_max) * 0.5, (z_bot + z_top) * 0.5)
             x_len = max(1e-6, x_max - x_min)
             y_len = max(1e-6, y_max - y_min)
             z_len = max(1e-6, z_top - z_bot)
-            
+
             box = self.pv.Cube(center=center, x_length=x_len, y_length=y_len, z_length=z_len)
             soil_color = khaki_colors[idx % len(khaki_colors)]
-            
+
             name = f"soil_{idx}"
             actor = self.plotter.add_mesh(
                 box,
@@ -660,14 +744,14 @@ class SoilFoundationPlotter:
                 show_edges=True,
             )
             self.objects[name] = {
-                "mesh": box, 
-                "actor": actor, 
-                "type": "soil", 
+                "mesh": box,
+                "actor": actor,
+                "type": "soil",
                 "layer": idx
             }
 
     def _add_foundation_blocks(self):
-        """Add foundation blocks to the scene"""
+        """Adds conceptual foundation blocks as colored boxes to the scene."""
         for fidx, f in enumerate(self.foundation_info["foundation_profile"]):
             try:
                 x_min, x_max = f["x_min"], f["x_max"]
@@ -675,10 +759,10 @@ class SoilFoundationPlotter:
                 z_bot, z_top = f["z_bot"], f["z_top"]
             except KeyError:
                 continue
-                
+
             if x_max <= x_min or y_max <= y_min or z_top <= z_bot:
                 continue
-                
+
             center = ((x_min + x_max) * 0.5, (y_min + y_max) * 0.5, (z_bot + z_top) * 0.5)
             box = self.pv.Cube(
                 center=center,
@@ -686,7 +770,7 @@ class SoilFoundationPlotter:
                 y_length=max(1e-6, y_max - y_min),
                 z_length=max(1e-6, z_top - z_bot),
             )
-            
+
             name = f"foundation_{fidx}"
             actor = self.plotter.add_mesh(
                 box,
@@ -697,25 +781,37 @@ class SoilFoundationPlotter:
                 show_edges=True,
             )
             self.objects[name] = {
-                "mesh": box, 
-                "actor": actor, 
-                "type": "foundation", 
+                "mesh": box,
+                "actor": actor,
+                "type": "foundation",
                 "index": fidx
             }
 
     def _add_piles(self):
-        """Add piles to the scene (supports single and grid definitions)"""
+        """Adds conceptual piles to the scene.
+
+        Supports both individual pile definitions and grids of piles.
+        """
         pidx = 0
         for pile in self.pile_info["pile_profile"]:
             ptype = str(pile.get("type", "single")).lower()
-            
+
             if ptype == "grid":
                 pidx = self._add_pile_grid(pile, pidx)
             else:
                 pidx = self._add_single_pile(pile, pidx)
 
-    def _add_pile_grid(self, pile, pidx):
-        """Add a grid of piles"""
+    def _add_pile_grid(self, pile: dict, pidx: int) -> int:
+        """Adds a grid of conceptual piles to the scene.
+
+        Args:
+            pile: A dictionary containing parameters for the pile grid
+                (e.g., x_start, y_start, spacing_x, ny, nx, z_top, z_bot, r).
+            pidx: The starting index for naming the piles.
+
+        Returns:
+            The next available index for naming piles after adding the grid.
+        """
         try:
             x_start = float(pile["x_start"])
             y_start = float(pile["y_start"])
@@ -728,27 +824,27 @@ class SoilFoundationPlotter:
             radius = float(pile.get("r", 0.2))
         except (KeyError, ValueError):
             return pidx
-            
+
         if nx < 1 or ny < 1 or spacing_x <= 0 or spacing_y <= 0:
             return pidx
-            
+
         height = abs(z_top - z_bot)
         direction = (0.0, 0.0, z_top - z_bot)
-        
+
         for i in range(nx):
             for j in range(ny):
                 x = x_start + i * spacing_x
                 y = y_start + j * spacing_y
                 center = (x, y, (z_top + z_bot) * 0.5)
-                
+
                 cyl = self.pv.Cylinder(
-                    center=center, 
-                    direction=direction, 
-                    radius=max(1e-6, radius), 
-                    height=max(1e-6, height), 
+                    center=center,
+                    direction=direction,
+                    radius=max(1e-6, radius),
+                    height=max(1e-6, height),
                     resolution=24
                 )
-                
+
                 name = f"pile_{pidx}"
                 actor = self.plotter.add_mesh(
                     cyl,
@@ -759,18 +855,27 @@ class SoilFoundationPlotter:
                     show_edges=True,
                 )
                 self.objects[name] = {
-                    "mesh": cyl, 
-                    "actor": actor, 
-                    "type": "pile", 
+                    "mesh": cyl,
+                    "actor": actor,
+                    "type": "pile",
                     "index": pidx,
                     "grid_pos": (i, j)
                 }
                 pidx += 1
-                
+
         return pidx
 
-    def _add_single_pile(self, pile, pidx):
-        """Add a single pile"""
+    def _add_single_pile(self, pile: dict, pidx: int) -> int:
+        """Adds a single conceptual pile to the scene.
+
+        Args:
+            pile: A dictionary containing parameters for a single pile
+                (e.g., x_top, y_top, z_top, x_bot, y_bot, z_bot, r).
+            pidx: The starting index for naming the pile.
+
+        Returns:
+            The next available index for naming piles after adding this pile.
+        """
         try:
             x_top = float(pile["x_top"])
             y_top = float(pile["y_top"])
@@ -781,19 +886,19 @@ class SoilFoundationPlotter:
             radius = float(pile.get("r", 0.2))
         except (KeyError, ValueError):
             return pidx + 1
-            
+
         direction = (x_top - x_bot, y_top - y_bot, z_top - z_bot)
         height = (direction[0]**2 + direction[1]**2 + direction[2]**2) ** 0.5
         center = ((x_top + x_bot) * 0.5, (y_top + y_bot) * 0.5, (z_top + z_bot) * 0.5)
-        
+
         cyl = self.pv.Cylinder(
-            center=center, 
-            direction=direction, 
-            radius=max(1e-6, radius), 
-            height=max(1e-6, height), 
+            center=center,
+            direction=direction,
+            radius=max(1e-6, radius),
+            height=max(1e-6, height),
             resolution=24
         )
-        
+
         name = f"pile_{pidx}"
         actor = self.plotter.add_mesh(
             cyl,
@@ -804,16 +909,16 @@ class SoilFoundationPlotter:
             show_edges=True,
         )
         self.objects[name] = {
-            "mesh": cyl, 
-            "actor": actor, 
-            "type": "pile", 
+            "mesh": cyl,
+            "actor": actor,
+            "type": "pile",
             "index": pidx
         }
-        
+
         return pidx + 1
 
     def _add_mesh_file(self):
-        """Add mesh file to the scene"""
+        """Adds an external mesh file (e.g., building model) to the scene."""
         try:
             mesh = self.pv.read(self._mesh_file)
             name = "mesh_file"
@@ -827,31 +932,47 @@ class SoilFoundationPlotter:
                 line_width=2.0,
             )
             self.objects[name] = {
-                "mesh": mesh, 
-                "actor": actor, 
+                "mesh": mesh,
+                "actor": actor,
                 "type": "mesh"
             }
         except Exception as e:
             print(f"Failed to load mesh file {self._mesh_file}: {e}")
 
     def clear_all(self):
-        """Clear all objects from the plotter"""
+        """Clears all objects from the PyVista plotter and the internal object registry.
+
+        This effectively resets the 3D scene.
+
+        Example:
+            >>> from femora_plotting import SoilFoundationPlotter
+            >>> plotter = SoilFoundationPlotter()
+            >>> plotter.quick_plot()
+            >>> plotter.clear_all()
+        """
         self.plotter.clear()
         self.objects.clear()
         self.update_view()
         print("Cleared all objects")
 
     def reset_camera(self):
-        """Reset the camera to default position"""
+        """Resets the PyVista plotter's camera to an isometric default position.
+
+        Example:
+            >>> from femora_plotting import SoilFoundationPlotter
+            >>> plotter = SoilFoundationPlotter()
+            >>> plotter.quick_plot()
+            >>> plotter.reset_camera()
+        """
         self.plotter.reset_camera()
         self.plotter.camera_position = "iso"
         self.update_view()
 
     def _apply_visibility(self):
-        """Apply visibility settings based on current state"""
+        """Applies visibility settings to objects in the scene based on UI state."""
         if not hasattr(self.server, 'state'):
             return
-            
+
         state = self.server.state
         vis_map = {
             "soil": getattr(state, "show_soil", True),
@@ -859,7 +980,7 @@ class SoilFoundationPlotter:
             "pile": getattr(state, "show_piles", True),
             "mesh": getattr(state, "show_mesh", True),
         }
-        
+
         for name, obj_data in self.objects.items():
             obj_type = obj_data["type"]
             if obj_type in vis_map:
@@ -868,14 +989,14 @@ class SoilFoundationPlotter:
                     actor.SetVisibility(1 if vis_map[obj_type] else 0)
                 except Exception as e:
                     print(f"Error setting visibility for {name}: {e}")
-        
+
         self.update_view()
 
     def _apply_opacity(self):
-        """Apply opacity settings based on current state"""
+        """Applies opacity settings to objects in the scene based on UI state."""
         if not hasattr(self.server, 'state'):
             return
-            
+
         state = self.server.state
         opa_map = {
             "soil": getattr(state, "soil_opacity", 0.35),
@@ -883,7 +1004,7 @@ class SoilFoundationPlotter:
             "pile": getattr(state, "piles_opacity", 1.0),
             "mesh": getattr(state, "mesh_opacity", 0.3),
         }
-        
+
         for name, obj_data in self.objects.items():
             obj_type = obj_data["type"]
             if obj_type in opa_map:
@@ -893,15 +1014,20 @@ class SoilFoundationPlotter:
                     actor.GetProperty().SetOpacity(opacity)
                 except Exception as e:
                     print(f"Error setting opacity for {name}: {e}")
-        
+
         self.update_view()
 
     def update_view(self):
-        """Update the 3D view"""
+        """Updates the 3D view in the web interface.
+
+        This method triggers a re-render of the PyVista scene within the trame
+        web application, reflecting any changes made to actors or camera.
+        """
         try:
             if hasattr(self, 'html_view'):
                 self.html_view.update()
         except Exception as e:
+            # This can happen during initial server setup before html_view is fully ready
             print(f"View update error (normal during initialization): {e}")
 
     def _load_infos(
@@ -911,8 +1037,27 @@ class SoilFoundationPlotter:
         foundation_info: Optional[dict],
         pile_info: Optional[dict],
         info_file: Optional[str],
-    ):
-        """Load configuration from file or use provided dicts"""
+    ) -> tuple[Optional[dict], Optional[dict], Optional[dict], Optional[dict]]:
+        """Loads configuration information from a file or uses provided dictionaries.
+
+        If `info_file` is provided and valid, it will attempt to load configuration
+        from there, overwriting or supplementing any individual info dictionaries
+        that were not explicitly provided.
+
+        Args:
+            structure_info: Optional. Initial structure information dictionary.
+            soil_info: Optional. Initial soil information dictionary.
+            foundation_info: Optional. Initial foundation information dictionary.
+            pile_info: Optional. Initial pile information dictionary.
+            info_file: Optional. Path to a JSON file containing all configuration data.
+
+        Returns:
+            A tuple containing the loaded (or provided) structure_info, soil_info,
+            foundation_info, and pile_info dictionaries.
+
+        Raises:
+            FileNotFoundError: If `info_file` is specified but does not exist.
+        """
         if info_file is not None and (not structure_info or not soil_info or not foundation_info or not pile_info):
             if not os.path.isfile(info_file):
                 raise FileNotFoundError(f"info_file not found: {info_file}")
@@ -926,23 +1071,91 @@ class SoilFoundationPlotter:
         return structure_info, soil_info, foundation_info, pile_info
 
     def start_server(self, **kwargs):
-        """Start the trame server"""
+        """Starts the trame server, making the GUI accessible via a web browser.
+
+        This method blocks until the server is stopped (e.g., by Ctrl+C in the
+        console or closing the browser tab if configured that way).
+
+        Args:
+            **kwargs: Additional keyword arguments to pass to `self.server.start()`.
+
+        Example:
+            >>> from femora_plotting import SoilFoundationPlotter
+            >>> plotter = SoilFoundationPlotter(
+            ...     soil_info={"x_min":-10, "x_max":10, "y_min":-10, "y_max":10,
+            ...                "soil_profile":[{"z_bot":-5, "z_top":0}]},
+            ...     port=8085
+            ... )
+            >>> # This will start the server and block
+            >>> # Open your browser to http://localhost:8085
+            >>> # plotter.start_server(timeout=0) # timeout=0 for non-blocking in tests, remove for actual use
+        """
         print(f"Starting Soil Foundation Plotter on port {self.port}")
         print(f"Open browser to: http://localhost:{self.port}")
         print("Press Ctrl+C to stop the server")
-        
+
         self.server.start(port=self.port, **kwargs)
 
-    def get_object_list(self):
-        """Get a list of all objects in the scene"""
+    def get_object_list(self) -> list[str]:
+        """Gets a list of names of all currently plotted objects in the scene.
+
+        Returns:
+            A list of strings, where each string is the unique name of a
+            plotted object.
+
+        Example:
+            >>> from femora_plotting import SoilFoundationPlotter
+            >>> plotter = SoilFoundationPlotter(
+            ...     soil_info={"x_min":-1, "x_max":1, "y_min":-1, "y_max":1,
+            ...                "soil_profile":[{"z_bot":-1, "z_top":0}]}
+            ... )
+            >>> plotter.quick_plot()
+            >>> obj_names = plotter.get_object_list()
+            >>> print(obj_names)
+            ['soil_0']
+        """
         return list(self.objects.keys())
 
-    def get_object_info(self, name):
-        """Get information about a specific object"""
+    def get_object_info(self, name: str) -> Optional[dict]:
+        """Gets detailed information about a specific plotted object.
+
+        Args:
+            name: The unique name of the object to retrieve information for.
+
+        Returns:
+            A dictionary containing the object's mesh, actor, type, and other
+            associated data, or None if no object with the given name exists.
+
+        Example:
+            >>> from femora_plotting import SoilFoundationPlotter
+            >>> plotter = SoilFoundationPlotter(
+            ...     soil_info={"x_min":-1, "x_max":1, "y_min":-1, "y_max":1,
+            ...                "soil_profile":[{"z_bot":-1, "z_top":0}]}
+            ... )
+            >>> plotter.quick_plot()
+            >>> info = plotter.get_object_info("soil_0")
+            >>> if info:
+            ...     print(info["type"])
+            soil
+        """
         return self.objects.get(name, None)
 
-    def remove_object(self, name):
-        """Remove a specific object by name"""
+    def remove_object(self, name: str):
+        """Removes a specific object from the plotter and its internal registry.
+
+        Args:
+            name: The unique name of the object to remove.
+
+        Example:
+            >>> from femora_plotting import SoilFoundationPlotter
+            >>> plotter = SoilFoundationPlotter(
+            ...     soil_info={"x_min":-1, "x_max":1, "y_min":-1, "y_max":1,
+            ...                "soil_profile":[{"z_bot":-1, "z_top":0}]}
+            ... )
+            >>> plotter.quick_plot()
+            >>> plotter.remove_object("soil_0")
+            Removed object: soil_0
+        """
         if name in self.objects:
             self.plotter.remove_actor(name)
             del self.objects[name]
@@ -950,8 +1163,31 @@ class SoilFoundationPlotter:
             print(f"Removed object: {name}")
 
 
-    def actual_plot(self, scalar = None):
-        """Build and render the actual meshes returned by the model builder."""
+    def actual_plot(self, scalar: Optional[str] = None):
+        """Builds and renders the actual, discretized meshes from the model builder.
+
+        This method triggers the computation of detailed meshes for soil,
+        foundation, and piles using an external model builder. Once computed,
+        these meshes are cached in memory for subsequent plots. It clears
+        any existing scene before adding the new meshes.
+
+        Args:
+            scalar: Optional. The name of the scalar array to use for coloring
+                the meshes (e.g., "Core", "Region", "ElementTag"). If "Mesh"
+                or "None", no scalar coloring is applied.
+
+        Example:
+            >>> from femora_plotting import SoilFoundationPlotter
+            >>> plotter = SoilFoundationPlotter(
+            ...     structure_info={"x_min":0, "x_max":1, "y_min":0, "y_max":1, "z_min":0, "z_max":1},
+            ...     soil_info={"x_min":-2, "x_max":2, "y_min":-2, "y_max":2,
+            ...                "soil_profile":[{"z_bot":-2, "z_top":0, "nz":1, "material":"Elastic", "mat_props":[1e6,0.3,2.0]}]}
+            ... )
+            >>> # This will call the external model builder to create detailed meshes
+            >>> plotter.actual_plot()
+            >>> # You can also specify a scalar for coloring if available in the meshes
+            >>> # plotter.actual_plot(scalar="MaterialTag")
+        """
         # Clear existing scene
         self.clear_all()
         if scalar == "Mesh" or scalar == "None":
@@ -971,9 +1207,6 @@ class SoilFoundationPlotter:
             self._actual_pile = pile_mesh
             self._actual_foundation = foundation_mesh
             self._actual_soil = soil_mesh
-            # self.actual_pile = pile_mesh
-            # self.actual_foundation = foundation_mesh
-            # self.actual_soil = soil_mesh
             self._discretized_exists = True
             try:
                 if hasattr(self, 'server'):
@@ -1046,11 +1279,18 @@ class SoilFoundationPlotter:
         self.reset_camera()
         self.update_view()
 
-    
-
 
     def _compute_actual_meshes(self):
-        """Compute the actual meshes using the model builder."""
+        """Computes the actual, discretized meshes using the model builder.
+
+        This method attempts to import and use the `soil_foundation_type_one`
+        function from `femora.components.simcenter.eeuq.soil_foundation_type_one`
+        to generate detailed PyVista meshes based on the provided configuration.
+
+        Returns:
+            A tuple containing (pile_mesh, foundation_mesh, soil_mesh) as
+            PyVista DataSet objects, or (None, None, None) if computation fails.
+        """
         try:
             from femora.components.simcenter.eeuq.soil_foundation_type_one import soil_foundation_type_one
             return soil_foundation_type_one(
@@ -1060,31 +1300,63 @@ class SoilFoundationPlotter:
                 pile_info=self.pile_info,
                 plotting=True,
             )
-            
-            
+
+
         except Exception as exc:
             print(f"Discretization failed: {exc}")
             return None, None, None
 
     def _check_discretized_exists(self) -> bool:
-        """Check if meshes are cached in memory (no disk)."""
+        """Checks if the discretized meshes are currently cached in memory.
+
+        Returns:
+            True if all three main meshes (soil, pile, foundation) are cached,
+            False otherwise.
+        """
         return self._actual_soil is not None and self._actual_pile is not None and self._actual_foundation is not None
 
     def _save_discretized(self, pile_mesh, foundation_mesh, soil_mesh):
-        """No-op: we keep meshes in memory only based on user request."""
+        """Caches the computed discretized meshes in memory.
+
+        This is a no-operation function as meshes are kept in memory only
+        based on user request or first computation, not saved to disk here.
+
+        Args:
+            pile_mesh (pyvista.DataSet): The computed pile mesh.
+            foundation_mesh (pyvista.DataSet): The computed foundation mesh.
+            soil_mesh (pyvista.DataSet): The computed soil mesh.
+        """
         self._actual_pile = pile_mesh
         self._actual_foundation = foundation_mesh
         self._actual_soil = soil_mesh
-        # self.actual_pile = pile_mesh
-        # self.actual_foundation = foundation_mesh
-        # self.actual_soil = soil_mesh
 
     def _load_discretized(self):
-        """Return already-cached meshes from memory."""
+        """Returns the already-cached discretized meshes from memory.
+
+        Returns:
+            A tuple containing (pile_mesh, foundation_mesh, soil_mesh) as
+            PyVista DataSet objects.
+        """
         return self._actual_pile, self._actual_foundation, self._actual_soil
 
     def discretize_and_save(self):
-        """One-time discretization: compute and cache in memory, then disable the button forever."""
+        """Computes and caches the actual discretized meshes in memory.
+
+        This method performs the one-time discretization using the model builder
+        and stores the resulting PyVista meshes in memory. Once executed, it
+        marks the meshes as existing, preventing re-computation. The associated
+        UI button will be disabled after successful execution.
+
+        Example:
+            >>> from femora_plotting import SoilFoundationPlotter
+            >>> plotter = SoilFoundationPlotter(
+            ...     structure_info={"x_min":0, "x_max":1, "y_min":0, "y_max":1, "z_min":0, "z_max":1},
+            ...     soil_info={"x_min":-2, "x_max":2, "y_min":-2, "y_max":2,
+            ...                "soil_profile":[{"z_bot":-2, "z_top":0, "nz":1, "material":"Elastic", "mat_props":[1e6,0.3,2.0]}]}
+            ... )
+            >>> plotter.discretize_and_save() # This will compute and cache meshes
+            >>> # print(plotter._discretized_exists) # This would be True after successful computation
+        """
         if self._discretized_exists:
             print("Discretized meshes already exist. Skipping.")
             return
@@ -1100,164 +1372,3 @@ class SoilFoundationPlotter:
                     self.server.state.flush()
         except Exception:
             pass
-                                
-
-# Example usage
-if __name__ == "__main__":
-    import os
-    os.chdir(os.path.dirname(__file__)) 
-    structure_info = {
-        "num_partitions": 1,
-        "x_min": -13.716,
-        "y_min": -13.716,
-        "z_min": 0.,
-        "x_max": 13.716,
-        "y_max": 13.716,
-        "z_max": 40.8432,
-        "columns_base":[
-            {"tag":101, "x":-13.71600, "y":-13.71600,  "z":0.00000 },
-            {"tag":102, "x":-4.57200,  "y":-13.71600,  "z":0.00000 },
-            {"tag":103, "x":4.57200,   "y":-13.71600,  "z":0.00000 },
-            {"tag":104, "x":13.71600,  "y":-13.71600,  "z":0.00000 },
-            {"tag":105, "x":-13.71600, "y":-4.57200,   "z":0.00000 },
-            {"tag":106, "x":-4.57200,  "y":-4.57200,   "z":0.00000 },
-            {"tag":107, "x":4.57200,   "y":-4.57200,   "z":0.00000 },
-            {"tag":108, "x":13.71600,  "y":-4.57200,   "z":0.00000 },
-            {"tag":109, "x":-13.71600, "y":4.57200,    "z":0.00000 },
-            {"tag":110, "x":-4.57200,  "y":4.57200,    "z":0.00000 },
-            {"tag":111, "x":4.57200,   "y":4.57200,    "z":0.00000 },
-            {"tag":112, "x":13.71600,  "y":4.57200,    "z":0.00000 },
-            {"tag":113, "x":-13.71600, "y":13.71600,   "z":0.00000 },
-            {"tag":114, "x":-4.57200,  "y":13.71600,   "z":0.00000 },
-            {"tag":115, "x":4.57200,   "y":13.71600,   "z":0.00000 },
-            {"tag":116, "x":13.71600,  "y":13.71600,   "z":0.00000 },
-        ],  
-        "model_file":r"steel_frame_tcl", 
-        "mesh_file" :r"building.vtkhdf",
-    }
-
-
-    # soil information from bottom to top
-    soil_info = {
-        "x_min": -64,
-        "x_max":  64,
-        "y_min": -64,
-        "y_max":  64,
-        "nx": 32,
-        "ny": 32,
-        "gravity_x": 0.0,
-        "gravity_y": 0.0,
-        "gravity_z": -9.81,
-        "num_partitions": 8,
-        "boundary_conditions": "periodic", # could be "DRM" 
-        "DRM_options": {
-            "absorbing_layer_type": "PML",  # could be "PML" or "Rayleigh" 
-            "num_partitions": 8,
-            "number_of_layers": 5,
-            "Rayleigh_damping": 0.95,
-            "match_damping": False, # if true the Rayleigh damping will be matched to the soil damping
-        },
-        "soil_profile" : [
-        {"z_bot":-48, "z_top":-40, "nz":2, 
-        "material":"Elastic", 
-        "mat_props":[2031050.557968521, 0.306925827695258, 2.16275], 
-        "damping":"Frequency-Rayleigh", "damping_props":[0.0211, 3, 15]
-        },
-        {"z_bot":-40,  "z_top":-32, "nz":2, 
-        "material":"Elastic", 
-        "mat_props":[1762809.8758694725, 0.30694522251297574, 2.1586],
-        "damping":"Frequency-Rayleigh", "damping_props":[0.0221, 3, 15]
-        },
-        {"z_bot":-32,  "z_top":-24, "nz":2, 
-        "material":"Elastic", 
-        "mat_props":[1495388.2483252182, 0.306974948361342, 2.15445],
-        "damping":"Frequency-Rayleigh", "damping_props":[0.0234, 3, 15]
-        },
-        {"z_bot":-24,  "z_top":-16,  "nz":2, 
-        "material":"Elastic", 
-        "mat_props":[1229028.6525414723, 0.30699478245814293, 2.15035],
-        "damping":"Frequency-Rayleigh", "damping_props":[0.0249, 3, 15]
-        },  
-        {"z_bot":-16,  "z_top":-8,  "nz":2, 
-        "material":"Elastic", 
-        "mat_props":[963419.3475957835, 0.3070002901446228, 2.1462],
-        "damping":"Frequency-Rayleigh", "damping_props":[0.0269, 3, 15]
-        },
-        {"z_bot":-8,  "z_top":0,  "nz":2, 
-        "material":"Elastic",
-        "mat_props":[698103.0346931004, 0.30696660596216024, 2.14205],
-        "damping":"Frequency-Rayleigh", "damping_props":[0.0296, 3, 15]  
-        }   
-        ]
-    }
-
-
-
-    # foundation information
-    foundation_info = {
-        "gravity_x": 0.0,
-        "gravity_y": 0.0,
-        "gravity_z": -9.81, 
-        "embedded" : True,  # if the foundation is embedded in the soil or not True/False.
-        "dx": 2.0,          # mesh size in x direction
-        "dy": 2.0,          # mesh size in y direction
-        "dz": 0.3,          # mesh size in z direction
-        "gravity_x": 0.0,
-        "gravity_y": 0.0,
-        "gravity_z": -9.81,
-        "num_partitions": 2,
-        "column_embedment_depth":0.3, # embedment depth of the columns in the foundation
-        "column_section_props":{
-            "E": 30e6,    # Elastic Modulus
-            "A": 0.282,     # Area
-            "Iy": 0.0063585, # Moment of Inertia Iy
-            "Iz": 0.0063585, # Moment of Inertia Iz
-            "G": 12.5e6,   # Shear Modulus
-            "J": 0.012717   # Moment of Inertia J
-        },
-
-        "foundation_profile" : [
-            {"x_min":-20,  "x_max":20, 
-            "y_min":-20,  "y_max":20,  
-            "z_top":0,    "z_bot":-1.2, 
-            "material":"Elastic", "mat_props":[30e6, 0.2, 2.4] 
-            },
-        ]
-    }
-
-
-    # pile information
-    pile_info = {
-        "pile_profile" : [
-            {
-                "type": "grid",  # could be "grid" or "single"
-                "x_start": -10 , "y_start": -10 ,
-                "spacing_x": 5 , "spacing_y": 5 ,
-                "nx": 5 , "ny": 5 ,
-                "z_top": -0.5 , "z_bot": -10 ,
-                "nz": 15 ,"r":0.3, "section": "No-Section", 
-                "material":"Elastic", 
-                "mat_props":[30e6, 0.282, 0.0063585, 0.0063585, 12.5e6, 0.012717], 
-                "transformation": ["Linear", 0.0, 1.0, 0.0]
-            },
-        ],
-
-        "pile_interface": {
-            "num_points_on_perimeter": 8,   # number of points on the perimeter of the pile interface
-            "num_points_along_length": 4,   # number of points along the length of the pile interface
-            "penalty_parameter": 1.0e12
-        },
-    }
-    
-
-    # Create and start the plotter
-    plotter = SoilFoundationPlotter(
-        structure_info=structure_info,
-        soil_info=soil_info,
-        foundation_info=foundation_info,
-        pile_info=pile_info,
-        port=8081
-    )
-    
-    plotter.start_server()
-
