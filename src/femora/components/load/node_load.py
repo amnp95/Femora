@@ -6,17 +6,16 @@ from .load_base import Load, LoadRegistry
 
 
 class NodeLoad(Load):
-    """
-    Nodal load wrapper for the OpenSees ``load`` command.
+    """Nodal load wrapper for the OpenSees ``load`` command.
 
-    TCL form::
+    This class supports either a single ``node_tag`` or a :class:`NodeMask`
+    to expand to multiple nodes. When a mask is provided, TCL is emitted
+    on tag level via ``NodeMask.to_tags()``, while DOF padding/truncation
+    and pid derivation use mask IDs and mesh metadata.
+
+    The TCL form is::
 
         load <nodeTag> <values...>
-
-    Supports either a single ``node_tag`` or a :class:`NodeMask` to expand to
-    multiple nodes. When a mask is provided, TCL is emitted on tag level via
-    ``NodeMask.to_tags()``, while DOF padding/truncation and pid derivation
-    use mask IDs and mesh metadata.
 
     Attributes:
         node_tag (Optional[int]): Target node tag when applying to a single node.
@@ -25,9 +24,35 @@ class NodeLoad(Load):
         pids (List[int]): Optional list of core IDs. Defaults to ``[0]`` when
             not set; overridden by mask-derived pids if a mask is supplied.
         node_mask: Optional :class:`NodeMask` to target multiple nodes.
+
+    Example:
+        >>> import femora as fm
+        >>> load = fm.NodeLoad(node_tag=10, values=[1.0, -2.0, 0.0])
+        >>> print(load.node_tag)
+        10
+        >>> print(load.values)
+        [1.0, -2.0, 0.0]
     """
 
     def __init__(self, **kwargs):
+        """Initializes a NodeLoad.
+
+        Args:
+            node_tag: Optional integer tag of the target node. Either `node_tag`
+                or `node_mask` must be provided.
+            values: A list of float values for each degree of freedom. This
+                list will be padded or truncated based on the node's DOF
+                when using a mask.
+            pids: Optional list of core IDs (integers) where this load
+                participates. Defaults to `[0]` if not specified.
+            node_mask: Optional :class:`NodeMask` instance to apply the load
+                to multiple nodes. Either `node_tag` or `node_mask` must be
+                provided.
+
+        Raises:
+            ValueError: If required parameters are missing or invalid, as
+                determined by :meth:`validate`.
+        """
         super().__init__("NodeLoad")
         validated = self.validate(**kwargs)
         self.node_tag: Optional[int] = validated.get("node_tag")
@@ -39,11 +64,10 @@ class NodeLoad(Load):
 
     @staticmethod
     def get_parameters() -> List[tuple]:
-        """
-        Parameters metadata for UI/inspection.
+        """Return parameters metadata for UI/inspection.
 
         Returns:
-            List[tuple]: Tuples of (name, description).
+            list[tuple]: Tuples of (name, description).
         """
         return [
             ("node_tag", "Tag of node on which the loads act (optional if node_mask provided)"),
@@ -53,11 +77,12 @@ class NodeLoad(Load):
         ]
 
     def get_values(self) -> Dict[str, Union[str, int, float, bool, list, tuple]]:
-        """
-        Return a serializable dictionary of the current load state.
+        """Return a serializable dictionary of the current load state.
 
         Returns:
-            Dict[str, Union[str, int, float, bool, list, tuple]]
+            Dict[str, Union[str, int, float, bool, list, tuple]]: A dictionary
+                representing the current state of the load, including its node
+                tag, values, PIDs, node mask, and pattern tag.
         """
         return {
             "node_tag": self.node_tag,
@@ -69,18 +94,23 @@ class NodeLoad(Load):
 
     @staticmethod
     def validate(**kwargs) -> Dict[str, Any]:
-        """
-        Validate constructor/update parameters for NodeLoad.
+        """Validate constructor/update parameters for NodeLoad.
 
         Args:
-            **kwargs: Supported keys are ``node_tag`` (int), ``node_mask``
-                (NodeMask), ``values`` (list[float]), ``pids`` (list[int]).
+            node_tag: The integer tag of the target node.
+            node_mask: A :class:`NodeMask` instance to apply the load to
+                multiple nodes.
+            values: A list of float values for each degree of freedom.
+            pids: A list of integers representing the core IDs where this
+                load participates.
 
         Returns:
-            Dict[str, Any]: Normalized values.
+            Dict[str, Any]: A dictionary containing the normalized and
+                validated parameters.
 
         Raises:
-            ValueError: On missing or invalid parameters.
+            ValueError: If any required parameters are missing or if any
+                parameters have invalid types or values.
         """
         node_tag = None
         node_mask = None
@@ -135,11 +165,11 @@ class NodeLoad(Load):
         return out
 
     def update_values(self, **kwargs) -> None:
-        """
-        Update the load's values after validation.
+        """Update the load's values after validation.
 
         Args:
-            **kwargs: Same keys as :meth:`validate`.
+            **kwargs: Parameters to update. Supported keys are the same
+                as those accepted by the :meth:`NodeLoad.validate` method.
         """
         validated = self.validate(
             node_tag=kwargs.get("node_tag", self.node_tag),
@@ -153,15 +183,43 @@ class NodeLoad(Load):
         self.node_mask = validated.get("node_mask")
 
     def to_tcl(self) -> str:
-        """
-        Convert the nodal load to its TCL command(s).
+        """Convert the nodal load to its TCL command string.
 
-        When ``node_mask`` is provided, emits one ``load`` line per node tag.
-        Load vectors are padded/truncated per node DOF. pids are derived per
-        node from the mesh when available; otherwise uses stored ``pids``.
+        When `node_mask` is provided, this method emits one `load` command
+        line per node tag. Load vectors are padded or truncated based on
+        each node's degrees of freedom. PIDs (core IDs) are derived per node
+        from the mesh (if available in the `node_mask`), otherwise the
+        instance's stored `pids` are used.
 
         Returns:
-            str: TCL command string (single or multi-line).
+            str: A TCL command string, which can be single or multi-line
+                depending on whether a `node_mask` is used.
+
+        Example:
+            >>> import femora as fm
+            >>> # Single node load
+            >>> load1 = fm.NodeLoad(node_tag=10, values=[1.0, -2.0, 0.0])
+            >>> print(load1.to_tcl())
+            if ($pid == 0) { load 10 1.0 -2.0 0.0 }
+            >>>
+            >>> # Load with PIDs
+            >>> load2 = fm.NodeLoad(node_tag=20, values=[5.0, 0.0], pids=[0, 1])
+            >>> print(load2.to_tcl())
+            if (($pid == 0) || ($pid == 1)) { load 20 5.0 0.0 }
+            >>>
+            >>> # Example with NodeMask requires a Mesh for context
+            >>> from femora.components.mask import NodeMask
+            >>> from femora.core import Mesh
+            >>> mesh = Mesh()
+            >>> mesh.add_node(1, [0,0,0], ndf=3)
+            >>> mesh.add_node(2, [1,0,0], ndf=6)
+            >>> mesh.add_node(3, [2,0,0], ndf=3)
+            >>> node_mask = NodeMask(nodes=[1, 2, 3], mesh=mesh)
+            >>> load3 = fm.NodeLoad(node_mask=node_mask, values=[5.0, 0.0, -10.0, 0.0, 0.0, 0.0])
+            >>> print(load3.to_tcl())
+            if ($pid == 0) { load 1 5.0 0.0 -10.0 }
+            if ($pid == 0) { load 2 5.0 0.0 -10.0 0.0 0.0 0.0 }
+            if ($pid == 0) { load 3 5.0 0.0 -10.0 }
         """
         def wrap_with_pid_for_node(nid: int, s: str) -> str:
             # Prefer pids from the mask's mesh index if available, else self.pids
@@ -196,5 +254,3 @@ class NodeLoad(Load):
 # Register type
 LoadRegistry.register_load_type("node", NodeLoad)
 LoadRegistry.register_load_type("nodeload", NodeLoad)
-
-
