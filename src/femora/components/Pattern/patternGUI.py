@@ -11,7 +11,34 @@ from femora.components.TimeSeries.timeSeriesBase import TimeSeries, TimeSeriesMa
 from femora.utils.validator import DoubleValidator, IntValidator
 
 class PatternManagerTab(QDialog):
+    """Manages the creation, editing, and deletion of dynamic patterns.
+
+    This dialog provides a user interface to interact with `Pattern` objects,
+    displaying them in a table and allowing various operations like creating
+    new patterns of different types (e.g., Uniform Excitation, H5DRM) or
+    modifying existing ones.
+
+    Attributes:
+        pattern_manager (PatternManager): The singleton manager for Pattern objects.
+        time_series_manager (TimeSeriesManager): The singleton manager for TimeSeries objects.
+        pattern_type_combo (QComboBox): Dropdown for selecting the type of pattern to create.
+        patterns_table (QTableWidget): Table displaying all registered patterns.
+    
+    Example:
+        >>> import sys
+        >>> from qtpy.QtWidgets import QApplication
+        >>> app = QApplication(sys.argv)
+        >>> manager_tab = PatternManagerTab()
+        >>> manager_tab.show()
+        >>> # app.exec_() # Uncomment to run the Qt event loop
+    """
     def __init__(self, parent=None):
+        """Initializes the PatternManagerTab dialog.
+
+        Args:
+            parent (QWidget, optional): The parent widget of this dialog.
+                Defaults to None.
+        """
         super().__init__(parent)
         
         # Setup dialog properties
@@ -60,7 +87,20 @@ class PatternManagerTab(QDialog):
         self.refresh_patterns_list()
 
     def open_pattern_creation_dialog(self):
-        """Open dialog to create a new pattern of selected type"""
+        """Opens a specific dialog to create a new pattern based on the selected type.
+
+        If a creation dialog is available for the selected pattern type, it is
+        opened. Upon successful creation, the patterns list is refreshed.
+
+        Example:
+            >>> import sys
+            >>> from qtpy.QtWidgets import QApplication
+            >>> app = QApplication(sys.argv)
+            >>> manager_tab = PatternManagerTab()
+            >>> manager_tab.pattern_type_combo.setCurrentText("UniformExcitation")
+            >>> manager_tab.open_pattern_creation_dialog()
+            >>> # This would open the UniformExcitationCreationDialog
+        """
         pattern_type = self.pattern_type_combo.currentText()
         
         if pattern_type.lower() == "uniformexcitation":
@@ -75,7 +115,23 @@ class PatternManagerTab(QDialog):
             self.refresh_patterns_list()
 
     def refresh_patterns_list(self):
-        """Update the patterns table with current patterns"""
+        """Updates the patterns table with the current list of patterns from the manager.
+
+        This method clears the existing table content and repopulates it with
+        all patterns currently managed by the `PatternManager`, including their
+        tag, type, parameters, and action buttons.
+
+        Example:
+            >>> import sys
+            >>> from qtpy.QtWidgets import QApplication
+            >>> from femora.components.Pattern.patternBase import PatternManager
+            >>> app = QApplication(sys.argv)
+            >>> PatternManager().create_pattern("UniformExcitation", dof=1, time_series=None)
+            >>> manager_tab = PatternManagerTab()
+            >>> manager_tab.refresh_patterns_list()
+            >>> print(manager_tab.patterns_table.rowCount() > 0)
+            True
+        """
         self.patterns_table.setRowCount(0)
         patterns = Pattern.get_all_patterns()
         
@@ -119,8 +175,29 @@ class PatternManagerTab(QDialog):
             delete_btn.clicked.connect(lambda checked, t=tag: self.delete_pattern(t))
             self.patterns_table.setCellWidget(row, 4, delete_btn)
 
-    def open_pattern_edit_dialog(self, pattern):
-        """Open dialog to edit an existing pattern"""
+    def open_pattern_edit_dialog(self, pattern: Pattern):
+        """Opens a specific dialog to edit an existing pattern.
+
+        The appropriate edit dialog (e.g., `UniformExcitationEditDialog`, `H5DRMEditDialog`)
+        is opened based on the `pattern_type` of the provided `pattern` object.
+        Upon successful editing, the patterns list is refreshed.
+
+        Args:
+            pattern (Pattern): The `Pattern` object to be edited.
+
+        Example:
+            >>> import sys
+            >>> from qtpy.QtWidgets import QApplication
+            >>> from femora.components.Pattern.patternBase import PatternManager
+            >>> from femora.components.TimeSeries.timeSeriesBase import ConstantTimeSeries
+            >>> app = QApplication(sys.argv)
+            >>> ts = ConstantTimeSeries(factor=1.0)
+            >>> pm = PatternManager()
+            >>> existing_pattern = pm.create_pattern("UniformExcitation", dof=1, time_series=ts)
+            >>> manager_tab = PatternManagerTab()
+            >>> manager_tab.open_pattern_edit_dialog(existing_pattern)
+            >>> # This would open the UniformExcitationEditDialog for the pattern
+        """
         if pattern.pattern_type == "UniformExcitation":
             dialog = UniformExcitationEditDialog(pattern, self)
         elif pattern.pattern_type == "H5DRM":
@@ -132,8 +209,30 @@ class PatternManagerTab(QDialog):
         if dialog.exec() == QDialog.Accepted:
             self.refresh_patterns_list()
 
-    def delete_pattern(self, tag):
-        """Delete a pattern from the system"""
+    def delete_pattern(self, tag: int):
+        """Deletes a pattern from the system after user confirmation.
+
+        A confirmation dialog is presented to the user before the pattern
+        with the given tag is permanently removed. The patterns list is
+        refreshed after deletion.
+
+        Args:
+            tag (int): The unique integer tag of the pattern to be deleted.
+
+        Example:
+            >>> import sys
+            >>> from qtpy.QtWidgets import QApplication
+            >>> from femora.components.Pattern.patternBase import PatternManager
+            >>> from femora.components.TimeSeries.timeSeriesBase import ConstantTimeSeries
+            >>> app = QApplication(sys.argv)
+            >>> ts = ConstantTimeSeries(factor=1.0)
+            >>> pm = PatternManager()
+            >>> pattern_to_delete = pm.create_pattern("UniformExcitation", dof=1, time_series=ts)
+            >>> manager_tab = PatternManagerTab()
+            >>> # To avoid blocking, this example would typically be part of a test suite
+            >>> # where QMessageBox can be mocked or automatically accepted.
+            >>> # For interactive use: manager_tab.delete_pattern(pattern_to_delete.tag)
+        """
         reply = QMessageBox.question(
             self, 'Delete Pattern',
             f"Are you sure you want to delete pattern with tag {tag}?",
@@ -146,7 +245,37 @@ class PatternManagerTab(QDialog):
 
 
 class UniformExcitationCreationDialog(QDialog):
+    """Dialog for creating a new Uniform Excitation Pattern.
+
+    This dialog allows users to define the properties for a new uniform
+    excitation pattern, including the DOF direction, associated time series,
+    initial velocity, and a scaling factor.
+
+    Attributes:
+        pattern_manager (PatternManager): The singleton manager for Pattern objects.
+        time_series_manager (TimeSeriesManager): The singleton manager for TimeSeries objects.
+        int_validator (IntValidator): Validator for integer input fields.
+        double_validator (DoubleValidator): Validator for float input fields.
+        dof_input (QLineEdit): Input field for the DOF direction.
+        time_series_combo (QComboBox): Dropdown for selecting an existing time series.
+        vel0_input (QLineEdit): Input field for the initial velocity.
+        factor_input (QLineEdit): Input field for the scaling factor.
+
+    Example:
+        >>> import sys
+        >>> from qtpy.QtWidgets import QApplication
+        >>> app = QApplication(sys.argv)
+        >>> create_dialog = UniformExcitationCreationDialog()
+        >>> create_dialog.show()
+        >>> # app.exec_() # Uncomment to run the Qt event loop
+    """
     def __init__(self, parent=None):
+        """Initializes the UniformExcitationCreationDialog.
+
+        Args:
+            parent (QWidget, optional): The parent widget of this dialog.
+                Defaults to None.
+        """
         super().__init__(parent)
         self.setWindowTitle("Create Uniform Excitation Pattern")
         self.pattern_manager = PatternManager()
@@ -219,7 +348,23 @@ class UniformExcitationCreationDialog(QDialog):
         layout.addLayout(btn_layout)
 
     def update_time_series_list(self):
-        """Update the time series dropdown with current time series"""
+        """Updates the time series dropdown with all available time series.
+
+        This method clears the `time_series_combo` and repopulates it with
+        the current list of `TimeSeries` objects from the `TimeSeriesManager`,
+        displaying their type and tag.
+
+        Example:
+            >>> import sys
+            >>> from qtpy.QtWidgets import QApplication
+            >>> from femora.components.TimeSeries.timeSeriesBase import ConstantTimeSeries
+            >>> app = QApplication(sys.argv)
+            >>> ts = ConstantTimeSeries(factor=1.0)
+            >>> dialog = UniformExcitationCreationDialog()
+            >>> dialog.update_time_series_list()
+            >>> print(dialog.time_series_combo.count() > 0)
+            True
+        """
         self.time_series_combo.clear()
         time_series_dict = TimeSeries.get_all_time_series()
         
@@ -227,13 +372,58 @@ class UniformExcitationCreationDialog(QDialog):
             self.time_series_combo.addItem(f"{ts.series_type} (Tag: {tag})", ts)
 
     def open_time_series_dialog(self):
-        """Open dialog to create a new time series"""
+        """Opens the TimeSeriesManagerTab dialog to create or manage time series.
+
+        Upon `TimeSeriesManagerTab` being accepted, the `time_series_combo`
+        in this dialog is refreshed to reflect any changes.
+
+        Example:
+            >>> import sys
+            >>> from qtpy.QtWidgets import QApplication
+            >>> app = QApplication(sys.argv)
+            >>> dialog = UniformExcitationCreationDialog()
+            >>> # This would typically be triggered by clicking a button.
+            >>> # dialog.open_time_series_dialog()
+            >>> # This would open the TimeSeriesManagerTab
+        """
         from femora.components.TimeSeries.timeSeriesGUI import TimeSeriesManagerTab
         dialog = TimeSeriesManagerTab(self)
         if dialog.exec() == QDialog.Accepted:
             self.update_time_series_list()
 
     def create_pattern(self):
+        """Validates input fields and creates a new Uniform Excitation Pattern.
+
+        Collects the DOF direction, selected time series, initial velocity,
+        and scaling factor from the input fields. If all inputs are valid,
+        a new `UniformExcitation` pattern is created via the `PatternManager`
+        and the dialog is accepted.
+
+        Raises:
+            ValueError: If input values cannot be converted to the expected types.
+            Exception: For any other errors during pattern creation.
+
+        Example:
+            >>> import sys
+            >>> from qtpy.QtWidgets import QApplication
+            >>> from femora.components.TimeSeries.timeSeriesBase import ConstantTimeSeries, TimeSeriesManager
+            >>> app = QApplication(sys.argv)
+            >>> ts_manager = TimeSeriesManager()
+            >>> # Ensure a time series exists for selection
+            >>> ts = ts_manager.create_time_series("ConstantTimeSeries", factor=10.0)
+            >>> dialog = UniformExcitationCreationDialog()
+            >>> dialog.dof_input.setText("1")
+            >>> dialog.update_time_series_list() # Populate combo box
+            >>> # Select the created time series
+            >>> for i in range(dialog.time_series_combo.count()):
+            >>>     if dialog.time_series_combo.itemData(i).tag == ts.tag:
+            >>>         dialog.time_series_combo.setCurrentIndex(i)
+            >>>         break
+            >>> dialog.vel0_input.setText("0.5")
+            >>> dialog.factor_input.setText("1.2")
+            >>> # Assuming inputs are valid, calling create_pattern would attempt creation.
+            >>> # dialog.create_pattern()
+        """
         try:
             # Validate and collect parameters
             dof = int(self.dof_input.text())
@@ -266,7 +456,46 @@ class UniformExcitationCreationDialog(QDialog):
 
 
 class UniformExcitationEditDialog(QDialog):
-    def __init__(self, pattern, parent=None):
+    """Dialog for editing an existing Uniform Excitation Pattern.
+
+    This dialog allows users to modify the properties of an existing uniform
+    excitation pattern, including the DOF direction, associated time series,
+    initial velocity, and a scaling factor. The dialog pre-populates its
+    fields with the current values of the `pattern` object passed during
+    initialization.
+
+    Attributes:
+        pattern (Pattern): The `UniformExcitation` pattern instance being edited.
+        pattern_manager (PatternManager): The singleton manager for Pattern objects.
+        time_series_manager (TimeSeriesManager): The singleton manager for TimeSeries objects.
+        int_validator (IntValidator): Validator for integer input fields.
+        double_validator (DoubleValidator): Validator for float input fields.
+        dof_input (QLineEdit): Input field for the DOF direction.
+        time_series_combo (QComboBox): Dropdown for selecting an existing time series.
+        vel0_input (QLineEdit): Input field for the initial velocity.
+        factor_input (QLineEdit): Input field for the scaling factor.
+
+    Example:
+        >>> import sys
+        >>> from qtpy.QtWidgets import QApplication
+        >>> from femora.components.Pattern.patternBase import PatternManager
+        >>> from femora.components.TimeSeries.timeSeriesBase import ConstantTimeSeries
+        >>> app = QApplication(sys.argv)
+        >>> ts = ConstantTimeSeries(factor=5.0)
+        >>> pm = PatternManager()
+        >>> existing_pattern = pm.create_pattern("UniformExcitation", dof=2, time_series=ts)
+        >>> edit_dialog = UniformExcitationEditDialog(existing_pattern)
+        >>> edit_dialog.show()
+        >>> # app.exec_() # Uncomment to run the Qt event loop
+    """
+    def __init__(self, pattern: Pattern, parent=None):
+        """Initializes the UniformExcitationEditDialog.
+
+        Args:
+            pattern (Pattern): The `UniformExcitation` pattern instance to be edited.
+            parent (QWidget, optional): The parent widget of this dialog.
+                Defaults to None.
+        """
         super().__init__(parent)
         self.pattern = pattern
         self.setWindowTitle(f"Edit Uniform Excitation Pattern (Tag: {pattern.tag})")
@@ -332,7 +561,28 @@ class UniformExcitationEditDialog(QDialog):
         layout.addLayout(btn_layout)
 
     def update_time_series_list(self):
-        """Update the time series dropdown with current time series"""
+        """Updates the time series dropdown with all available time series.
+
+        This method clears the `time_series_combo` and repopulates it with
+        the current list of `TimeSeries` objects from the `TimeSeriesManager`,
+        displaying their type and tag. It also attempts to re-select the
+        currently associated time series if it still exists.
+
+        Example:
+            >>> import sys
+            >>> from qtpy.QtWidgets import QApplication
+            >>> from femora.components.Pattern.patternBase import PatternManager
+            >>> from femora.components.TimeSeries.timeSeriesBase import ConstantTimeSeries
+            >>> app = QApplication(sys.argv)
+            >>> ts_old = ConstantTimeSeries(factor=5.0)
+            >>> ts_new = ConstantTimeSeries(factor=10.0)
+            >>> pm = PatternManager()
+            >>> existing_pattern = pm.create_pattern("UniformExcitation", dof=2, time_series=ts_old)
+            >>> edit_dialog = UniformExcitationEditDialog(existing_pattern)
+            >>> edit_dialog.update_time_series_list()
+            >>> print(edit_dialog.time_series_combo.count() > 0)
+            True
+        """
         current_ts_tag = None
         if self.time_series_combo.currentData():
             current_ts_tag = self.time_series_combo.currentData().tag
@@ -350,13 +600,58 @@ class UniformExcitationEditDialog(QDialog):
             self.time_series_combo.setCurrentIndex(current_index)
 
     def open_time_series_dialog(self):
-        """Open dialog to create a new time series"""
+        """Opens the TimeSeriesManagerTab dialog to create or manage time series.
+
+        Upon `TimeSeriesManagerTab` being accepted, the `time_series_combo`
+        in this dialog is refreshed to reflect any changes.
+
+        Example:
+            >>> import sys
+            >>> from qtpy.QtWidgets import QApplication
+            >>> from femora.components.Pattern.patternBase import PatternManager
+            >>> from femora.components.TimeSeries.timeSeriesBase import ConstantTimeSeries
+            >>> app = QApplication(sys.argv)
+            >>> ts = ConstantTimeSeries(factor=5.0)
+            >>> pm = PatternManager()
+            >>> existing_pattern = pm.create_pattern("UniformExcitation", dof=2, time_series=ts)
+            >>> dialog = UniformExcitationEditDialog(existing_pattern)
+            >>> # This would typically be triggered by clicking a button.
+            >>> # dialog.open_time_series_dialog()
+            >>> # This would open the TimeSeriesManagerTab
+        """
         from femora.components.TimeSeries.timeSeriesGUI import TimeSeriesManagerTab
         dialog = TimeSeriesManagerTab(self)
         if dialog.exec() == QDialog.Accepted:
             self.update_time_series_list()
 
     def save_pattern(self):
+        """Validates input fields and saves changes to the existing Pattern.
+
+        Collects the DOF direction, selected time series, initial velocity,
+        and scaling factor from the input fields. If all inputs are valid,
+        the `pattern` object's values are updated using its `update_values`
+        method, and the dialog is accepted.
+
+        Raises:
+            ValueError: If input values cannot be converted to the expected types.
+            Exception: For any other errors during pattern update.
+
+        Example:
+            >>> import sys
+            >>> from qtpy.QtWidgets import QApplication
+            >>> from femora.components.Pattern.patternBase import PatternManager
+            >>> from femora.components.TimeSeries.timeSeriesBase import ConstantTimeSeries, TimeSeriesManager
+            >>> app = QApplication(sys.argv)
+            >>> ts_manager = TimeSeriesManager()
+            >>> ts = ts_manager.create_time_series("ConstantTimeSeries", factor=10.0)
+            >>> pm = PatternManager()
+            >>> existing_pattern = pm.create_pattern("UniformExcitation", dof=1, time_series=ts)
+            >>> dialog = UniformExcitationEditDialog(existing_pattern)
+            >>> dialog.dof_input.setText("2") # Change DOF
+            >>> # Assuming other inputs are valid, calling save_pattern would attempt update.
+            >>> # dialog.save_pattern()
+            >>> # print(existing_pattern.dof) # Would print 2 if save successful
+        """
         try:
             # Validate and collect parameters
             dof = int(self.dof_input.text())
@@ -388,7 +683,39 @@ class UniformExcitationEditDialog(QDialog):
 
 
 class H5DRMCreationDialog(QDialog):
+    """Dialog for creating a new H5DRM Pattern.
+
+    This dialog allows users to define the properties for a new H5DRM
+    pattern, which typically involves an HDF5-based DRM dataset. It includes
+    options for scaling, coordinate transformation, and origin definition.
+
+    Attributes:
+        pattern_manager (PatternManager): The singleton manager for Pattern objects.
+        double_validator (DoubleValidator): Validator for float input fields.
+        int_validator (IntValidator): Validator for integer input fields.
+        filepath_input (QLineEdit): Input field for the H5DRM dataset file path.
+        factor_input (QLineEdit): Input field for the scaling factor.
+        crd_scale_input (QLineEdit): Input field for coordinate scaling.
+        distance_tolerance_input (QLineEdit): Input field for distance tolerance.
+        do_transform_combo (QComboBox): Dropdown for selecting coordinate transformation option.
+        transform_inputs (list[QLineEdit]): List of 9 QLineEdit widgets for the 3x3 transformation matrix.
+        origin_inputs (list[QLineEdit]): List of 3 QLineEdit widgets for the X, Y, Z origin coordinates.
+
+    Example:
+        >>> import sys
+        >>> from qtpy.QtWidgets import QApplication
+        >>> app = QApplication(sys.argv)
+        >>> create_dialog = H5DRMCreationDialog()
+        >>> create_dialog.show()
+        >>> # app.exec_() # Uncomment to run the Qt event loop
+    """
     def __init__(self, parent=None):
+        """Initializes the H5DRMCreationDialog.
+
+        Args:
+            parent (QWidget, optional): The parent widget of this dialog.
+                Defaults to None.
+        """
         super().__init__(parent)
         self.setWindowTitle("Create H5DRM Pattern")
         self.pattern_manager = PatternManager()
@@ -491,7 +818,20 @@ class H5DRMCreationDialog(QDialog):
         layout.addLayout(btn_layout)
 
     def browse_file(self):
-        """Open file browser to select H5DRM dataset file"""
+        """Opens a file dialog to allow the user to select an H5DRM dataset file.
+
+        The selected file path is then set as the text in the `filepath_input`
+        QLineEdit.
+
+        Example:
+            >>> import sys
+            >>> from qtpy.QtWidgets import QApplication
+            >>> app = QApplication(sys.argv)
+            >>> dialog = H5DRMCreationDialog()
+            >>> # Simulate clicking the browse button (this would open a file dialog)
+            >>> # dialog.browse_file()
+            >>> # After selecting a file, dialog.filepath_input.text() would contain the path.
+        """
         from qtpy.QtWidgets import QFileDialog
         filename, _ = QFileDialog.getOpenFileName(
             self, "Select H5DRM Dataset", "", "H5DRM Files (*.h5drm);;All Files (*)"
@@ -500,6 +840,32 @@ class H5DRMCreationDialog(QDialog):
             self.filepath_input.setText(filename)
 
     def create_pattern(self):
+        """Validates input fields and creates a new H5DRM Pattern.
+
+        Collects the file path, various scaling and tolerance parameters,
+        coordinate transformation settings, and origin from the input fields.
+        If all inputs are valid, a new `H5DRM` pattern is created via the
+        `PatternManager` and the dialog is accepted.
+
+        Raises:
+            ValueError: If input values cannot be converted to the expected types
+                or if a file path is not provided.
+            Exception: For any other errors during pattern creation.
+
+        Example:
+            >>> import sys
+            >>> from qtpy.QtWidgets import QApplication
+            >>> from femora.components.Pattern.patternBase import PatternManager
+            >>> app = QApplication(sys.argv)
+            >>> dialog = H5DRMCreationDialog()
+            >>> # Set dummy values for a test scenario
+            >>> dialog.filepath_input.setText("/path/to/dummy.h5drm")
+            >>> dialog.factor_input.setText("1.0")
+            >>> dialog.crd_scale_input.setText("1.0")
+            >>> dialog.distance_tolerance_input.setText("0.001")
+            >>> dialog.do_transform_combo.setCurrentIndex(0) # No Transformation
+            >>> # dialog.create_pattern() # Would attempt creation
+        """
         try:
             # Validate and collect parameters
             filepath = self.filepath_input.text().strip()
@@ -544,7 +910,46 @@ class H5DRMCreationDialog(QDialog):
 
 
 class H5DRMEditDialog(QDialog):
-    def __init__(self, pattern, parent=None):
+    """Dialog for editing an existing H5DRM Pattern.
+
+    This dialog allows users to modify the properties of an existing H5DRM
+    pattern. It pre-populates its fields with the current values of the
+    `pattern` object passed during initialization, enabling changes to
+    scaling, coordinate transformation, and origin definition.
+
+    Attributes:
+        pattern (Pattern): The `H5DRM` pattern instance being edited.
+        pattern_manager (PatternManager): The singleton manager for Pattern objects.
+        double_validator (DoubleValidator): Validator for float input fields.
+        int_validator (IntValidator): Validator for integer input fields.
+        filepath_input (QLineEdit): Input field for the H5DRM dataset file path.
+        factor_input (QLineEdit): Input field for the scaling factor.
+        crd_scale_input (QLineEdit): Input field for coordinate scaling.
+        distance_tolerance_input (QLineEdit): Input field for distance tolerance.
+        do_transform_combo (QComboBox): Dropdown for selecting coordinate transformation option.
+        transform_inputs (list[QLineEdit]): List of 9 QLineEdit widgets for the 3x3 transformation matrix.
+        origin_inputs (list[QLineEdit]): List of 3 QLineEdit widgets for the X, Y, Z origin coordinates.
+
+    Example:
+        >>> import sys
+        >>> from qtpy.QtWidgets import QApplication
+        >>> from femora.components.Pattern.patternBase import PatternManager
+        >>> app = QApplication(sys.argv)
+        >>> pm = PatternManager()
+        >>> # Create a dummy H5DRM pattern for editing
+        >>> existing_pattern = pm.create_pattern("H5DRM", filepath="test.h5drm", factor=1.0)
+        >>> edit_dialog = H5DRMEditDialog(existing_pattern)
+        >>> edit_dialog.show()
+        >>> # app.exec_() # Uncomment to run the Qt event loop
+    """
+    def __init__(self, pattern: Pattern, parent=None):
+        """Initializes the H5DRMEditDialog.
+
+        Args:
+            pattern (Pattern): The `H5DRM` pattern instance to be edited.
+            parent (QWidget, optional): The parent widget of this dialog.
+                Defaults to None.
+        """
         super().__init__(parent)
         self.pattern = pattern
         self.setWindowTitle(f"Edit H5DRM Pattern (Tag: {pattern.tag})")
@@ -634,7 +1039,23 @@ class H5DRMEditDialog(QDialog):
         layout.addLayout(btn_layout)
 
     def browse_file(self):
-        """Open file browser to select H5DRM dataset file"""
+        """Opens a file dialog to allow the user to select an H5DRM dataset file.
+
+        The selected file path is then set as the text in the `filepath_input`
+        QLineEdit.
+
+        Example:
+            >>> import sys
+            >>> from qtpy.QtWidgets import QApplication
+            >>> from femora.components.Pattern.patternBase import PatternManager
+            >>> app = QApplication(sys.argv)
+            >>> pm = PatternManager()
+            >>> existing_pattern = pm.create_pattern("H5DRM", filepath="test.h5drm", factor=1.0)
+            >>> dialog = H5DRMEditDialog(existing_pattern)
+            >>> # Simulate clicking the browse button (this would open a file dialog)
+            >>> # dialog.browse_file()
+            >>> # After selecting a file, dialog.filepath_input.text() would contain the path.
+        """
         from qtpy.QtWidgets import QFileDialog
         filename, _ = QFileDialog.getOpenFileName(
             self, "Select H5DRM Dataset", "", "H5DRM Files (*.h5drm);;All Files (*)"
@@ -643,6 +1064,31 @@ class H5DRMEditDialog(QDialog):
             self.filepath_input.setText(filename)
 
     def save_pattern(self):
+        """Validates input fields and saves changes to the existing H5DRM Pattern.
+
+        Collects the file path, various scaling and tolerance parameters,
+        coordinate transformation settings, and origin from the input fields.
+        If all inputs are valid, the `pattern` object's values are updated
+        using its `update_values` method, and the dialog is accepted.
+
+        Raises:
+            ValueError: If input values cannot be converted to the expected types
+                or if a file path is not provided.
+            Exception: For any other errors during pattern update.
+
+        Example:
+            >>> import sys
+            >>> from qtpy.QtWidgets import QApplication
+            >>> from femora.components.Pattern.patternBase import PatternManager
+            >>> app = QApplication(sys.argv)
+            >>> pm = PatternManager()
+            >>> existing_pattern = pm.create_pattern("H5DRM", filepath="old_path.h5drm", factor=1.0)
+            >>> dialog = H5DRMEditDialog(existing_pattern)
+            >>> dialog.filepath_input.setText("new_path.h5drm") # Change file path
+            >>> dialog.factor_input.setText("1.5") # Change factor
+            >>> # dialog.save_pattern() # Would attempt update
+            >>> # print(existing_pattern.filepath) # Would print "new_path.h5drm" if save successful
+        """
         try:
             # Validate and collect parameters
             filepath = self.filepath_input.text().strip()
