@@ -198,6 +198,172 @@ class J2CyclicBoundingSurfaceMaterial(Material):
             return ""
 
 
+class LinearElasticGGmaxMaterial(Material):
+    """
+    OpenSees nD material: LinearElasticGGmax (linear elastic with G/Gmax degradation).
+
+    This wrapper exposes the C++ material implemented in OpenSees at
+    `SRC/material/nD/UWmaterials/LinearElasticGGmax.cpp`.
+
+    Command syntax (Tcl):
+    - Predefined curves (curveType = 1..3):
+      nDMaterial LinearElasticGGmax tag G K|nu rho curveType [param1 [param2 [param3]]]
+
+      curveType meanings:
+        1: Hardin–Drnevich, param1 = gamma_ref
+        2: Vucetic–Dobry,   param1 = PI
+        3: Darendeli,       param1 = PI, param2 = p' (kPa), param3 = OCR
+
+    - User curve (curveType = 0):
+      nDMaterial LinearElasticGGmax tag G K|nu rho 0 g1 GG1 g2 GG2 ... gN GGN
+
+      Provide interleaved pairs of (gamma, G/Gmax), strictly increasing gamma.
+
+    Notes:
+    - If the second argument is in [−0.999, 0.5), it is interpreted as Poisson's ratio nu;
+      otherwise it is bulk modulus K.
+    - rho is the mass density.
+    - For Darendeli, the material computes GG using a two-parameter law consistent with
+      the C++ function: GG = 1 / (1 + (gamma/gref)^beta), with gref and beta functions of
+      PI, p', OCR.
+    """
+
+    def __init__(self, user_name: str = "Unnamed", **kwargs):
+        params = self.validate(**kwargs)
+        super().__init__('nDMaterial', 'LinearElasticGGmax', user_name)
+        self.params = params if params else {}
+
+    def to_tcl(self) -> str:
+        """
+        Build the OpenSees Tcl command for this material.
+
+        Returns:
+            str: A single-line Tcl command with trailing comment of user_name.
+        """
+        p = self.params
+        parts = [self.material_type, 'LinearElasticGGmax', str(self.tag)]
+        parts.extend([str(p['G']), str(p['K_or_nu']), str(p['rho']), str(int(p['curveType']))])
+
+        ct = int(p['curveType'])
+        if ct == 0:
+            # Interleaved (gamma, GG) pairs
+            pairs = p.get('pairs', [])
+            # Accept either flat list [g1, GG1, ...] or list of tuples
+            if pairs and isinstance(pairs[0], (list, tuple)):
+                flat = []
+                for g, gg in pairs:
+                    flat.extend([g, gg])
+            else:
+                flat = pairs or []
+            parts.extend(str(x) for x in flat)
+        elif ct == 1:
+            # Hardin–Drnevich: gamma_ref in param1
+            parts.append(str(p.get('param1', 1.0e-4)))
+        elif ct == 2:
+            # Vucetic–Dobry: PI in param1
+            parts.append(str(p.get('param1', 0.0)))
+        elif ct == 3:
+            # Darendeli: PI, p' (kPa), OCR
+            parts.append(str(p.get('param1', 0.0)))
+            parts.append(str(p.get('param2', 100.0)))
+            parts.append(str(p.get('param3', 1.0)))
+
+        return " ".join(parts) + f"; # {self.user_name}"
+
+    @staticmethod
+    def validate(**params) -> Dict[str, Union[float, int, str, None]]:
+        """
+        Validate parameters and coerce to appropriate types.
+
+        Required keys:
+        - G (float): Maximum shear modulus G0 > 0
+        - K_or_nu (float): Either bulk modulus K (K >= 0) or Poisson's ratio nu (−0.999 < nu < 0.5)
+        - rho (float): Mass density >= 0
+        - curveType (int): 0=user curve, 1=Hardin–Drnevich, 2=Vucetic–Dobry, 3=Darendeli
+
+        Optional keys:
+        - param1, param2, param3 (float): curve-specific parameters (see class docstring)
+        - pairs (list): For curveType=0, interleaved [g1,GG1,...] or list of (g,GG) tuples
+
+        Returns:
+        - Dict[str, Union[float, int]]: Clean parameter dict
+        """
+        out: Dict[str, Union[float, int]] = {}
+
+        # G
+        G = params.get('G')
+        if G is None:
+            raise ValueError("LinearElasticGGmax requires 'G'.")
+        G = float(G)
+        if G <= 0.0:
+            raise ValueError("'G' must be positive.")
+        out['G'] = G
+
+        # K_or_nu
+        K_or_nu = params.get('K_or_nu')
+        if K_or_nu is None:
+            raise ValueError("LinearElasticGGmax requires 'K_or_nu'.")
+        K_or_nu = float(K_or_nu)
+        # Accept any float; interpretation is done in C++ (nu range indicates nu)
+        out['K_or_nu'] = K_or_nu
+
+        # rho
+        rho = float(params.get('rho', 0.0))
+        if rho < 0.0:
+            raise ValueError("'rho' must be non-negative.")
+        out['rho'] = rho
+
+        # curveType
+        ct = int(params.get('curveType', 1))
+        if ct not in (0,1,2,3):
+            raise ValueError("'curveType' must be one of {0,1,2,3}.")
+        out['curveType'] = ct
+
+        # curve-specific params
+        if ct == 0:
+            pairs = params.get('pairs', [])
+            # Basic validation: at least 2 pairs
+            if pairs:
+                if isinstance(pairs[0], (list, tuple)):
+                    if len(pairs) < 2:
+                        raise ValueError("User curve requires >= 2 (gamma, GG) pairs.")
+                else:
+                    if len(pairs) < 4 or len(pairs) % 2 != 0:
+                        raise ValueError("User curve requires interleaved [g1,GG1,...] with >= 4 values.")
+            out['pairs'] = pairs
+        elif ct == 1:
+            out['param1'] = float(params.get('param1', 1.0e-4))
+        elif ct == 2:
+            out['param1'] = float(params.get('param1', 0.0))
+        elif ct == 3:
+            out['param1'] = float(params.get('param1', 0.0))  # PI
+            out['param2'] = float(params.get('param2', 100.0)) # p' (kPa)
+            out['param3'] = float(params.get('param3', 1.0))   # OCR
+
+        return out
+
+    @classmethod
+    def get_parameters(cls) -> List[str]:
+        return ['G', 'K_or_nu', 'rho', 'curveType', 'param1', 'param2', 'param3', 'pairs']
+
+    @classmethod
+    def get_description(cls) -> List[str]:
+        return [
+            'Maximum shear modulus G0 (>0)',
+            'Bulk modulus K or Poisson ratio nu (nu if −0.999 < value < 0.5)',
+            'Mass density (>=0)',
+            'Curve type: 0=user, 1=Hardin–Drnevich, 2=Vucetic–Dobry, 3=Darendeli',
+            'param1: gamma_ref (type 1) or PI (type 2,3)',
+            "param2: p' in kPa (type 3)",
+            'param3: OCR (type 3)',
+            'pairs: for curveType=0, interleaved (gamma, G/Gmax) or list of tuples'
+        ]
+
+
+# Register materials with the registry
+MaterialRegistry.register_material_type('nDMaterial', 'LinearElasticGGmax', LinearElasticGGmaxMaterial)
+
+
 class DruckerPragerMaterial(Material):
     def __init__(self, user_name: str = "Unnamed", **kwargs):
         # validate parameters
@@ -593,6 +759,189 @@ MaterialRegistry.register_material_type('uniaxialMaterial', 'Elastic', ElasticUn
 MaterialRegistry.register_material_type('nDMaterial', 'J2CyclicBoundingSurface', J2CyclicBoundingSurfaceMaterial)
 MaterialRegistry.register_material_type('nDMaterial', 'DruckerPrager', DruckerPragerMaterial)
 MaterialRegistry.register_material_type('nDMaterial', 'PressureDependMultiYield', PressureDependMultiYieldMaterial)
+
+
+class PressureIndependMultiYieldMaterial(Material):
+    """
+    OpenSees nD material wrapper for PressureIndependMultiYield.
+
+    This material models pressure-independent materials (e.g., organic soils, clay)
+    under fast (undrained) loading conditions.
+
+    See: PressureIndependMultiYield material (OpenSees Wiki).
+    """
+    def __init__(self, user_name: str = "Unnamed", **kwargs):
+        """
+        Initialize the material with required and optional parameters.
+        
+        Required parameters:
+        - nd: 2 or 3. Number of spatial dimensions (2=plane strain, 3=3D)
+        - rho: Saturated soil mass density
+        - refShearModul (Gr): Reference low-strain shear modulus at refPress
+        - refBulkModul (Br): Reference bulk modulus at refPress
+        - cohesi (c): Apparent cohesion at zero effective confinement
+        - peakShearStra (γmax): Octahedral shear strain at peak strength
+
+        Optional parameters:
+        - frictionAng (Φ): Friction angle at peak strength in degrees (default 0.0). 
+                           If > 0, parameter 'cohesi' is ignored.
+        - refPress (p'r): Reference mean effective confining pressure (default 100.0)
+        - pressDependCoe (d): Pressure dependence coefficient (default 0.0)
+        - noYieldSurf: Number of yield surfaces (default 20, < 40). 
+                       If negative, provide 'pairs'.
+        - pairs: List of (gamma, Gs) pairs if noYieldSurf < 0.
+
+        Raises:
+        - ValueError: If any parameter is invalid.
+        """
+        # validate parameters
+        kwargs = self.validate(**kwargs)
+        super().__init__('nDMaterial', 'PressureIndependMultiYield', user_name)
+        self.params = kwargs if kwargs else {}
+
+    def to_tcl(self):
+        p = self.params
+        parts = [
+            self.material_type, 
+            'PressureIndependMultiYield', 
+            str(self.tag),
+            str(int(p['nd'])),
+            str(p['rho']),
+            str(p['refShearModul']),
+            str(p['refBulkModul']),
+            str(p['cohesi']),
+            str(p['peakShearStra']),
+            str(p['frictionAng']),
+            str(p['refPress']),
+            str(p['pressDependCoe'])
+        ]
+        
+        no_yield = int(p.get('noYieldSurf', 20))
+        parts.append(str(no_yield))
+
+        if no_yield < 0:
+            pairs = p.get('pairs', [])
+            for gamma, gs in pairs:
+                parts.append(str(gamma))
+                parts.append(str(gs))
+        
+        return " ".join(parts) + f"; # {self.user_name}"
+
+    @staticmethod
+    def validate(**params) -> Dict[str, Union[float, int, str, None]]:
+        validated: Dict[str, Union[float, int]] = {}
+        
+        required = ['nd', 'rho', 'refShearModul', 'refBulkModul', 'cohesi', 'peakShearStra']
+        
+        for key in required:
+            value = params.get(key)
+            if value is None:
+                raise ValueError(f"PressureIndependMultiYield requires the '{key}' parameter.")
+            try:
+                if key == 'nd':
+                    value = int(value)
+                else:
+                    value = float(value)
+            except (ValueError, TypeError):
+                raise ValueError(f"Invalid value for '{key}'. It must be numeric.")
+            
+            if key == 'nd' and value not in (2, 3):
+                raise ValueError("'nd' must be 2 or 3.")
+            if key in ['rho', 'refShearModul', 'refBulkModul', 'peakShearStra'] and value <= 0:
+                raise ValueError(f"'{key}' must be positive.")
+            if key == 'cohesi' and value < 0:
+                 raise ValueError("'cohesi' must be non-negative.")
+            
+            validated[key] = value
+
+        # Optional parameters
+        defaults = {
+            'frictionAng': 0.0,
+            'refPress': 100.0,
+            'pressDependCoe': 0.0
+        }
+
+        for key, default in defaults.items():
+            value = params.get(key, default)
+            try:
+                value = float(value)
+            except (ValueError, TypeError):
+                raise ValueError(f"Invalid value for '{key}'. It must be numeric.")
+            
+            if key == 'frictionAng' and not (0 <= value <= 90):
+                 raise ValueError("'frictionAng' must be in [0, 90].")
+            if key == 'refPress' and value <= 0:
+                 raise ValueError("'refPress' must be positive.")
+            if key == 'pressDependCoe' and value < 0:
+                 raise ValueError("'pressDependCoe' must be non-negative.")
+
+            validated[key] = value
+
+        # Yield surfaces
+        no_yield = params.get('noYieldSurf', 20)
+        try:
+            no_yield = int(no_yield)
+        except (ValueError, TypeError):
+             raise ValueError("'noYieldSurf' must be an integer.")
+        
+        if no_yield == 0 or abs(no_yield) >= 40:
+             raise ValueError("'noYieldSurf' must be non-zero and less than 40 in magnitude.")
+        validated['noYieldSurf'] = no_yield
+
+        if no_yield < 0:
+            expected_pairs = abs(no_yield)
+            pairs_param = params.get('pairs')
+            if not pairs_param:
+                 raise ValueError("When 'noYieldSurf' is negative, provide 'pairs'.")
+            
+            pairs_list = []
+            if isinstance(pairs_param, list):
+                if len(pairs_param) == 2 * expected_pairs and all(isinstance(x, (int, float)) for x in pairs_param):
+                     it = iter(pairs_param)
+                     pairs_list = [(float(g), float(gs)) for g, gs in zip(it, it)]
+                else:
+                    try:
+                        pairs_list = [(float(g), float(gs)) for g, gs in pairs_param]
+                    except:
+                         raise ValueError("Invalid 'pairs' format.")
+            else:
+                 raise ValueError("'pairs' must be a list.")
+            
+            if len(pairs_list) != expected_pairs:
+                 raise ValueError(f"Expected {expected_pairs} pairs, got {len(pairs_list)}.")
+            
+            for g, gs in pairs_list:
+                if g <= 0 or not (0 < gs <= 1.0):
+                     raise ValueError("Invalid gamma (>0) or Gs (0, 1] in pairs.")
+            
+            validated['pairs'] = pairs_list
+
+        return validated
+
+    @classmethod
+    def get_parameters(cls) -> List[str]:
+        return [
+            'nd', 'rho', 'refShearModul', 'refBulkModul', 'cohesi', 'peakShearStra',
+            'frictionAng', 'refPress', 'pressDependCoe', 'noYieldSurf', 'pairs'
+        ]
+
+    @classmethod
+    def get_description(cls) -> List[str]:
+        return [
+            'Number of dimensions (2 or 3)',
+            'Saturated soil mass density',
+            'Reference low-strain shear modulus',
+            'Reference bulk modulus',
+            'Apparent cohesion at zero effective confinement',
+            'Octahedral shear strain at peak strength',
+            'Friction angle at peak strength (deg)',
+            'Reference mean effective confining pressure',
+            'Pressure dependence coefficient',
+            'Number of yield surfaces (<40). Negative for custom backbone.',
+            'Pairs of (gamma, Gs) for custom backbone'
+        ]
+
+MaterialRegistry.register_material_type('nDMaterial', 'PressureIndependMultiYield', PressureIndependMultiYieldMaterial)
 
 
 class Steel01Material(Material):

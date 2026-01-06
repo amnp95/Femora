@@ -191,6 +191,27 @@ class MeshMaker:
 
 '''
 
+    def _get_tcl_file_header(self, required_np: int) -> str:
+        header = f"""
+#   ╔══════════════════════════════════════════════════════════╗
+#   ║                                                          ║
+#   ║   ███████╗███████╗███╗   ███╗ ██████╗ ██████╗  █████╗    ║
+#   ║   ██╔════╝██╔════╝████╗ ████║██╔═══██╗██╔══██╗██╔══██╗   ║
+#   ║   █████╗  █████╗  ██╔████╔██║██║   ██║██████╔╝███████║   ║
+#   ║   ██╔══╝  ██╔══╝  ██║╚██╔╝██║██║   ██║██╔══██╗██╔══██║   ║
+#   ║   ██║     ███████╗██║ ╚═╝ ██║╚██████╔╝██║  ██║██║  ██║   ║
+#   ║   ╚═╝     ╚══════╝╚═╝     ╚═╝ ╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═╝   ║
+#   ║══════════════════════════════════════════════════════════║
+#   ║            Soil-Structure Interaction Analysis           ║
+#   ║             Femora Tcl Export                            ║
+#   ║             Developers: Amin Pakzad, Pedro Arduino       ║
+#   ║             License: MIT                                 ║
+#   ║             Required MPI processes: {required_np:<17}    ║
+#   ║══════════════════════════════════════════════════════════║
+#   ╚══════════════════════════════════════════════════════════╝
+"""
+        return header
+
     @classmethod
     def get_instance(cls, **kwargs):
         """
@@ -281,13 +302,35 @@ class MeshMaker:
             # Write to file
             with open(filename, 'w') as f:
 
+                # Determine required MPI process count for this model export
+                required_np = 1
+                try:
+                    core_ids = np.asarray(self.assembler.AssembeledMesh.cell_data["Core"])
+                    if core_ids.size:
+                        required_np = int(np.max(np.unique(core_ids))) + 1
+                except Exception:
+                    required_np = 1
+
+                # Write a banner/header at the very beginning of the file
+                f.write(self._get_tcl_file_header(required_np))
+
                 # Inform interfaces that we are about to export
                 EventBus.emit(FemoraEvent.PRE_EXPORT, file_handle=f, assembled_mesh=self.assembler.AssembeledMesh)
 
                 f.write("wipe\n")
-                f.write("model BasicBuilder -ndm 3\n")
                 f.write("set pid [getPID]\n")
                 f.write("set np [getNP]\n")
+
+                # Validate MPI process count early
+                f.write(f"set FEMORA_REQUIRED_NP {required_np}\n")
+                f.write("if {$np != $FEMORA_REQUIRED_NP} {\n")
+                f.write("\tif {$pid == 0} {\n")
+                f.write("\t\tputs \"ERROR: This model requires $FEMORA_REQUIRED_NP MPI processes, but OpenSees is running with $np.\"\n")
+                f.write("\t\tputs \"Please re-run with: mpiexec/mpirun -np $FEMORA_REQUIRED_NP OpenSeesMP <script.tcl>\"\n")
+                f.write("\t}\n")
+                f.write("\texit 2\n")
+                f.write("}\n")
+                f.write("model BasicBuilder -ndm 3\n")
 
                 if self._results_folder != "":
                     f.write("if {$pid == 0} {" + f"file mkdir {self._results_folder}" + "} \n")
