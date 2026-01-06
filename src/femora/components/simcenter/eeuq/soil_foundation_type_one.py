@@ -1,23 +1,124 @@
-
-def soil_foundation_type_one(model_filename="model.tcl", 
-                             structure_info=None, 
-                             soil_info=None, 
-                             foundation_info=None, 
+def soil_foundation_type_one(model_filename="model.tcl",
+                             structure_info=None,
+                             soil_info=None,
+                             foundation_info=None,
                              pile_info=None,
                              info_file=None,
                              EEUQ=False,
                              plotting=False):
-    # This model creates a soil profile and foundation for a custom building,
-    # designed for use in the EE-UQ application.
-    # Developed by Amin Pakzad, University of Washington.
-    # Users can define their own building and soil parameters within this framework.
+    """Generates a Femora model for a soil-foundation-structure interaction.
+
+    This function creates a detailed soil profile, foundation, and pile
+    elements, optionally integrating a custom building structure. It is
+    designed for use in the EE-UQ application, allowing users to define
+    their own building and soil parameters within this framework.
+
+    Assumptions and Simplifications:
+        1. All materials for the soil profile are linear elastic.
+        2. The soil profile is layered horizontally.
+        3. Custom building bays should be oriented in the X and Y directions,
+           with height in the Z direction.
+
+    Args:
+        model_filename: The name of the TCL file to export the Femora model to.
+            Defaults to "model.tcl".
+        structure_info: A dictionary containing information about the building
+            structure.
+        soil_info: A dictionary containing information about the soil profile
+            and its properties.
+        foundation_info: A dictionary containing information about the foundation
+            geometry and material properties.
+        pile_info: A dictionary containing information about the piles,
+            including geometry, material, and interface properties.
+        info_file: Path to a JSON file containing all `structure_info`,
+            `soil_info`, `foundation_info`, and `pile_info`. If provided,
+            it overrides individual info dictionaries.
+        EEUQ: A boolean flag indicating if the model is being generated
+            for the EE-UQ application. Defaults to False.
+        plotting: If True, returns the generated pile, foundation, and
+            soil meshes for visualization. Defaults to False.
+
+    Returns:
+        int or tuple[pyvista.PolyData, pyvista.PolyData, pyvista.PolyData]:
+            If `plotting` is True, returns a tuple containing PyVista PolyData
+            objects for the pile mesh, foundation mesh, and soil mesh.
+            Otherwise, returns the number of cores required to run the model.
+
+    Raises:
+        SystemExit: If input parameters are invalid or an error occurs
+            during model generation.
+
+    Example:
+        >>> import femora as fm
+        >>> # Assuming 'soil_foundation_type_one' is in the current scope
+        >>> # from your_module import soil_foundation_type_one
+
+        >>> # Define example input dictionaries (simplified for illustration)
+        >>> structure_info_example = {
+        ...     "num_partitions": 1,
+        ...     "x_min": 0., "y_min": 0., "z_min": 0.,
+        ...     "x_max": 10., "y_max": 10., "z_max": 5.,
+        ...     "columns_base": [{"tag": 101, "x": 0., "y": 0., "z": 0.}],
+        ...     "column_embedment_depth": 0.3,
+        ...     "model_file": "path/to/structure.tcl", # Placeholder path
+        ...     "column_section_props": {"E": 200e9, "A": 1.0, "Iy": 1e-4, "Iz": 1e-4, "G": 79.3e9, "J": 2e-4}
+        ... }
+        >>> soil_info_example = {
+        ...     "x_min": -15., "x_max": 25., "y_min": -15., "y_max": 25.,
+        ...     "nx": 10, "ny": 10,
+        ...     "gravity_z": -9.81, "num_partitions": 2,
+        ...     "boundary_conditions": "periodic",
+        ...     "soil_profile": [
+        ...         {"z_bot": -10, "z_top": -5, "nz": 5, "material": "Elastic", "mat_props": [30e6, 0.3, 18], "damping": "No-Damping"},
+        ...         {"z_bot": -5, "z_top": 0, "nz": 5, "material": "Elastic", "mat_props": [50e6, 0.3, 19], "damping": "No-Damping"}
+        ...     ]
+        ... }
+        >>> foundation_info_example = {
+        ...     "gravity_z": -9.81, "embedded": True,
+        ...     "dx": 1.0, "dy": 1.0, "dz": 1.0,
+        ...     "num_partitions": 1,
+        ...     "foundation_profile": [
+        ...         {"x_min": -1, "x_max": 11, "y_min": -1, "y_max": 11, "z_top": 0, "z_bot": -1, "material": "Elastic", "mat_props": [30e6, 0.3, 2400]}
+        ...     ]
+        ... }
+        >>> pile_info_example = {
+        ...     "pile_profile": [
+        ...         {"x_top": -0.5, "y_top": -0.5, "z_top": 0, "x_bot": -0.5, "y_bot": -0.5, "z_bot": -7, "nz": 10, "r": 0.2, "section": "No-Section", "material": "Elastic", "mat_props": [30e6, 2, 3, 3, 3e6, 6], "transformation": ["Linear", 0.0, 1.0, 0.0]}
+        ...     ],
+        ...     "pile_interface": {"num_points_on_perimeter": 8, "num_points_along_length": 3, "penalty_parameter": 1.0e12}
+        ... }
+
+        >>> # The actual function call would require a complete Femora/OpenSees
+        >>> # environment and potentially external TCL structure files.
+        >>> # This example only demonstrates setup.
+
+        >>> # # Example of generating model and getting required cores:
+        >>> # num_cores_needed = soil_foundation_type_one(
+        >>> #    model_filename="my_sfs_model.tcl",
+        >>> #    structure_info=structure_info_example,
+        >>> #    soil_info=soil_info_example,
+        >>> #    foundation_info=foundation_info_example,
+        >>> #    pile_info=pile_info_example,
+        >>> #    plotting=False
+        >>> # )
+        >>> # print(f"Model generation initiated (requires Femora setup).")
+        >>> # print(f"This specific configuration would typically require {num_cores_needed} cores.")
+
+        >>> # # Example with plotting (requires pyvista and femora setup):
+        >>> # # import pyvista as pv # Needed to handle returned PyVista objects
+        >>> # pile_mesh, foundation_mesh, soil_mesh = soil_foundation_type_one(
+        >>> #    model_filename="my_sfs_model_plot.tcl",
+        >>> #    structure_info=structure_info_example,
+        >>> #    soil_info=soil_info_example,
+        >>> #    foundation_info=foundation_info_example,
+        >>> #    pile_info=pile_info_example,
+        >>> #    plotting=True
+        >>> # )
+        >>> # if pile_mesh and foundation_mesh and soil_mesh:
+        >>> #     print("Meshes generated for plotting (requires Femora/PyVista setup).")
+    """
 
     # ==========================================================================
-    # Assumptions and Simplifications :
-    #   1 - all the materials for the soil profile are linear elastic
-    #   2 - the soil profile is layerd horizontally
-    #   3 - the custom building bays should be in x and y direction and the height should be in z direction
-    # ========================================================================
     # input parameters
     if info_file is not None:
         import json
@@ -52,7 +153,7 @@ def soil_foundation_type_one(model_filename="model.tcl",
 
     # for Ealstic material the properties are :
     #   1 - Elastic Modulus (E)
-    #   2 - Poisson Ratio (nu)  
+    #   2 - Poisson Ratio (nu)
     #   3 - Density (rho)
 
     # future work :
@@ -129,13 +230,13 @@ def soil_foundation_type_one(model_filename="model.tcl",
     # ============================================================================
     # import libraries
     # ============================================================================
-    import femora as fm 
+    import femora as fm
     import os
     import sys
     import numpy as np
     import pyvista as pv
     import meshlib.mrmeshpy as mr
-    
+
     fm.set_results_folder("Results")
 
     # ==========================================================================
@@ -211,7 +312,7 @@ def soil_foundation_type_one(model_filename="model.tcl",
         if layer["material"] not in soil_supported_materials:
             print("Error: material " + layer["material"] + " is not supported for soil layer index : " + str(layer_index+1))
             sys.exit(1)
-        
+
         # check material properties
         if layer["material"] == "Elastic":
             length_mat_props = 3
@@ -221,9 +322,9 @@ def soil_foundation_type_one(model_filename="model.tcl",
             E   = layer["mat_props"][0]
             nu  = layer["mat_props"][1]
             rho = layer["mat_props"][2]
-            try: 
+            try:
                 assert E > 0 and nu >= 0 and nu < 0.5 and rho > 0
-            except: 
+            except:
                 print("Error: material properties are not valid for soil layer index : " + str(layer_index+1))
                 sys.exit(1)
         else:
@@ -243,7 +344,7 @@ def soil_foundation_type_one(model_filename="model.tcl",
             xi_s = layer["damping_props"][0]
             f1   = layer["damping_props"][1]
             f2   = layer["damping_props"][2]
-            try: 
+            try:
                 assert xi_s >= 0 and xi_s < 1 and f1 > 0 and f2 > f1
             except:
                 print("Error: damping properties are not valid for soil layer index : " + str(layer_index+1))
@@ -253,7 +354,7 @@ def soil_foundation_type_one(model_filename="model.tcl",
         else:
             print("Error: damping " + layer["damping"] + " is not implemented yet for soil layer index : " + str(layer_index+1))
             sys.exit(1)
-        
+
 
 
     # find the min and max z of the soil profile
@@ -288,7 +389,7 @@ def soil_foundation_type_one(model_filename="model.tcl",
         if pile["z_bot"] > Z_MAX:
             print("Error: pile z_bot is greater than soil profile z_max for pile index : " + str(pile_index+1))
             sys.exit(1)
-        
+
         # check pile location
         # check pile location within soil bounds for both top and bottom points
         x_min = soil_info["x_min"]
@@ -325,9 +426,9 @@ def soil_foundation_type_one(model_filename="model.tcl",
             Iz  = pile["mat_props"][3]
             G   = pile["mat_props"][4]
             J   = pile["mat_props"][5]
-            try: 
+            try:
                 assert E > 0 and A > 0 and Iy > 0 and Iz > 0 and G > 0 and J > 0
-            except: 
+            except:
                 print("Error: material properties are not valid for pile index : " + str(pile_index+1))
                 sys.exit(1)
         else:
@@ -342,18 +443,18 @@ def soil_foundation_type_one(model_filename="model.tcl",
         if len(pile_transformation) != 4:
             print("Error: transformation is not valid for pile index : " + str(pile_index+1))
             sys.exit(1)
-        
+
         if pile_transformation[0] not in ["Linear", "linear", "PDelta", "pdelta", "LINEAR", "PDELTA"]:
             print("Error: transformation type is not supported for pile index : " + str(pile_index+1))
             print("Supported transformation types are: Linear, PDelta")
             sys.exit(1)
-        
+
         if not isinstance(pile_transformation[1], (int, float)) \
         or not isinstance(pile_transformation[2], (int, float)) \
         or not isinstance(pile_transformation[3], (int, float)):
             print("Error: transformation direction is not valid for pile index : " + str(pile_index+1))
             sys.exit(1)
-        
+
         transformation_vector = np.array([pile_transformation[1], pile_transformation[2], pile_transformation[3]])
         pile_direction = np.array([pile["x_top"] - pile["x_bot"], pile["y_top"] - pile["y_bot"], pile["z_top"] - pile["z_bot"]])
 
@@ -424,10 +525,6 @@ def soil_foundation_type_one(model_filename="model.tcl",
             sys.exit(1)
 
 
-        
-
-                
-            
 
 
 
@@ -446,7 +543,7 @@ def soil_foundation_type_one(model_filename="model.tcl",
     elif len(foundation_info["foundation_profile"]) == 1:
         x_min = foundation_info["foundation_profile"][0]["x_min"]
         x_max = foundation_info["foundation_profile"][0]["x_max"]
-        y_min = foundation_info["foundation_profile"][0]["y_min"]   
+        y_min = foundation_info["foundation_profile"][0]["y_min"]
         y_max = foundation_info["foundation_profile"][0]["y_max"]
         z_top = foundation_info["foundation_profile"][0]["z_top"]
         z_bot = foundation_info["foundation_profile"][0]["z_bot"]
@@ -478,7 +575,7 @@ def soil_foundation_type_one(model_filename="model.tcl",
             f_z_top = foundation["z_top"] + tolerance * ran_num
             f_z_bot = foundation["z_bot"] - tolerance * ran_num
 
-            
+
             # check if the foundation dimensions are valid
             if f_x_min >= f_x_max or f_y_min >= f_y_max or f_z_top <= f_z_bot:
                 print("Error: foundation x_min is greater than x_max or y_min is greater than y_max or z_top is less than z_bot for foundation index : " + str(foundation_index+1))
@@ -487,7 +584,7 @@ def soil_foundation_type_one(model_filename="model.tcl",
             if foundation["material"] not in foundation_supported_materials:
                 print("Error: material " + foundation["material"] + " is not supported for foundation index : " + str(foundation_index+1))
                 sys.exit(1)
-            
+
 
             # check material properties
             if foundation["material"] == "Elastic":
@@ -498,9 +595,9 @@ def soil_foundation_type_one(model_filename="model.tcl",
                 E   = foundation["mat_props"][0]
                 nu  = foundation["mat_props"][1]
                 rho = foundation["mat_props"][2]
-                try: 
+                try:
                     assert E > 0 and nu >= 0 and nu < 0.5 and rho > 0
-                except: 
+                except:
                     print("Error: material properties are not valid for foundation index : " + str(foundation_index+1))
                     sys.exit(1)
             else:
@@ -521,7 +618,7 @@ def soil_foundation_type_one(model_filename="model.tcl",
                 xi_s = foundation["damping_props"][0]
                 f1   = foundation["damping_props"][1]
                 f2   = foundation["damping_props"][2]
-                try: 
+                try:
                     assert xi_s >= 0 and xi_s < 1 and f1 > 0 and f2 > f1
                 except:
                     print("Error: damping properties are not valid for foundation index : " + str(foundation_index+1))
@@ -549,7 +646,7 @@ def soil_foundation_type_one(model_filename="model.tcl",
                 if not foundation_mesh.valid():
                     print("Error: Boolean union operation failed for foundation index : " + str(foundation_index+1))
                     sys.exit(1)
-                foundation_mesh = foundation_mesh.mesh    
+                foundation_mesh = foundation_mesh.mesh
 
         # now convert the meshlib mesh to pyvista mesh
         # vertices
@@ -569,20 +666,20 @@ def soil_foundation_type_one(model_filename="model.tcl",
         mesh = pv.PolyData(verts, faces)
 
 
-        # voxelize the mesh to 
+        # voxelize the mesh to
         # mesh.voxelize() is deprecated in pyvista since version 0.46.0: The `voxelize` filter has been moved to `DataSetFilters`.
         if float(pv.__version__[0:4]) < 0.46:
-            mesh = pv.voxelize(mesh, density=(foundation_info["dx"], 
-                                            foundation_info["dy"], 
+            mesh = pv.voxelize(mesh, density=(foundation_info["dx"],
+                                            foundation_info["dy"],
                                             foundation_info["dz"]))
         else:
-            mesh = pv.DataSetFilters.voxelize(mesh, 
-                                            spacing=(foundation_info["dx"], 
-                                                    foundation_info["dy"], 
+            mesh = pv.DataSetFilters.voxelize(mesh,
+                                            spacing=(foundation_info["dx"],
+                                                    foundation_info["dy"],
                                                     foundation_info["dz"]))
-            # mesh = pv.DataSetFilters.voxelize_rectilinear(mesh, 
-            #                                   spacing=(foundation_info["dx"], 
-            #                                            foundation_info["dy"], 
+            # mesh = pv.DataSetFilters.voxelize_rectilinear(mesh,
+            #                                   spacing=(foundation_info["dx"],
+            #                                            foundation_info["dy"],
             #                                            foundation_info["dz"]))
             # mesh = mesh.cast_to_unstructured_grid()
 
@@ -635,10 +732,10 @@ def soil_foundation_type_one(model_filename="model.tcl",
         block.cell_data["foundation_index"] = np.full(block.n_cells, -1, dtype=int)
         for foundation_index, foundation in enumerate(foundation_info["foundation_profile"]):
             f_x_min = foundation["x_min"]
-            f_x_max = foundation["x_max"] 
-            f_y_min = foundation["y_min"] 
-            f_y_max = foundation["y_max"] 
-            f_z_top = foundation["z_top"]  
+            f_x_max = foundation["x_max"]
+            f_y_min = foundation["y_min"]
+            f_y_max = foundation["y_max"]
+            f_z_top = foundation["z_top"]
             f_z_bot = foundation["z_bot"]
 
             # find the cells that are within the foundation bounds
@@ -653,13 +750,13 @@ def soil_foundation_type_one(model_filename="model.tcl",
             in_y = np.logical_and(block_points[:,1] >= f_y_min, block_points[:,1] <= f_y_max)
             in_z = np.logical_and(block_points[:,2] >= f_z_bot, block_points[:,2] <= f_z_top)
             in_foundation = np.logical_and(np.logical_and(in_x, in_y), in_z)
-            in_foundation = block.extract_points(in_foundation, 
-                                                adjacent_cells=True, 
+            in_foundation = block.extract_points(in_foundation,
+                                                adjacent_cells=True,
                                                 include_cells=True)
             if in_foundation.n_cells < 1:
                 continue
             in_foundation = in_foundation.cell_data["vtkOriginalCellIds"]
-            
+
             # assign the foundation index to the cells that are within the foundation bounds
             block.cell_data["foundation_index"][in_foundation] = foundation_index
 
@@ -685,7 +782,7 @@ def soil_foundation_type_one(model_filename="model.tcl",
                 tolerance=pile["r"]
             )
             if len(ind) > 0:
-                # debug ploting 
+                # debug ploting
                 # pl = pv.Plotter()
                 # line = pv.Line(pointa=[pile["x_top"], pile["y_top"], pile["z_top"]],
                 #                pointb=[pile["x_bot"], pile["y_bot"], pile["z_bot"]],
@@ -696,7 +793,7 @@ def soil_foundation_type_one(model_filename="model.tcl",
                 # pl.show()
                 foundation_has_pile = True
                 break
-        
+
         if not foundation_has_pile:
             print("Error: foundation index " + str(foundation_index+1) + " does not have any pile to support it.")
             print("Please add at least one pile that intersects with the foundation.")
@@ -756,7 +853,7 @@ def soil_foundation_type_one(model_filename="model.tcl",
         z_top = layer["z_top"]
 
         nx = soil_info["nx"]
-        ny = soil_info["ny"]    
+        ny = soil_info["ny"]
         nz = layer["nz"]
 
         # Check if the layer dimensions are valid
@@ -771,7 +868,7 @@ def soil_foundation_type_one(model_filename="model.tcl",
         grid = pv.StructuredGrid(X, Y, Z).cast_to_unstructured_grid()
         grid.cell_data["layer_index"] = np.full(grid.n_cells, layer_index, dtype=int)
         soil_mesh.append(grid)
-        
+
 
     soil_mesh = soil_mesh.combine(merge_points=True, tolerance=1e-3,)
 
@@ -785,7 +882,7 @@ def soil_foundation_type_one(model_filename="model.tcl",
         x_max = foundation_info["x_max"] - tolerance
         x_min = foundation_info["x_min"] + tolerance
         y_max = foundation_info["y_max"] - tolerance
-        y_min = foundation_info["y_min"] + tolerance 
+        y_min = foundation_info["y_min"] + tolerance
         z_max = foundation_info["z_max"] + tolerance
         z_min = foundation_info["z_min"] - tolerance
         points = soil_mesh.points
@@ -793,12 +890,12 @@ def soil_foundation_type_one(model_filename="model.tcl",
         # mask inside the foundation bounds
         mask = np.logical_and.reduce((
             points[:,0] >= x_min, points[:,0] <= x_max,
-            points[:,1] >= y_min, points[:,1] <= y_max, 
+            points[:,1] >= y_min, points[:,1] <= y_max,
             points[:,2] >= z_min, points[:,2] <= z_max
         ))
-        cells = soil_mesh.extract_points(mask, 
+        cells = soil_mesh.extract_points(mask,
                                             adjacent_cells=True,
-                                            include_cells=True  
+                                            include_cells=True
                                             ).cell_data["vtkOriginalCellIds"]
         soil_mesh = soil_mesh.extract_cells(cells, invert=True)
     else:
@@ -833,7 +930,7 @@ def soil_foundation_type_one(model_filename="model.tcl",
             print("Error: pile index " + str(pile_index+1) + " does not intersect with the soil mesh.")
             print("Please check the pile coordinates and soil profile bounds.")
             sys.exit(1)
-        
+
 
 
     # ============================================================================
@@ -866,15 +963,15 @@ def soil_foundation_type_one(model_filename="model.tcl",
         else:
             print("Error: material " + material + " is not implemented yet for soil layer index : " + str(layer_index+1))
             sys.exit(1)
-        
+
 
         # create the element
-        elem = fm.element.brick.std(ndof=3, 
+        elem = fm.element.brick.std(ndof=3,
                                     material=mat,
                                     b1=soil_info["gravity_x"]*rho,
                                     b2=soil_info["gravity_y"]*rho,
                                     b3=soil_info["gravity_z"]*rho)
-        
+
         damping = layer["damping"]
         damping_props = layer["damping_props"]
         if damping == "No-Damping":
@@ -915,9 +1012,9 @@ def soil_foundation_type_one(model_filename="model.tcl",
         else:
             print("Error: material " + material + " is not implemented yet for foundation index : " + str(foundation_index+1))
             sys.exit(1)
-        
+
         # create the element
-        elem = fm.element.brick.std(ndof=3, 
+        elem = fm.element.brick.std(ndof=3,
                                     material=mat,
                                     b1=foundation_info["gravity_x"]*rho,
                                     b2=foundation_info["gravity_y"]*rho,
@@ -958,7 +1055,7 @@ def soil_foundation_type_one(model_filename="model.tcl",
 
         if nz >=1 and nz < 3:
             print("Warning: Number of elements in Z direction is less than 3 for pile index : " + str(pile_index+1))
-        
+
 
         # create the section
         section_type = pile["section"]
@@ -986,9 +1083,9 @@ def soil_foundation_type_one(model_filename="model.tcl",
             Iz  = mat_props[3]
             G   = mat_props[4]
             J   = mat_props[5]
-            try: 
+            try:
                 assert E > 0 and A > 0 and Iy > 0 and Iz > 0 and G > 0 and J > 0
-            except: 
+            except:
                 print("Error: material properties are not valid for pile index : " + str(pile_index+1))
                 sys.exit(1)
             pile_section = fm.section.elastic(
@@ -1014,7 +1111,7 @@ def soil_foundation_type_one(model_filename="model.tcl",
         number_of_lines = nz,
         merge_points = True,
         )
-        pile_sections.append("Pile_" + str(pile_index+1))  
+        pile_sections.append("Pile_" + str(pile_index+1))
 
 
     # interface elements between piles and soil
@@ -1053,7 +1150,7 @@ def soil_foundation_type_one(model_filename="model.tcl",
                     vecxz_x=transformation[1],
                     vecxz_y=transformation[2],
                     vecxz_z=transformation[3],
-                    description="ColumnBaseTransformation_" + str(col_index+1)  
+                    description="ColumnBaseTransformation_" + str(col_index+1)
                 )
         E  = foundation_info["column_section_props"]["E"]
         A  = foundation_info["column_section_props"]["A"]
@@ -1098,7 +1195,7 @@ def soil_foundation_type_one(model_filename="model.tcl",
         fm.interface.beam_solid_interface(
             name = "BaseColumn-Solid_Interface_" + str(col_index+1),
             beam_part = "BaseColumn_" + str(col_index+1),
-            solid_parts = None,  # No solid part specified  
+            solid_parts = None,  # No solid part specified
             radius = radius,  # Interface radius
             n_peri = n_p,
             n_long = n_l,
@@ -1108,18 +1205,18 @@ def soil_foundation_type_one(model_filename="model.tcl",
             write_interface = True,  # Write interface file
         )
 
-    # ============================================================================    
+    # ============================================================================
     # Assembling the model
     # ============================================================================
     foundation_pile_sections = pile_sections + foundation_sections + base_column_sections
-    fm.assembler.create_section(foundation_pile_sections, 
+    fm.assembler.create_section(foundation_pile_sections,
                                 num_partitions=foundation_info["num_partitions"],
                                 partition_algorithm="kd-tree",
                                 merging_points=True,
                                 tolerance=1e-3,
                                 mass_merging="sum")
 
-    fm.assembler.create_section(soil_sections, 
+    fm.assembler.create_section(soil_sections,
                                 num_partitions=soil_info["num_partitions"],
                                 partition_algorithm="kd-tree",
                                 merging_points=True,
@@ -1147,7 +1244,7 @@ def soil_foundation_type_one(model_filename="model.tcl",
     # boundary conditions
     # ============================================================================
     # find Z_min and Z_max from the soil profile by comparing all the layers
-    if soil_info["boundary_conditions"] == "periodic": 
+    if soil_info["boundary_conditions"] == "periodic":
         z_min = np.inf
         z_max = -np.inf
         for layer in soil_info["soil_profile"]:
@@ -1158,7 +1255,7 @@ def soil_foundation_type_one(model_filename="model.tcl",
 
         z_min = z_min + 5e-2  # adding a small tolerance
         fm.constraint.mp.create_laminar_boundary(bounds=(z_min, z_max),
-                                                dofs=[1,2,3], 
+                                                dofs=[1,2,3],
                                                 direction=3)
         fm.constraint.sp.fixMacroZmin(dofs=[1,1,1],
                                     tol=1e-3)
@@ -1247,7 +1344,7 @@ setTime 0.0
 """)
 
 
-    # defind a tcl action that will be used to create the conncetions between the piles 
+    # defind a tcl action that will be used to create the conncetions between the piles
     # and the foundation after the gravity analysis
 
     # TODO: implement the tcl action to create the connections between the piles and the foundation
@@ -1261,7 +1358,7 @@ proc Femora_getNodeCoordFrom {structureCores embeddedCore nTag secTag eleTag enT
                 eval "equalDOF $nTag $enTag 1 2 3 4 5 6"
 				puts "Created element $eleTag $enTag $nTag $secTag in pid $::pid"
 				return
-			} 
+			}
 		}
 
 
@@ -1361,18 +1458,18 @@ proc Femora_getNodeCoordFrom {structureCores embeddedCore nTag secTag eleTag enT
         # tcl_command += "}\n"
         # tcl_command += "barrier\n\n"
 
-        
+
     connection = fm.actions.tcl(tcl_command)
 
 
 
     # ============================================================================
-    # strucutre tcl 
+    # strucutre tcl
     # ============================================================================
     structure_file = structure_info.get("model_file", None)
     if EEUQ:
         print(os.getcwd())
-        structure_file = os.path.basename(structure_file) 
+        structure_file = os.path.basename(structure_file)
     structure_numpartitions = structure_info.get("num_partitions")
     if structure_file is not None:
         try:
@@ -1383,7 +1480,7 @@ proc Femora_getNodeCoordFrom {structureCores embeddedCore nTag secTag eleTag enT
             structure_tcl += structure_data
             structure_tcl += "\n}\n"
             structure_tcl_action = fm.actions.tcl(structure_tcl)
-            del structure_data 
+            del structure_data
             del structure_tcl
         except Exception as e:
             print(f"Error reading structure file {structure_file}: {e}")
@@ -1391,16 +1488,16 @@ proc Femora_getNodeCoordFrom {structureCores embeddedCore nTag secTag eleTag enT
     else:
         print("Error: structure model file is not provided.")
         sys.exit(1)
-    
+
 
     # ============================================================================
     # recorder
     recorder = fm.recorder.create_recorder("vtkhdf", file_base_name="result.vtkhdf",
-                                            resp_types=["stress3D6", "disp"], 
+                                            resp_types=["stress3D6", "disp"],
                                             delta_t=0.001)
 
     # ============================================================================
-    # 
+    #
     tmptcl = fm.actions.tcl("""
 # =======================================================================================
 # Uniform Excitation (Northridge record) ======================================
@@ -1443,7 +1540,7 @@ while {[getTime] < $endTime} {
     set ok [analyze 1 $dt]
 }
 """)
-    
+
     # =============================================================================
     # process
     # =============================================================================
@@ -1466,8 +1563,8 @@ while {[getTime] < $endTime} {
     # =============================================================================
     # model_filename = "tmpmodel.tcl"
     import tqdm
-    bar = tqdm.tqdm(total=100, 
-                    desc="Exporting model to tcl", 
+    bar = tqdm.tqdm(total=100,
+                    desc="Exporting model to tcl",
                     bar_format="{desc}: {percentage:3.0f}%|{bar}| {n_fmt}/{total_fmt} [" "{elapsed}<{remaining}] {postfix}",)
 
     def progress_callback(progress, message):
@@ -1480,7 +1577,6 @@ while {[getTime] < $endTime} {
             print("Model exported to " + model_filename)
 
 
-        
 
 
     if fm.assembler.AssembeledMesh is None:
@@ -1492,8 +1588,8 @@ while {[getTime] < $endTime} {
     self = fm._instance
     with open(model_filename, 'w') as f:
         # Inform interfaces that we are about to export
-        EventBus.emit(FemoraEvent.PRE_EXPORT, 
-                    file_handle=f, 
+        EventBus.emit(FemoraEvent.PRE_EXPORT,
+                    file_handle=f,
                     assembled_mesh=fm.assembler.AssembeledMesh)
 
         # f.write("wipe\n")
@@ -1571,29 +1667,29 @@ while {[getTime] < $endTime} {
                 if not wroted[pid][core]:
                     f.write(f"\tnode {nodeTags[pid]} {nodes[pid][0]} {nodes[pid][1]} {nodes[pid][2]} -ndf {ndfs[pid]}\n")
                     mass_vec = mass[pid]
-                    mass_vec = mass_vec[:ndfs[pid]] 
+                    mass_vec = mass_vec[:ndfs[pid]]
                     # if any of the mass vector is not zero then write it
                     if abs(mass_vec).sum() > 1e-6:
                         f.write(f"\tmass {nodeTags[pid]} {' '.join(map(str, mass_vec))}\n")
                     # write them mass for that node
                     wroted[pid][core] = True
-            
+
             eleclass = Element._elements[elementClassTag[i]]
             nodeTag = [nodeTags[pid] for pid in pids]
             eleTag = eleTags[i]
             f.write("\t"+eleclass.to_tcl(eleTag, nodeTag) + "\n")
-            f.write("}\n")     
+            f.write("}\n")
             if progress_callback:
                 progress_callback((i / self.assembler.AssembeledMesh.n_cells) * 45 + 5, "writing nodes and elements")
-        
+
         # notify EmbbededBeamSolidInterface event
-        EventBus.emit(FemoraEvent.EMBEDDED_BEAM_SOLID_TCL, 
-                    file_handle=f, 
-                    ele_start_tag=self._start_ele_tag) 
-        
+        EventBus.emit(FemoraEvent.EMBEDDED_BEAM_SOLID_TCL,
+                    file_handle=f,
+                    ele_start_tag=self._start_ele_tag)
+
         if progress_callback:
             progress_callback(50, "writing dampings")
-        # write the dampings 
+        # write the dampings
         f.write("\n# Dampings ======================================\n")
         if self.damping.get_all_dampings() is not None:
             for tag,damp in self.damping.get_all_dampings().items():
@@ -1608,7 +1704,7 @@ while {[getTime] < $endTime} {
             region = self.region.get_region(regionTag)
             if region.get_type().lower() == "noderegion":
                 raise ValueError(f"""Region {regionTag} is of type NodeTRegion which is not supported in yet""")
-            
+
             region.setComponent("element", eleTags[self.assembler.AssembeledMesh.cell_data["Region"] == regionTag])
             f.write(f"{region.to_tcl()} \n")
             del region
@@ -1623,25 +1719,25 @@ while {[getTime] < $endTime} {
         core_to_idx = {core: idx for idx, core in enumerate(num_cores)}
         master_nodes = np.zeros(num_nodes, dtype=bool)
         slave_nodes = np.zeros(num_nodes, dtype=bool)
-        
+
         # Modified data structures to handle multiple constraints per node
         constraint_map = {}  # map master node to list of constraints
         constraint_map_rev = {}  # map slave node to list of (master_id, constraint) tuples
-        
+
         for constraint in self.constraint.mp:
             master_id = constraint.master_node - self._start_nodetag
             master_nodes[master_id] = True
-            
+
             # Add constraint to master's list
             if master_id not in constraint_map:
                 constraint_map[master_id] = []
             constraint_map[master_id].append(constraint)
-            
+
             # For each slave, record the master and constraint
             for slave_id in constraint.slave_nodes:
                 slave_id = slave_id - self._start_nodetag
                 slave_nodes[slave_id] = True
-                
+
                 if slave_id not in constraint_map_rev:
                     constraint_map_rev[slave_id] = []
                 constraint_map_rev[slave_id].append((master_id, constraint))
@@ -1655,13 +1751,13 @@ while {[getTime] < $endTime} {
             eleids = np.where(cores == core)[0]
             if eleids.size == 0:
                 continue
-            
+
             # Get all nodes in this core's elements
             starts = offsets[eleids]
             ends = offsets[eleids + 1]
             core_node_indices = np.concatenate([cells[s:e] for s, e in zip(starts, ends)])
             in_core = np.isin(np.arange(num_nodes), core_node_indices)
-            
+
             # Find active masters and slaves in this core
             active_masters = np.where(master_nodes & in_core)[0]
             active_slaves = np.where(slave_nodes & in_core)[0]
@@ -1672,7 +1768,7 @@ while {[getTime] < $endTime} {
                 if slave_id in constraint_map_rev:
                     for master_id, _ in constraint_map_rev[slave_id]:
                         masters_to_add.append(master_id)
-            
+
             # Add unique masters
             if masters_to_add:
                 active_masters = np.concatenate([active_masters, np.array(masters_to_add)])
@@ -1682,7 +1778,7 @@ while {[getTime] < $endTime} {
                 continue
 
             f.write(f"if {{$pid == {core + self._start_core_tag}}} {{\n")
-            
+
             # Process all master nodes that are not in the current core
             valid_mask = ~in_core[active_masters]
             valid_masters = active_masters[valid_mask]
@@ -1698,10 +1794,10 @@ while {[getTime] < $endTime} {
             for master_id in active_masters:
                 for constraint in constraint_map[master_id]:
                     all_slaves.extend([sid - self._start_nodetag for sid in constraint.slave_nodes])
-            
+
             # Filter out slave nodes that are not in the current core
             valid_slaves = np.array([sid for sid in all_slaves if 0 <= sid < num_nodes and not in_core[sid]])
-            
+
             if valid_slaves.size > 0:
                 f.write("\t# Slave nodes not defined in this core\n")
                 for slave_id in np.unique(valid_slaves):
@@ -1710,12 +1806,12 @@ while {[getTime] < $endTime} {
 
             # Write constraints after nodes
             f.write("\t# Constraints\n")
-            
+
             # Process constraints where master is in this core
             for master_id in active_masters:
                 for constraint in constraint_map[master_id]:
                     f.write(f"\t{constraint.to_tcl()}\n")
-            
+
             f.write("}\n")
 
             if progress_callback:
@@ -1743,13 +1839,13 @@ while {[getTime] < $endTime} {
             if progress_callback:
                 progress_callback(85 + indx / size * 5, "writing time series")
             indx += 1
-        
+
         # write process
         f.write("\n# Process ======================================\n")
         indx = 1
         size = len(self.process)
         f.write(f"{self.process.to_tcl()}\n")
-        
+
 
         if progress_callback:
             progress_callback(100, "finished exporting model")
@@ -1795,11 +1891,11 @@ while {[getTime] < $endTime} {
     #     part.points += vec
     #     mesh.append(part)
 
-    # mesh.plot(show_edges=True, 
-    #         opacity=1.0, 
+    # mesh.plot(show_edges=True,
+    #         opacity=1.0,
     #         scalars="Core",
-    #         multi_colors=True, 
-    #         style="surface", 
+    #         multi_colors=True,
+    #         style="surface",
     # )
 
 
@@ -1810,22 +1906,20 @@ while {[getTime] < $endTime} {
     #     pl.add_mesh(structure_part, style='wireframe', color="black", line_width=3, opacity=1.0)
     #     pl.add_mesh(fm.assembler.AssembeledMesh, show_edges=True, opacity=1.0, scalars="Core", multi_colors=True)
     #     pl.show(title="Structure and Soil")
-    
 
 
 
 
-
-    # fm.assembler.plot(show_edges=True, 
-    #                 opacity=1.0, 
+    # fm.assembler.plot(show_edges=True,
+    #                 opacity=1.0,
     #                 scalars="Core",
-    #                 multi_colors=True, 
-    #                 style="surface", 
-    #                 explode=False, 
+    #                 multi_colors=True,
+    #                 style="surface",
+    #                 explode=False,
     #                 explode_factor=0.3,
     #                 render_lines_as_tubes=False,
     #                 sperate_beams_solid=True,
-    #                 opacity_beams=1.0, 
+    #                 opacity_beams=1.0,
     #                 opacity_solids=0.7,
     #                 tube_radius=5.0,
     #                 show_cells_by_type=False,
@@ -1884,9 +1978,9 @@ if __name__ == "__main__":
             {"tag":134, "x":27.43200, "y":45.72000, "z":0.0 },
             {"tag":135, "x":36.57600, "y":45.72000, "z":0.0 },
             {"tag":136, "x":45.72000, "y":45.72000, "z":0.0 },
-        ],  
+        ],
         "column_embedment_depth":0.3, # embedment depth of the columns in the foundation
-        "model_file":r"C:\Users\aminp\OneDrive\Desktop\DRMGUI\src\femora\components\simcenter\eeuq\steel_frame.tcl",  
+        "model_file":r"C:\Users\aminp\OneDrive\Desktop\DRMGUI\src\femora\components\simcenter\eeuq\steel_frame.tcl",
         "column_section_props":{
             "E": 200e9,    # Elastic Modulus
             "A": 1.0,     # Area
@@ -1910,27 +2004,27 @@ if __name__ == "__main__":
         "gravity_y": 0.0,
         "gravity_z": -9.81,
         "num_partitions": 8,
-        "boundary_conditions": "periodic", # could be "DRM" 
+        "boundary_conditions": "periodic", # could be "DRM"
         "DRM_options": {
-            "absorbing_layer_type": "PML",  # could be "PML" or "Rayleigh" 
+            "absorbing_layer_type": "PML",  # could be "PML" or "Rayleigh"
             "num_partitions": 8,
             "number_of_layers": 5,
             "Rayleigh_damping": 0.95,
             "match_damping": False, # if true the Rayleigh damping will be matched to the soil damping
         },
         "soil_profile" : [
-        {"z_bot":-10, "z_top":-7, "nz":2, 
+        {"z_bot":-10, "z_top":-7, "nz":2,
         "material":"Elastic", "mat_props":[30e6, 0.3, 18], "damping":"Frequency-Rayleigh", "damping_props":[0.05, 3, 15]
         },
-        {"z_bot":-7,  "z_top":-4, "nz":4, 
+        {"z_bot":-7,  "z_top":-4, "nz":4,
         "material":"Elastic", "mat_props":[50e6, 0.3, 19], "damping":"Frequency-Rayleigh", "damping_props":[0.05, 3, 15]
         },
-        {"z_bot":-4,  "z_top":-1, "nz":6, 
+        {"z_bot":-4,  "z_top":-1, "nz":6,
         "material":"Elastic", "mat_props":[70e6, 0.3, 20], "damping":"Frequency-Rayleigh", "damping_props":[0.05, 3, 15]
         },
-        {"z_bot":-1,  "z_top":0,  "nz":3, 
+        {"z_bot":-1,  "z_top":0,  "nz":3,
         "material":"Elastic", "mat_props":[90e6, 0.3, 21], "damping":"Frequency-Rayleigh", "damping_props":[0.05, 3, 15]
-        },       
+        },
         ]
     }
 
@@ -1939,7 +2033,7 @@ if __name__ == "__main__":
     foundation_info = {
         "gravity_x": 0.0,
         "gravity_y": 0.0,
-        "gravity_z": -9.81, 
+        "gravity_z": -9.81,
         "embedded" : True,  # if the foundation is embedded in the soil or not True/False.
         "dx": 2.0,          # mesh size in x direction
         "dy": 2.0,          # mesh size in y direction
@@ -1949,9 +2043,9 @@ if __name__ == "__main__":
         "gravity_z": -9.81,
         "num_partitions": 4,
         "foundation_profile" : [
-            {"x_min":-5, "x_max":50, "y_min":-5, 
-            "y_max":50,  "z_top":0,    "z_bot":-1.2, 
-            "material":"Elastic", "mat_props":[30e6, 0.3, 18] 
+            {"x_min":-5, "x_max":50, "y_min":-5,
+            "y_max":50,  "z_top":0,    "z_bot":-1.2,
+            "material":"Elastic", "mat_props":[30e6, 0.3, 18]
             },
         ]
     }
@@ -1963,72 +2057,72 @@ if __name__ == "__main__":
             {
                 "x_top": -2.5 , "y_top": -2.5 , "z_top":0,
                 "x_bot": -2.5 , "y_bot": -2.5 , "z_bot":-7,
-                "nz": 50 ,"r":0.2, "section": "No-Section", 
-                "material":"Elastic", 
-                "mat_props":[30e6, 2, 3,3, 3e6, 6], 
+                "nz": 50 ,"r":0.2, "section": "No-Section",
+                "material":"Elastic",
+                "mat_props":[30e6, 2, 3,3, 3e6, 6],
                 "transformation": ["Linear", 0.0, 1.0, 0.0]
             },
             {
                 "x_top": 22.5 , "y_top": -2.5 , "z_top":0,
                 "x_bot": 22.5 , "y_bot": -2.5 , "z_bot":-7,
-                "nz": 50 ,"r":0.2, "section": "No-Section", 
-                "material":"Elastic", 
-                "mat_props":[30e6, 2, 3,3, 3e6, 6], 
+                "nz": 50 ,"r":0.2, "section": "No-Section",
+                "material":"Elastic",
+                "mat_props":[30e6, 2, 3,3, 3e6, 6],
                 "transformation": ["Linear", 0.0, 1.0, 0.0]
             },
             {
                 "x_top": 47.5 , "y_top": -2.5 , "z_top":0,
                 "x_bot": 47.5 , "y_bot": -2.5 , "z_bot":-7,
-                "nz": 50 ,"r":0.2, "section": "No-Section", 
-                "material":"Elastic", 
-                "mat_props":[30e6, 2, 3,3, 3e6, 6], 
+                "nz": 50 ,"r":0.2, "section": "No-Section",
+                "material":"Elastic",
+                "mat_props":[30e6, 2, 3,3, 3e6, 6],
                 "transformation": ["Linear", 0.0, 1.0, 0.0]
             },
             {
                 "x_top": -2.5 , "y_top": 22.5 , "z_top":0,
                 "x_bot": -2.5 , "y_bot": 22.5 , "z_bot":-7,
-                "nz": 50 ,"r":0.2, "section": "No-Section", 
-                "material":"Elastic", 
-                "mat_props":[30e6, 2, 3,3, 3e6, 6], 
+                "nz": 50 ,"r":0.2, "section": "No-Section",
+                "material":"Elastic",
+                "mat_props":[30e6, 2, 3,3, 3e6, 6],
                 "transformation": ["Linear", 0.0, 1.0, 0.0]
             },
             {
                 "x_top": 22.5 , "y_top": 22.5 , "z_top":0,
                 "x_bot": 22.5 , "y_bot": 22.5 , "z_bot":-7,
-                "nz": 50 ,"r":0.2, "section": "No-Section", 
-                "material":"Elastic", 
+                "nz": 50 ,"r":0.2, "section": "No-Section",
+                "material":"Elastic",
                 "mat_props":[30e6, 2, 3,3, 3e6, 6],
                 "transformation": ["Linear", 0.0, 1.0, 0.0]
             },
             {
                 "x_top": 47.5 , "y_top": 22.5 , "z_top":0,
                 "x_bot": 47.5 , "y_bot": 22.5 , "z_bot":-7,
-                "nz": 50 ,"r":0.2, "section": "No-Section", 
-                "material":"Elastic", 
-                "mat_props":[30e6, 2, 3,3, 3e6, 6], 
+                "nz": 50 ,"r":0.2, "section": "No-Section",
+                "material":"Elastic",
+                "mat_props":[30e6, 2, 3,3, 3e6, 6],
                 "transformation": ["Linear", 0.0, 1.0, 0.0]
             },
             {
                 "x_top": -2.5 , "y_top": 47.5 , "z_top":0,
                 "x_bot": -2.5 , "y_bot": 47.5 , "z_bot":-7,
-                "nz": 50 ,"r":0.2, "section": "No-Section", 
-                "material":"Elastic", 
-                "mat_props":[30e6, 2, 3,3, 3e6, 6], 
+                "nz": 50 ,"r":0.2, "section": "No-Section",
+                "material":"Elastic",
+                "mat_props":[30e6, 2, 3,3, 3e6, 6],
                 "transformation": ["Linear", 0.0, 1.0, 0.0]
             },
             {
                 "x_top": 22.5 , "y_top": 47.5 , "z_top":0,
                 "x_bot": 22.5 , "y_bot": 47.5 , "z_bot":-7,
-                "nz": 50 ,"r":0.2, "section": "No-Section", 
-                "material":"Elastic", 
-                "mat_props":[30e6, 2, 3,3, 3e6, 6], 
+                "nz": 50 ,"r":0.2, "section": "No-Section",
+                "material":"Elastic",
+                "mat_props":[30e6, 2, 3,3, 3e6, 6],
                 "transformation": ["Linear", 0.0, 1.0, 0.0]
             },
             {
                 "x_top": 47.5 , "y_top": 47.5 , "z_top":0,
                 "x_bot": 47.5 , "y_bot": 47.5 , "z_bot":-7,
-                "nz": 50 ,"r":0.2, "section": "No-Section", 
-                "material":"Elastic", 
+                "nz": 50 ,"r":0.2, "section": "No-Section",
+                "material":"Elastic",
                 "mat_props":[30e6, 2, 3,3, 3e6, 6],
                 "transformation": ["Linear", 0.0, 1.0, 0.0]
             },
@@ -2043,3 +2137,14 @@ if __name__ == "__main__":
 
 
 
+
+    num_cores = soil_foundation_type_one(
+        model_filename="model.tcl",
+        structure_info=structure_info,
+        soil_info=soil_info,
+        foundation_info=foundation_info,
+        pile_info=pile_info,
+        EEUQ=False,
+        plotting=False
+    )
+    print(f"Model requires {num_cores} cores.")
