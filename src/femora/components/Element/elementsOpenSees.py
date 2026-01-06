@@ -389,7 +389,9 @@ class stdBrickElement(Element):
     """OpenSees 8-node standard brick element (3D continuum).
 
     This element requires a 3D ``nDMaterial`` and exactly 3 DOFs per node.
-    Optional body forces ``b1``, ``b2``, and ``b3`` may be supplied.
+    Optional body forces ``b1``, ``b2``, and ``b3`` may be supplied. A
+    ``-lumped`` mass option can also be enabled via the boolean parameter
+    ``lumped``.
 
     Attributes:
         params (Dict[str, Union[int, float, str]]): Validated parameters such as
@@ -405,7 +407,9 @@ class stdBrickElement(Element):
             **kwargs: Optional parameters:
                 - ``b1`` (float): Constant body force in global x-direction.
                 - ``b2`` (float): Constant body force in global y-direction.
-                - ``b3`` (float): Constant body force in global z-direction.
+                                - ``b3`` (float): Constant body force in global z-direction.
+                                - ``lumped`` (bool): If ``True``, append the ``-lumped`` flag
+                                    to use a lumped mass matrix (optional, default ``False``).
 
         Raises:
             ValueError: If the material is incompatible, ``ndof`` != 3, or any
@@ -442,20 +446,36 @@ class stdBrickElement(Element):
         """
         if len(nodes) != 8:
             raise ValueError("stdBrick element requires 8 nodes")
-        keys = self.get_parameters()
-        params_str = " ".join(str(self.params[key]) for key in keys if key in self.params)
+
+        # Build base command
         nodes_str = " ".join(str(node) for node in nodes)
-        tag = str(tag)
-        return f"element stdBrick {tag} {nodes_str} {self._material.tag} {params_str}"
+        elestr = f"element stdBrick {tag} {nodes_str} {self._material.tag}"
+
+        # Optional numeric body forces
+        bparts: List[str] = []
+        if 'b1' in self.params:
+            bparts.append(str(self.params['b1']))
+        if 'b2' in self.params:
+            bparts.append(str(self.params['b2']))
+        if 'b3' in self.params:
+            bparts.append(str(self.params['b3']))
+        if bparts:
+            elestr += " " + " ".join(bparts)
+
+        # Optional '-lumped' flag
+        if bool(self.params.get('lumped', False)):
+            elestr += " -lumped"
+
+        return elestr
 
     @classmethod
     def get_parameters(cls) -> List[str]:
         """List the supported parameter names for stdBrick.
         
         Returns:
-            List[str]: ``["b1", "b2", "b3"]``.
+            List[str]: ``["b1", "b2", "b3", "lumped"]``.
         """
-        return ["b1", "b2", "b3"]
+        return ["b1", "b2", "b3", "lumped"]
     
     def get_values(self, keys: List[str]) -> Dict[str, Union[int, float, str]]:
         """Retrieve current values for the given parameters.
@@ -512,14 +532,15 @@ class stdBrickElement(Element):
         """
         return ['Constant body forces in global x direction',
                 'Constant body forces in global y direction',
-                'Constant body forces in global z direction']
+                'Constant body forces in global z direction',
+                'Use lumped mass matrix (optional flag)']
     
     @classmethod
     def validate_element_parameters(cls, **kwargs) -> Dict[str, Union[int, float, str]]:
         """Validate and coerce stdBrick parameters.
         
         ``b1``, ``b2`` and ``b3`` are optional but, if provided, must be
-        convertible to ``float``.
+        convertible to ``float``. ``lumped`` is an optional boolean flag.
 
         Args:
             **kwargs: Raw parameter mapping.
@@ -547,6 +568,24 @@ class stdBrickElement(Element):
                 kwargs['b3'] = float(kwargs['b3'])
             except ValueError:
                 raise ValueError("b3 must be a float number")
+
+        # Optional '-lumped' flag
+        if "lumped" in kwargs:
+            val = kwargs["lumped"]
+            if isinstance(val, bool):
+                kwargs["lumped"] = val
+            elif isinstance(val, (int, float)):
+                kwargs["lumped"] = bool(int(val))
+            elif isinstance(val, str):
+                sval = val.strip().lower()
+                if sval in ["1", "true", "t", "yes", "y", "on"]:
+                    kwargs["lumped"] = True
+                elif sval in ["0", "false", "f", "no", "n", "off", ""]:
+                    kwargs["lumped"] = False
+                else:
+                    raise ValueError("lumped must be a boolean (true/false)")
+            else:
+                raise ValueError("lumped must be a boolean (true/false)")
             
         return kwargs
 
