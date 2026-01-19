@@ -341,8 +341,8 @@ class mpConstraintManager:
 
         assembled = assembler.get_mesh()
         points = assembled.points
-        master_idx = assembled.extract_values(values = master_part.tag ,scalars= "MeshTag_cell", preference="cell")
-        slave_idx = assembled.extract_values(values = slave_part.tag ,scalars= "MeshTag_cell", preference="cell")
+        master_idx = assembled.extract_values(values = master_part.tag ,scalars= "MeshPartTag_celldata", preference="cell")
+        slave_idx = assembled.extract_values(values = slave_part.tag ,scalars= "MeshPartTag_celldata", preference="cell")
         master_idx = master_idx.point_data["vtkOriginalPointIds"]
         slave_idx = slave_idx.point_data["vtkOriginalPointIds"]
 
