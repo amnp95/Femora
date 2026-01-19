@@ -300,7 +300,7 @@ class MeshMaker:
                 raise ValueError("No mesh found\n Please assemble the mesh first")
             
             # Write to file
-            with open(filename, 'w') as f:
+            with open(filename, 'w', encoding='utf-8') as f:
 
                 # Determine required MPI process count for this model export
                 required_np = 1
@@ -416,6 +416,7 @@ class MeshMaker:
                         progress_callback((i / self.assembler.AssembeledMesh.n_cells) * 45 + 5, "writing nodes and elements")
 
                 # notify EmbbededBeamSolidInterface event
+                EventBus.emit(FemoraEvent.INTERFACE_ELEMENTS_TCL, file_handle=f)             
                 EventBus.emit(FemoraEvent.EMBEDDED_BEAM_SOLID_TCL, file_handle=f)             
                 
                 
@@ -710,3 +711,63 @@ class MeshMaker:
             print(f"Number of elements: {numcells}")    
         
         
+    def get_max_ele_tag(self):
+        '''
+        Get the maximum element tag in the assembled mesh 
+
+        Args:
+            None
+
+        Returns:
+            positive int: maximum element tag
+            -1: if no mesh is assembled
+        '''
+
+        max_ele_tag = self.assembler.get_num_cells()
+
+        if max_ele_tag < 0:
+            return -1
+        return max_ele_tag + self._start_ele_tag - 1
+    
+    def get_max_node_tag(self):
+        '''
+        Get the maximum node tag in the assembled mesh 
+
+        Args:
+            None
+
+        Returns:
+            positive int: maximum node tag
+            -1: if no mesh is assembled
+        '''
+
+        max_node_tag = self.assembler.get_num_points()
+
+        if max_node_tag < 0:
+            return -1
+        return max_node_tag + self._start_nodetag - 1
+
+    def get_start_ele_tag(self):
+        """
+        Get the start element tag
+
+        Args:
+            None
+
+        Returns:
+            int: start element tag
+        """
+        return self._start_ele_tag
+    
+
+    def get_start_node_tag(self):
+        """
+        Get the start node tag
+
+        Args:
+            None
+
+        Returns:
+            int: start node tag
+        """
+        return self._start_nodetag
