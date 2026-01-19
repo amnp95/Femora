@@ -985,9 +985,9 @@ class BeamForceRecorder(Recorder):
                 beam_mask_all = np.isin(celltypes, list(beam_types))
 
         cores = assembled.cell_data.get("Core")
-        mesh_tags = assembled.cell_data.get("MeshTag_cell")
+        mesh_tags = assembled.cell_data.get("MeshPartTag_celldata")
         if mesh_tags is None or cores is None:
-            raise ValueError("Assembled mesh missing required cell_data ('MeshTag_cell' or 'Core')")
+            raise ValueError("Assembled mesh missing required cell_data ('MeshPartTag_celldata' or 'Core')")
 
         lines: List[str] = []
         # For each meshpart, build recorder(s) grouped by core
@@ -1188,24 +1188,16 @@ class RecorderManager:
     """
     _instance = None
 
+    vtkhdf = VTKHDFRecorder
+    node = NodeRecorder
+    mpco = MPCORecorder
+    beam_force = BeamForceRecorder
+    embedded_beam_solid_interface = EmbeddedBeamSolidInterfaceRecorder
+
     def __new__(cls):
         if cls._instance is None:
             cls._instance = super(RecorderManager, cls).__new__(cls)
         return cls._instance
-
-
-    def __init__(self):
-        """Initializes the RecorderManager singleton instance.
-
-        This method only initializes on first creation. Subsequent calls
-        return the existing instance without re-initialization.
-        """
-        # Register recorder types
-        self.node = NodeRecorder
-        self.vtkhdf = VTKHDFRecorder
-        self.mpco = MPCORecorder
-        self.beam_force = BeamForceRecorder
-        self.embedded_beam_solid_interface = EmbeddedBeamSolidInterfaceRecorder
 
 
 
