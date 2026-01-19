@@ -868,6 +868,127 @@ class PML3DElement(Element):
         return kwargs
 
 
+
+class ASDEmbeddedNodeElement3D(Element):
+    """OpenSees ASDEmbeddedNodeElement for 3D problems.
+
+    This element is used to constrain a node (constrained node) to a domain
+    defined by 3 or 4 retained nodes. For 3D Solid domains, 4 retained nodes
+    forming a tetrahedron are used.
+
+    OpenSees command syntax:
+        ``element ASDEmbeddedNodeElement $eleTag $Cnode $Rnode1 $Rnode2 $Rnode3 $Rnode4 [-rot] [-p] [-K $K] [-KP $KP]``
+
+    Parameters:
+        - ``rot`` (bool): Optional flag to constrain rotations (default: False).
+        - ``p`` (bool): Optional flag to constrain pressure (default: False).
+        - ``K`` (float): User-defined penalty stiffness (default: 1.0e18).
+        - ``KP`` (float): User-defined penalty stiffness for pressure (default: 1.0e18).
+    """
+    def __init__(self, ndof: int, **kwargs):
+        """Initialize an ASDEmbeddedNodeElement3D.
+
+        Args:
+            ndof: Number of degrees of freedom per node. Must be 3, 4, or 6.
+            **kwargs: Element parameters:
+                - ``rot`` (bool): Constrain rotations.
+                - ``p`` (bool): Constrain pressure.
+                - ``K`` (float): Penalty stiffness.
+                - ``KP`` (float): Penalty stiffness for pressure.
+        """
+        if ndof not in [3, 4, 6]:
+            raise ValueError(f"ASDEmbeddedNodeElement3D requires 3, 4, or 6 DOFs, but got {ndof}")
+        
+        # Validate element parameters if provided
+        if kwargs:
+            kwargs = self.validate_element_parameters(**kwargs)
+            
+        super().__init__('ASDEmbeddedNodeElement', ndof, material=None)
+        self.params = kwargs if kwargs else {}
+
+    def to_tcl(self, tag: int, nodes: List[int]) -> str:
+        """Generate the OpenSees TCL command.
+        
+        Args:
+            tag: Element tag.
+            nodes: List of nodes [Cnode, Rnode1, Rnode2, Rnode3, Rnode4].
+        
+        Returns:
+            str: TCL command string.
+        """
+        if len(nodes) != 5:
+            raise ValueError("ASDEmbeddedNodeElement3D requires 5 nodes (1 constrained, 4 retained)")
+        
+        nodes_str = " ".join(str(node) for node in nodes)
+        cmd = f"element ASDEmbeddedNodeElement {tag} {nodes_str}"
+        
+        if self.params.get('rot'):
+            cmd += " -rot"
+        if self.params.get('p'):
+            cmd += " -p"
+        if 'K' in self.params:
+            cmd += f" -K {self.params['K']}"
+        if 'KP' in self.params:
+            cmd += f" -KP {self.params['KP']}"
+            
+        return cmd
+
+    @classmethod
+    def get_parameters(cls) -> List[str]:
+        """List the supported parameter names."""
+        return ["rot", "p", "K", "KP"]
+
+    @classmethod
+    def get_description(cls) -> List[str]:
+        """Describe each parameter expected by this element."""
+        return [
+            "Constrain rotational DOFs",
+            "Constrain pressure DOFs",
+            "Penalty stiffness",
+            "Penalty stiffness for pressure"
+        ]
+
+    @classmethod
+    def get_possible_dofs(cls) -> List[str]:
+        """Get the allowed number of DOFs per node."""
+        return ["3", "4", "6"]
+
+    def get_values(self, keys: List[str]) -> Dict[str, Union[int, float, str]]:
+        """Retrieve current values for the given parameters."""
+        return {key: self.params.get(key) for key in keys}
+
+    def update_values(self, values: Dict[str, Union[int, float, str]]) -> None:
+        """Update element parameters."""
+        self.params.clear()
+        self.params.update(values)
+
+    @classmethod
+    def validate_element_parameters(cls, **kwargs) -> Dict[str, Union[int, float, str]]:
+        """Validate and coerce parameters."""
+        if "rot" in kwargs:
+            kwargs["rot"] = bool(kwargs["rot"])
+        if "p" in kwargs:
+            kwargs["p"] = bool(kwargs["p"])
+        if "K" in kwargs:
+            # if K is None skip
+            if kwargs["K"] is not None:
+                try:
+                    kwargs["K"] = float(kwargs["K"])
+                except (ValueError, TypeError):
+                    raise ValueError("K must be a float number")
+            else:
+                del kwargs["K"]
+        if "KP" in kwargs:
+            if kwargs["KP"] is not None:
+                try:
+                    kwargs["KP"] = float(kwargs["KP"])
+                except (ValueError, TypeError):
+                    raise ValueError("KP must be a float number")
+            else:
+                del kwargs["KP"]
+        return kwargs
+
+
 # =================================================================================================
 # Register element types
 # =================================================================================================
@@ -875,3 +996,4 @@ ElementRegistry.register_element_type('SSPQuad', SSPQuadElement)
 ElementRegistry.register_element_type('stdBrick', stdBrickElement)
 ElementRegistry.register_element_type('PML3D', PML3DElement)
 ElementRegistry.register_element_type('SSPbrick', SSPbrickElement)
+ElementRegistry.register_element_type('ASDEmbeddedNodeElement3D', ASDEmbeddedNodeElement3D)
