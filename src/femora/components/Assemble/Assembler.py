@@ -299,6 +299,34 @@ class Assembler:
                 visited[j] = True
 
         return snapped
+    
+    def get_num_cells(self) -> int:
+        """
+        return the total number of cells in the assembled mesh
+
+        Args:
+            None
+        Returns:
+            positive int: total number of cells
+            negative int: if assembled mesh is None
+        """
+        if self.AssembeledMesh is None:
+            return -1
+        return self.AssembeledMesh.n_cells
+    
+    def get_num_points(self) -> int:
+        """
+        return the total number of points in the assembled mesh
+
+        Args:
+            None
+        Returns:
+            positive int: total number of points
+            negative int: if assembled mesh is None
+        """
+        if self.AssembeledMesh is None:
+            return -1
+        return self.AssembeledMesh.n_points
 
 
     
@@ -1154,7 +1182,7 @@ class AssemblySection:
         first_mesh.cell_data["SectionTag"]  = np.full(n_cells, sectionTag, dtype=np.uint16)
         first_mesh.point_data["ndf"]        = np.full(n_points, ndf, dtype=np.uint16)
         first_mesh.cell_data["Region"]      = np.full(n_cells, regionTag, dtype=np.uint16)
-        first_mesh.cell_data["MeshTag_cell"]   = np.full(n_cells, meshTag, dtype=np.uint16)
+        first_mesh.cell_data["MeshPartTag_celldata"]   = np.full(n_cells, meshTag, dtype=np.uint16)
         first_mesh.point_data["MeshPartTag_pointdata"] = np.full(n_points, meshTag, dtype=np.uint16)
         # Merge subsequent meshes
         n_sections = len(self.meshparts_list)
@@ -1179,7 +1207,7 @@ class AssemblySection:
             second_mesh.point_data["ndf"]        = np.full(n_points_second, ndf, dtype=np.uint16)
             second_mesh.cell_data["Region"]      = np.full(n_cells_second, regionTag, dtype=np.uint16)
             second_mesh.cell_data["SectionTag"]  = np.full(n_cells_second, sectionTag, dtype=np.uint16)
-            second_mesh.cell_data["MeshTag_cell"]   = np.full(n_cells_second, meshTag, dtype=np.uint16)
+            second_mesh.cell_data["MeshPartTag_celldata"]   = np.full(n_cells_second, meshTag, dtype=np.uint16)
             second_mesh.point_data["MeshPartTag_pointdata"] = np.full(n_points_second, meshTag, dtype=np.uint16)
             # Merge with tolerance and optional point merging
             self.mesh.append(second_mesh)
