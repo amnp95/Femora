@@ -24,6 +24,7 @@ class InterfaceBase(ABC):
         EventBus.subscribe(FemoraEvent.RESOLVE_CORE_CONFLICTS, self._on_resolve_core_conflicts)
         EventBus.subscribe(FemoraEvent.PRE_EXPORT, self._on_pre_export)
         EventBus.subscribe(FemoraEvent.POST_EXPORT, self._on_post_export)
+        EventBus.subscribe(FemoraEvent.INTERFACE_ELEMENTS_TCL, self._on_interface_tcl_export)
 
     # The following are intentionally no-ops; subclasses/mix-ins may override
     def _on_pre_assemble(self, **payload):
@@ -39,6 +40,9 @@ class InterfaceBase(ABC):
         pass
 
     def _on_resolve_core_conflicts(self, **payload):
+        pass
+    
+    def _on_interface_tcl_export(self, **payload):
         pass
     # ------------------------------------------------------------------
     # Helper class-methods
@@ -65,7 +69,9 @@ class InterfaceManager:
     
     def __init__(self):
         from femora.components.interface.embedded_beam_solid_interface import EmbeddedBeamSolidInterface
+        from femora.components.interface.embedded_node_interface import EmbeddedNodeInterface
         self.beam_solid_interface = EmbeddedBeamSolidInterface
+        self.node_interface = EmbeddedNodeInterface
 
 
     # Public helpers ----------------------------------------------------
