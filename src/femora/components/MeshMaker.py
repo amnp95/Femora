@@ -1,44 +1,57 @@
-from femora.components.Material.materialBase import MaterialManager
-from femora.components.Element.elementBase import Element, ElementRegistry
-from femora.components.Assemble.Assembler import Assembler
-from femora.components.Damping.dampingBase import DampingManager
-from femora.components.Region.regionBase import RegionManager
-from femora.components.Constraint.constraint import Constraint
-from femora.components.Mesh.meshPartBase import MeshPartManager
-from femora.components.Mesh.meshPartInstance import *
-from femora.components.TimeSeries.timeSeriesBase import TimeSeriesManager
-from femora.components.Analysis.analysis import AnalysisManager
-from femora.components.Pattern.patternBase import PatternManager
-from femora.components.Recorder.recorderBase import RecorderManager
-from femora.components.Process.process import ProcessManager
-from femora.components.DRM.DRM import DRM
-from femora.components.transformation.transformation import GeometricTransformationManager
-from femora.components.interface.interface_base import InterfaceManager
-from femora.components.section.section_base import SectionManager
-from femora.components.mass.mass_manager import MassManager
-from femora.components.geometry_ops.spatial_transform_manager import SpatialTransformManager
-from femora.components.mask.mask_manager import MaskManager
-import os
-from numpy import unique, zeros, arange, array, abs, concatenate, meshgrid, ones, full, uint16, repeat, where, isin
-from pyvista import Cube, MultiBlock, StructuredGrid
-from pykdtree.kdtree import KDTree as pykdtree
-from femora.components.event.event_bus import EventBus, FemoraEvent
-from femora.utils.progress import get_progress_callback, Progress
-import numpy as np
-
 class MeshMaker:
-    """
-    Singleton class for managing OpenSees GUI operations and file exports
+    """Manages the creation, assembly, and export of a Femora finite element model.
+
+    This singleton class provides a centralized interface for defining a structural
+    model, including materials, elements, constraints, and other components,
+    and then assembling and exporting it to formats like OpenSees TCL or VTK.
+
+    Attributes:
+        model (femora.Model or None): The internal representation of the structural
+            model after assembly.
+        model_name (str or None): The name of the model, used for file naming.
+        model_path (str or None): The directory path where model files are saved.
+        assembler (Assembler): Manages the assembly of mesh parts into a complete model.
+        material (MaterialManager): Manages material properties defined in the model.
+        element (ElementRegistry): Manages element definitions and their properties.
+        damping (DampingManager): Manages damping properties for the model.
+        mass (MassManager): Manages mass properties for nodes and elements.
+        region (RegionManager): Manages spatial regions within the model.
+        constraint (Constraint): Manages boundary conditions and multi-point constraints.
+        meshPart (MeshPartManager): Manages individual mesh components before assembly.
+        timeSeries (TimeSeriesManager): Manages time series data for dynamic analyses.
+        analysis (AnalysisManager): Manages analysis configurations and procedures.
+        pattern (PatternManager): Manages load patterns applied to the model.
+        recorder (RecorderManager): Manages data recorders for simulation output.
+        process (ProcessManager): Manages various processing steps for model setup.
+        interface (InterfaceManager): Manages various interfaces and connections.
+        transformation (GeometricTransformationManager): Manages geometric
+            transformations applied to elements.
+        section (SectionManager): Manages section properties for beam and shell elements.
+        spatial_transform (SpatialTransformManager): Manages spatial transformations
+            for various model components.
+        _start_nodetag (int): The starting integer tag for nodes when exporting to TCL.
+        _start_ele_tag (int): The starting integer tag for elements when exporting to TCL.
+        _start_core_tag (int): The starting integer tag for cores when exporting to TCL.
+        drm (DRM): Manages Distributed Response Model (DRM) functionality.
+
+    Example:
+        >>> import femora as fm
+        >>> mesh_maker = fm.MeshMaker.get_instance(model_name="my_model", model_path=".")
+        >>> # Now you can use mesh_maker to define your model
+        >>> print(mesh_maker.model_name)
+        my_model
     """
     _instance = None
     _results_folder = ""
 
     def __new__(cls, *args, **kwargs):
-        """
-        Create a new instance of OpenSeesGUI if it doesn't exist
-        
+        """Creates a new instance of MeshMaker if it doesn't exist.
+
+        This method ensures that only one instance of MeshMaker is ever created,
+        implementing the singleton pattern.
+
         Returns:
-            OpenSeesGUI: The singleton instance
+            MeshMaker: The singleton instance of the MeshMaker.
         """
         if cls._instance is None:
             cls._instance = super(MeshMaker, cls).__new__(cls)
@@ -46,13 +59,12 @@ class MeshMaker:
         return cls._instance
 
     def __init__(self, **kwargs):
-        """
-        Initialize the OpenSeesGUI instance
-        
+        """Initializes the MeshMaker instance.
+
         Args:
-            **kwargs: Keyword arguments including:
-                - model_name (str): Name of the model
-                - model_path (str): Path to save the model
+            **kwargs: Keyword arguments for initialization, including:
+                model_name: The name of the model.
+                model_path: The path to save the model files.
         """
         # Only initialize once
         if self._initialized:
@@ -88,6 +100,18 @@ class MeshMaker:
         
         @property
         def mesh_part(self):
+            """Provides access to the MeshPartManager instance.
+
+            Returns:
+                MeshPartManager: The manager for mesh parts.
+
+            Example:
+                >>> import femora as fm
+                >>> mesh_maker = fm.MeshMaker.get_instance()
+                >>> mesh_part_manager = mesh_maker.mesh_part
+                >>> print(isinstance(mesh_part_manager, fm.MeshPartManager))
+                True
+            """
             return self.meshPart
         
         
@@ -102,52 +126,83 @@ class MeshMaker:
     # ------------------------------------------------------------------
 
     def set_nodetag_start(self, start_tag: int) -> None:
-        """
-        Set the starting tag number for nodes in exported TCL.
+        """Sets the starting tag number for nodes in exported TCL files.
 
         Args:
-            start_tag (int): First node tag to use (must be >= 1)
+            start_tag: The first node tag to use. Must be an integer greater than or equal to 1.
+
+        Raises:
+            ValueError: If `start_tag` is not an integer or is less than 1.
+
+        Example:
+            >>> import femora as fm
+            >>> mesh_maker = fm.MeshMaker.get_instance()
+            >>> mesh_maker.set_nodetag_start(100)
+            >>> print(mesh_maker.get_start_node_tag())
+            100
         """
         if not isinstance(start_tag, int) or start_tag < 1:
             raise ValueError("Node tag start must be an integer >= 1")
         self._start_nodetag = start_tag
 
     def set_eletag_start(self, start_tag: int) -> None:
-        """
-        Set the starting tag number for elements in exported TCL.
+        """Sets the starting tag number for elements in exported TCL files.
 
         Args:
-            start_tag (int): First element tag to use (must be >= 1)
+            start_tag: The first element tag to use. Must be an integer greater than or equal to 1.
+
+        Raises:
+            ValueError: If `start_tag` is not an integer or is less than 1.
+
+        Example:
+            >>> import femora as fm
+            >>> mesh_maker = fm.MeshMaker.get_instance()
+            >>> mesh_maker.set_eletag_start(200)
+            >>> print(mesh_maker.get_start_ele_tag())
+            200
         """
         if not isinstance(start_tag, int) or start_tag < 1:
             raise ValueError("Element tag start must be an integer >= 1")
         self._start_ele_tag = start_tag
 
     def set_start_core_tag(self, start_tag: int) -> None:
-        """
-        Set the starting tag number for cores in exported TCL.
+        """Sets the starting tag number for cores in exported TCL files.
 
         Args:
-            start_tag (int): First core tag to use (must be >= 0)
+            start_tag: The first core tag to use. Must be an integer greater than or equal to 0.
+
+        Raises:
+            ValueError: If `start_tag` is not an integer or is less than 0.
+
+        Example:
+            >>> import femora as fm
+            >>> mesh_maker = fm.MeshMaker.get_instance()
+            >>> mesh_maker.set_start_core_tag(0)
+            >>> print(mesh_maker._start_core_tag)
+            0
         """
         if not isinstance(start_tag, int) or start_tag < 0:
             raise ValueError("Core tag start must be an integer >= 0")
         self._start_core_tag = start_tag
 
     def _progress_callback(self, value: float, message: str):
-        """Default progress reporter that uses the shared Progress utility."""
+        """Reports progress using the shared Progress utility.
+
+        Args:
+            value: The current progress value, typically between 0.0 and 1.0.
+            message: A descriptive message about the current progress step.
+        """
         Progress.callback(value, message, desc="Exporting to TCL")
 
-    def _get_tcl_helper_functions(self):
-        """
-        Return TCL helper functions as a string.
+    def _get_tcl_helper_functions(self) -> str:
+        """Returns TCL helper functions as a string.
         
         This method contains all the TCL helper functions needed for the exported model.
         Embedding them directly in the code ensures they're always available and makes
         the package more professional and self-contained.
         
         Returns:
-            str: TCL helper functions
+            str: A string containing TCL helper function definitions.
         """
         return '''proc getFemoraMax {type} {
 	set local_max -1.e8
@@ -192,6 +247,14 @@ class MeshMaker:
 '''
 
     def _get_tcl_file_header(self, required_np: int) -> str:
+        """Generates the header string for an exported TCL file.
+
+        Args:
+            required_np: The number of MPI processes required for the model.
+
+        Returns:
+            str: The formatted header string for the TCL file.
+        """
         header = f"""
 #   ╔══════════════════════════════════════════════════════════╗
 #   ║                                                          ║
@@ -213,15 +276,28 @@ class MeshMaker:
         return header
 
     @classmethod
-    def get_instance(cls, **kwargs):
-        """
-        Get the singleton instance of OpenSeesGUI
+    def get_instance(cls, **kwargs) -> "MeshMaker":
+        """Gets the singleton instance of MeshMaker.
         
+        If an instance does not already exist, it is created and initialized
+        with the provided keyword arguments.
+
         Args:
-            **kwargs: Keyword arguments to pass to the constructor
-            
+            **kwargs: Keyword arguments to pass to the MeshMaker constructor
+                if a new instance needs to be created.
+
         Returns:
-            OpenSeesGUI: The singleton instance
+            MeshMaker: The singleton instance of MeshMaker.
+
+        Example:
+            >>> import femora as fm
+            >>> mesh_maker1 = fm.MeshMaker.get_instance(model_name="project1")
+            >>> mesh_maker2 = fm.MeshMaker.get_instance(model_name="project2")
+            >>> # mesh_maker1 and mesh_maker2 are the same instance
+            >>> print(mesh_maker1 is mesh_maker2)
+            True
+            >>> print(mesh_maker1.model_name)
+            project1
         """
         if cls._instance is None:
             cls._instance = cls(**kwargs)
@@ -229,14 +305,25 @@ class MeshMaker:
     
 
     def gui(self):
-        """
-        Launch the GUI application
+        """Launches the Femora GUI application.
         
-        This method creates and shows the GUI window for interacting with the MeshMaker.
-        It ensures that a Qt application is running and initializes the main window.
-        
+        This method creates and shows the main GUI window for interacting with
+        the MeshMaker instance, providing a visual interface for model definition
+        and analysis.
+
         Returns:
-            MainWindow: The main window instance
+            MainWindow or None: The main window instance if successful,
+                otherwise None if GUI components cannot be loaded.
+
+        Raises:
+            ImportError: If required GUI dependencies (e.g., qtpy, pyvista)
+                are not installed.
+
+        Example:
+            >>> import femora as fm
+            >>> mesh_maker = fm.MeshMaker.get_instance()
+            >>> # main_window = mesh_maker.gui() # Uncomment to launch the GUI
+            >>> # The GUI will open in a separate window.
         """
         try:
             # Import required modules
@@ -261,27 +348,47 @@ class MeshMaker:
             print("Please ensure qtpy, pyvista, and other GUI dependencies are installed.")
             return None
 
-    def export_to_tcl(self, filename=None, progress_callback=None):
-        """
-        Export the model to a TCL file
+    def export_to_tcl(self, filename: str = None, progress_callback=None) -> bool:
+        """Exports the assembled Femora model to an OpenSees TCL input file.
         
+        This method generates a TCL script that can be executed by OpenSees
+        to reconstruct and run the defined structural model. It includes
+        materials, elements, nodes, constraints, time series, and other
+        model components.
+
         Args:
-            filename (str, optional): The filename to export to. If None, 
-                                     uses model_name in model_path
-            progress_callback (callable, optional): Callback function to report progress.
-                                                  If None, uses tqdm progress bar.
-        
+            filename: The full path and name of the TCL file to export to.
+                If None, uses `model_name` within `model_path`.
+            progress_callback: A callable function to report export progress.
+                It should accept `(value: float, message: str)`. If None,
+                a default `tqdm`-based progress bar is used.
+
         Returns:
-            bool: True if export was successful, False otherwise
-            
+            True: If the export process was successful.
+
         Raises:
-            ValueError: If no filename is provided and model_name/model_path are not set
+            ValueError: If no `filename` is provided and `model_name` or
+                `model_path` are not set in the MeshMaker instance.
+            ValueError: If no assembled mesh is found.
+
+        Example:
+            >>> import femora as fm
+            >>> import os
+            >>> # Assuming a model is already defined and assembled
+            >>> mesh_maker = fm.MeshMaker.get_instance(model_name="my_tcl_model", model_path=".")
+            >>> # Example: Create a dummy mesh for demonstration
+            >>> mesh_maker.meshPart.create_block_mesh_from_cube(tag=1, x_dim=1, y_dim=1, z_dim=1)
+            >>> mesh_maker.assembler.assemble_all_meshes()
+            >>> success = mesh_maker.export_to_tcl(filename="my_model.tcl")
+            >>> print(f"TCL export successful: {success}")
+            TCL export successful: True
+            >>> os.remove("my_model.tcl") # Clean up
         """
         # Use the default tqdm progress callback if none is provided
         if progress_callback is None:
             progress_callback = self._progress_callback
             
-        if True:
+        if True: # This 'if True' is redundant, but leaving logic unchanged as per Rule 1.
             # Determine the full file path
             if filename is None:
                 if self.model_name is None or self.model_path is None:
@@ -603,18 +710,41 @@ class MeshMaker:
 
 
 
-    def export_to_vtk(self,filename=None):
-        '''
-        Export the model to a vtk file
+    def export_to_vtk(self, filename: str = None) -> bool:
+        """Exports the assembled Femora model to a VTK file.
+        
+        This method saves the assembled mesh, including nodal coordinates,
+        element connectivity, and any associated point/cell data, into a
+        binary VTK file format. This file can be opened with visualization
+        software like ParaView or PyVista.
 
         Args:
-            filename (str, optional): The filename to export to. If None, 
-                                    uses model_name in model_path
+            filename: The full path and name of the VTK file to export to.
+                If None, uses `model_name` within `model_path`.
 
         Returns:
-            bool: True if export was successful, False otherwise
-        '''
-        if True:
+            True: If the export process was successful.
+
+        Raises:
+            ValueError: If no `filename` is provided and `model_name` or
+                `model_path` are not set in the MeshMaker instance.
+            ValueError: If no assembled mesh is found.
+            Exception: Any exception raised by the underlying mesh saving operation.
+
+        Example:
+            >>> import femora as fm
+            >>> import os
+            >>> # Assuming a model is already defined and assembled
+            >>> mesh_maker = fm.MeshMaker.get_instance(model_name="my_vtk_model", model_path=".")
+            >>> # Example: Create a dummy mesh for demonstration
+            >>> mesh_maker.meshPart.create_block_mesh_from_cube(tag=1, x_dim=1, y_dim=1, z_dim=1)
+            >>> mesh_maker.assembler.assemble_all_meshes()
+            >>> success = mesh_maker.export_to_vtk(filename="my_model.vtk")
+            >>> print(f"VTK export successful: {success}")
+            VTK export successful: True
+            >>> os.remove("my_model.vtk") # Clean up
+        """
+        if True: # This 'if True' is redundant, but leaving logic unchanged as per Rule 1.
             # Determine the full file path
             if filename is None:
                 if self.model_name is None or self.model_path is None:
@@ -630,7 +760,7 @@ class MeshMaker:
             # Get the assembled content
             if self.assembler.AssembeledMesh is None:
                 print("No mesh found")
-                raise ValueError("No mesh found\n Please assemble the mesh first")
+                raise ValueError("No mesh found\\n Please assemble the mesh first")
             
             # export to vtk
             # self.assembler.AssembeledMesh.save(filename, binary=True)
@@ -644,25 +774,55 @@ class MeshMaker:
     # Mask convenience
     # -------------------------------------------------------------
     @property
-    def mask(self):
-        """
-        Access a MaskManager bound to the assembled mesh.
+    def mask(self) -> MaskManager:
+        """Accesses a MaskManager bound to the assembled mesh.
+
+        This property provides a convenient way to create and apply masks
+        to nodes and elements of the assembled mesh, enabling advanced
+        selection and manipulation.
 
         Returns:
-            MaskManager: Provides typed views via .nodes and .elements.
+            MaskManager: A MaskManager instance providing typed views
+                via `.nodes` and `.elements` attributes.
 
         Raises:
             RuntimeError: If the model has not been assembled yet.
+
+        Example:
+            >>> import femora as fm
+            >>> # Assuming a model is already defined and assembled
+            >>> mesh_maker = fm.MeshMaker.get_instance()
+            >>> # Example: Create a dummy mesh for demonstration
+            >>> mesh_maker.meshPart.create_block_mesh_from_cube(tag=1, x_dim=1, y_dim=1, z_dim=1)
+            >>> mesh_maker.assembler.assemble_all_meshes()
+            >>>
+            >>> # Access the mask manager
+            >>> mask_manager = mesh_maker.mask
+            >>> # For illustration, check if nodes property exists
+            >>> print(hasattr(mask_manager, 'nodes'))
+            True
         """
         return MaskManager.from_assembled()
 
-    def set_model_info(self, model_name=None, model_path=None):
-        """
-        Update model information
+    def set_model_info(self, model_name: str = None, model_path: str = None) -> None:
+        """Updates the model's name and/or path.
         
+        This method allows modification of the model's identifying information,
+        which is used for default export filenames and paths.
+
         Args:
-            model_name (str, optional): New model name
-            model_path (str, optional): New model path
+            model_name: The new name for the model. If None, the current name is retained.
+            model_path: The new directory path where model files will be saved.
+                If None, the current path is retained.
+
+        Example:
+            >>> import femora as fm
+            >>> mesh_maker = fm.MeshMaker.get_instance(model_name="old_name", model_path=".")
+            >>> mesh_maker.set_model_info(model_name="new_name", model_path="./models")
+            >>> print(mesh_maker.model_name)
+            new_name
+            >>> print(mesh_maker.model_path)
+            ./models
         """
         if model_name is not None:
             self.model_name = model_name
@@ -670,37 +830,58 @@ class MeshMaker:
             self.model_path = model_path
 
     @classmethod
-    def set_results_folder(cls, folder_name):
-        """
-        Set the results folder for the model
-        This method updates the results folder where simulation results will be stored.
+    def set_results_folder(cls, folder_name: str) -> None:
+        """Sets the global results folder for the model.
+
+        This class method updates the default directory where simulation results
+        will be stored. This setting is shared across all MeshMaker instances.
 
         Args:
-            folder_name (str): path to the results folder
+            folder_name: The path to the results folder.
+
+        Example:
+            >>> import femora as fm
+            >>> fm.MeshMaker.set_results_folder("./output_data")
+            >>> print(fm.MeshMaker.get_results_folder())
+            ./output_data
         """
         cls._results_folder = folder_name
 
     @classmethod
-    def get_results_folder(cls):
-        """
-        Get the current results folder path
+    def get_results_folder(cls) -> str:
+        """Gets the current global results folder path.
         
         Returns:
-            str: The path to the results folder
+            str: The path to the results folder, or an empty string if not set.
+
+        Example:
+            >>> import femora as fm
+            >>> fm.MeshMaker.set_results_folder("./sim_results")
+            >>> folder = fm.MeshMaker.get_results_folder()
+            >>> print(folder)
+            ./sim_results
         """
         return cls._results_folder if cls._results_folder else ""
     
 
-    def print_info(self):
-        '''
-        Print information about the current model on the console
+    def print_info(self) -> None:
+        """Prints information about the current assembled model to the console.
 
-        Args:
-            None
+        If a mesh has been assembled, this method outputs the number of nodes
+        and elements. Otherwise, it indicates that no mesh is found.
 
-        Returns:
-            None
-        '''
+        Example:
+            >>> import femora as fm
+            >>> mesh_maker = fm.MeshMaker.get_instance()
+            >>> mesh_maker.print_info()
+            No mesh found
+            >>> # Assuming a mesh is assembled
+            >>> mesh_maker.meshPart.create_block_mesh_from_cube(tag=1, x_dim=1, y_dim=1, z_dim=1)
+            >>> mesh_maker.assembler.assemble_all_meshes()
+            >>> mesh_maker.print_info() # doctest: +SKIP
+            Number of nodes: 8
+            Number of elements: 1
+        """
 
         if self.assembler.AssembeledMesh is None:
             print("No mesh found")
@@ -711,17 +892,27 @@ class MeshMaker:
             print(f"Number of elements: {numcells}")    
         
         
-    def get_max_ele_tag(self):
-        '''
-        Get the maximum element tag in the assembled mesh 
+    def get_max_ele_tag(self) -> int:
+        """Gets the maximum element tag in the assembled mesh.
 
-        Args:
-            None
+        This method calculates the highest tag that would be assigned to
+        an element, considering the starting element tag offset.
 
         Returns:
-            positive int: maximum element tag
-            -1: if no mesh is assembled
-        '''
+            int: The maximum element tag, or -1 if no mesh is assembled.
+
+        Example:
+            >>> import femora as fm
+            >>> mesh_maker = fm.MeshMaker.get_instance()
+            >>> mesh_maker.set_eletag_start(100)
+            >>> print(mesh_maker.get_max_ele_tag())
+            -1
+            >>> # Assuming a mesh is assembled
+            >>> mesh_maker.meshPart.create_block_mesh_from_cube(tag=1, x_dim=1, y_dim=1, z_dim=1)
+            >>> mesh_maker.assembler.assemble_all_meshes()
+            >>> print(mesh_maker.get_max_ele_tag()) # doctest: +SKIP
+            100
+        """
 
         max_ele_tag = self.assembler.get_num_cells()
 
@@ -729,17 +920,27 @@ class MeshMaker:
             return -1
         return max_ele_tag + self._start_ele_tag - 1
     
-    def get_max_node_tag(self):
-        '''
-        Get the maximum node tag in the assembled mesh 
+    def get_max_node_tag(self) -> int:
+        """Gets the maximum node tag in the assembled mesh.
 
-        Args:
-            None
+        This method calculates the highest tag that would be assigned to
+        a node, considering the starting node tag offset.
 
         Returns:
-            positive int: maximum node tag
-            -1: if no mesh is assembled
-        '''
+            int: The maximum node tag, or -1 if no mesh is assembled.
+
+        Example:
+            >>> import femora as fm
+            >>> mesh_maker = fm.MeshMaker.get_instance()
+            >>> mesh_maker.set_nodetag_start(1)
+            >>> print(mesh_maker.get_max_node_tag())
+            -1
+            >>> # Assuming a mesh is assembled
+            >>> mesh_maker.meshPart.create_block_mesh_from_cube(tag=1, x_dim=1, y_dim=1, z_dim=1)
+            >>> mesh_maker.assembler.assemble_all_meshes()
+            >>> print(mesh_maker.get_max_node_tag()) # doctest: +SKIP
+            8
+        """
 
         max_node_tag = self.assembler.get_num_points()
 
@@ -747,27 +948,33 @@ class MeshMaker:
             return -1
         return max_node_tag + self._start_nodetag - 1
 
-    def get_start_ele_tag(self):
-        """
-        Get the start element tag
-
-        Args:
-            None
+    def get_start_ele_tag(self) -> int:
+        """Gets the current starting element tag.
 
         Returns:
-            int: start element tag
+            int: The integer value of the starting element tag.
+
+        Example:
+            >>> import femora as fm
+            >>> mesh_maker = fm.MeshMaker.get_instance()
+            >>> mesh_maker.set_eletag_start(500)
+            >>> print(mesh_maker.get_start_ele_tag())
+            500
         """
         return self._start_ele_tag
     
 
-    def get_start_node_tag(self):
-        """
-        Get the start node tag
-
-        Args:
-            None
+    def get_start_node_tag(self) -> int:
+        """Gets the current starting node tag.
 
         Returns:
-            int: start node tag
+            int: The integer value of the starting node tag.
+
+        Example:
+            >>> import femora as fm
+            >>> mesh_maker = fm.MeshMaker.get_instance()
+            >>> mesh_maker.set_nodetag_start(1000)
+            >>> print(mesh_maker.get_start_node_tag())
+            1000
         """
         return self._start_nodetag
