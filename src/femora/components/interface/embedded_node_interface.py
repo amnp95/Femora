@@ -38,6 +38,11 @@ class EmbeddedNodeInterface(InterfaceBase, GeneratesMeshMixin):
         use_mesh_part_points = False,
         normal_filter: list[float] | None = None,
         filter_tolerance: float = 0.98,
+        friction_interface: bool = True,
+        friction_interface_kn: float = 1e10,
+        friction_interface_kt: float = 1e10,
+        friction_interface_mu: float = 0.5,
+        friction_interface_int_type: int = 0
 
     ) -> None:
         
@@ -81,7 +86,15 @@ class EmbeddedNodeInterface(InterfaceBase, GeneratesMeshMixin):
             normal_filter = np.array(normal_filter) / np.linalg.norm(normal_filter)
         self._normal_filter = normal_filter
         self._filter_tolerance = filter_tolerance
+        self._friction_interface = friction_interface
+        self._friction_interface_kn = friction_interface_kn
+        self._friction_interface_kt = friction_interface_kt
+        self._friction_interface_mu = friction_interface_mu
+        self._friction_interface_int_type = friction_interface_int_type
 
+        if self._use_mesh_part_points:
+            self._friction_interface = False
+            print("Warning: Using use_mesh_part_points=True will disable friction interface.")
 
         super().__init__(name, owners=[self.constrained_node.user_name])
         
@@ -203,6 +216,7 @@ class EmbeddedNodeInterface(InterfaceBase, GeneratesMeshMixin):
             offset_mesh = offset_mesh.extract_points(mask, include_cells=False)
             point_ids = point_ids[mask]
             offset_points = offset_mesh.points
+            normals = offset_mesh.point_data["Normals"]
 
 
             # now we need to filter out the point_ids that are in the retained mesh
@@ -226,7 +240,7 @@ class EmbeddedNodeInterface(InterfaceBase, GeneratesMeshMixin):
             pl.add_mesh(constrained_mesh, opacity=0.5, show_edges=True, color='gray')
             pl.add_mesh(pv.PolyData(offset_points), opacity=0.5, show_edges=True, color='blue')
             pl.show()
-            return offset_points, point_ids
+            return offset_points, point_ids, normals
         
 
 
@@ -245,7 +259,7 @@ class EmbeddedNodeInterface(InterfaceBase, GeneratesMeshMixin):
         tetrahedra_mesh = self._tetrahedralize(asembelled_mesh)
 
         # 3) offset the constrained node
-        offset_points, point_ids = self._create_offset_mesh(asembelled_mesh)
+        offset_points, point_ids, normals = self._create_offset_mesh(asembelled_mesh)
 
 
         # 4) filter out only the tetrahedrons that are from the retained nodes
@@ -276,6 +290,7 @@ class EmbeddedNodeInterface(InterfaceBase, GeneratesMeshMixin):
 
         selected_cells = cell_ids[mask]
         selected_points = offset_points[mask]
+        selected_normals = normals[mask]
         point_ids = point_ids[mask]
         print(f"filtered tetrahedra has {tetrahedra_mesh_filtered.n_cells} cells")
         print(f"filtered tetrahedra has {tetrahedra_mesh_filtered.n_points} points")
@@ -376,10 +391,6 @@ class EmbeddedNodeInterface(InterfaceBase, GeneratesMeshMixin):
             for j in tet_elements[i]:
                 new_cells_raw.append(j)
             new_celltypes.append(pv.CellType.POLY_VERTEX)
-        
-
-            
-        
 
         # 3. Concatenate Point and Cell arrays
         if self._use_mesh_part_points:
@@ -432,13 +443,58 @@ class EmbeddedNodeInterface(InterfaceBase, GeneratesMeshMixin):
                 )
                     
         
+        if self._friction_interface:
+            friction_ele = MeshMaker().element.create_element("ASDFrictionInterfaceElement3D",
+                                           ndof = ndf, 
+                                           rot = self._rot,
+                                           p = self._p, 
+                                           K = self._K,
+                                           KP = self._KP,
+                                           )
+            
+            # 1. Get the base mesh
+            base_mesh = Assembler().AssembeledMesh
+            old_points = base_mesh.points
+            old_cells = base_mesh.cells
+            old_celltypes = base_mesh.celltypes
 
+            # 2. Create the new cells
+            new_cells = []
+            new_celltypes = []
+            
+            # 3. Create the new cells for friction interface
+            # offset remains from the previous mesh before adding embedded nodes
+            for i in range(selected_points.shape[0]):
+                new_cells.append(2)
+                new_cells.append(i + offset)
+                new_cells.append(point_ids[i])
+                new_celltypes.append(pv.CellType.LINE)
 
+            # 4. Concatenate Point and Cell arrays
+            combined_points = old_points
+            combined_cells = np.concatenate((old_cells, new_cells))
+            combined_celltypes = np.concatenate((old_celltypes, new_celltypes))
+
+            # 5. Create the final Mesh
+            final_mesh = pv.UnstructuredGrid(combined_cells, combined_celltypes, combined_points)
+
+            # 6. Copy over existing data arrays
+            # cell data
+            final_mesh.cell_data['Core'] = np.concatenate((base_mesh.cell_data['Core'], tet_cores))
+            final_mesh.cell_data['ElementTag'] = np.concatenate((base_mesh.cell_data['ElementTag'], np.full(num_new_cells, friction_ele.tag, dtype=np.uint16)))
+            final_mesh.cell_data['MaterialTag'] = np.concatenate((base_mesh.cell_data['MaterialTag'], np.full(num_new_cells, 0, dtype=np.uint16)))
+            final_mesh.cell_data['Region'] = np.concatenate((base_mesh.cell_data['Region'], np.full(num_new_cells, 0, dtype=np.uint16)))
+            final_mesh.cell_data['MeshPartTag_celldata'] = np.concatenate((base_mesh.cell_data['MeshPartTag_celldata'], np.full(num_new_cells, 0, dtype=np.uint16)))
+            
+            # point data
+            final_mesh.point_data['MeshPartTag_pointdata'] = base_mesh.point_data['MeshPartTag_pointdata']
+            final_mesh.point_data['Mass'] = base_mesh.point_data['Mass']
+            final_mesh.point_data['ndf'] = base_mesh.point_data['ndf']
+
+            # 7. Update Assembler
+            Assembler().AssembeledMesh = final_mesh
             
 
-
-
-        # return  point_ids, selected_points, tet_elements
 
 
         
