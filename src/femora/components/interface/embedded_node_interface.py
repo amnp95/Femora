@@ -63,10 +63,10 @@ class EmbeddedNodeInterface(InterfaceBase, GeneratesMeshMixin):
             self.retained_nodes.remove(self.constrained_node)
 
 
+        if offset is None:
+            offset = 0.0
         if offset < 0:
             raise ValueError("Offset must be a positive number")
-        if offset is None:
-            self.offset = 0.0
         self.offset = offset
 
         if offset > 1e-2 and use_mesh_part_points:
@@ -123,6 +123,7 @@ class EmbeddedNodeInterface(InterfaceBase, GeneratesMeshMixin):
                                                 split_vertices= False,
                                             )
                 mask = np.ones(original_mesh.n_points, dtype=bool)
+                original_mesh.point_data['Normals'] = mesh_with_normals.point_data['Normals']
             else:
                 mesh_with_normals = original_mesh.compute_normals(
                                                 cell_normals=False, 
@@ -419,9 +420,10 @@ class EmbeddedNodeInterface(InterfaceBase, GeneratesMeshMixin):
         # now if not use_mesh_part_points, we need to make mpconstraint for the new points to the original point
         if not self._use_mesh_part_points:
             mk = MeshMaker()
+            start_node = mk.get_start_node_tag()
             for i in range(selected_points.shape[0]):
-                original_point_id = point_ids[i]
-                new_point_id = i + offset
+                original_point_id = point_ids[i] + start_node
+                new_point_id = i + offset + start_node
                 ndf = base_mesh.point_data['ndf'][original_point_id]
                 mk.constraint.mp.create_equal_dof(
                     master_node = new_point_id,
