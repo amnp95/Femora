@@ -988,6 +988,123 @@ class ASDEmbeddedNodeElement3D(Element):
                 del kwargs["KP"]
         return kwargs
 
+class ZeroLengthContactASDimplex(Element):
+    """OpenSees ZeroLengthContactASDimplex Element.
+
+    This element is used to model contact between two nodes. It supports
+    normal and tangential stiffness, and friction.
+
+    Attributes:
+        params (Dict[str, Union[int, float, str]]): Validated element parameters.
+    """
+
+    def __init__(self, ndof: int, Kn: float, Kt: float, mu: float, material: Material = None, orient: List[float] = None, intType: int = 0):
+        """Initialize a ZeroLengthContactASDimplex element.
+
+        Args:
+            ndof: Number of degrees of freedom per node.
+            Kn: Penalty stiffness for normal contact.
+            Kt: Penalty stiffness for tangential contact.
+            mu: Friction coefficient using Mohr-Coulomb friction.
+            material: Not used by this element, but required by base class signature.
+                      Defaults to None.
+            orient: Orientation vector [nx, ny, nz] (optional).
+            intType: Integration type (0: Implicit, 1: IMPL-EX). Defaults to 0.
+        """
+        super().__init__('ZeroLengthContactASDimplex', ndof, material=None)
+        
+        # Store required params
+        self.params = {
+            'Kn': float(Kn),
+            'Kt': float(Kt),
+            'mu': float(mu)
+        }
+        
+        if intType != 0:
+            self.params['intType'] = int(intType)
+        
+        # Store optional path
+        if orient is not None:
+             # Validate orient
+            if not isinstance(orient, (list, tuple)) or len(orient) != 3:
+                raise ValueError("orient must be a list/tuple of 3 floats")
+            try:
+                self.params['orient'] = [float(x) for x in orient]
+            except (ValueError, TypeError):
+                raise ValueError("orient components must be floats")
+
+    def to_tcl(self, tag: int, nodes: List[int]) -> str:
+        """Generate the OpenSees TCL command for this element.
+
+        Args:
+            tag: Unique element tag.
+            nodes: List of 2 node tags.
+
+        Returns:
+            str: TCL command string.
+        """
+        if len(nodes) != 2:
+            raise ValueError("ZeroLengthContactASDimplex element requires 2 nodes")
+        
+        cmd = f"element ZeroLengthContactASDimplex {tag} {nodes[0]} {nodes[1]} {self.params['Kn']} {self.params['Kt']} {self.params['mu']}"
+        
+        if 'orient' in self.params:
+            orient = self.params['orient']
+            cmd += f" -orient {orient[0]} {orient[1]} {orient[2]}"
+            
+        if 'intType' in self.params:
+            cmd += f" -intType {self.params['intType']}"
+            
+        return cmd
+
+    @classmethod
+    def get_parameters(cls) -> List[str]:
+        return ["Kn", "Kt", "mu", "intType", "orient"]
+
+    @classmethod
+    def get_description(cls) -> List[str]:
+        return [
+            "Penalty stiffness for normal contact",
+            "Penalty stiffness for tangential contact",
+            "Friction coefficient",
+            "Integration type (0: Implicit, 1: IMPL-EX)",
+            "Orientation vector [nx, ny, nz] (optional)"
+        ]
+
+    @classmethod
+    def get_possible_dofs(cls) -> List[str]:
+        # Supports 2D (2, 3 DOFs) and 3D (3, 4, 6 DOFs)
+        return ['2', '3', '4', '6']
+
+    def get_values(self, keys: List[str]) -> Dict[str, Union[int, float, str, List[float]]]:
+        return {key: self.params.get(key) for key in keys}
+
+    def update_values(self, values: Dict[str, Union[int, float, str, List[float]]]) -> None:
+        self.params.update(values)
+
+    @classmethod
+    def validate_element_parameters(cls, **kwargs) -> Dict[str, Union[int, float, str, List[float]]]:
+        # Validate optional parameters
+        if 'intType' in kwargs:
+            try:
+                kwargs['intType'] = int(kwargs['intType'])
+                if kwargs['intType'] not in [0, 1]:
+                    raise ValueError
+            except (ValueError, TypeError):
+                raise ValueError("intType must be 0 or 1")
+                
+        if 'orient' in kwargs:
+            orient = kwargs['orient']
+            if not isinstance(orient, (list, tuple)) or len(orient) != 3:
+                raise ValueError("orient must be a list/tuple of 3 floats")
+            try:
+                kwargs['orient'] = [float(x) for x in orient]
+            except (ValueError, TypeError):
+                raise ValueError("orient components must be floats")
+                
+        return kwargs
+
+
 
 # =================================================================================================
 # Register element types
@@ -997,3 +1114,4 @@ ElementRegistry.register_element_type('stdBrick', stdBrickElement)
 ElementRegistry.register_element_type('PML3D', PML3DElement)
 ElementRegistry.register_element_type('SSPbrick', SSPbrickElement)
 ElementRegistry.register_element_type('ASDEmbeddedNodeElement3D', ASDEmbeddedNodeElement3D)
+ElementRegistry.register_element_type('ZeroLengthContactASDimplex', ZeroLengthContactASDimplex)
