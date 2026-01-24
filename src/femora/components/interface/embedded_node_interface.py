@@ -428,28 +428,31 @@ class EmbeddedNodeInterface(InterfaceBase, GeneratesMeshMixin):
         Assembler().plot(color="blue", opacity=0.5, show_edges=False, )
 
 
-        # now if not use_mesh_part_points, we need to make mpconstraint for the new points to the original point
-        if not self._use_mesh_part_points:
-            mk = MeshMaker()
-            start_node = mk.get_start_node_tag()
-            for i in range(selected_points.shape[0]):
-                original_point_id = point_ids[i] + start_node
-                new_point_id = i + offset + start_node
-                ndf = base_mesh.point_data['ndf'][original_point_id]
-                mk.constraint.mp.create_equal_dof(
-                    master_node = new_point_id,
-                    slave_nodes = [original_point_id],
-                    dofs = list(range(1, ndf+1))
-                )
+        # # now if not use_mesh_part_points, we need to make mpconstraint for the new points to the original point
+        # if not self._use_mesh_part_points:
+        #     mk = MeshMaker()
+        #     start_node = mk.get_start_node_tag()
+        #     for i in range(selected_points.shape[0]):
+        #         original_point_id = point_ids[i] + start_node
+        #         new_point_id = i + offset + start_node
+        #         ndf = base_mesh.point_data['ndf'][original_point_id]
+        #         mk.constraint.mp.create_equal_dof(
+        #             master_node = new_point_id,
+        #             slave_nodes = [original_point_id],
+        #             dofs = list(range(1, ndf+1))
+        #         )
                     
         
         if self._friction_interface:
-            friction_ele = MeshMaker().element.create_element("ASDFrictionInterfaceElement3D",
-                                           ndof = ndf, 
-                                           rot = self._rot,
-                                           p = self._p, 
-                                           K = self._K,
-                                           KP = self._KP,
+            # __init__(self, ndof: int, Kn: float, Kt: float, mu: float, material: Material = None, orient: List[float] = None, intType: int = 0):
+            friction_ele = MeshMaker().element.create_element("ZeroLengthContactASDimplex",
+                                           ndof = 3,
+                                           Kn = self._friction_interface_kn,
+                                           Kt = self._friction_interface_kt,
+                                           mu = self._friction_interface_mu,
+                                           material = None,
+                                           orient = [0.0, 0.0, -1.0],
+                                           intType = self._friction_interface_int_type
                                            )
             
             # 1. Get the base mesh
@@ -466,8 +469,8 @@ class EmbeddedNodeInterface(InterfaceBase, GeneratesMeshMixin):
             # offset remains from the previous mesh before adding embedded nodes
             for i in range(selected_points.shape[0]):
                 new_cells.append(2)
-                new_cells.append(i + offset)
                 new_cells.append(point_ids[i])
+                new_cells.append(i + offset)
                 new_celltypes.append(pv.CellType.LINE)
 
             # 4. Concatenate Point and Cell arrays
