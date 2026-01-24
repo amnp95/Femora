@@ -1046,7 +1046,7 @@ class ZeroLengthContactASDimplex(Element):
         if len(nodes) != 2:
             raise ValueError("ZeroLengthContactASDimplex element requires 2 nodes")
         
-        cmd = f"element ZeroLengthContactASDimplex {tag} {nodes[0]} {nodes[1]} {self.params['Kn']} {self.params['Kt']} {self.params['mu']}"
+        cmd = f"element zeroLengthContactASDimplex {tag} {nodes[0]} {nodes[1]} {self.params['Kn']} {self.params['Kt']} {self.params['mu']}"
         
         if 'orient' in self.params:
             orient = self.params['orient']
