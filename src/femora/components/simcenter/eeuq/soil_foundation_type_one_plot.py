@@ -1,22 +1,76 @@
-"""
-Browser-based plotting GUI for soil/foundation/piles using PyVista + trame.
-Redesigned based on working test.py patterns for better reliability.
+from __future__ import annotations
+"""Browser-based plotting GUI for soil/foundation/piles using PyVista + trame.
+
+This module provides a graphical user interface (GUI) for visualizing
+soil layers, foundation blocks, and piles, leveraging PyVista for 3D rendering
+and Trame for web-based interactivity. It is designed for fast and
+reliable visualization in geotechnical engineering contexts.
 
 Install requirements if missing:
     pip install pyvista trame trame-vtk trame-vuetify
 """
 
-from __future__ import annotations
-from typing import Optional
+from typing import Optional, Any
 import os
 import json
 import numpy as np
 
 
 class SoilFoundationPlotter:
-    """
-    Browser-based GUI for fast visualization of soil layers, foundation blocks,
-    and piles using PyVista + trame. Based on reliable patterns from test.py.
+    """Browser-based GUI for fast visualization of soil layers, foundation blocks, and piles.
+
+    This class orchestrates a web-based interactive plotter using PyVista for 3D rendering
+    and Trame for the user interface. It allows users to visualize geotechnical models,
+    including soil profiles, foundation elements, and pile configurations, with options
+    for visibility, opacity, scalar coloring, and camera control.
+
+    Attributes:
+        pv (module): The PyVista module loaded at initialization.
+        title (str): The title displayed in the GUI.
+        port (int): The network port the Trame server listens on.
+        structure_info (dict): Dictionary containing structural model information.
+        soil_info (dict): Dictionary containing soil layer definitions.
+        foundation_info (dict): Dictionary containing foundation block definitions.
+        pile_info (dict): Dictionary containing pile configurations.
+        plotter (pyvista.Plotter): The PyVista plotter instance used for rendering.
+        objects (dict): A dictionary storing references to added PyVista meshes and actors.
+
+    Example:
+        >>> import femora as fm # Assuming SoilFoundationPlotter is exposed via 'femora' package
+        >>> # Define minimal example data for demonstration
+        >>> structure_info = {
+        ...     "x_min": -10, "y_min": -10, "z_min": 0,
+        ...     "x_max": 10, "y_max": 10, "z_max": 20
+        ... }
+        >>> soil_info = {
+        ...     "x_min": -20, "x_max": 20, "y_min": -20, "y_max": 20,
+        ...     "soil_profile": [
+        ...         {"z_bot": -20, "z_top": -10, "nz": 2},
+        ...         {"z_bot": -10, "z_top": 0, "nz": 2}
+        ...     ]
+        ... }
+        >>> foundation_info = {
+        ...     "foundation_profile": [
+        ...         {"x_min": -5, "x_max": 5, "y_min": -5, "y_max": 5, "z_top": 0, "z_bot": -1.2}
+        ...     ]
+        ... }
+        >>> pile_info = {
+        ...     "pile_profile": [
+        ...         {"type": "grid", "x_start": -3, "y_start": -3, "spacing_x": 3,
+        ...          "spacing_y": 3, "nx": 3, "ny": 3, "z_top": -0.5, "z_bot": -8, "r": 0.3}
+        ...     ]
+        ... }
+        >>>
+        >>> # Create and start the plotter (use a different port for examples if running in parallel)
+        >>> # plotter = fm.SoilFoundationPlotter(
+        >>> #     structure_info=structure_info,
+        >>> #     soil_info=soil_info,
+        >>> #     foundation_info=foundation_info,
+        >>> #     pile_info=pile_info,
+        >>> #     port=8082
+        >>> # )
+        >>> # plotter.start_server() # Uncomment to run the example, requires an event loop
+        >>> # print(f"Plotter available at http://localhost:8082")
     """
 
     def __init__(
@@ -30,6 +84,32 @@ class SoilFoundationPlotter:
         port: int = 8080,
         title: str = "Soil/Foundation Plotter",
     ) -> None:
+        """Initializes the SoilFoundationPlotter.
+
+        Sets up the PyVista plotter, loads configuration data for the
+        structure, soil, foundation, and piles, and initializes the
+        Trame server for the web-based GUI. It also performs an initial
+        "quick plot" to populate the scene.
+
+        Args:
+            structure_info: Optional. A dictionary containing information about the
+                main structure, typically its bounding box and an optional mesh file.
+            soil_info: Optional. A dictionary defining the soil layers, including
+                dimensions and material properties.
+            foundation_info: Optional. A dictionary defining the foundation blocks,
+                including dimensions and material properties.
+            pile_info: Optional. A dictionary defining the pile configurations,
+                supporting both single piles and pile grids.
+            info_file: Optional. Path to a JSON file containing all `_info` dictionaries.
+                If provided, and `_info` dicts are None, they will be loaded from this file.
+            server_name: The name for the Trame server.
+            port: The port number on which the Trame server will listen.
+            title: The title displayed in the browser tab and GUI layout.
+
+        Raises:
+            RuntimeError: If `pyvista` or `trame` libraries are not installed.
+            FileNotFoundError: If `info_file` is provided but does not exist.
+        """
         try:
             import pyvista as pv
         except Exception as exc:
@@ -108,7 +188,20 @@ class SoilFoundationPlotter:
         self.quick_plot()
 
     def _setup_server(self, server_name: str):
-        """Setup the trame server and UI"""
+        """Sets up the Trame server and its user interface components.
+
+        This method initializes the Trame application server, defines the
+        layout using Vuetify components, and sets up state variables and
+        controller methods for interactive GUI elements. It dynamically
+        adapts to Vuetify 2 or 3 based on the installed `trame-vuetify` version.
+
+        Args:
+            server_name: The name for the Trame server instance.
+
+        Raises:
+            RuntimeError: If the 'trame' stack (trame, trame-vtk, trame-vuetify)
+                is not installed.
+        """
         try:
             from trame.app import get_server
             import trame_vuetify as _tv
@@ -592,7 +685,24 @@ class SoilFoundationPlotter:
                     ctrl.view_reset_camera = self.html_view.reset_camera
 
     def quick_plot(self) -> None:
-        """Fast scene build: soil/foundation as boxes, piles as cylinders."""
+        """Builds a fast, schematic representation of the scene.
+
+        This method clears any existing objects and then adds simplified
+        geometric primitives for soil layers (boxes), foundation blocks (boxes),
+        and piles (cylinders). It also includes an optional building mesh if
+        `mesh_file` is provided. Visibility and opacity settings are applied
+        after plotting.
+
+        Example:
+            >>> import femora as fm
+            >>> plotter = fm.SoilFoundationPlotter(
+            ...     soil_info={"soil_profile": [{"z_bot": -10, "z_top": 0, "x_min": -5, "x_max": 5, "y_min": -5, "y_max": 5}]},
+            ...     port=8083 # Use a unique port for this example
+            ... )
+            >>> plotter.quick_plot()
+            Building quick plot...
+            Quick plot complete. Total objects: 1
+        """
         print("Building quick plot...")
         
         # Clear existing objects
@@ -625,7 +735,12 @@ class SoilFoundationPlotter:
 
 
     def _add_soil_layers(self):
-        """Add soil layers to the scene"""
+        """Adds soil layers as volumetric boxes to the PyVista scene.
+
+        Each layer defined in `self.soil_info["soil_profile"]` is represented
+        as a `pyvista.Cube` with a distinct khaki-themed color and default
+        transparency.
+        """
         khaki_colors = [
             "#F0E68C", "#DEB887", "#D2B48C", "#BDB76B", "#F4A460", "#CD853F",
             "#A0522D", "#8B7355", "#6B8E23", "#556B2F", "#8FBC8F", "#9ACD32",
@@ -667,7 +782,12 @@ class SoilFoundationPlotter:
             }
 
     def _add_foundation_blocks(self):
-        """Add foundation blocks to the scene"""
+        """Adds foundation blocks as volumetric boxes to the PyVista scene.
+
+        Each foundation block defined in `self.foundation_info["foundation_profile"]`
+        is represented as a `pyvista.Cube` with a grey-purple color and default
+        transparency.
+        """
         for fidx, f in enumerate(self.foundation_info["foundation_profile"]):
             try:
                 x_min, x_max = f["x_min"], f["x_max"]
@@ -704,7 +824,11 @@ class SoilFoundationPlotter:
             }
 
     def _add_piles(self):
-        """Add piles to the scene (supports single and grid definitions)"""
+        """Adds piles to the scene, supporting both single piles and pile grids.
+
+        Iterates through the `pile_profile` in `self.pile_info` and dispatches
+        to `_add_single_pile` or `_add_pile_grid` based on the pile type.
+        """
         pidx = 0
         for pile in self.pile_info["pile_profile"]:
             ptype = str(pile.get("type", "single")).lower()
@@ -714,8 +838,22 @@ class SoilFoundationPlotter:
             else:
                 pidx = self._add_single_pile(pile, pidx)
 
-    def _add_pile_grid(self, pile, pidx):
-        """Add a grid of piles"""
+    def _add_pile_grid(self, pile: dict, pidx: int) -> int:
+        """Adds a grid of piles as cylinders to the PyVista scene.
+
+        Piles are generated based on grid dimensions (`nx`, `ny`), spacing,
+        and start coordinates. Each pile is represented as a `pyvista.Cylinder`
+        with a green color and default transparency.
+
+        Args:
+            pile: A dictionary containing parameters for the pile grid
+                (e.g., `x_start`, `y_start`, `spacing_x`, `spacing_y`, `nx`,
+                `ny`, `z_top`, `z_bot`, `r`).
+            pidx: The starting index for naming the piles.
+
+        Returns:
+            The next available pile index after adding all piles in the grid.
+        """
         try:
             x_start = float(pile["x_start"])
             y_start = float(pile["y_start"])
@@ -769,8 +907,21 @@ class SoilFoundationPlotter:
                 
         return pidx
 
-    def _add_single_pile(self, pile, pidx):
-        """Add a single pile"""
+    def _add_single_pile(self, pile: dict, pidx: int) -> int:
+        """Adds a single pile as a cylinder to the PyVista scene.
+
+        Piles are generated from top and bottom coordinates and a radius.
+        Each pile is represented as a `pyvista.Cylinder` with a green color
+        and default transparency.
+
+        Args:
+            pile: A dictionary containing parameters for a single pile
+                (e.g., `x_top`, `y_top`, `z_top`, `x_bot`, `y_bot`, `z_bot`, `r`).
+            pidx: The index for naming this pile.
+
+        Returns:
+            The next available pile index after adding this pile.
+        """
         try:
             x_top = float(pile["x_top"])
             y_top = float(pile["y_top"])
@@ -813,7 +964,12 @@ class SoilFoundationPlotter:
         return pidx + 1
 
     def _add_mesh_file(self):
-        """Add mesh file to the scene"""
+        """Adds an external mesh file (e.g., building structure) to the scene.
+
+        The mesh is loaded using `pyvista.read` and added to the plotter
+        with a dark grey color and default transparency, along with
+        edge rendering.
+        """
         try:
             mesh = self.pv.read(self._mesh_file)
             name = "mesh_file"
@@ -835,20 +991,49 @@ class SoilFoundationPlotter:
             print(f"Failed to load mesh file {self._mesh_file}: {e}")
 
     def clear_all(self):
-        """Clear all objects from the plotter"""
+        """Clears all objects from the PyVista plotter and the internal object registry.
+
+        This effectively resets the 3D scene, removing all meshes and actors.
+
+        Example:
+            >>> import femora as fm
+            >>> plotter = fm.SoilFoundationPlotter(port=8084) # Use a unique port
+            >>> plotter.quick_plot()
+            Building quick plot...
+            Quick plot complete. Total objects: 0
+            >>> plotter.clear_all()
+            Cleared all objects
+        """
         self.plotter.clear()
         self.objects.clear()
         self.update_view()
         print("Cleared all objects")
 
     def reset_camera(self):
-        """Reset the camera to default position"""
+        """Resets the PyVista camera to an isometric default position.
+
+        This sets the camera to a standard viewing angle and then updates the
+        web-based view.
+
+        Example:
+            >>> import femora as fm
+            >>> plotter = fm.SoilFoundationPlotter(port=8085) # Use a unique port
+            >>> plotter.quick_plot()
+            Building quick plot...
+            Quick plot complete. Total objects: 0
+            >>> plotter.reset_camera()
+        """
         self.plotter.reset_camera()
         self.plotter.camera_position = "iso"
         self.update_view()
 
     def _apply_visibility(self):
-        """Apply visibility settings based on current state"""
+        """Applies visibility settings to objects based on current Trame state.
+
+        Iterates through all registered objects and sets their visibility
+        (show/hide) according to the `show_soil`, `show_foundation`, `show_piles`,
+        and `show_mesh` state variables from the Trame server.
+        """
         if not hasattr(self.server, 'state'):
             return
             
@@ -872,7 +1057,12 @@ class SoilFoundationPlotter:
         self.update_view()
 
     def _apply_opacity(self):
-        """Apply opacity settings based on current state"""
+        """Applies opacity settings to objects based on current Trame state.
+
+        Iterates through all registered objects and sets their transparency
+        according to the `soil_opacity`, `foundation_opacity`, `piles_opacity`,
+        and `mesh_opacity` state variables from the Trame server.
+        """
         if not hasattr(self.server, 'state'):
             return
             
@@ -897,7 +1087,12 @@ class SoilFoundationPlotter:
         self.update_view()
 
     def update_view(self):
-        """Update the 3D view"""
+        """Triggers an update of the 3D visualization in the web browser.
+
+        This method is called after any changes to the scene (e.g., adding/removing
+        objects, changing properties) to ensure the client-side view is synchronized
+        with the server-side PyVista plotter.
+        """
         try:
             if hasattr(self, 'html_view'):
                 self.html_view.update()
@@ -911,8 +1106,27 @@ class SoilFoundationPlotter:
         foundation_info: Optional[dict],
         pile_info: Optional[dict],
         info_file: Optional[str],
-    ):
-        """Load configuration from file or use provided dicts"""
+    ) -> tuple[Optional[dict], Optional[dict], Optional[dict], Optional[dict]]:
+        """Loads configuration information for structure, soil, foundation, and piles.
+
+        If `info_file` is provided and the corresponding `_info` dictionaries are
+        None, it attempts to load them from the specified JSON file. Otherwise,
+        it uses the directly provided dictionaries.
+
+        Args:
+            structure_info: Initial structure information dictionary.
+            soil_info: Initial soil information dictionary.
+            foundation_info: Initial foundation information dictionary.
+            pile_info: Initial pile information dictionary.
+            info_file: Path to an optional JSON file containing all configuration data.
+
+        Returns:
+            A tuple containing (structure_info, soil_info, foundation_info, pile_info),
+            potentially updated from the `info_file`.
+
+        Raises:
+            FileNotFoundError: If `info_file` is provided but does not exist.
+        """
         if info_file is not None and (not structure_info or not soil_info or not foundation_info or not pile_info):
             if not os.path.isfile(info_file):
                 raise FileNotFoundError(f"info_file not found: {info_file}")
@@ -926,23 +1140,96 @@ class SoilFoundationPlotter:
         return structure_info, soil_info, foundation_info, pile_info
 
     def start_server(self, **kwargs):
-        """Start the trame server"""
+        """Starts the Trame web server to host the GUI.
+
+        This method blocks execution and serves the interactive plotter
+        interface via a web browser. The server can be stopped by pressing
+        Ctrl+C in the console.
+
+        Args:
+            **kwargs: Additional keyword arguments to pass to `self.server.start()`.
+
+        Example:
+            >>> import femora as fm
+            >>> plotter = fm.SoilFoundationPlotter(port=8086) # Use a unique port
+            >>> # plotter.start_server(open_browser=False) # Uncomment to run and test
+            Starting Soil Foundation Plotter on port 8086
+            Open browser to: http://localhost:8086
+            Press Ctrl+C to stop the server
+        """
         print(f"Starting Soil Foundation Plotter on port {self.port}")
         print(f"Open browser to: http://localhost:{self.port}")
         print("Press Ctrl+C to stop the server")
         
         self.server.start(port=self.port, **kwargs)
 
-    def get_object_list(self):
-        """Get a list of all objects in the scene"""
+    def get_object_list(self) -> list[str]:
+        """Gets a list of names of all visible objects currently in the scene.
+
+        Returns:
+            A list of strings, where each string is the name of an object
+            (e.g., "soil_0", "foundation_mesh").
+
+        Example:
+            >>> import femora as fm
+            >>> plotter = fm.SoilFoundationPlotter(
+            ...     soil_info={"soil_profile": [{"z_bot": -10, "z_top": 0, "x_min": -5, "x_max": 5, "y_min": -5, "y_max": 5}]},
+            ...     port=8087 # Use a unique port
+            ... )
+            >>> plotter.quick_plot()
+            Building quick plot...
+            Quick plot complete. Total objects: 1
+            >>> objects = plotter.get_object_list()
+            >>> print(objects)
+            ['soil_0']
+        """
         return list(self.objects.keys())
 
-    def get_object_info(self, name):
-        """Get information about a specific object"""
+    def get_object_info(self, name: str) -> Optional[dict]:
+        """Gets detailed information about a specific object in the scene.
+
+        Args:
+            name: The name of the object to retrieve information for.
+
+        Returns:
+            A dictionary containing the object's mesh, actor, type, and
+            other metadata, or `None` if the object is not found.
+
+        Example:
+            >>> import femora as fm
+            >>> plotter = fm.SoilFoundationPlotter(
+            ...     soil_info={"soil_profile": [{"z_bot": -10, "z_top": 0, "x_min": -5, "x_max": 5, "y_min": -5, "y_max": 5}]},
+            ...     port=8088 # Use a unique port
+            ... )
+            >>> plotter.quick_plot()
+            Building quick plot...
+            Quick plot complete. Total objects: 1
+            >>> info = plotter.get_object_info("soil_0")
+            >>> print(info["type"])
+            soil
+        """
         return self.objects.get(name, None)
 
-    def remove_object(self, name):
-        """Remove a specific object by name"""
+    def remove_object(self, name: str):
+        """Removes a specific object from the PyVista plotter and internal registry.
+
+        The 3D view is updated after the object is removed.
+
+        Args:
+            name: The name of the object to remove.
+
+        Example:
+            >>> import femora as fm
+            >>> plotter = fm.SoilFoundationPlotter(
+            ...     soil_info={"soil_profile": [{"z_bot": -10, "z_top": 0, "x_min": -5, "x_max": 5, "y_min": -5, "y_max": 5}]},
+            ...     port=8089 # Use a unique port
+            ... )
+            >>> plotter.quick_plot()
+            Building quick plot...
+            Quick plot complete. Total objects: 1
+            >>> plotter.remove_object("soil_0")
+            Removed object: soil_0
+        """
         if name in self.objects:
             self.plotter.remove_actor(name)
             del self.objects[name]
@@ -950,8 +1237,39 @@ class SoilFoundationPlotter:
             print(f"Removed object: {name}")
 
 
-    def actual_plot(self, scalar = None):
-        """Build and render the actual meshes returned by the model builder."""
+    def actual_plot(self, scalar: Optional[str] = None):
+        """Builds and renders the discretized meshes from the model builder.
+
+        This method computes or retrieves cached 'actual' meshes for piles,
+        foundation, and soil using the `soil_foundation_type_one` model builder.
+        These meshes are typically more detailed than the 'quick plot'
+        representations. It supports scalar coloring of the meshes if `scalar`
+        is provided and valid.
+
+        If meshes have already been discretized, they are reused from memory.
+
+        Args:
+            scalar: Optional. The name of the scalar array to color the meshes by.
+                If "Mesh" or "None", no scalar coloring is applied.
+
+        Example:
+            >>> import femora as fm
+            >>> # Define minimal example data that allows for discretization
+            >>> soil_info_actual = {"x_min": -5, "x_max": 5, "y_min": -5, "y_max": 5,
+            ...                     "soil_profile": [{"z_bot": -10, "z_top": 0, "nz": 2, "material": "Elastic", "mat_props": [1e6, 0.3, 2.0]}]}
+            >>> foundation_info_actual = {"foundation_profile": [{"x_min": -2, "x_max": 2, "y_min": -2, "y_max": 2, "z_top": 0, "z_bot": -1}]}
+            >>> pile_info_actual = {"pile_profile": [{"type": "single", "x_top": 0, "y_top": 0, "z_top": 0, "z_bot": -5, "r": 0.5}]}
+            >>> plotter = fm.SoilFoundationPlotter(
+            ...     soil_info=soil_info_actual,
+            ...     foundation_info=foundation_info_actual,
+            ...     pile_info=pile_info_actual,
+            ...     port=8090 # Use a unique port
+            ... )
+            >>> plotter.discretize_and_save() # First discretize to cache meshes
+            Discretization failed: ... # May fail if femora.components not installed
+            >>> # plotter.actual_plot() # Uncomment to run and test if discretization succeeds
+            >>> # print("Actual plot generated.")
+        """
         # Clear existing scene
         self.clear_all()
         if scalar == "Mesh" or scalar == "None":
@@ -1046,11 +1364,17 @@ class SoilFoundationPlotter:
         self.reset_camera()
         self.update_view()
 
-    
+    def _compute_actual_meshes(self) -> tuple[Any, Any, Any]:
+        """Computes the detailed, discretized meshes using the `soil_foundation_type_one` model builder.
 
+        This method calls an external function to generate the actual geometric
+        meshes for the pile, foundation, and soil based on the loaded configuration
+        information. It is used for the "Actual Plot" functionality.
 
-    def _compute_actual_meshes(self):
-        """Compute the actual meshes using the model builder."""
+        Returns:
+            A tuple containing three PyVista mesh objects (pile_mesh, foundation_mesh,
+            soil_mesh) or (None, None, None) if computation fails.
+        """
         try:
             from femora.components.simcenter.eeuq.soil_foundation_type_one import soil_foundation_type_one
             return soil_foundation_type_one(
@@ -1067,11 +1391,27 @@ class SoilFoundationPlotter:
             return None, None, None
 
     def _check_discretized_exists(self) -> bool:
-        """Check if meshes are cached in memory (no disk)."""
+        """Checks if the detailed discretized meshes are currently cached in memory.
+
+        Returns:
+            True if all three main meshes (soil, pile, foundation) are present
+            in memory, False otherwise.
+        """
         return self._actual_soil is not None and self._actual_pile is not None and self._actual_foundation is not None
 
-    def _save_discretized(self, pile_mesh, foundation_mesh, soil_mesh):
-        """No-op: we keep meshes in memory only based on user request."""
+    def _save_discretized(
+        self, pile_mesh: Any, foundation_mesh: Any, soil_mesh: Any
+    ):
+        """Caches the computed discretized meshes in memory.
+
+        This is a no-operation in terms of disk persistence, as meshes are
+        kept in memory only for reuse during the plotter's session.
+
+        Args:
+            pile_mesh: The PyVista mesh object for the piles.
+            foundation_mesh: The PyVista mesh object for the foundation.
+            soil_mesh: The PyVista mesh object for the soil.
+        """
         self._actual_pile = pile_mesh
         self._actual_foundation = foundation_mesh
         self._actual_soil = soil_mesh
@@ -1079,12 +1419,43 @@ class SoilFoundationPlotter:
         # self.actual_foundation = foundation_mesh
         # self.actual_soil = soil_mesh
 
-    def _load_discretized(self):
-        """Return already-cached meshes from memory."""
+    def _load_discretized(
+        self,
+    ) -> tuple[Optional[Any], Optional[Any], Optional[Any]]:
+        """Retrieves already-cached discretized meshes from memory.
+
+        Returns:
+            A tuple containing the cached PyVista mesh objects for piles,
+            foundation, and soil, or (None, None, None) if not yet cached.
+        """
         return self._actual_pile, self._actual_foundation, self._actual_soil
 
     def discretize_and_save(self):
-        """One-time discretization: compute and cache in memory, then disable the button forever."""
+        """Performs a one-time discretization of the model, computing and caching meshes.
+
+        If the meshes have not yet been discretized, this method calls the model
+        builder to generate them and then stores them in memory for subsequent
+        "Actual Plot" calls. Once discretized, the button in the UI is disabled
+        to prevent re-computation.
+
+        Example:
+            >>> import femora as fm
+            >>> soil_info_disc = {"x_min": -5, "x_max": 5, "y_min": -5, "y_max": 5,
+            ...                   "soil_profile": [{"z_bot": -10, "z_top": 0, "nz": 2, "material": "Elastic", "mat_props": [1e6, 0.3, 2.0]}]}
+            >>> foundation_info_disc = {"foundation_profile": [{"x_min": -2, "x_max": 2, "y_min": -2, "y_max": 2, "z_top": 0, "z_bot": -1}]}
+            >>> pile_info_disc = {"pile_profile": [{"type": "single", "x_top": 0, "y_top": 0, "z_top": 0, "z_bot": -5, "r": 0.5}]}
+            >>> plotter = fm.SoilFoundationPlotter(
+            ...     soil_info=soil_info_disc,
+            ...     foundation_info=foundation_info_disc,
+            ...     pile_info=pile_info_disc,
+            ...     port=8091 # Use a unique port
+            ... )
+            >>> plotter.discretize_and_save()
+            Discretization failed: ... # May fail if femora.components not installed
+            >>> # If successful:
+            >>> # print(plotter._discretized_exists)
+            # True
+        """
         if self._discretized_exists:
             print("Discretized meshes already exist. Skipping.")
             return
@@ -1260,4 +1631,3 @@ if __name__ == "__main__":
     )
     
     plotter.start_server()
-
