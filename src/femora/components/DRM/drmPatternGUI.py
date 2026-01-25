@@ -17,12 +17,58 @@ from femora.gui.tapis_integration import TapisWorker, TACCFileBrowserDialog
 from femora.components.DRM.DRM import DRM
 
 class DRMGUI(QWidget):
+    """A GUI widget for managing and visualizing H5DRM load patterns and DRM points.
+
+    This class provides an interface to load H5DRM files, apply transformations,
+    and visualize DRM points, either from the H5DRM file or a separate CSV file.
+    It integrates with the Femora MeshMaker and PatternManager.
+
+    Attributes:
+        meshmaker (MeshMaker): An instance of the MeshMaker for mesh-related operations.
+        pattern_manager (PatternManager): Manages the creation and storage of patterns.
+        h5drmFilePath (QLineEdit): Displays the path to the selected H5DRM file.
+        factorSpinBox (QDoubleSpinBox): Controls the scale factor for the H5DRM pattern.
+        coordScaleSpinBox (QDoubleSpinBox): Controls the coordinate scale for DRM points.
+        distToleranceSpinBox (QDoubleSpinBox): Controls the distance tolerance for matching DRM points.
+        matrix_inputs (list[QDoubleSpinBox]): List of input fields for the 3x3 transformation matrix.
+        origin_inputs (list[QDoubleSpinBox]): List of input fields for the XYZ origin coordinates.
+        file_source (str): Indicates if the H5DRM file is "local" or "remote".
+        csv_file_source (str): Indicates if the CSV file is "local" or "remote".
+        remote_connection_info (dict | None): Stores connection details for remote file access.
+        showPointsCheckbox (QCheckBox): Controls visibility of DRM points visualization.
+        pointsSourceGroup (QButtonGroup): Groups radio buttons for H5DRM or CSV point source.
+        h5drmFileRadio (QRadioButton): Selects H5DRM file as the source for points.
+        csvFileRadio (QRadioButton): Selects CSV file as the source for points.
+        csvFilePath (QLineEdit): Displays the path to the selected CSV file for points.
+        browseCsvButton (QPushButton): Button to browse for local CSV files.
+        browseCsvRemoteButton (QPushButton): Button to browse for remote CSV files.
+        pointSizeSpinBox (QDoubleSpinBox): Controls the size of visualized DRM points.
+        pointColorButton (QPushButton): Button to choose the color for DRM points.
+        pointColor (tuple[float, float, float]): The RGB color tuple for DRM points (0-1 range).
+        showDRMPointsButton (QPushButton): Button to trigger DRM points visualization.
+        togglePointsVisibilityButton (QPushButton): Button to toggle visibility of DRM points.
+        removePointsButton (QPushButton): Button to remove DRM points from the visualization.
+        addH5DRMButton (QPushButton): Button to add the H5DRM pattern to the model.
+        transform_matrix (list[float]): The 3x3 transformation matrix stored as a flattened list.
+        origin (list[float]): The XYZ origin translation vector.
+        drm_points_actor (vtkActor | None): The VTK actor representing the visualized DRM points.
+        points_visible (bool): Current visibility state of the DRM points actor.
+
+    Example:
+        >>> from qtpy.QtWidgets import QApplication
+        >>> import sys
+        >>> app = QApplication(sys.argv)
+        >>> gui = DRMGUI()
+        >>> gui.show()
+        >>> # Basic initialization and display.
+        >>> # Interaction would happen through the GUI elements.
+    """
     def __init__(self, parent=None):
-        """
-        Initialize the DRMGUI.
-       
+        """Initializes the DRMGUI.
+
         Args:
-            main_window: Reference to the MainWindow instance
+            parent (QWidget, optional): The parent widget for this GUI component.
+                Defaults to None.
         """
         super().__init__(parent)
 
@@ -274,7 +320,11 @@ class DRMGUI(QWidget):
         self.points_visible = True  # Track visibility state
 
     def update_transform_ui(self):
-        """Update the UI to reflect the current transformation matrix and origin"""
+        """Updates the UI input fields to reflect the current transformation matrix and origin values.
+
+        This method populates the `matrix_inputs` and `origin_inputs` with the
+        values stored in `self.transform_matrix` and `self.origin` respectively.
+        """
         # Update matrix inputs
         for i, value in enumerate(self.transform_matrix):
             self.matrix_inputs[i].setValue(value)
@@ -284,18 +334,68 @@ class DRMGUI(QWidget):
             self.origin_inputs[i].setValue(value)
 
     def set_identity_matrix(self):
-        """Set the transformation matrix to identity"""
+        """Sets the internal transformation matrix to an identity matrix.
+
+        After setting the matrix, it calls `update_transform_ui` to reflect
+        the changes in the GUI.
+
+        Example:
+            >>> from qtpy.QtWidgets import QApplication
+            >>> import sys
+            >>> app = QApplication(sys.argv)
+            >>> gui = DRMGUI()
+            >>> gui.show()
+            >>> # Assume some matrix values were set
+            >>> gui.set_identity_matrix()
+            >>> # The matrix input fields in the UI will now show identity matrix.
+        """
         self.transform_matrix = [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0]
         self.update_transform_ui()
 
     def reset_origin(self):
-        """Reset the origin to zero"""
+        """Resets the internal origin coordinates to [0.0, 0.0, 0.0].
+
+        It then updates the origin input fields in the UI to reflect these
+        new values.
+
+        Example:
+            >>> from qtpy.QtWidgets import QApplication
+            >>> import sys
+            >>> app = QApplication(sys.argv)
+            >>> gui = DRMGUI()
+            >>> gui.show()
+            >>> # Assume some origin values were set
+            >>> gui.reset_origin()
+            >>> # The origin input fields in the UI will now show [0, 0, 0].
+        """
         self.origin = [0.0, 0.0, 0.0]
         for i, value in enumerate(self.origin):
             self.origin_inputs[i].setValue(value)
     
     def auto_set_origin_from_mesh(self):
-        """Set origin coordinates from mesh center (preserves transform matrix)"""
+        """Sets the origin coordinates based on the assembled mesh's bounding box.
+
+        The X and Y coordinates are set to the center of the mesh's bounding box,
+        while the Z coordinate is set to the maximum Z value of the bounding box.
+        The transformation matrix itself is preserved.
+
+        Returns:
+            bool: True if the origin was successfully set, False otherwise (e.g., no mesh).
+
+        Raises:
+            UserWarning: If no assembled mesh is available, a warning message is displayed.
+
+        Example:
+            >>> from qtpy.QtWidgets import QApplication
+            >>> import sys
+            >>> app = QApplication(sys.argv)
+            >>> gui = DRMGUI()
+            >>> gui.show()
+            >>> # In a real scenario, you'd have a mesh assembled first
+            >>> # gui.meshmaker.assembler.AssembeledMesh = ... # (Mock a mesh for testing)
+            >>> success = gui.auto_set_origin_from_mesh()
+            >>> # print(f"Origin set from mesh: {success}")
+        """
         if self.meshmaker.assembler.AssembeledMesh is None:
             QMessageBox.warning(self, "Warning", "No assembled mesh available. Please assemble a mesh first.")
             return False
@@ -319,7 +419,21 @@ class DRMGUI(QWidget):
         return True
     
     def browse_h5drm_file(self):
-        """Open file dialog to select local H5DRM file"""
+        """Opens a file dialog to allow the user to select a local H5DRM file.
+
+        Upon successful selection, the file path is displayed in the
+        `h5drmFilePath` QLineEdit, and the file source is set to "local".
+        Both `h5drmFileRadio` and `csvFileRadio` become enabled for point source selection.
+
+        Example:
+            >>> from qtpy.QtWidgets import QApplication
+            >>> import sys
+            >>> app = QApplication(sys.argv)
+            >>> gui = DRMGUI()
+            >>> gui.show()
+            >>> # Simulate clicking the browse button (would open a native file dialog)
+            >>> # gui.browse_h5drm_file()
+        """
         file_path, _ = QFileDialog.getOpenFileName(
             self, "Select H5DRM File", "", "H5DRM Files (*.h5drm);;All Files (*)"
         )
@@ -331,7 +445,20 @@ class DRMGUI(QWidget):
             self.h5drmFileRadio.setEnabled(True)
     
     def browse_csv_file(self):
-        """Open file dialog to select local CSV file with DRM points"""
+        """Opens a file dialog to allow the user to select a local CSV file with DRM points.
+
+        Upon successful selection, the file path is displayed in the
+        `csvFilePath` QLineEdit, and the CSV file source is set to "local".
+
+        Example:
+            >>> from qtpy.QtWidgets import QApplication
+            >>> import sys
+            >>> app = QApplication(sys.argv)
+            >>> gui = DRMGUI()
+            >>> gui.show()
+            >>> # Simulate clicking the browse CSV button (would open a native file dialog)
+            >>> # gui.browse_csv_file()
+        """
         file_path, _ = QFileDialog.getOpenFileName(
             self, "Select CSV File with DRM Points", "", "CSV Files (*.csv);;All Files (*)"
         )
@@ -340,7 +467,12 @@ class DRMGUI(QWidget):
             self.csv_file_source = "local"
     
     def toggle_csv_controls(self):
-        """Toggle the CSV controls based on the selected points source"""
+        """Toggles the enabled state of CSV file controls based on the selected point source.
+
+        If `csvFileRadio` is checked, the `csvFilePath` QLineEdit and
+        `browseCsvButton`/`browseCsvRemoteButton` are enabled. Otherwise, they are disabled.
+        If a remote H5DRM file is selected, this method ensures `csvFileRadio` is checked.
+        """
         enable_csv = self.csvFileRadio.isChecked()
         self.csvFilePath.setEnabled(enable_csv)
         self.browseCsvButton.setEnabled(enable_csv)
@@ -351,7 +483,21 @@ class DRMGUI(QWidget):
             self.csvFileRadio.setChecked(True)
     
     def choose_point_color(self):
-        """Open color picker for DRM points"""
+        """Opens a color dialog for the user to select a color for DRM points.
+
+        If a valid color is selected, `self.pointColor` is updated with the
+        new RGB tuple (0-1 range), and the `pointColorButton`'s background
+        is updated to visually reflect the chosen color.
+
+        Example:
+            >>> from qtpy.QtWidgets import QApplication
+            >>> import sys
+            >>> app = QApplication(sys.argv)
+            >>> gui = DRMGUI()
+            >>> gui.show()
+            >>> # Simulate clicking the Choose Color button (would open a native color dialog)
+            >>> # gui.choose_point_color()
+        """
         color = QColorDialog.getColor()
         if color.isValid():
             # Convert QColor to RGB tuple (0-1 range)
@@ -362,7 +508,12 @@ class DRMGUI(QWidget):
             self.pointColorButton.setStyleSheet(style)
     
     def toggle_points_visibility(self):
-        """Toggle the visibility of DRM points"""
+        """Toggles the visibility of the DRM points actor in the plotter.
+
+        If DRM points are currently visible, they are hidden, and the button text changes to "Show Points".
+        If hidden, they are made visible, and the button text changes to "Hide Points".
+        The plotter is rendered after the change.
+        """
         if self.drm_points_actor is None:
             return
             
@@ -382,8 +533,22 @@ class DRMGUI(QWidget):
         plotter.render()
     
     def remove_drm_points(self):
-        """Remove DRM points from the scene"""
-        if self.drm_points_actor is None:
+        """Removes the DRM points actor from the plotter scene.
+
+        Disables the toggle and remove buttons and resets `self.drm_points_actor` to None.
+        A confirmation message is displayed to the user.
+        The plotter is rendered after removal.
+
+        Example:
+            >>> from qtpy.QtWidgets import QApplication
+            >>> import sys
+            >>> app = QApplication(sys.argv)
+            >>> gui = DRMGUI()
+            >>> gui.show()
+            >>> # Assume DRM points are shown
+            >>> # gui.remove_drm_points()
+        """
+        if self.drm_points_actor == None:
             return
             
         plotter = PlotterManager.get_plotter()
@@ -400,7 +565,31 @@ class DRMGUI(QWidget):
         QMessageBox.information(self, "Points Removed", "DRM points have been removed from the visualization.")
     
     def show_drm_points(self):
-        """Visualize DRM points on the plotter"""
+        """Visualizes DRM points on the Femora plotter based on selected source and transformation.
+
+        Points can be loaded from either a local H5DRM file (transforming by metadata
+        and GUI scale factor) or a local/remote CSV file.
+        The loaded points are then subjected to the transformation matrix and origin
+        defined in the GUI before being displayed in the plotter.
+        Existing DRM point actors are removed before adding new ones.
+
+        Raises:
+            UserWarning: If 'Show DRM points in visualization' checkbox is not checked,
+                or no H5DRM/CSV file is selected, or no valid points are loaded.
+            UserError: If plotter cannot be initialized, or H5DRM/CSV file reading fails,
+                or points cannot be visualized.
+
+        Example:
+            >>> from qtpy.QtWidgets import QApplication
+            >>> import sys
+            >>> app = QApplication(sys.argv)
+            >>> gui = DRMGUI()
+            >>> gui.show()
+            >>> gui.showPointsCheckbox.setChecked(True)
+            >>> # Assuming a H5DRM file is selected or CSV file is ready
+            >>> # gui.show_drm_points()
+            >>> # This would visualize points in the external plotter window.
+        """
         if not self.showPointsCheckbox.isChecked():
             QMessageBox.warning(self, "Warning", "Please check 'Show DRM points in visualization' first.")
             return
@@ -540,7 +729,29 @@ class DRMGUI(QWidget):
             QMessageBox.critical(self, "Error", f"Failed to visualize points: {str(e)}")
     
     def add_h5drm_pattern(self):
-        """Add H5DRM pattern to the model"""
+        """Creates and adds an H5DRM load pattern to the Femora model.
+
+        This method retrieves the file path, scale factor, coordinate scale,
+        distance tolerance, transformation matrix, and origin from the GUI.
+        It then uses the `PatternManager` to create an `H5DRMPattern` object.
+        If the 'Show DRM points' checkbox is checked, it also triggers the
+        visualization of the DRM points. The pattern is then assigned to the DRM component.
+
+        Raises:
+            UserWarning: If no H5DRM file path is provided.
+            UserError: If the H5DRM pattern creation fails.
+
+        Example:
+            >>> from qtpy.QtWidgets import QApplication
+            >>> import sys
+            >>> app = QApplication(sys.argv)
+            >>> gui = DRMGUI()
+            >>> gui.show()
+            >>> # Set a dummy file path (in a real scenario, this would come from QLineEdit)
+            >>> gui.h5drmFilePath.setText("path/to/your/test.h5drm")
+            >>> # gui.add_h5drm_pattern()
+            >>> # This would create an H5DRM pattern and add it to the model.
+        """
         # Check if file path is provided
         filepath = self.h5drmFilePath.text()
         if not filepath:
@@ -586,7 +797,13 @@ class DRMGUI(QWidget):
             QMessageBox.critical(self, "Error", f"Failed to create H5DRM pattern: {str(e)}")
     
     def browse_h5drm_remote(self):
-        """Browse H5DRM files on remote TACC system"""
+        """Opens a TACC file browser dialog to select a remote H5DRM file.
+
+        If a file is selected, its path is displayed in `h5drmFilePath` prefixed with "REMOTE:",
+        and `file_source` is set to "remote". It also disables the H5DRM file radio button
+        and forces the selection of the CSV file radio button for point visualization,
+        notifying the user about this constraint.
+        """
         dialog = TACCFileBrowserDialog(self, file_type="h5drm")
         if dialog.exec_():
             remote_path = dialog.get_selected_file()
@@ -603,7 +820,11 @@ class DRMGUI(QWidget):
                                     "When using a remote H5DRM file, points must be loaded from a CSV file.")
 
     def browse_csv_remote(self):
-        """Browse CSV files on remote TACC system"""
+        """Opens a TACC file browser dialog to select a remote CSV file.
+
+        If a file is selected, its path is displayed in `csvFilePath` prefixed with "REMOTE:",
+        and `csv_file_source` is set to "remote".
+        """
         dialog = TACCFileBrowserDialog(self, file_type="csv")
         if dialog.exec_():
             remote_path = dialog.get_selected_file()
@@ -615,7 +836,24 @@ class DRMGUI(QWidget):
 
 
 def is_number(s):
-    """Check if a string can be converted to a float"""
+    """Checks if a given string can be converted to a float.
+
+    Args:
+        s (str): The string to check.
+
+    Returns:
+        bool: True if the string can be converted to a float, False otherwise.
+
+    Example:
+        >>> is_number("123")
+        True
+        >>> is_number("3.14")
+        True
+        >>> is_number("hello")
+        False
+        >>> is_number("-5.0")
+        True
+    """
     try:
         float(s)
         return True
