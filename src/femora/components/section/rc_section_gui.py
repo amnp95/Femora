@@ -1,6 +1,8 @@
-"""
-RC Section GUI Dialogs
-Uses RCSection class methods instead of hardcoding
+"""Provides dialogs for creating and editing Reinforced Concrete (RC) sections.
+
+This module encapsulates the user interface logic for interacting with
+`RCSection` objects, ensuring consistency by utilizing `RCSection` class
+methods for parameter management and validation.
 """
 
 from qtpy.QtWidgets import (
@@ -17,10 +19,46 @@ from femora.components.section.section_gui_utils import (
 )
 
 class RCSectionCreationDialog(QDialog):
+    """A dialog for creating new Reinforced Concrete (RC) sections.
+
+    This dialog provides a graphical interface to define and create `RCSection`
+    objects by collecting user inputs for geometric and material parameters. It
+    reverages `RCSection` class methods for parameter retrieval, description,
+    and validation, ensuring data consistency.
+
+    Attributes:
+        parameters (list[str]): A list of parameter names required for the RC section.
+        descriptions (list[str]): A list of detailed descriptions for each parameter.
+        user_name_input (QLineEdit): Input field for the new section's unique name.
+        param_inputs (dict[str, QWidget]): A dictionary mapping parameter names
+            to their respective input widgets (QLineEdit or QComboBox).
+        created_section (RCSection): The `RCSection` object created upon successful
+            submission of the dialog. This attribute is set only after the
+            `create_section` method successfully executes and the dialog
+            accepts.
+
+    Example:
+        >>> from qtpy.QtWidgets import QApplication
+        >>> from femora.components.section.section_opensees import RCSection
+        >>> from femora.components.Material.uniaxial_concrete import Concrete01
+        >>> from femora.components.Material.uniaxial_steel import Steel01
+        >>> app = QApplication([])
+        >>> Concrete01("C_example", 30, 0.002, 0.004) # Register example materials
+        >>> Steel01("S_example", 400, 0.001)
+        >>> dialog = RCSectionCreationDialog()
+        >>> # To actually interact with the dialog, use dialog.exec_().
+        >>> # For this example, we just show it can be instantiated.
+        >>> print(dialog.windowTitle())
+        Create RC Section
+        >>> app.quit()
     """
-    Dialog for creating new RC sections using RCSection class methods
-    """
+
     def __init__(self, parent=None):
+        """Initializes the RCSectionCreationDialog.
+
+        Args:
+            parent (QWidget, optional): The parent widget of this dialog. Defaults to None.
+        """
         super().__init__(parent)
         self.setWindowTitle("Create RC Section")
         self.setMinimumSize(800, 600)
@@ -95,6 +133,46 @@ class RCSectionCreationDialog(QDialog):
         main_layout.setStretch(2, 2)
 
     def create_section(self):
+        """Attempts to create an `RCSection` object based on user inputs.
+
+        This method validates the collected section name and parameters,
+        including material selections. If all inputs are valid, a new
+        `RCSection` instance is created and stored in `self.created_section`,
+        and the dialog is accepted. Otherwise, error messages are displayed.
+
+        Raises:
+            ValueError: If any numeric parameter input is invalid or
+                if section validation fails (e.g., non-positive dimensions).
+            KeyError: If a material selected in the dropdown cannot be found.
+            Exception: For any other unexpected errors during section creation.
+
+        Example:
+            >>> from qtpy.QtWidgets import QApplication
+            >>> from femora.components.section.section_opensees import RCSection
+            >>> from femora.components.Material.uniaxial_concrete import Concrete01
+            >>> from femora.components.Material.uniaxial_steel import Steel01
+            >>> app = QApplication([])
+            >>> Concrete01("ConcreteC30", 30, 0.002, 0.004)
+            >>> Steel01("SteelS400", 400, 0.001)
+            >>> dialog = RCSectionCreationDialog()
+            >>> dialog.user_name_input.setText("NewRCSection")
+            >>> dialog.param_inputs["core_material"].setCurrentText("ConcreteC30")
+            >>> dialog.param_inputs["cover_material"].setCurrentText("ConcreteC30")
+            >>> dialog.param_inputs["steel_material"].setCurrentText("SteelS400")
+            >>> dialog.param_inputs["depth"].setText("600")
+            >>> dialog.param_inputs["width"].setText("400")
+            >>> dialog.param_inputs["cover_depth"].setText("60")
+            >>> dialog.param_inputs["num_bars_top"].setText("4")
+            >>> dialog.param_inputs["bar_area_top"].setText("400")
+            >>> dialog.param_inputs["num_bars_bottom"].setText("4")
+            >>> dialog.param_inputs["bar_area_bottom"].setText("400")
+            >>> dialog.create_section()
+            >>> if dialog.result() == QApplication.DialogCode.Accepted:
+            ...     section = dialog.created_section
+            ...     print(section.user_name)
+            NewRCSection
+            >>> app.quit()
+        """
         try:
             user_name = self.user_name_input.text().strip()
             if not user_name:
@@ -139,10 +217,52 @@ class RCSectionCreationDialog(QDialog):
             QMessageBox.critical(self, "Error", f"Failed to create section: {str(e)}")
 
 class RCSectionEditDialog(QDialog):
+    """A dialog for editing the parameters of an existing Reinforced Concrete (RC) section.
+
+    This dialog provides a graphical interface to modify the geometric and
+    material parameters of an already instantiated `RCSection` object. It uses
+    `RCSection` class methods for parameter retrieval, description, and
+    validation, ensuring data consistency during updates.
+
+    Attributes:
+        section (RCSection): The `RCSection` object currently being edited by the dialog.
+        parameters (list[str]): A list of parameter names editable for the RC section.
+        descriptions (list[str]): A list of detailed descriptions for each parameter.
+        tag_label (QLabel): Displays the unique tag of the section.
+        user_name_label (QLabel): Displays the user-defined name of the section.
+        type_label (QLabel): Displays the type name of the section.
+        param_inputs (dict[str, QWidget]): A dictionary mapping parameter names
+            to their respective input widgets (QLineEdit or QComboBox).
+
+    Example:
+        >>> from qtpy.QtWidgets import QApplication
+        >>> from femora.components.section.section_opensees import RCSection
+        >>> from femora.components.Material.uniaxial_concrete import Concrete01
+        >>> from femora.components.Material.uniaxial_steel import Steel01
+        >>> app = QApplication([])
+        >>> # Ensure materials exist for the section
+        >>> concrete_mat = Concrete01("C_edit_ex", 30, 0.002, 0.004)
+        >>> steel_mat = Steel01("S_edit_ex", 400, 0.001)
+        >>> # Create an existing section to edit
+        >>> existing_section = RCSection(
+        ...     user_name="MyEditableSection", depth=500, width=300, cover_depth=50,
+        ...     num_bars_top=2, bar_area_top=200, num_bars_bottom=2, bar_area_bottom=200,
+        ...     core_material=concrete_mat, cover_material=concrete_mat, steel_material=steel_mat
+        ... )
+        >>> dialog = RCSectionEditDialog(existing_section)
+        >>> # To actually interact with the dialog, use dialog.exec_().
+        >>> # For this example, we just show it can be instantiated with an existing section.
+        >>> print(dialog.windowTitle())
+        Edit RC Section: MyEditableSection
+        >>> app.quit()
     """
-    Dialog for editing existing RC sections using class methods
-    """
-    def __init__(self, section, parent=None):
+    def __init__(self, section: RCSection, parent=None):
+        """Initializes the RCSectionEditDialog.
+
+        Args:
+            section: The `RCSection` object to be edited.
+            parent (QWidget, optional): The parent widget of this dialog. Defaults to None.
+        """
         super().__init__(parent)
         self.section = section
         self.setWindowTitle(f"Edit RC Section: {section.user_name}")
@@ -220,6 +340,43 @@ class RCSectionEditDialog(QDialog):
         main_layout.setStretch(0, 3)
         main_layout.setStretch(2, 2)
     def save_changes(self):
+        """Attempts to save changes to the `RCSection` object based on user inputs.
+
+        This method validates the collected material selections and numeric parameters.
+        If all inputs are valid, the `self.section` object is updated with the
+        new values, and the dialog is accepted. Otherwise, error messages are displayed.
+
+        Raises:
+            ValueError: If any numeric parameter input is invalid or
+                if section validation fails (e.g., non-positive dimensions).
+            KeyError: If a material selected in the dropdown cannot be found.
+            Exception: For any other unexpected errors during section update.
+
+        Example:
+            >>> from qtpy.QtWidgets import QApplication
+            >>> from femora.components.section.section_opensees import RCSection
+            >>> from femora.components.Material.uniaxial_concrete import Concrete01
+            >>> from femora.components.Material.uniaxial_steel import Steel01
+            >>> app = QApplication([])
+            >>> concrete_mat = Concrete01("C_save_ex", 30, 0.002, 0.004)
+            >>> steel_mat = Steel01("S_save_ex", 400, 0.001)
+            >>> existing_section = RCSection(
+            ...     user_name="SectionToModify", depth=500, width=300, cover_depth=50,
+            ...     num_bars_top=2, bar_area_top=200, num_bars_bottom=2, bar_area_bottom=200,
+            ...     core_material=concrete_mat, cover_material=concrete_mat, steel_material=steel_mat
+            ... )
+            >>> dialog = RCSectionEditDialog(existing_section)
+            >>> # Modify a parameter
+            >>> dialog.param_inputs["depth"].setText("700")
+            >>> dialog.param_inputs["num_bars_top"].setText("3")
+            >>> dialog.save_changes()
+            >>> if dialog.result() == QApplication.DialogCode.Accepted:
+            ...     print(existing_section.depth)
+            700.0
+            ...     print(existing_section.num_bars_top)
+            3.0
+            >>> app.quit()
+        """
         try:
             core_material = get_material_by_combo_selection(self.param_inputs["core_material"])
             cover_material = get_material_by_combo_selection(self.param_inputs["cover_material"])
