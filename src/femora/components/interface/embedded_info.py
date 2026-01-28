@@ -119,13 +119,34 @@ correctness and handling all edge cases properly.
 
 @dataclass(frozen=True)
 class EmbeddedInfo:
-    """
-    Optimized EmbeddedInfo data structure for fast comparisons.
-    
-    Key optimizations:
-    1. beams stored as frozenset for O(1) equality checks
-    2. beams_solids canonicalized and hashed for fast comparisons
-    3. Pre-computed hash values for all critical components
+    """Optimized data structure representing embedded information with fast comparison capabilities.
+
+    This class stores beam identifiers, a core number, and beam-solid relationships,
+    providing highly optimized methods for equality, conflict, and similarity checks.
+    It pre-computes various canonical forms and hashes during initialization to
+    achieve O(1) comparison times.
+
+    Attributes:
+        beams (FrozenSet[int]): A frozenset of unique integer beam identifiers.
+        core_number (int): An integer representing the core identifier.
+        _beams_solids_canonical (Tuple[Tuple[Tuple[int, ...], Tuple[int, ...]], ...]):
+            An internally sorted tuple of (sorted_list1_tuple, sorted_list2_tuple)
+            representing the canonical form of `beams_solids`.
+        _list1_hashes (FrozenSet[str]): A frozenset of MD5 hashes for each
+            `list1` component in `beams_solids`, used for fast conflict detection.
+        _beams_solids_hash (str): A single MD5 hash of the entire canonical
+            `_beams_solids_canonical` structure, used for O(1) equality checks.
+        _solids_set (FrozenSet[int]): A frozenset of all unique solid identifiers
+            (from `list2` parts of `beams_solids`) for similarity checks.
+
+    Example:
+        >>> e1 = EmbeddedInfo(beams=[1, 2, 3], core_number=5, beams_solids=[([1, 2], [3, 4])])
+        >>> e2 = EmbeddedInfo(beams=[3, 2, 1], core_number=5, beams_solids=[([1, 2], [4, 3])])
+        >>> print(e1 == e2)
+        True
+        >>> e3 = EmbeddedInfo(beams=[1, 2, 3], core_number=10, beams_solids=[([1, 2], [9, 10])])
+        >>> print(e1.is_conflict(e3))
+        True
     """
     
     # Store beams as frozenset for immutability and fast equality
@@ -140,6 +161,16 @@ class EmbeddedInfo:
     
     def __init__(self, beams: Union[List[int], Set[int]], core_number: int, 
                  beams_solids: List[Tuple[List[int], List[int]]]):
+        """Initializes the EmbeddedInfo object, pre-computing canonical forms and hashes.
+
+        Args:
+            beams: A list or set of integer beam identifiers. Will be converted to a frozenset.
+            core_number: An integer representing the core identifier.
+            beams_solids: A list of tuples, where each tuple contains two lists of integers.
+                The first list (`list1`) identifies the primary entity, and the second (`list2`)
+                identifies associated solids. This structure is canonicalized and hashed
+                for efficient comparisons.
+        """
         # Convert beams to frozenset
         object.__setattr__(self, 'beams', frozenset(beams))
         object.__setattr__(self, 'core_number', core_number)
@@ -151,7 +182,7 @@ class EmbeddedInfo:
         
         for list1, list2 in beams_solids:
             # Convert to tuples for immutability
-            tuple1 = tuple(sorted(list1))  # Keep original order for list1 (conflict detection)
+            tuple1 = tuple(list1)  # Keep original order for list1 (conflict detection)
             tuple2 = tuple(sorted(list2))  # Sort list2 for consistency
             
             # Hash list1 for fast conflict detection
@@ -179,18 +210,56 @@ class EmbeddedInfo:
         # Store solids set
         object.__setattr__(self, '_solids_set', frozenset(solids_seen))
 
-    # Expose solids_set read-only
     @property
     def solids_set(self) -> FrozenSet[int]:
+        """Returns a read-only frozenset of all unique solid identifiers.
+
+        The solid identifiers are collected from the `list2` components of the
+        `beams_solids` tuples during initialization.
+
+        Returns:
+            A frozenset containing all unique integer solid IDs associated with this object.
+
+        Example:
+            >>> e = EmbeddedInfo(beams=[1], core_number=1, beams_solids=[([1, 2], [3, 4, 5])])
+            >>> print(e.solids_set)
+            frozenset({3, 4, 5})
+        """
         return self._solids_set
     
     @property
     def beams_solids(self) -> List[Tuple[List[int], List[int]]]:
-        """Return beams_solids in list format for compatibility."""
+        """Returns the beams_solids in a list-of-tuples-of-lists format.
+
+        This property reconstructs the original `beams_solids` structure from
+        its internal canonical representation, converting tuples back to lists
+        for external compatibility. The order of inner lists (`list1`, `list2`)
+        and outer tuples is the canonical sorted order.
+
+        Returns:
+            A list of (list of int, list of int) tuples.
+
+        Example:
+            >>> e = EmbeddedInfo(beams=[1], core_number=1, beams_solids=[([2, 1], [3, 4])])
+            >>> print(e.beams_solids)
+            [([2, 1], [3, 4])]
+        """
         return [(list(t1), list(t2)) for t1, t2 in self._beams_solids_canonical]
     
     def __eq__(self, other: 'EmbeddedInfo') -> bool:
-        """O(1) equality check in most cases."""
+        """Determines if two EmbeddedInfo objects are equal.
+
+        Two objects are considered equal if they have the same `beams` (order-independent),
+        the same `core_number`, and the same `beams_solids` (order-independent for tuples
+        and for elements within `list2`, but `list1` order is preserved for its internal hash).
+        This comparison uses pre-computed hashes for O(1) performance.
+
+        Args:
+            other: The other EmbeddedInfo object to compare against.
+
+        Returns:
+            True if the objects are equal, False otherwise.
+        """
         if not isinstance(other, EmbeddedInfo):
             return False
         
@@ -204,7 +273,27 @@ class EmbeddedInfo:
         return self._beams_solids_hash == other._beams_solids_hash
     
     def is_conflict(self, other: 'EmbeddedInfo') -> bool:
-        """O(1) conflict detection using pre-computed hashes."""
+        """Checks if this object conflicts with another EmbeddedInfo object.
+
+        A conflict occurs if two objects have the same `beams` (order-independent)
+        AND share at least one identical `list1` component (order-dependent) in their
+        `beams_solids`. This detection uses pre-computed `_list1_hashes` for O(1) performance.
+
+        Args:
+            other: The other EmbeddedInfo object to check for conflict.
+
+        Returns:
+            True if a conflict is detected, False otherwise.
+
+        Example:
+            >>> e1 = EmbeddedInfo(beams=[1, 2], core_number=5, beams_solids=[([10, 20], [30, 40])])
+            >>> e2 = EmbeddedInfo(beams=[2, 1], core_number=6, beams_solids=[([10, 20], [50, 60])])
+            >>> print(e1.is_conflict(e2))
+            True
+            >>> e3 = EmbeddedInfo(beams=[1, 2], core_number=7, beams_solids=[([20, 10], [70, 80])])
+            >>> print(e1.is_conflict(e3)) # list1 [10, 20] is different from [20, 10]
+            False
+        """
         if not isinstance(other, EmbeddedInfo):
             return False
         
@@ -216,10 +305,30 @@ class EmbeddedInfo:
         return bool(self._list1_hashes & other._list1_hashes)
     
     def is_similar(self, other: 'EmbeddedInfo') -> bool:
-        """Two EmbeddedInfo objects are *similar* when:
-        1. They have identical beams (original rule) *or*
-        2. They share at least one solid element, **and**
-        3. They are not in conflict.
+        """Checks if this object is similar to another EmbeddedInfo object.
+
+        Two EmbeddedInfo objects are considered similar if:
+        1. They are not in conflict (`is_conflict` returns False).
+        2. They have identical `beams` (order-independent), OR
+        3. They share at least one common solid identifier (from their `solids_set`).
+
+        Args:
+            other: The other EmbeddedInfo object to check for similarity.
+
+        Returns:
+            True if the objects are similar, False otherwise.
+
+        Example:
+            >>> e1 = EmbeddedInfo(beams=[1, 2], core_number=5, beams_solids=[([10], [100])])
+            >>> e2 = EmbeddedInfo(beams=[2, 1], core_number=6, beams_solids=[([20], [200])])
+            >>> print(e1.is_similar(e2)) # Same beams, different core/solids, no conflict
+            True
+            >>> e3 = EmbeddedInfo(beams=[3, 4], core_number=7, beams_solids=[([30], [100, 300])])
+            >>> print(e1.is_similar(e3)) # Different beams, but shared solid '100', no conflict
+            True
+            >>> e4 = EmbeddedInfo(beams=[1, 2], core_number=8, beams_solids=[([10], [400])])
+            >>> print(e1.is_similar(e4)) # Conflict based on [10], so not similar
+            False
         """
         if not isinstance(other, EmbeddedInfo):
             return False
@@ -236,18 +345,52 @@ class EmbeddedInfo:
         return bool(self._solids_set & other._solids_set)
     
     def __hash__(self) -> int:
-        """Fast hash computation using pre-computed values."""
+        """Computes a hash for the EmbeddedInfo object.
+
+        The hash is derived from the `beams` frozenset, `core_number`, and the
+        pre-computed hash of `beams_solids`. This allows EmbeddedInfo objects
+        to be used efficiently as keys in dictionaries or elements in sets.
+
+        Returns:
+            An integer hash value for the object.
+        """
         return hash((self.beams, self.core_number, self._beams_solids_hash))
     
     def compare(self, other: 'EmbeddedInfo') -> str:
-        """
-        Compare with another EmbeddedInfo and return the relationship type.
-        
+        """Compares this object with another EmbeddedInfo object and returns their relationship.
+
+        This method provides a comprehensive comparison, categorizing the relationship
+        into "equal", "conflict", "similar", or "unrelated" based on a defined hierarchy.
+
+        Args:
+            other: The other EmbeddedInfo object to compare against.
+
         Returns:
-            "equal" - Same beams, core_number, and beams_solids
-            "conflict" - Same beams but duplicate list1 exists
-            "similar" - Same beams, no conflicts, but different core_number or beams_solids
-            "unrelated" - Different beams
+            str: One of the following relationship types:
+                - "equal": Same beams, core_number, and beams_solids (O(1) check).
+                - "conflict": Same beams, but a duplicate `list1` exists in `beams_solids` (O(1) check).
+                - "similar":
+                    - If same beams: no conflicts, but different `core_number` or `beams_solids`.
+                    - If different beams: share at least one common solid element and no conflicts.
+                - "unrelated": Different beams and no shared solid elements.
+
+        Raises:
+            TypeError: If `other` is not an instance of `EmbeddedInfo`.
+
+        Example:
+            >>> e1 = EmbeddedInfo(beams=[1,2,3], core_number=5, beams_solids=[([1,2], [3,4])])
+            >>> e2 = EmbeddedInfo(beams=[3,2,1], core_number=5, beams_solids=[([1,2], [4,3])])
+            >>> e3 = EmbeddedInfo(beams=[1,2,3], core_number=7, beams_solids=[([1,2], [5,6])])
+            >>> e4 = EmbeddedInfo(beams=[1,2,3], core_number=7, beams_solids=[([3,4], [5,6])])
+            >>> e5 = EmbeddedInfo(beams=[4,5,6], core_number=5, beams_solids=[([7,8], [9,10])])
+            >>> print(e1.compare(e2))
+            equal
+            >>> print(e1.compare(e3))
+            conflict
+            >>> print(e1.compare(e4))
+            similar
+            >>> print(e1.compare(e5))
+            unrelated
         """
         if not isinstance(other, EmbeddedInfo):
             raise TypeError(f"Cannot compare EmbeddedInfo with {type(other)}")
@@ -270,8 +413,26 @@ class EmbeddedInfo:
         return "unrelated"
 
     def with_core_number(self, new_core_number: int) -> 'EmbeddedInfo':
-        """
-        Return a new EmbeddedInfo instance with the same beams and beams_solids, but a different core_number.
+        """Creates a new EmbeddedInfo instance with an updated core number.
+
+        This method returns a new object where `beams` and `beams_solids` remain
+        identical to the current instance, but `core_number` is set to the
+        provided `new_core_number`. This is useful for creating variations
+        without re-processing the complex `beams_solids` structure.
+
+        Args:
+            new_core_number: The new integer value for the core identifier.
+
+        Returns:
+            A new `EmbeddedInfo` instance with the updated core number.
+
+        Example:
+            >>> e1 = EmbeddedInfo(beams=[1, 2], core_number=5, beams_solids=[([10], [100])])
+            >>> e_new_core = e1.with_core_number(99)
+            >>> print(e_new_core.core_number)
+            99
+            >>> print(e_new_core.beams == e1.beams)
+            True
         """
         return EmbeddedInfo(
             beams=list(self.beams),
@@ -280,6 +441,14 @@ class EmbeddedInfo:
         )
     
     def __repr__(self) -> str:
+        """Returns a string representation of the EmbeddedInfo object.
+
+        The representation includes the `beams` (sorted for consistent display),
+        `core_number`, and `beams_solids`.
+
+        Returns:
+            A string representing the object's state.
+        """
         return f"EmbeddedInfo(beams={sorted(self.beams)}, core_number={self.core_number}, beams_solids={self.beams_solids})"
 
 
