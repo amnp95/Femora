@@ -14,10 +14,38 @@ from femora.components.section.section_gui_utils import setup_material_dropdown,
 RESPONSE_CODES = ['P', 'Mz', 'My', 'Vy', 'Vz', 'T']
 
 class UniaxialSectionCreationDialog(QDialog):
+    """A dialog for creating new :class:`UniaxialSection` objects.
+
+    This dialog allows users to input a unique name, select a uniaxial material,
+    and specify a response code (e.g., 'P', 'Mz') to define a new uniaxial section.
+    It leverages class methods from :class:`UniaxialSection` for parameter validation
+    and section creation.
+
+    Attributes:
+        user_name_input (QLineEdit): Input field for the section's unique name.
+        material_combo (QComboBox): Dropdown for selecting a uniaxial material.
+        code_combo (QComboBox): Dropdown for selecting the response code.
+        param_inputs (dict): A dictionary storing references to the input widgets for parameters.
+        created_section (UniaxialSection): The section object created upon successful dialog acceptance.
+
+    Example:
+        >>> from qtpy.QtWidgets import QApplication
+        >>> from femora.components.Material.materialsOpenSees import ElasticUniaxialMaterial
+        >>> import sys
+        >>> app = QApplication(sys.argv)
+        >>> _ = ElasticUniaxialMaterial(user_name="Concrete", E=30e9, nu=0.2)
+        >>> dialog = UniaxialSectionCreationDialog()
+        >>> if dialog.exec_() == QApplication.Accepted:
+        ...     print(f"Section created: {dialog.created_section.user_name}")
+        Section created: <user_input_name>
     """
-    Dialog for creating new UniaxialSection sections using class methods
-    """
+
     def __init__(self, parent=None):
+        """Initializes the UniaxialSectionCreationDialog.
+
+        Args:
+            parent (QWidget, optional): The parent widget of this dialog. Defaults to None.
+        """
         super().__init__(parent)
         self.setWindowTitle("Create Uniaxial Section")
         self.setMinimumSize(600, 400)
@@ -98,6 +126,19 @@ class UniaxialSectionCreationDialog(QDialog):
         main_layout.setStretch(2, 2)
 
     def create_section(self):
+        """Attempts to create a new :class:`UniaxialSection` based on user inputs.
+
+        Validates the user-provided section name, selected material, and response code.
+        If all inputs are valid and unique, a new :class:`UniaxialSection` object is
+        instantiated and stored in :attr:`self.created_section`. The dialog then
+        accepts and closes.
+
+        Displays warning or error messages via :class:`QMessageBox` if:
+            - The section name is empty or already exists.
+            - No uniaxial material is selected.
+            - Section parameters fail validation by :meth:`UniaxialSection.validate_section_parameters`.
+            - Any other unexpected error occurs during creation.
+        """
         try:
             user_name = self.user_name_input.text().strip()
             if not user_name:
@@ -127,10 +168,41 @@ class UniaxialSectionCreationDialog(QDialog):
             QMessageBox.critical(self, "Error", f"Failed to create section: {str(e)}")
 
 class UniaxialSectionEditDialog(QDialog):
+    """A dialog for editing an existing :class:`UniaxialSection` object.
+
+    This dialog displays the current properties of a given :class:`UniaxialSection`
+    and allows modification of its material and response code. It utilizes
+    :meth:`UniaxialSection.update_values` to apply changes.
+
+    Attributes:
+        section (UniaxialSection): The :class:`UniaxialSection` instance being edited.
+        tag_label (QLabel): Displays the unique tag of the section.
+        user_name_label (QLabel): Displays the user-defined name of the section.
+        type_label (QLabel): Displays the type name of the section.
+        material_combo (QComboBox): Dropdown for selecting a uniaxial material to update.
+        code_combo (QComboBox): Dropdown for selecting the response code to update.
+
+    Example:
+        >>> from qtpy.QtWidgets import QApplication
+        >>> from femora.components.Material.materialsOpenSees import ElasticUniaxialMaterial
+        >>> from femora.components.section.section_opensees import UniaxialSection
+        >>> import sys
+        >>> app = QApplication(sys.argv)
+        >>> mat = ElasticUniaxialMaterial(user_name="Concrete", E=30e9, nu=0.2)
+        >>> dummy_section = UniaxialSection(user_name="TestSectionToEdit", material=mat, response_code='P')
+        >>> edit_dialog = UniaxialSectionEditDialog(dummy_section)
+        >>> if edit_dialog.exec_() == QApplication.Accepted:
+        ...     print(f"Section updated: {dummy_section.user_name}, Material: {dummy_section.material.user_name}")
+        Section updated: TestSectionToEdit, Material: <selected_material_name>
     """
-    Dialog for editing existing UniaxialSection sections using class methods
-    """
-    def __init__(self, section, parent=None):
+
+    def __init__(self, section: UniaxialSection, parent=None):
+        """Initializes the UniaxialSectionEditDialog.
+
+        Args:
+            section: The :class:`UniaxialSection` object to be edited.
+            parent (QWidget, optional): The parent widget of this dialog. Defaults to None.
+        """
         super().__init__(parent)
         self.section = section
         self.setWindowTitle(f"Edit Uniaxial Section: {section.user_name}")
@@ -199,7 +271,18 @@ class UniaxialSectionEditDialog(QDialog):
         main_layout.addWidget(right_widget)
         main_layout.setStretch(0, 3)
         main_layout.setStretch(2, 2)
+
     def save_changes(self):
+        """Attempts to save changes to the :class:`UniaxialSection` based on user inputs.
+
+        Validates the selected material and response code. If valid, the
+        :attr:`self.section` object's values are updated using
+        :meth:`UniaxialSection.update_values`. The dialog then accepts and closes.
+
+        Displays warning or error messages via :class:`QMessageBox` if:
+            - No uniaxial material is selected.
+            - Any other unexpected error occurs during the update process.
+        """
         try:
             material = get_material_by_combo_selection(self.material_combo)
             if not material:
