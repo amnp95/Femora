@@ -11,7 +11,45 @@ from femora.components.Constraint.mpConstraint import (
 import time
 
 class MPConstraintManagerTab(QDialog):
-    def __init__(self, parent=None):
+    """Manages the creation, viewing, editing, and deletion of multipoint constraints (MPCs).
+
+    This dialog provides a comprehensive interface to interact with Femora's
+    `mpConstraintManager`, displaying constraints in a paginated table and
+    allowing various operations.
+
+    Attributes:
+        constraint_type_combo (QComboBox): Dropdown to select the type of
+            constraint to create (e.g., equalDOF, rigidLink).
+        status_label (QLabel): Displays status information, such as total
+            number of constraints and current page.
+        constraints_table (QTableWidget): Table displaying the list of
+            multipoint constraints.
+        page_size_combo (QComboBox): Dropdown to select the number of items
+            to display per page.
+        page_spinbox (QSpinBox): Navigates directly to a specific page number.
+        page_label (QLabel): Shows the total number of pages.
+        current_page (int): The currently displayed page number.
+        total_pages (int): The total number of pages available for constraints.
+        page_size (int): The number of constraints displayed per page.
+
+    Example:
+        >>> from qtpy.QtWidgets import QApplication
+        >>> import sys
+        >>> from femora.components.Constraint.mpConstraint import mpConstraintManager
+        >>> app = QApplication(sys.argv)
+        >>> mp_manager = mpConstraintManager()
+        >>> mp_manager.create_equal_dof(master_node=1, slave_nodes=[2, 3], dofs=[1, 2, 3])
+        >>> manager_tab = MPConstraintManagerTab()
+        >>> manager_tab.show()
+        >>> # app.exec() # Uncomment to run the Qt event loop
+    """
+
+    def __init__(self, parent: QWidget = None):
+        """Initializes the MPConstraintManagerTab dialog.
+
+        Args:
+            parent: The parent widget of this dialog. Defaults to None.
+        """
         super().__init__(parent)
         
         # Configure dialog size and properties
@@ -120,8 +158,16 @@ class MPConstraintManagerTab(QDialog):
         # Initial refresh
         self.refresh_constraints_list()
 
-    def change_page_size(self, size_text):
-        """Change the number of items loaded per page"""
+    def change_page_size(self, size_text: str):
+        """Changes the number of items displayed per page.
+
+        Resets the current page to 1 and refreshes the constraint list.
+        If `size_text` is "All", the page size is set to the total number
+        of constraints.
+
+        Args:
+            size_text: The string representing the desired page size (e.g., "100", "All").
+        """
         if size_text == "All":
             self.page_size = len(mpConstraint._constraints)
         else:
@@ -135,7 +181,18 @@ class MPConstraintManagerTab(QDialog):
         self.refresh_constraints_list()
 
     def open_constraint_creation_dialog(self):
-        """Open dialog to create new constraint"""
+        """Opens a dialog to create a new multipoint constraint.
+
+        The type of constraint dialog opened depends on the selection in
+        `self.constraint_type_combo`. If the dialog is accepted, the
+        constraint list is refreshed.
+
+        Example:
+            To open the dialog programmatically:
+            >>> manager_tab = MPConstraintManagerTab()
+            >>> manager_tab.constraint_type_combo.setCurrentText("equalDOF")
+            >>> manager_tab.open_constraint_creation_dialog()
+        """
         constraint_type = self.constraint_type_combo.currentText()
         
         if constraint_type == "laminarBoundary":
@@ -147,7 +204,24 @@ class MPConstraintManagerTab(QDialog):
             self.refresh_constraints_list()
 
     def refresh_constraints_list(self):
-        """Update constraints table with current data for the current page"""
+        """Updates the constraints table with current data for the current page.
+
+        This method fetches all currently defined multipoint constraints,
+        calculates pagination details, and populates the table with
+        constraints relevant to the `current_page` and `page_size`.
+        A progress dialog is shown for large constraint sets to maintain UI responsiveness.
+
+        Example:
+            >>> from qtpy.QtWidgets import QApplication
+            >>> import sys
+            >>> from femora.components.Constraint.mpConstraint import mpConstraintManager
+            >>> app = QApplication(sys.argv)
+            >>> mp_manager = mpConstraintManager()
+            >>> mp_manager.create_equal_dof(master_node=1, slave_nodes=[2, 3], dofs=[1, 2, 3])
+            >>> manager_tab = MPConstraintManagerTab()
+            >>> manager_tab.refresh_constraints_list()
+            >>> # This will populate the table.
+        """
         # Show progress dialog for large constraint sets
         count = len(mpConstraint._constraints)
         
@@ -257,14 +331,31 @@ class MPConstraintManagerTab(QDialog):
             progress.setValue(100)
             progress.close()
 
-    def go_to_page(self, page):
-        """Go to the specified page number"""
+    def go_to_page(self, page: int):
+        """Navigates to the specified page number in the constraints table.
+
+        The method updates `self.current_page` and then refreshes the
+        constraints list to display the items on the new page.
+
+        Args:
+            page: The target page number to navigate to. Must be between 1
+                and `self.total_pages`.
+        """
         if 1 <= page <= self.total_pages:
             self.current_page = page
             self.refresh_constraints_list()
 
-    def handle_double_click(self, row, column):
-        """Handle double-click on a table cell to edit constraint"""
+    def handle_double_click(self, row: int, column: int):
+        """Handles a double-click event on a table cell to open an edit dialog.
+
+        When a cell is double-clicked, this method retrieves the tag of the
+        constraint in the clicked row and opens an `MPConstraintEditDialog`
+        for that constraint.
+
+        Args:
+            row: The row index of the double-clicked cell.
+            column: The column index of the double-clicked cell.
+        """
         tag_item = self.constraints_table.item(row, 0)
         if tag_item:
             tag = tag_item.data(Qt.UserRole)
@@ -272,8 +363,15 @@ class MPConstraintManagerTab(QDialog):
             if constraint:
                 self.open_constraint_edit_dialog(constraint)
 
-    def show_context_menu(self, position):
-        """Show context menu for right-clicked table cell"""
+    def show_context_menu(self, position: Qt.QPoint):
+        """Shows a context menu when a table cell is right-clicked.
+
+        The context menu offers "Edit Constraint" and "Delete Constraint"
+        options for the constraint in the right-clicked row.
+
+        Args:
+            position: The position of the mouse click in table coordinates.
+        """
         # Get the row under the mouse
         row = self.constraints_table.rowAt(position.y())
         if row < 0:
@@ -300,14 +398,28 @@ class MPConstraintManagerTab(QDialog):
         elif action == delete_action:
             self.delete_constraint(tag)
 
-    def open_constraint_edit_dialog(self, constraint):
-        """Open dialog to edit existing constraint"""
+    def open_constraint_edit_dialog(self, constraint: mpConstraint):
+        """Opens a dialog to edit an existing multipoint constraint.
+
+        If the edit dialog is accepted, the constraint list is refreshed
+        to reflect the changes.
+
+        Args:
+            constraint: The `mpConstraint` object to be edited.
+        """
         dialog = MPConstraintEditDialog(constraint, self)
         if dialog.exec() == QDialog.Accepted:
             self.refresh_constraints_list()
 
-    def delete_constraint(self, tag):
-        """Delete constraint from system"""
+    def delete_constraint(self, tag: int):
+        """Deletes a multipoint constraint from the system by its tag.
+
+        A confirmation dialog is shown before proceeding with the deletion.
+        If confirmed, the constraint is removed, and the list is refreshed.
+
+        Args:
+            tag: The unique integer tag of the constraint to delete.
+        """
         reply = QMessageBox.question(
             self, 'Delete Constraint',
             f"Delete constraint with tag {tag}?",
@@ -318,7 +430,13 @@ class MPConstraintManagerTab(QDialog):
             self.refresh_constraints_list()
             
     def clear_all_constraints(self):
-        """Delete all constraints from the system"""
+        """Deletes all multipoint constraints from the system.
+
+        A confirmation dialog is shown before clearing all constraints.
+        For a large number of constraints, a progress dialog is displayed
+        during the clearing process. The constraint list is refreshed
+        after completion.
+        """
         count = len(mpConstraint._constraints)
         
         if count == 0:
@@ -354,7 +472,38 @@ class MPConstraintManagerTab(QDialog):
 
 # New Laminar Boundary Dialog
 class MPLaminarBoundaryDialog(QDialog):
-    def __init__(self, parent=None):
+    """Dialog for creating laminar boundary multipoint constraints.
+
+    Laminar boundary constraints connect nodes that share the same coordinate
+    in a specified direction within a given tolerance, creating `equalDOF`
+    constraints along planar boundaries.
+
+    Attributes:
+        manager (mpConstraintManager): The manager responsible for creating constraints.
+        dofs_input (QLineEdit): Input field for degrees of freedom (DOFs)
+            to constrain.
+        direction_combo (QComboBox): Dropdown to select the direction
+            perpendicular to the laminar boundary (1 for X, 2 for Y, 3 for Z).
+        tolerance_spin (QDoubleSpinBox): Input for the tolerance used to
+            find nodes within the same plane.
+
+    Example:
+        >>> from qtpy.QtWidgets import QApplication
+        >>> import sys
+        >>> app = QApplication(sys.argv)
+        >>> dialog = MPLaminarBoundaryDialog()
+        >>> dialog.dofs_input.setText("1 2")
+        >>> dialog.direction_combo.setCurrentIndex(2) # Z-direction
+        >>> dialog.tolerance_spin.setValue(0.005)
+        >>> # dialog.exec() # Uncomment to run the dialog
+    """
+
+    def __init__(self, parent: QWidget = None):
+        """Initializes the MPLaminarBoundaryDialog.
+
+        Args:
+            parent: The parent widget of this dialog. Defaults to None.
+        """
         super().__init__(parent)
         self.setWindowTitle("Create Laminar Boundary Constraint")
         self.manager = mpConstraintManager()
@@ -404,6 +553,28 @@ class MPLaminarBoundaryDialog(QDialog):
         layout.addLayout(btn_layout)
     
     def create_laminar_boundary(self):
+        """Creates laminar boundary constraints based on user input.
+
+        This method retrieves the specified DOFs, direction, and tolerance
+        from the dialog's input fields. It then uses the `mpConstraintManager`
+        to generate `equalDOF` constraints connecting nodes within the given
+        planar tolerance. A progress dialog is shown during the operation.
+
+        Raises:
+            ValueError: If the input DOFs or direction are invalid.
+
+        Example:
+            >>> from qtpy.QtWidgets import QApplication
+            >>> import sys
+            >>> app = QApplication(sys.argv)
+            >>> dialog = MPLaminarBoundaryDialog()
+            >>> dialog.dofs_input.setText("1 2")
+            >>> dialog.direction_combo.setCurrentIndex(2) # Z-direction
+            >>> dialog.tolerance_spin.setValue(0.005)
+            >>> # Simulating the click of the create button
+            >>> dialog.create_laminar_boundary()
+            >>> # If successful, dialog.accept() is called.
+        """
         try:
             # Get direction (1, 2, or 3)
             direction_text = self.direction_combo.currentText()
@@ -439,7 +610,45 @@ class MPLaminarBoundaryDialog(QDialog):
 
 # Keep the original dialog classes without changes
 class MPConstraintCreationDialog(QDialog):
-    def __init__(self, constraint_type, parent=None):
+    """Dialog for creating new multipoint constraints of a specific type.
+
+    This dialog dynamically adjusts its input fields based on the `constraint_type`
+    provided during initialization, supporting `equalDOF`, `rigidLink`, and
+    `rigidDiaphragm` constraints.
+
+    Attributes:
+        constraint_type (str): The type of constraint being created
+            (e.g., "equalDOF", "rigidLink").
+        manager (mpConstraintManager): The manager responsible for creating constraints.
+        master_input (QLineEdit): Input field for the master node ID.
+        slaves_input (QLineEdit): Input field for comma-separated slave node IDs.
+        type_specific_widget (QWidget): A container widget for type-specific inputs.
+        dofs_input (QLineEdit, optional): Input field for DOFs, visible for
+            "equalDOF" constraints.
+        type_combo (QComboBox, optional): Dropdown for link type, visible for
+            "rigidLink" constraints.
+        direction_input (QLineEdit, optional): Input field for direction, visible
+            for "rigidDiaphragm" constraints.
+
+    Example:
+        >>> from qtpy.QtWidgets import QApplication
+        >>> import sys
+        >>> app = QApplication(sys.argv)
+        >>> dialog = MPConstraintCreationDialog("equalDOF")
+        >>> dialog.master_input.setText("100")
+        >>> dialog.slaves_input.setText("101,102")
+        >>> dialog.dofs_input.setText("1 2 3")
+        >>> # dialog.exec() # Uncomment to run the dialog
+    """
+
+    def __init__(self, constraint_type: str, parent: QWidget = None):
+        """Initializes the MPConstraintCreationDialog.
+
+        Args:
+            constraint_type: The type of multipoint constraint to create.
+                Valid values include "equalDOF", "rigidLink", "rigidDiaphragm".
+            parent: The parent widget of this dialog. Defaults to None.
+        """
         super().__init__(parent)
         self.setWindowTitle(f"Create {constraint_type} Constraint")
         self.constraint_type = constraint_type
@@ -485,6 +694,15 @@ class MPConstraintCreationDialog(QDialog):
         layout.addLayout(btn_layout)
 
     def create_constraint(self):
+        """Creates a new multipoint constraint based on the dialog's input.
+
+        This method parses the master node, slave nodes, and type-specific
+        parameters from the input fields. It then uses the `mpConstraintManager`
+        to create and add the new constraint to the system.
+
+        Raises:
+            ValueError: If any input field contains invalid data (e.g., non-integer node IDs).
+        """
         try:
             master = int(self.master_input.text())
             slaves = [int(n.strip()) for n in self.slaves_input.text().split(",")]
@@ -507,7 +725,45 @@ class MPConstraintCreationDialog(QDialog):
 
 
 class MPConstraintEditDialog(QDialog):
-    def __init__(self, constraint, parent=None):
+    """Dialog for editing an existing multipoint constraint.
+
+    This dialog pre-populates its input fields with the current values of
+    a given `mpConstraint` object and allows the user to modify them.
+    Changes are saved by re-creating the constraint with the new parameters.
+
+    Attributes:
+        constraint (mpConstraint): The `mpConstraint` object being edited.
+        manager (mpConstraintManager): The manager responsible for modifying constraints.
+        master_input (QLineEdit): Input field for the master node ID.
+        slaves_input (QLineEdit): Input field for comma-separated slave node IDs.
+        dofs_input (QLineEdit, optional): Input field for DOFs, visible if the
+            constraint is an `equalDOF` type.
+        type_combo (QComboBox, optional): Dropdown for link type, visible if the
+            constraint is a `rigidLink` type.
+        direction_input (QLineEdit, optional): Input field for direction, visible
+            if the constraint is a `rigidDiaphragm` type.
+
+    Example:
+        >>> from qtpy.QtWidgets import QApplication
+        >>> import sys
+        >>> from femora.components.Constraint.mpConstraint import mpConstraintManager
+        >>> app = QApplication(sys.argv)
+        >>> mp_manager = mpConstraintManager()
+        >>> constraint = mp_manager.create_equal_dof(master_node=1, slave_nodes=[2, 3], dofs=[1, 2, 3])
+        >>> dialog = MPConstraintEditDialog(constraint)
+        >>> dialog.master_input.setText("10")
+        >>> dialog.slaves_input.setText("20,30,40")
+        >>> dialog.dofs_input.setText("1 2")
+        >>> # dialog.exec() # Uncomment to run the dialog
+    """
+
+    def __init__(self, constraint: mpConstraint, parent: QWidget = None):
+        """Initializes the MPConstraintEditDialog.
+
+        Args:
+            constraint: The `mpConstraint` object to be edited.
+            parent: The parent widget of this dialog. Defaults to None.
+        """
         super().__init__(parent)
         self.constraint = constraint
         self.manager = mpConstraintManager()
@@ -550,6 +806,14 @@ class MPConstraintEditDialog(QDialog):
         layout.addLayout(btn_layout)
 
     def save_changes(self):
+        """Saves the changes made to the constraint.
+
+        This method first removes the original constraint and then re-creates
+        it with the new parameters entered in the dialog's input fields.
+
+        Raises:
+            ValueError: If any input field contains invalid data (e.g., non-integer node IDs).
+        """
         try:
             # Update common properties
             new_master = int(self.master_input.text())
