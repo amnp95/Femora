@@ -1,91 +1,205 @@
+def custom_building(structure_info: dict, soil_info: dict, foundation_info: dict, pile_info: dict):
+    """Creates a Femora model for a custom building, including soil, foundation, and piles.
 
-def custom_building(structure_info, soil_info, foundation_info, pile_info):
-    # This model creates a soil profile and foundation for a custom building,
-    # designed for use in the EE-UQ application.
-    # Developed by Amin Pakzad, University of Washington.
-    # Users can define their own building and soil parameters within this framework.
+    This function generates a comprehensive finite element model for a custom building,
+    specifically designed for use within the EE-UQ (Earthquake Engineering - Uncertainty
+    Quantification) application framework. It takes detailed information about the
+    building structure, soil conditions, foundation geometry, and pile configurations
+    as input. The model integrates various Femora components such as materials,
+    elements, sections, and regions to represent the soil, foundation, piles, and
+    the base columns of the structure.
 
-    # ==========================================================================
-    # Assumptions and Simplifications :
-    #   1 - all the materials for the soil profile are linear elastic
-    #   2 - the soil profile is layerd horizontally
-    #   3 - the custom building bays should be in x and y direction and the height should be in z direction
+    It includes rigorous input validation, mesh generation using `pyvista` and `meshlib`,
+    assembly of the Femora model, definition of boundary conditions (periodic or DRM),
+    and setup for gravity analysis. Finally, the model is exported to a TCL script
+    compatible with OpenSees, and a visual representation of the assembled mesh is displayed.
 
-    # ==========================================================================
-    # Soil materials properties for this code
-    # ==========================================================================
-    # supported materials
+    Assumptions and Simplifications:
+        1. All materials for the soil profile are linear elastic.
+        2. The soil profile is layered horizontally.
+        3. The custom building bays should be in the x and y direction and the height
+           should be in the z direction.
+
+    Args:
+        structure_info: A dictionary containing detailed information about the building
+            structure.
+            *   `num_partitions` (int): Number of partitions for the structure.
+            *   `x_min`, `y_min`, `z_min`, `x_max`, `y_max`, `z_max` (float):
+                Bounding box of the structure.
+            *   `columns_base` (list[dict]): A list of dictionaries, each describing
+                a base column. Each dictionary should contain:
+                *   `tag` (int): Unique identifier for the column.
+                *   `x`, `y`, `z` (float): Coordinates of the column base.
+            *   `column_embedment_depth` (float): Depth of column embedment into
+                the foundation.
+            *   `model_file` (str, optional): Path to an external TCL file for the
+                structure model. If provided, the structure defined in this file
+                will be included.
+            *   `column_section_props` (dict): Properties for column sections.
+                Expected keys for "Elastic" material are: `E`, `A`, `Iy`, `Iz`, `G`, `J`.
+        soil_info: A dictionary containing information about the soil profile and mesh.
+            Supported soil materials:
+            *   `"Elastic"`: Requires `E` (Elastic Modulus), `nu` (Poisson Ratio),
+                `rho` (Density).
+            Supported damping types:
+            *   `"No-Damping"`
+            *   `"Frequency-Rayleigh"`: Requires `damping_props` `[xi_s, f1, f2]`
+                (damping factor, frequency 1, frequency 2).
+            *   `x_min`, `x_max`, `y_min`, `y_max` (float): Bounding box of the
+                soil domain.
+            *   `nx`, `ny` (int): Number of elements in X and Y directions for the
+                soil mesh.
+            *   `gravity_x`, `gravity_y`, `gravity_z` (float): Components of gravity
+                for soil elements.
+            *   `num_partitions` (int): Number of partitions for the soil mesh.
+            *   `boundary_conditions` (str): Type of boundary conditions, either
+                `"periodic"` or `"DRM"`.
+            *   `DRM_options` (dict, optional): Options for DRM boundary conditions
+                if `boundary_conditions` is `"DRM"`.
+                *   `absorbing_layer_type` (str): `"PML"` or `"Rayleigh"`.
+                *   `num_partitions` (int): Number of partitions for DRM.
+                *   `number_of_layers` (int): Number of absorbing layers.
+                *   `Rayleigh_damping` (float): Rayleigh damping factor.
+                *   `match_damping` (bool): If true, the Rayleigh damping will be
+                    matched to the soil damping.
+            *   `soil_profile` (list[dict]): A list of dictionaries, each describing
+                a soil layer. Each dictionary should contain:
+                *   `z_bot`, `z_top` (float): Bottom and top Z-coordinates of the layer.
+                *   `nz` (int): Number of elements in Z direction for the layer.
+                *   `material` (str): Material type (e.g., `"Elastic"`).
+                *   `mat_props` (list[float]): Material properties.
+                *   `damping` (str): Damping type.
+                *   `damping_props` (list[float], optional): Damping properties
+                    if damping is `"Frequency-Rayleigh"`.
+        foundation_info: A dictionary containing information about the foundation.
+            Supported foundation materials:
+            *   `"Elastic"`: Requires `E` (Elastic Modulus), `nu` (Poisson Ratio),
+                `rho` (Density).
+            Supported damping types (same as soil):
+            *   `"No-Damping"`
+            *   `"Frequency-Rayleigh"`: Requires `damping_props` `[xi_s, f1, f2]`.
+            *   `gravity_x`, `gravity_y`, `gravity_z` (float): Components of gravity
+                for foundation elements.
+            *   `embedded` (bool): If True, the foundation is embedded in the soil.
+                Currently, only embedded foundations are supported.
+            *   `dx`, `dy`, `dz` (float): Mesh element sizes for the foundation in
+                X, Y, Z directions.
+            *   `num_partitions` (int): Number of partitions for the foundation mesh.
+            *   `foundation_profile` (list[dict]): A list of dictionaries, each
+                describing a foundation block. Each dictionary should contain:
+                *   `x_min`, `x_max`, `y_min`, `y_max`, `z_top`, `z_bot` (float):
+                    Bounding box of the foundation block.
+                *   `material` (str): Material type.
+                *   `mat_props` (list[float]): Material properties.
+                *   `damping` (str, optional): Damping type (defaults to `"No-Damping"`).
+                *   `damping_props` (list[float], optional): Damping properties.
+        pile_info: A dictionary containing information about the piles and pile-soil interface.
+            Supported pile materials:
+            *   `"Elastic"`: Requires `E` (Elastic Modulus), `A` (Area), `Iy`
+                (Moment of Inertia Iy), `Iz` (Moment of Inertia Iz), `G` (Shear
+                Modulus), `J` (Moment of Inertia J).
+            Supported pile sections:
+            *   `"No-Section"` (used with Elastic material properties directly defining beam section properties).
+            *   `pile_profile` (list[dict]): A list of dictionaries, each describing
+                a pile. Each dictionary should contain:
+                *   `type` (str, optional): Type of pile, `"single"` or `"grid"`
+                    (defaults to `"single"`).
+                *   `x_top`, `y_top`, `z_top` (float): Top coordinates of the pile.
+                *   `x_bot`, `y_bot`, `z_bot` (float): Bottom coordinates of the pile.
+                *   `r` (float): Radius of the pile.
+                *   `nz` (int): Number of elements along the pile's length.
+                *   `section` (str): Section type.
+                *   `material` (str): Material type.
+                *   `mat_props` (list[float]): Material properties.
+                *   `transformation` (list, optional): Transformation parameters
+                    for the beam element (e.g., `["Linear", 0.0, 1.0, 0.0]`).
+                *   `nx`, `ny`, `spacing_x`, `spacing_y` (int, float, optional):
+                    For `"grid"` type piles, number of piles and spacing.
+                *   `x_start`, `y_start` (float, optional): For `"grid"` type piles,
+                    start coordinates.
+            *   `pile_interface` (dict): Parameters for the beam-solid interface.
+                *   `num_points_on_perimeter` (int): Number of points on the
+                    perimeter for interface elements.
+                *   `num_points_along_length` (int): Number of points along the
+                    length for interface elements.
+                *   `penalty_parameter` (float): Penalty parameter for interface elements.
+
+    Raises:
+        SystemExit: If any input parameter validation fails (e.g., invalid dimensions,
+            unsupported materials/damping, out-of-bounds geometries, failed mesh operations).
+            Also if the foundation is not embedded, or if specific material/section
+            types are not yet implemented.
+        ValueError: If a region of type NodeTRegion is encountered during TCL export,
+            which is not yet supported.
+
+    Example:
+        >>> import femora as fm
+        >>> # Define example input dictionaries (simplified for brevity)
+        >>> structure_info = {
+        ...     "num_partitions": 1, "x_min": 0., "y_min": 0., "z_min": 0.,
+        ...     "x_max": 10., "y_max": 10., "z_max": 5.,
+        ...     "columns_base": [{"tag": 101, "x": 0., "y": 0., "z": 0.}],
+        ...     "column_embedment_depth": 0.5,
+        ...     "column_section_props": {"E": 200e9, "A": 1., "Iy": 1e-4, "Iz": 1e-4, "G": 79.3e9, "J": 2e-4}
+        ... }
+        >>> soil_info = {
+        ...     "x_min": -5., "x_max": 15., "y_min": -5., "y_max": 15.,
+        ...     "nx": 5, "ny": 5, "gravity_x": 0., "gravity_y": 0., "gravity_z": -9.81,
+        ...     "num_partitions": 1, "boundary_conditions": "periodic",
+        ...     "soil_profile": [
+        ...         {"z_bot": -10., "z_top": -5., "nz": 2, "material": "Elastic", "mat_props": [30e6, 0.3, 1800], "damping": "No-Damping"},
+        ...         {"z_bot": -5., "z_top": 0., "nz": 2, "material": "Elastic", "mat_props": [50e6, 0.3, 1900], "damping": "No-Damping"}
+        ...     ]
+        ... }
+        >>> foundation_info = {
+        ...     "gravity_x": 0., "gravity_y": 0., "gravity_z": -9.81,
+        ...     "embedded": True, "dx": 2., "dy": 2., "dz": 2., "num_partitions": 1,
+        ...     "foundation_profile": [
+        ...         {"x_min": -1., "x_max": 11., "y_min": -1., "y_max": 11., "z_top": 0., "z_bot": -1., "material": "Elastic", "mat_props": [30e9, 0.25, 2400]}
+        ...     ]
+        ... }
+        >>> pile_info = {
+        ...     "pile_profile": [
+        ...         {"x_top": 5., "y_top": 5., "z_top": 0., "x_bot": 5., "y_bot": 5., "z_bot": -8., "nz": 4, "r": 0.3,
+        ...          "section": "No-Section", "material": "Elastic", "mat_props": [200e9, 0.28, 0.005, 0.005, 80e9, 0.01]}
+        ...     ],
+        ...     "pile_interface": {"num_points_on_perimeter": 8, "num_points_along_length": 3, "penalty_parameter": 1.0e12}
+        ... }
+        >>> # To execute this function and generate files, uncomment the line below.
+        >>> # This example will create a Femora model, export it to 'tmpmodel.tcl',
+        >>> # and display interactive plots.
+        >>> # custom_building(structure_info, soil_info, foundation_info, pile_info)
+    """
+
     soil_supported_materials = ["Elastic"]
-
-    # for Ealstic material the properties are :
-    #   1 - Elastic Modulus (E)
-    #   2 - Poisson Ratio (nu)  
-    #   3 - Density (rho)
-
     # future work :
     #   1 - pressure dependent multi yield material
     #   2 - J2 cyclic bounding surface material
     #   3 - Drucker Prager material
 
     soil_supported_dampings = ["No-Damping","Frequency-Rayleigh"]
-    # for frequency rayleigh damping the properties are :
-    #   1 - damping factor (xi_s)
-    #   2 - frequency 1 (f1)
-    #   3 - frequency 2 (f2)
-
     # future work :
     #   1 - constant damping
     #   2 - modal damping
     #   3 - .................
 
-    # =============================================================================
-    # Foundation material properties for this code
-    # =============================================================================
-
-    # supported materials
     foundation_supported_materials = ["Elastic"]
-
-    # for Ealstic material the properties are :
-    #   1 - Elastic Modulus (E)
-    #   2 - Poisson Ratio (nu)
-    #   3 - Density (rho)
-
     # future work :
     #   1 - Concrete01 material
     #   2 - Concrete02 material
 
     foundation_supported_dampings = ["No-Damping","Frequency-Rayleigh"]
-    # for frequency rayleigh damping the properties are :
-    #   1 - damping factor (xi_s)
-    #   2 - frequency 1 (f1)
-    #   3 - frequency 2 (f2)
     # future work :
     #   1 - constant damping
     #   2 - modal damping
     #   3 - .................
 
-
-    # =============================================================================
-    # Pile material properties for this code
-    # =============================================================================
-    # supported materials
     pile_supported_materials = ["Elastic"]
-
-    # for Ealstic Pile material the properties are :
-    #   1 - Elastic Modulus (E)
-    #   2 - Area (A)
-    #   3 - Moment of Inertia Iy (Iy)
-    #   4 - Moment of Inertia Iz (Iz)
-    #   5 - Shear Modulus (G)
-    #   6 - Moment of Inertia J (J)
-
     # future work :
     #  1 - steel material
     #  2 - concrete material
 
-    # supported pile sections
     pile_supported_sections = ["No-Section"]
-
     # future work :
     #  1 - Circular section
     #  2 - Rectangular section
@@ -93,10 +207,7 @@ def custom_building(structure_info, soil_info, foundation_info, pile_info):
     #  4 - I section
     #  5 - Wf section
 
-    # ============================================================================
-    # import libraries
-    # ============================================================================
-    import femora as fm 
+    import femora as fm
     import os
     import sys
     import numpy as np
@@ -1837,5 +1948,3 @@ if __name__ == "__main__":
     }
 
     custom_building(structure_info, soil_info, foundation_info, pile_info)
-
-
