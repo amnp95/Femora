@@ -462,7 +462,8 @@ class BaseNormTestDialog(BaseTestDialog):
         tol_spin (QDoubleSpinBox): Input field for the convergence tolerance.
         max_iter_spin (QSpinBox): Input field for the maximum number of
             iterations allowed.
-        print_flag_combo (QComboBox): Dropdown for selecting the print verbosity level.
+        print_flag_combo (QComboBox): Dropdown for selecting the print verbosity
+            level.
         norm_type_combo (QComboBox): Dropdown for selecting the type of norm
             (e.g., Max-norm, 1-norm, 2-norm).
     """
@@ -544,7 +545,8 @@ class BaseEnergyTestDialog(BaseTestDialog):
         tol_spin (QDoubleSpinBox): Input field for the energy convergence tolerance.
         max_iter_spin (QSpinBox): Input field for the maximum number of
             iterations allowed.
-        print_flag_combo (QComboBox): Dropdown for selecting the print verbosity level.
+        print_flag_combo (QComboBox): Dropdown for selecting the print verbosity
+            level.
     """
     def __init__(self, parent: QWidget = None, title: str = "Energy Test Dialog"):
         """Initializes the BaseEnergyTestDialog.
@@ -609,8 +611,10 @@ class BaseCombinedNormTestDialog(BaseTestDialog):
     that evaluate multiple convergence criteria simultaneously.
 
     Attributes:
-        tol_incr_spin (QDoubleSpinBox): Input for the displacement increment tolerance.
-        tol_r_spin (QDoubleSpinBox): Input for the residual (unbalanced force) tolerance.
+        tol_incr_spin (QDoubleSpinBox): Input for the displacement increment
+            tolerance.
+        tol_r_spin (QDoubleSpinBox): Input for the residual (unbalanced force)
+            tolerance.
         max_iter_spin (QSpinBox): Input for the maximum number of iterations.
         print_flag_combo (QComboBox): Dropdown for selecting print verbosity.
         norm_type_combo (QComboBox): Dropdown for selecting the type of norm.
@@ -714,6 +718,8 @@ class NormUnbalanceTestDialog(BaseNormTestDialog):
     Attributes:
         info (QLabel): A label displaying a descriptive summary of the
             NormUnbalance test.
+        test (NormUnbalanceTest): The created `NormUnbalanceTest` instance
+            after successful saving.
 
     Example:
         >>> from qtpy.QtWidgets import QApplication, QDialog
@@ -776,6 +782,8 @@ class NormDispIncrTestDialog(BaseNormTestDialog):
     Attributes:
         info (QLabel): A label displaying a descriptive summary of the
             NormDispIncr test.
+        test (NormDispIncrTest): The created `NormDispIncrTest` instance
+            after successful saving.
     """
     def __init__(self, parent: QWidget = None):
         """Initializes the NormDispIncrTestDialog.
@@ -828,6 +836,8 @@ class EnergyIncrTestDialog(BaseEnergyTestDialog):
     Attributes:
         info (QLabel): A label displaying a descriptive summary of the
             EnergyIncr test.
+        test (EnergyIncrTest): The created `EnergyIncrTest` instance
+            after successful saving.
     """
     def __init__(self, parent: QWidget = None):
         """Initializes the EnergyIncrTestDialog.
@@ -880,6 +890,8 @@ class RelativeNormUnbalanceTestDialog(BaseNormTestDialog):
     Attributes:
         info (QLabel): A label displaying a descriptive summary of the
             RelativeNormUnbalance test.
+        test (RelativeNormUnbalanceTest): The created `RelativeNormUnbalanceTest`
+            instance after successful saving.
     """
     def __init__(self, parent: QWidget = None):
         """Initializes the RelativeNormUnbalanceTestDialog.
@@ -933,6 +945,8 @@ class RelativeNormDispIncrTestDialog(BaseNormTestDialog):
     Attributes:
         info (QLabel): A label displaying a descriptive summary of the
             RelativeNormDispIncr test.
+        test (RelativeNormDispIncrTest): The created `RelativeNormDispIncrTest`
+            instance after successful saving.
     """
     def __init__(self, parent: QWidget = None):
         """Initializes the RelativeNormDispIncrTestDialog.
@@ -986,6 +1000,8 @@ class RelativeTotalNormDispIncrTestDialog(BaseNormTestDialog):
     Attributes:
         info (QLabel): A label displaying a descriptive summary of the
             RelativeTotalNormDispIncr test.
+        test (RelativeTotalNormDispIncrTest): The created
+            `RelativeTotalNormDispIncrTest` instance after successful saving.
     """
     def __init__(self, parent: QWidget = None):
         """Initializes the RelativeTotalNormDispIncrTestDialog.
@@ -1039,6 +1055,8 @@ class RelativeEnergyIncrTestDialog(BaseEnergyTestDialog):
     Attributes:
         info (QLabel): A label displaying a descriptive summary of the
             RelativeEnergyIncr test.
+        test (RelativeEnergyIncrTest): The created `RelativeEnergyIncrTest`
+            instance after successful saving.
     """
     def __init__(self, parent: QWidget = None):
         """Initializes the RelativeEnergyIncrTestDialog.
@@ -1091,6 +1109,8 @@ class FixedNumIterTestDialog(BaseTestDialog):
         info (QLabel): A label displaying a descriptive summary of the
             FixedNumIter test.
         num_iter_spin (QSpinBox): Input field for the fixed number of iterations.
+        test (FixedNumIterTest): The created `FixedNumIterTest` instance
+            after successful saving.
     """
     def __init__(self, parent: QWidget = None):
         """Initializes the FixedNumIterTestDialog.
@@ -1148,6 +1168,8 @@ class NormDispAndUnbalanceTestDialog(BaseCombinedNormTestDialog):
     Attributes:
         info (QLabel): A label displaying a descriptive summary of the
             NormDispAndUnbalance test.
+        test (NormDispAndUnbalanceTest): The created `NormDispAndUnbalanceTest`
+            instance after successful saving.
     """
     def __init__(self, parent: QWidget = None):
         """Initializes the NormDispAndUnbalanceTestDialog.
@@ -1203,6 +1225,8 @@ class NormDispOrUnbalanceTestDialog(BaseCombinedNormTestDialog):
     Attributes:
         info (QLabel): A label displaying a descriptive summary of the
             NormDispOrUnbalance test.
+        test (NormDispOrUnbalanceTest): The created `NormDispOrUnbalanceTest`
+            instance after successful saving.
     """
     def __init__(self, parent: QWidget = None):
         """Initializes the NormDispOrUnbalanceTestDialog.
