@@ -174,10 +174,10 @@ class EmbeddedNodeInterface(InterfaceBase, GeneratesMeshMixin):
             offset_mesh = original_mesh.copy()
             offset_mesh.points = new_points
 
-            pl = pv.Plotter()
-            pl.add_mesh(original_mesh, opacity=0.5, show_edges=True, color='gray')
-            pl.add_mesh(offset_mesh, opacity=0.5, show_edges=True, color='orange')
-            pl.show()
+            # pl = pv.Plotter()
+            # pl.add_mesh(original_mesh, opacity=0.5, show_edges=True, color='gray')
+            # pl.add_mesh(offset_mesh, opacity=0.5, show_edges=True, color='orange')
+            # pl.show()
             
 
             # find the points in the constrained mesh 
@@ -236,10 +236,10 @@ class EmbeddedNodeInterface(InterfaceBase, GeneratesMeshMixin):
             point_ids = point_ids[mask]
 
 
-            pl = pv.Plotter()
-            pl.add_mesh(constrained_mesh, opacity=0.5, show_edges=True, color='gray')
-            pl.add_mesh(pv.PolyData(offset_points), opacity=0.5, show_edges=True, color='blue')
-            pl.show()
+            # pl = pv.Plotter()
+            # pl.add_mesh(constrained_mesh, opacity=0.5, show_edges=True, color='gray')
+            # pl.add_mesh(pv.PolyData(offset_points), opacity=0.5, show_edges=True, color='blue')
+            # pl.show()
             return offset_points, point_ids, normals
         
 
@@ -299,10 +299,10 @@ class EmbeddedNodeInterface(InterfaceBase, GeneratesMeshMixin):
 
         # 8) mask
     
-        pl = pv.Plotter()
-        pl.add_mesh(asembelled_mesh, opacity=0.5, show_edges=True, color='gray')
-        pl.add_mesh(asembelled_mesh.extract_points(point_ids,include_cells = False), opacity=0.5, show_edges=True, color='blue')
-        pl.show()
+        # pl = pv.Plotter()
+        # pl.add_mesh(asembelled_mesh, opacity=0.5, show_edges=True, color='gray')
+        # pl.add_mesh(asembelled_mesh.extract_points(point_ids,include_cells = False), opacity=0.5, show_edges=True, color='blue')
+        # pl.show()
 
 
 
@@ -339,16 +339,28 @@ class EmbeddedNodeInterface(InterfaceBase, GeneratesMeshMixin):
         
 
         # 8) mask
-        pl = pv.Plotter()
+        # pl = pv.Plotter()
         mask = asembelled_mesh.cell_data['MeshPartTag_celldata'] == self.constrained_node.tag
         mask = ~mask
-        pl.add_mesh(asembelled_mesh.extract_cells(mask), opacity=0.5, show_edges=True, color='gray')
-        # pl.add_mesh(offset_mesh, opacity=1.0, show_edges=True, color='blue')
-        pl.add_mesh(tetrahedra_mesh.extract_cells(original_cells), opacity=0.5, show_edges=True, color='red')
-        pl.add_mesh(pv.PolyData(selected_points), opacity=1.0, show_edges=True, color='blue')
-        # pl.add_mesh(self.constrained_node.mesh, opacity=1.0, show_edges=True, color='royalblue')
-        pl.add_mesh(asembelled_mesh.extract_points(point_ids,include_cells = False), opacity=1.0, show_edges=True, color='green')
-        pl.show()
+        # pl.add_mesh(asembelled_mesh.extract_cells(mask), opacity=0.5, show_edges=True, color='gray')
+        # # pl.add_mesh(offset_mesh, opacity=1.0, show_edges=True, color='blue')
+        # pl.add_mesh(tetrahedra_mesh.extract_cells(original_cells), opacity=0.5, show_edges=True, color='red')
+        # pl.add_mesh(pv.PolyData(selected_points), opacity=1.0, show_edges=True, color='blue')
+        # # pl.add_mesh(self.constrained_node.mesh, opacity=1.0, show_edges=True, color='royalblue')
+        # pl.add_mesh(asembelled_mesh.extract_points(point_ids,include_cells = False), opacity=1.0, show_edges=True, color='green')
+        # pl.show()
+
+        tmp = tetrahedra_mesh.extract_cells(original_cells)
+        tmp = tmp.cell_quality('jacobian')
+        # assert np.all(tmp.cell_data['jacobian'] > 0), "Some tetrahedral elements have negative jacobians"
+        if np.any(tmp.cell_data['jacobian'] <= 0):
+            print("Warning: Some tetrahedral elements have negative jacobians")
+        else:
+            print("All tetrahedral elements have positive jacobians")
+
+        # pl = pv.Plotter()
+        # pl.add_mesh(tmp, opacity=1.0, show_edges=True, scalars='jacobian', cmap='viridis')
+        # pl.show()
             
     
 
@@ -425,7 +437,7 @@ class EmbeddedNodeInterface(InterfaceBase, GeneratesMeshMixin):
 
         # 6. Update your Assembler
         Assembler().AssembeledMesh = final_mesh
-        Assembler().plot(color="blue", opacity=0.5, show_edges=False, )
+        # Assembler().plot(color="blue", opacity=0.5, show_edges=False, )
 
 
         # # now if not use_mesh_part_points, we need to make mpconstraint for the new points to the original point
@@ -531,11 +543,12 @@ class EmbeddedNodeInterface(InterfaceBase, GeneratesMeshMixin):
             if c_type == pv.CellType.HEXAHEDRON and n_points == 8 and mask[i]:
                 # Standard 5-tetra decomposition
                 tets = [
-                    [cell_nodes[0], cell_nodes[1], cell_nodes[3], cell_nodes[4]],
-                    [cell_nodes[1], cell_nodes[2], cell_nodes[3], cell_nodes[6]],
-                    [cell_nodes[4], cell_nodes[5], cell_nodes[6], cell_nodes[1]],
-                    [cell_nodes[4], cell_nodes[7], cell_nodes[6], cell_nodes[3]],
-                    [cell_nodes[1], cell_nodes[3], cell_nodes[4], cell_nodes[6]]
+                    [cell_nodes[0], cell_nodes[1], cell_nodes[2], cell_nodes[5]],
+                    [cell_nodes[0], cell_nodes[2], cell_nodes[3], cell_nodes[7]],
+                    [cell_nodes[0], cell_nodes[5], cell_nodes[2], cell_nodes[7]], # Internal bridge
+                    [cell_nodes[0], cell_nodes[4], cell_nodes[5], cell_nodes[7]],
+                    [cell_nodes[2], cell_nodes[5], cell_nodes[6], cell_nodes[7]],
+                    [cell_nodes[0], cell_nodes[5], cell_nodes[7], cell_nodes[2]]  # Re-oriented bridge
                 ]
                 for t in tets:
                     new_cells.extend([4] + t)
@@ -580,13 +593,13 @@ class EmbeddedNodeInterface(InterfaceBase, GeneratesMeshMixin):
         # check the number of cells are equal
         num_hex = mesh.celltypes == pv.CellType.HEXAHEDRON
         num_hex = num_hex & mask
-        assert new_mesh.n_cells == mesh.n_cells + 4*sum(num_hex), "Number of cells are not equal in the new and original mesh"        
+        assert new_mesh.n_cells == mesh.n_cells + 5*sum(num_hex), "Number of cells are not equal in the new and original mesh"        
 
 
-        pl = pv.Plotter()
-        pl.add_mesh(new_mesh, color='red', opacity=1.0, style='wireframe')
-        pl.add_mesh(mesh, color='blue', opacity=0.5)
-        pl.show()
+        # pl = pv.Plotter()
+        # pl.add_mesh(new_mesh, color='red', opacity=1.0, style='wireframe')
+        # pl.add_mesh(mesh, color='blue', opacity=0.5)
+        # pl.show()
 
         return new_mesh
 
