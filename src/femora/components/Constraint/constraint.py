@@ -20,29 +20,25 @@ class Constraint:
         sp: Instance of SPConstraintManager for managing single-point constraints.
 
     Example:
-        ```python
-        from femora.components.Constraint.constraint import Constraint
-
-        # Direct access to the Constraint manager
-        # constraint_instance = Constraint()
-
-        # Access through MeshMaker (recommended approach)
-        from femora.components.MeshMaker import MeshMaker
-        mk = MeshMaker()
-        constraint_manager = mk.constraint
-
-        # Using the SP constraint manager
-        sp_manager = constraint_manager.sp
-
-        # Add a fixed constraint to node 10, DOF 1 (X-direction)
-        sp_manager.add_constraint(node_id=10, dof=1, value=0.0, constraint_type="fix")
-
-        # Available SP constraint types include:
-        # - "fix": Fix a degree of freedom to a specified value
-        # - "disp": Apply a prescribed displacement
-        # - "vel": Apply a prescribed velocity
-        # - "accel": Apply a prescribed acceleration
-        ```
+        >>> from femora.components.Constraint.constraint import Constraint
+        >>>
+        >>> # Direct access to the Constraint manager instance
+        >>> constraint_manager = Constraint()
+        >>> sp_manager = constraint_manager.sp
+        >>> sp_manager.add_constraint(node_id=10, dof=1, value=0.0, constraint_type="fix")
+        >>>
+        >>> # Access through MeshMaker (recommended approach)
+        >>> from femora.components.MeshMaker import MeshMaker
+        >>> mk = MeshMaker()
+        >>> mesh_constraint_manager = mk.constraint
+        >>> mesh_sp_manager = mesh_constraint_manager.sp
+        >>> mesh_sp_manager.add_constraint(node_id=1, dof=2, value=0.1, constraint_type="disp")
+        >>>
+        >>> # Available SP constraint types include:
+        >>> # - "fix": Fix a degree of freedom to a specified value
+        >>> # - "disp": Apply a prescribed displacement
+        >>> # - "vel": Apply a prescribed velocity
+        >>> # - "accel": Apply a prescribed acceleration
     """
     _instance = None
 
