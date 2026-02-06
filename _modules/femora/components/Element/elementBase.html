@@ -526,6 +526,26 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_material</span><span class="o">.</span><span class="n">tag</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_material</span> <span class="k">else</span> <span class="mi">0</span>
 
 
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_mass_per_length</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Gets the mass per length of the element (useful for beam elements).</span>
+<span class="sd">        </span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            The mass per length value, or 0.0 if not specified.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="mf">0.0</span>
+    
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_density</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Gets the density of the element.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            The density value, or 0.0 if not specified.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="mf">0.0</span>
+
+    
+
+
 
 <div class="viewcode-block" id="ElementRegistry">
 <a class="viewcode-back" href="../../../../technical/elements.html#femora.components.Element.elementBase.ElementRegistry">[docs]</a>
