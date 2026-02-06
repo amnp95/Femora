@@ -32,6 +32,7 @@ import os
 from femora.components.Mesh.meshPartBase import MeshPart, MeshPartRegistry
 from femora.components.Element.elementBase import Element
 from femora.components.Region.regionBase import RegionBase
+from femora.constants import FEMORA_MAX_NDF
 
 
 
@@ -1597,7 +1598,22 @@ class SingleLineMesh(MeshPart):
         else:
             # Create empty mesh if no points
             self.mesh = pv.PolyData().cast_to_unstructured_grid()
-        
+
+
+        mass_per_length = self.element.get_mass_per_length()
+        print(f"Mass per length: {mass_per_length}")
+        L = np.linalg.norm(direction)/ number_of_lines
+        m = mass_per_length * L /2
+        Mass = np.zeros((self.mesh.n_points, FEMORA_MAX_NDF), dtype=np.float32)
+        Mass[:, :3] = m  # Assign mass in translational DOFs
+        Mass[:, 3:6] = m*(L**2)/4.
+        if merge_points:
+            start_ind = pv.UnstructuredGrid(self.mesh).find_closest_point(start_point)
+            end_ind = pv.UnstructuredGrid(self.mesh).find_closest_point(end_point)
+            Mass = 2 * Mass
+            Mass[start_ind] /=2.
+            Mass[end_ind] /=2.
+        self.mesh.point_data['Mass'] = Mass
         return self.mesh
 
     @classmethod
