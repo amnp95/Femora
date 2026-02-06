@@ -441,6 +441,26 @@ class Element(ABC):
         return self._material.tag if self._material else 0
 
 
+    def get_mass_per_length(self) -> float:
+        """Gets the mass per length of the element (useful for beam elements).
+        
+
+        Returns:
+            The mass per length value, or 0.0 if not specified.
+        """
+        return 0.0
+    
+    def get_density(self) -> float:
+        """Gets the density of the element.
+
+        Returns:
+            The density value, or 0.0 if not specified.
+        """
+        return 0.0
+
+    
+
+
 
 class ElementRegistry:
     """A singleton registry to manage element types and their creation.
