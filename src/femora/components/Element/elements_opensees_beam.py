@@ -193,6 +193,10 @@ class DispBeamColumnElement(Element):
     def get_possible_dofs():
         return ["3", "6"]
 
+    def get_mass_per_length(self) -> float:
+        """Retrieve mass density per unit length if defined"""
+        return self.params.get("massDens", 0.0)
+
 
 class ForceBeamColumnElement(Element):
     """
@@ -424,6 +428,10 @@ class ForceBeamColumnElement(Element):
     def get_possible_dofs():
         return ["3", "6"]
 
+    def get_mass_per_length(self) -> float:
+        """Retrieve mass density per unit length if defined"""
+        return self.params.get("massDens", 0.0)
+
 
 class ElasticBeamColumnElement(Element):
     """
@@ -611,6 +619,10 @@ class ElasticBeamColumnElement(Element):
         # Update transformation if provided  
         if transformation_update:
             self._transformation = self._resolve_transformation(transformation_update)
+
+    def get_mass_per_length(self) -> float:
+        """Retrieve mass density per unit length if defined"""
+        return self.params.get("massDens", 0.0)
 
 
 # Register the elements with the ElementRegistry
