@@ -337,7 +337,7 @@ class SvWaveCreator(DRMCreatorDialog):
             kp = omega / Cp                    
 
             A = np.array([[ ks * ((np.sin(theta2))**2 - (np.cos(theta2))**2), 2 * kp * np.sin(theta1) * np.cos(theta1)], 
-                        [ 2 * G * ks * np.sin(theta2) * np.cos(theta2), kp * (lmbda * (np.sin(theta1))**2 + (lmbda + 2*G) * (np.cos(theta1))**2]]])
+                        [ 2 * G * ks * np.sin(theta2) * np.cos(theta2), kp * (lmbda * (np.sin(theta1))**2 + (lmbda + 2*G) * (np.cos(theta1))**2)]])
 
             F = np.array([[ ks * ((np.cos(theta2))**2 - (np.sin(theta2))**2)],
                         [ 2 * G * ks * np.sin(theta2) * np.cos(theta2) ]])
