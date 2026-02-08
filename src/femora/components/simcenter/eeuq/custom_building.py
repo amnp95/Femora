@@ -1,15 +1,123 @@
-
 def custom_building(structure_info, soil_info, foundation_info, pile_info):
-    # This model creates a soil profile and foundation for a custom building,
-    # designed for use in the EE-UQ application.
-    # Developed by Amin Pakzad, University of Washington.
-    # Users can define their own building and soil parameters within this framework.
+    """Creates a Femora model of a custom building, soil, and foundation system.
 
-    # ==========================================================================
-    # Assumptions and Simplifications :
-    #   1 - all the materials for the soil profile are linear elastic
-    #   2 - the soil profile is layerd horizontally
-    #   3 - the custom building bays should be in x and y direction and the height should be in z direction
+    This function constructs a comprehensive finite element model for a
+    building-soil-foundation-pile system, suitable for use in the EE-UQ
+    application. It validates input parameters, generates meshes for soil,
+    foundation, and piles, defines material properties, boundary conditions,
+    and analysis steps, and then exports the model to a TCL file for
+    OpenSees.
+
+    Assumptions and Simplifications:
+        1. All materials for the soil profile are linear elastic.
+        2. The soil profile is layered horizontally.
+        3. Custom building bays should be aligned with x and y directions,
+           and height should be in the z-direction.
+
+    Supported Soil Materials:
+        *   "Elastic": Requires Elastic Modulus (E), Poisson Ratio (nu), Density (rho).
+    Future Work for Soil Materials:
+        *   Pressure-dependent multi-yield material.
+        *   J2 cyclic bounding surface material.
+        *   Drucker Prager material.
+
+    Supported Soil Dampings:
+        *   "No-Damping"
+        *   "Frequency-Rayleigh": Requires damping factor (xi_s), frequency 1 (f1), frequency 2 (f2).
+    Future Work for Soil Dampings:
+        *   Constant damping.
+        *   Modal damping.
+
+    Supported Foundation Materials:
+        *   "Elastic": Requires Elastic Modulus (E), Poisson Ratio (nu), Density (rho).
+    Future Work for Foundation Materials:
+        *   Concrete01 material.
+        *   Concrete02 material.
+
+    Supported Foundation Dampings:
+        *   "No-Damping"
+        *   "Frequency-Rayleigh": Requires damping factor (xi_s), frequency 1 (f1), frequency 2 (f2).
+    Future Work for Foundation Dampings:
+        *   Constant damping.
+        *   Modal damping.
+
+    Supported Pile Materials:
+        *   "Elastic": Requires Elastic Modulus (E), Area (A), Moment of Inertia Iy (Iy),
+            Moment of Inertia Iz (Iz), Shear Modulus (G), Moment of Inertia J (J).
+    Future Work for Pile Materials:
+        *   Steel material.
+        *   Concrete material.
+
+    Supported Pile Sections:
+        *   "No-Section" (indicates section properties are provided directly in material properties).
+    Future Work for Pile Sections:
+        *   Circular section.
+        *   Rectangular section.
+        *   T section.
+        *   I section.
+        *   Wf section.
+
+    Args:
+        structure_info: A dictionary containing detailed information about the
+            building structure, including dimensions, column base locations,
+            embedment depth, and section properties.
+        soil_info: A dictionary describing the soil profile, including layer
+            properties (z-coordinates, material, damping), global mesh
+            parameters (x/y bounds, cell counts), gravity, and boundary
+            conditions (e.g., "periodic", "DRM").
+        foundation_info: A dictionary specifying the foundation geometry
+            (x/y/z bounds), material properties, damping, mesh sizing (dx, dy,
+            dz), and whether it is embedded in the soil.
+        pile_info: A dictionary containing details for individual piles (top/bottom
+            coordinates, radius, material, section, meshing, transformation)
+            and interface properties (num_points_on_perimeter,
+            num_points_along_length, penalty_parameter).
+
+    Raises:
+        SystemExit: If any input parameters are invalid or if model generation
+            fails at various stages (e.g., invalid dimensions, unsupported
+            materials, failed boolean operations, missing connections).
+
+    Example:
+        >>> import femora as fm
+        >>> # Example dictionaries for model configuration.
+        >>> # These should align with the structure_info, soil_info,
+        >>> # foundation_info, and pile_info parameters.
+        >>> structure_info = {
+        ...     "num_partitions": 1, "x_min": 0., "y_min": 0., "z_min": 0.,
+        ...     "x_max": 10., "y_max": 10., "z_max": 5.,
+        ...     "columns_base": [{"tag": 101, "x": 5., "y": 5., "z": 0.}],
+        ...     "column_embedment_depth": 0.5,
+        ...     "column_section_props": {"E": 200e9, "A": 1., "Iy": 1e-6, "Iz": 1e-6, "G": 79.3e9, "J": 2e-6}
+        ... }
+        >>> soil_info = {
+        ...     "x_min": -20., "x_max": 30., "y_min": -20., "y_max": 30., "nx": 5, "ny": 5,
+        ...     "gravity_x": 0.0, "gravity_y": 0.0, "gravity_z": -9.81, "num_partitions": 1,
+        ...     "boundary_conditions": "periodic",
+        ...     "DRM_options": {},
+        ...     "soil_profile": [{"z_bot": -10, "z_top": 0, "nz": 10,
+        ...                       "material": "Elastic", "mat_props": [50e6, 0.3, 18],
+        ...                       "damping": "No-Damping", "damping_props": []}]
+        ... }
+        >>> foundation_info = {
+        ...     "gravity_x": 0.0, "gravity_y": 0.0, "gravity_z": -9.81, "embedded": True,
+        ...     "dx": 1., "dy": 1., "dz": 0.5, "num_partitions": 1,
+        ...     "foundation_profile": [{"x_min": 0., "x_max": 10., "y_min": 0., "y_max": 10.,
+        ...                             "z_top": 0., "z_bot": -1.,
+        ...                             "material": "Elastic", "mat_props": [30e9, 0.2, 2400]}]
+        ... }
+        >>> pile_info = {
+        ...     "pile_profile": [{
+        ...         "x_top": 5., "y_top": 5., "z_top": 0., "x_bot": 5., "y_bot": 5., "z_bot": -8.,
+        ...         "nz": 10, "r": 0.3, "section": "No-Section", "material": "Elastic",
+        ...         "mat_props": [200e9, 0.28, 0.005, 0.005, 80e9, 0.01],
+        ...         "transformation": ["Linear", 0.0, 1.0, 0.0]
+        ...     }],
+        ...     "pile_interface": {"num_points_on_perimeter": 8, "num_points_along_length": 3, "penalty_parameter": 1e12}
+        ... }
+        >>> # custom_building(structure_info, soil_info, foundation_info, pile_info)
+        # The function will generate 'tmpmodel.tcl' and display interactive plots.
+    """
 
     # ==========================================================================
     # Soil materials properties for this code
@@ -19,7 +127,7 @@ def custom_building(structure_info, soil_info, foundation_info, pile_info):
 
     # for Ealstic material the properties are :
     #   1 - Elastic Modulus (E)
-    #   2 - Poisson Ratio (nu)  
+    #   2 - Poisson Ratio (nu)
     #   3 - Density (rho)
 
     # future work :
@@ -1837,5 +1945,3 @@ if __name__ == "__main__":
     }
 
     custom_building(structure_info, soil_info, foundation_info, pile_info)
-
-
