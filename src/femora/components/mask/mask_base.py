@@ -87,6 +87,28 @@ class _BaseMask:
         _mesh (MeshIndex): The `MeshIndex` instance this mask operates on.
         _ids (np.ndarray): 1D array of unique, sorted integer IDs of the
             selected entities (nodes or elements).
+
+    Example:
+        >>> import numpy as np
+        >>> from femora.core.masks import MeshIndex, _BaseMask
+        >>> mesh_index = MeshIndex(
+        ...     node_ids=np.array([0, 1, 2]),
+        ...     node_coords=np.array([[0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [0.0, 1.0, 0.0]]),
+        ...     node_ndf=np.array([3, 3, 3]),
+        ...     node_core_map=[[0], [0], [0]],
+        ...     element_ids=np.array([0]),
+        ...     element_connectivity=[np.array([0, 1, 2])],
+        ...     element_centroids=np.array([[0.33, 0.33, 0.0]]),
+        ...     element_types=np.array(["TRIANGLE"]),
+        ...     material_tags=np.array([1]),
+        ...     section_tags=np.array([1]),
+        ...     region_tags=np.array([0]),
+        ...     core_ids=np.array([0]),
+        ...     element_id_to_index={0: 0}
+        ... )
+        >>> base_mask = _BaseMask(mesh_index, np.array([0, 2]))
+        >>> print(base_mask.to_list())
+        [0, 2]
     """
     def __init__(self, mesh: MeshIndex, ids: np.ndarray):
         """Initializes a new _BaseMask instance.
@@ -96,6 +118,28 @@ class _BaseMask:
             ids: A 1D array of selected entity IDs (node or element IDs
                 depending on the concrete mask). The array will be normalized
                 to sorted unique integers upon initialization.
+
+        Example:
+            >>> import numpy as np
+            >>> from femora.core.masks import MeshIndex, _BaseMask
+            >>> mesh_index = MeshIndex(
+            ...     node_ids=np.array([0, 1, 2]),
+            ...     node_coords=np.array([[0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [0.0, 1.0, 0.0]]),
+            ...     node_ndf=np.array([3, 3, 3]),
+            ...     node_core_map=[[0], [0], [0]],
+            ...     element_ids=np.array([0]),
+            ...     element_connectivity=[np.array([0, 1, 2])],
+            ...     element_centroids=np.array([[0.33, 0.33, 0.0]]),
+            ...     element_types=np.array(["TRIANGLE"]),
+            ...     material_tags=np.array([1]),
+            ...     section_tags=np.array([1]),
+            ...     region_tags=np.array([0]),
+            ...     core_ids=np.array([0]),
+            ...     element_id_to_index={0: 0}
+            ... )
+            >>> mask = _BaseMask(mesh_index, np.array([2, 0, 1]))
+            >>> print(mask.to_list())
+            [0, 1, 2]
         """
         self._mesh = mesh
         # store as sorted unique int array for stable ops
@@ -109,6 +153,28 @@ class _BaseMask:
 
         Returns:
             List[int]: List of selected IDs in ascending order.
+
+        Example:
+            >>> import numpy as np
+            >>> from femora.core.masks import MeshIndex, _BaseMask
+            >>> mesh_index = MeshIndex(
+            ...     node_ids=np.array([0, 1, 2]),
+            ...     node_coords=np.array([[0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [0.0, 1.0, 0.0]]),
+            ...     node_ndf=np.array([3, 3, 3]),
+            ...     node_core_map=[[0], [0], [0]],
+            ...     element_ids=np.array([0]),
+            ...     element_connectivity=[np.array([0, 1, 2])],
+            ...     element_centroids=np.array([[0.33, 0.33, 0.0]]),
+            ...     element_types=np.array(["TRIANGLE"]),
+            ...     material_tags=np.array([1]),
+            ...     section_tags=np.array([1]),
+            ...     region_tags=np.array([0]),
+            ...     core_ids=np.array([0]),
+            ...     element_id_to_index={0: 0}
+            ... )
+            >>> mask = _BaseMask(mesh_index, np.array([5, 1, 3]))
+            >>> print(mask.to_list())
+            [1, 3, 5]
         """
         return [int(i) for i in self._ids.tolist()]
 
@@ -117,6 +183,28 @@ class _BaseMask:
 
         Returns:
             set: Set of selected IDs.
+
+        Example:
+            >>> import numpy as np
+            >>> from femora.core.masks import MeshIndex, _BaseMask
+            >>> mesh_index = MeshIndex(
+            ...     node_ids=np.array([0, 1, 2]),
+            ...     node_coords=np.array([[0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [0.0, 1.0, 0.0]]),
+            ...     node_ndf=np.array([3, 3, 3]),
+            ...     node_core_map=[[0], [0], [0]],
+            ...     element_ids=np.array([0]),
+            ...     element_connectivity=[np.array([0, 1, 2])],
+            ...     element_centroids=np.array([[0.33, 0.33, 0.0]]),
+            ...     element_types=np.array(["TRIANGLE"]),
+            ...     material_tags=np.array([1]),
+            ...     section_tags=np.array([1]),
+            ...     region_tags=np.array([0]),
+            ...     core_ids=np.array([0]),
+            ...     element_id_to_index={0: 0}
+            ... )
+            >>> mask = _BaseMask(mesh_index, np.array([5, 1, 3, 1]))
+            >>> print(mask.to_set())
+            {1, 3, 5}
         """
         return set(self.to_list())
 
@@ -125,6 +213,31 @@ class _BaseMask:
 
         Returns:
             int: The count of IDs in this mask.
+
+        Example:
+            >>> import numpy as np
+            >>> from femora.core.masks import MeshIndex, _BaseMask
+            >>> mesh_index = MeshIndex(
+            ...     node_ids=np.array([0, 1, 2]),
+            ...     node_coords=np.array([[0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [0.0, 1.0, 0.0]]),
+            ...     node_ndf=np.array([3, 3, 3]),
+            ...     node_core_map=[[0], [0], [0]],
+            ...     element_ids=np.array([0]),
+            ...     element_connectivity=[np.array([0, 1, 2])],
+            ...     element_centroids=np.array([[0.33, 0.33, 0.0]]),
+            ...     element_types=np.array(["TRIANGLE"]),
+            ...     material_tags=np.array([1]),
+            ...     section_tags=np.array([1]),
+            ...     region_tags=np.array([0]),
+            ...     core_ids=np.array([0]),
+            ...     element_id_to_index={0: 0}
+            ... )
+            >>> mask = _BaseMask(mesh_index, np.array([5, 1, 3]))
+            >>> print(len(mask))
+            3
+            >>> empty_mask = _BaseMask(mesh_index, np.array([]))
+            >>> print(len(empty_mask))
+            0
         """
         return int(self._ids.size)
 
@@ -133,6 +246,31 @@ class _BaseMask:
 
         Returns:
             bool: True if no IDs are selected, False otherwise.
+
+        Example:
+            >>> import numpy as np
+            >>> from femora.core.masks import MeshIndex, _BaseMask
+            >>> mesh_index = MeshIndex(
+            ...     node_ids=np.array([0, 1, 2]),
+            ...     node_coords=np.array([[0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [0.0, 1.0, 0.0]]),
+            ...     node_ndf=np.array([3, 3, 3]),
+            ...     node_core_map=[[0], [0], [0]],
+            ...     element_ids=np.array([0]),
+            ...     element_connectivity=[np.array([0, 1, 2])],
+            ...     element_centroids=np.array([[0.33, 0.33, 0.0]]),
+            ...     element_types=np.array(["TRIANGLE"]),
+            ...     material_tags=np.array([1]),
+            ...     section_tags=np.array([1]),
+            ...     region_tags=np.array([0]),
+            ...     core_ids=np.array([0]),
+            ...     element_id_to_index={0: 0}
+            ... )
+            >>> mask = _BaseMask(mesh_index, np.array([5, 1, 3]))
+            >>> print(mask.is_empty())
+            False
+            >>> empty_mask = _BaseMask(mesh_index, np.array([]))
+            >>> print(empty_mask.is_empty())
+            True
         """
         return self._ids.size == 0
 
@@ -286,7 +424,7 @@ class NodeMask(_BaseMask):
         d2 = np.sum((self._mesh.node_coords - p) ** 2, axis=1)
         sel = d2 <= float(radius) ** 2
         return NodeMask(self._mesh, self._mesh.node_ids[sel])
-    
+
     def along_line(self, point1: Tuple[float, float, float], point2: Tuple[float, float, float], radius: float) -> 'NodeMask':
         """Filters nodes within a specified distance from a line segment.
 
@@ -338,8 +476,8 @@ class NodeMask(_BaseMask):
         d2 = np.sum((self._mesh.node_coords - proj_points) ** 2, axis=1)
         sel = d2 <= float(radius) ** 2
         return NodeMask(self._mesh, self._mesh.node_ids[sel])
-    
-    
+
+
     def along_axis(self, axis: str, vmin: float, vmax: float) -> 'NodeMask':
         """Filters nodes whose coordinate along a specified axis lies within a range.
 
@@ -388,8 +526,8 @@ class NodeMask(_BaseMask):
 
         Args:
             fn: A callable that accepts two arguments:
-                - `node_id` (int): The ID of the current node.
-                - `coord` (np.ndarray): The 3D coordinates of the current node.
+                - `node_id`: The ID of the current node.
+                - `coord`: The 3D coordinates of the current node.
                 The function should return `True` to keep the node, `False` otherwise.
 
         Returns:
@@ -474,7 +612,7 @@ class NodeMask(_BaseMask):
         generate application-specific node tags, typically for OpenSees.
 
         Args:
-            start_tag: Optional. The starting node tag. If `None`, it attempts
+            start_tag: The starting node tag. If `None`, it attempts
                 to retrieve the starting node tag from a `MeshMaker` instance;
                 otherwise, it defaults to 1.
 
@@ -838,12 +976,12 @@ class ElementMask(_BaseMask):
 
         Args:
             fn: A callable that accepts six arguments:
-                - `elem_id` (int): The ID of the current element.
-                - `centroid` (np.ndarray): The 3D centroid coordinates of the element.
-                - `type_name` (str): The type name of the element (e.g., "BEAM", "TRIANGLE").
-                - `material_tag` (int): The material tag associated with the element.
-                - `section_tag` (int): The section tag associated with the element.
-                - `region_tag` (int): The region tag associated with the element.
+                - `elem_id`: The ID of the current element.
+                - `centroid`: The 3D centroid coordinates of the element.
+                - `type_name`: The type name of the element (e.g., "BEAM", "TRIANGLE").
+                - `material_tag`: The material tag associated with the element.
+                - `section_tag`: The section tag associated with the element.
+                - `region_tag`: The region tag associated with the element.
                 The function should return `True` to keep the element, `False` otherwise.
 
         Returns:
@@ -931,7 +1069,7 @@ class ElementMask(_BaseMask):
         different tagging scheme or require a specific offset.
 
         Args:
-            start_tag: Optional. The value to add to each selected element ID.
+            start_tag: The value to add to each selected element ID.
                 If `None`, it attempts to retrieve the starting element tag from
                 a `MeshMaker` instance; otherwise, it defaults to 1.
 
