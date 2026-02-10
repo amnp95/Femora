@@ -1,4 +1,44 @@
 class AppStyles:
+    """Manages a sophisticated, luxurious style guide for a PyQt application.
+
+    This class centralizes the color palette and QSS stylesheets, providing
+    a consistent and elegant visual theme across the application. It includes
+    styles for common widgets like buttons, input fields, comboboxes, tabs,
+    menus, and progress bars, alongside a dynamic style generator.
+
+    Attributes:
+        COLORS (dict[str, str]): A dictionary of named color codes defining the
+            application's palette, including gradients and semi-transparent
+            shades.
+        MAIN_STYLE (str): QSS stylesheet for `QMainWindow` and `QWidget`,
+            including custom scrollbar styling.
+        BUTTON_STYLE (str): QSS stylesheet for `QPushButton`, defining its
+            appearance for normal, hover, and pressed states with gradient
+            backgrounds and metallic borders.
+        INPUT_STYLE (str): QSS stylesheet for `QLineEdit`, covering its
+            normal, focus, and hover states with elegant borders and selection
+            colors.
+        COMBOBOX_STYLE (str): QSS stylesheet for `QComboBox` and its dropdown
+            view, providing custom backgrounds, borders, and selection styles.
+        TAB_STYLE (str): QSS stylesheet for `QTabWidget` and `QTabBar::tab`,
+            detailing selected, unselected, and hover states with gradient
+            backgrounds and rounded borders.
+        MENU_STYLE (str): QSS stylesheet for `QMenuBar` and `QMenu`,
+            including item selection, separators, and overall appearance with
+            gradients and subtle borders.
+        PROGRESS_STYLE (str): QSS stylesheet for `QProgressBar`, styling its
+            border, text, background, and the chunk with a golden gradient.
+        COMBINED_STYLE (str): A concatenated QSS stylesheet combining all
+            individual widget styles for easy application.
+
+    Example:
+        >>> from PyQt5.QtWidgets import QApplication, QMainWindow
+        >>> app = QApplication([])
+        >>> window = QMainWindow()
+        >>> window.setStyleSheet(AppStyles.COMBINED_STYLE)
+        >>> print(AppStyles.COLORS['royal_gold'])
+        #FFD700
+    """
     # Sophisticated color palette with gradient possibilities
     COLORS = {
         'royal_gold': '#FFD700',
@@ -289,9 +329,28 @@ class AppStyles:
     )
 
     @staticmethod
-    def get_dynamic_style(font_size=10):
-        """
-        Returns a style string with the specified font size.
+    def get_dynamic_style(font_size: int = 10):
+        """Generates a combined QSS stylesheet with a dynamic font size.
+
+        This method allows for runtime adjustment of the global font size
+        and includes a refined tooltip style, alongside all other predefined
+        application styles.
+
+        Args:
+            font_size: The base font size in points to apply to all widgets.
+                Defaults to 10.
+
+        Returns:
+            A string containing the complete QSS stylesheet with the specified
+            font size and all other application-defined styles.
+
+        Example:
+            >>> from PyQt5.QtWidgets import QApplication, QWidget
+            >>> app = QApplication([])
+            >>> widget = QWidget()
+            >>> widget.setStyleSheet(AppStyles.get_dynamic_style(font_size=12))
+            >>> print("Style applied successfully for font size 12.")
+            Style applied successfully for font size 12.
         """
         return f"""
         * {{
