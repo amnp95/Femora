@@ -55,19 +55,25 @@ plugins:
       nav_file: SUMMARY.md
   - section-index
   - mkdocstrings:
-      default_handler: python
-      handlers:
-        python:
-          paths: [../src]
-          options:
-            show_source: false
-            show_category_heading: true
-            separate_signature: true
-            merge_init_into_class: true
-            show_object_full_path: false
-            docstring_section_style: table
-            members_order: source
-            show_signature_annotations: true
+        default_handler: python
+        handlers:
+          python:
+            paths: [../src]
+            options:
+              docstring_style: google
+              docstring_section_style: table
+              show_source: false
+              show_category_heading: true
+              separate_signature: true
+              merge_init_into_class: true
+              show_object_full_path: false
+              members_order: source
+              show_signature_annotations: true
+              # This helps if the signature itself has the default values:
+              show_root_full_path: false
+              show_root_heading: true
+              show_if_no_docstring: false 
+              members: false
 
 nav:
   - Home: index.md
