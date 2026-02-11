@@ -10,7 +10,7 @@ from qtpy.QtWidgets import (
 )
 from qtpy.QtCore import Qt
 
-from femora.components.Element.elementBase import ElementRegistry
+from femora.core.element_base import ElementRegistry
 from femora.components.section.section_base import Section, SectionManager
 from femora.components.transformation.transformation import GeometricTransformation, GeometricTransformationManager
 from femora.components.transformation.transformation_gui import TransformationWidget3D
@@ -122,7 +122,7 @@ class BeamElementCreationDialog(QDialog):
         >>> from qtpy.QtWidgets import QApplication
         >>> import sys
         >>> from femora.components.section.section_opensees import ElasticSection
-        >>> from femora.components.Element.elements_opensees_beam import ElasticBeamColumnElement # Required for setup
+        >>> from femora.components.element import ElasticBeamColumnElement # Required for setup
         >>>
         >>> app = QApplication(sys.argv)
         >>>
@@ -334,7 +334,7 @@ class BeamElementEditDialog(QDialog):
         >>> import sys
         >>> from femora.components.section.section_opensees import ElasticSection
         >>> from femora.components.transformation.transformation import GeometricTransformation3D
-        >>> from femora.components.Element.elements_opensees_beam import ElasticBeamColumnElement
+        >>> from femora.components.element import ElasticBeamColumnElement
         >>>
         >>> app = QApplication(sys.argv)
         >>>
@@ -605,7 +605,7 @@ if __name__ == "__main__":
 
     # If you want to test the edit dialog, you need a dummy element instance.
     # Here is an example assuming your element class is ElasticBeamColumn and takes these arguments:
-    from femora.components.Element.elements_opensees_beam import ElasticBeamColumnElement
+    from femora.components.element import ElasticBeamColumnElement
 
     # Create a dummy element for editing
     dummy_element = ElasticBeamColumnElement(ndof=6, section=section, transformation=transformation)

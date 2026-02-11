@@ -7,7 +7,7 @@ import sys
 from scipy.spatial import KDTree
 
 from femora.components.Mesh.meshPartBase import MeshPart
-from femora.components.Element.elementBase import Element
+from femora.core.element_base import Element
 from femora.components.Material.materialBase import Material
 from femora.components.event.event_bus import EventBus, FemoraEvent
 from femora.utils.progress import Progress

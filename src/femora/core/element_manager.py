@@ -1,6 +1,6 @@
 # Provides direct references to element classes for autocompletion and easy access
-from .elementsOpenSees import SSPQuadElement, stdBrickElement, PML3DElement, SSPbrickElement
-from .elements_opensees_beam import DispBeamColumnElement, ForceBeamColumnElement, ElasticBeamColumnElement
+from femora.components.element import SSPQuadElement, stdBrickElement, PML3DElement, SSPbrickElement
+from femora.components.element import DispBeamColumnElement, ForceBeamColumnElement, ElasticBeamColumnElement
 
 
 class _BrickElements:
