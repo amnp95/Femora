@@ -33,9 +33,9 @@ from qtpy.QtWidgets import (
 from qtpy.QtCore import Qt
 
 from femora.components.Mesh.meshPartBase import MeshPart, MeshPartRegistry
-from femora.components.Element.elementBase import ElementRegistry
-from femora.components.Element.elementGUI import ElementCreationDialog
-from femora.components.Element.elements_beam_gui import BeamElementCreationDialog, is_beam_element
+from femora.core.element_base import ElementRegistry
+from femora.gui.components.element.element_gui import ElementCreationDialog
+from femora.gui.components.element.beam_gui import BeamElementCreationDialog, is_beam_element
 from femora.gui.plotter import PlotterManager
 from femora.components.Mesh.meshPartInstance import *
 
@@ -611,7 +611,7 @@ class MeshPartCreationDialog(QDialog):
             if self.created_element:
                 # Remove the element from the registry if it exists
                 try:
-                    from femora.components.Element.elementBase import ElementRegistry
+                    from femora.core.element_base import ElementRegistry
                     if hasattr(ElementRegistry, 'delete_element'):
                         ElementRegistry.delete_element(self.created_element.user_name)
                 except:

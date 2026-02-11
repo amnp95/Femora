@@ -1271,7 +1271,7 @@ def custom_building(structure_info, soil_info, foundation_info, pile_info):
         print("Error: Assembled mesh is None. Cannot export the model.")
         sys.exit(1)
     from femora.components.event.event_bus import EventBus, FemoraEvent
-    from femora.components.Element.elementBase import Element
+    from femora.core.element_base import Element
 
     self = fm._instance
     with open(model_filename, 'w') as f:

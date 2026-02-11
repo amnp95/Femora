@@ -1,5 +1,5 @@
 from femora.components.Material.materialBase import MaterialManager
-from femora.components.Element.elementBase import Element, ElementRegistry
+from femora.core.element_base import Element, ElementRegistry
 from femora.components.Assemble.Assembler import Assembler
 from femora.components.Damping.dampingBase import DampingManager
 from femora.components.Region.regionBase import RegionManager

@@ -24,7 +24,7 @@ class Element(ABC):
         _transformation: Geometric transformation assigned to this element (for beam elements).
 
     Example:
-        >>> from femora.components.Element.elementBase import Element
+        >>> from femora.components.element.elementBase import Element
         >>> class TrussElement(Element):
         ...     def __init__(self, material, A: float):
         ...         super().__init__('truss', ndof=2, material=material, A=A)
@@ -479,7 +479,7 @@ class ElementRegistry:
         quad: Property providing access to quad element types.
 
     Example:
-        >>> from femora.components.Element.elementBase import ElementRegistry
+        >>> from femora.components.element.elementBase import ElementRegistry
         >>> # Register a custom element type
         >>> # ElementRegistry.register_element_type('my_truss', MyTrussElement)
         >>> # Create an element with automatic dependency resolution
@@ -508,7 +508,7 @@ class ElementRegistry:
         Returns:
             BeamElements accessor for creating beam elements.
         """
-        from .element_class_manager import _BeamElements
+        from femora.core.element_manager import _BeamElements
         return _BeamElements
 
     @property
@@ -518,7 +518,7 @@ class ElementRegistry:
         Returns:
             BrickElements accessor for creating brick elements.
         """
-        from .element_class_manager import _BrickElements
+        from femora.core.element_manager import _BrickElements
         return _BrickElements
     @property
     def quad(self):
@@ -527,7 +527,7 @@ class ElementRegistry:
         Returns:
             QuadElements accessor for creating quad elements.
         """
-        from .element_class_manager import _QuadElements
+        from femora.core.element_manager import _QuadElements
         return _QuadElements
 
     @classmethod
@@ -752,5 +752,12 @@ class ElementRegistry:
 
 
 # Import existing element implementations
-from femora.components.Element.elementsOpenSees import *
-from femora.components.Element.elements_opensees_beam import *
+from femora.components.element import ssp_brick
+from femora.components.element import ssp_quad
+from femora.components.element import std_brick
+from femora.components.element import pml_3d
+from femora.components.element import asd_embedded_node
+from femora.components.element import zero_length_contact
+from femora.components.element import disp_beam_column
+from femora.components.element import force_beam_column
+from femora.components.element import elastic_beam_column

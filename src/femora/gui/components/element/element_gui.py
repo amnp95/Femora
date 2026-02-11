@@ -5,12 +5,12 @@ from qtpy.QtWidgets import (
     QDialog, QFormLayout, QMessageBox, QHeaderView, QGridLayout
 )
 
-from femora.components.Element.elementBase import Element, ElementRegistry
-from femora.components.Element.elementsOpenSees import *
+from femora.core.element_base import Element, ElementRegistry
+from femora.components.element import *
 from femora.components.Material.materialBase import Material
 
 # Import beam element GUI components
-from femora.components.Element.elements_beam_gui import (
+from femora.gui.components.element.beam_gui import (
     BeamElementCreationDialog, BeamElementEditDialog, is_beam_element
 )
 
@@ -363,7 +363,7 @@ if __name__ == '__main__':
     from femora.components.Material.materialsOpenSees import ElasticIsotropicMaterial, ElasticUniaxialMaterial
     from femora.components.section.section_opensees import ElasticSection
     from femora.components.transformation.transformation import GeometricTransformation3D
-    from femora.components.Element.elements_opensees_beam import ElasticBeamColumnElement
+    from femora.components.element import ElasticBeamColumnElement
     
     
     # Create test data

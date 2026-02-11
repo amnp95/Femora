@@ -22,7 +22,7 @@ import numpy as np
 import pyvista as pv
 from abc import ABC, abstractmethod
 from typing import Dict, List, Tuple, Type, Union, Optional
-from femora.components.Element.elementBase import Element
+from femora.core.element_base import Element
 from femora.components.Material.materialBase import Material
 from femora.components.Region.regionBase import RegionBase, GlobalRegion
 from femora.constants import FEMORA_MAX_NDF
