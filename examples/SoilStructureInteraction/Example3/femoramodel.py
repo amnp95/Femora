@@ -358,8 +358,8 @@ mesh =fm.assembler.get_mesh()
 # pile2_points = mesh.point_data["MeshPartTag_pointdata"] == pile2.tag
 # pile1_points = np.where(pile1_points)[0] + 1
 # pile2_points = np.where(pile2_points)[0] + 1
-pile1_elements = mesh.cell_data["MeshTag_cell"] == pile1.tag
-pile2_elements = mesh.cell_data["MeshTag_cell"] == pile2.tag
+pile1_elements = mesh.cell_data["MeshPartTag_celldata"] == pile1.tag
+pile2_elements = mesh.cell_data["MeshPartTag_celldata"] == pile2.tag
 pile1_elements = np.where(pile1_elements)[0] + 1
 pile2_elements = np.where(pile2_elements)[0] + 1
 
@@ -489,6 +489,6 @@ fm.process.add_step(embedded_recorder, description="Embedded Beam-Solid Interfac
 fm.process.add_step(reset,       description="Reset pseudo time")
 fm.process.add_step(dynamic,     description="Dynamic Analysis Step")
 
-fm.export_to_tcl(filename=f"model_{int(rotation_angle)}.tcl")
+# fm.export_to_tcl(filename=f"model_{int(rotation_angle)}.tcl")
 #print(fm.assembler.get_mesh().cell_data.keys())
-#fm.assembler.plot(show_edges=True, scalars="ElementTag")
+fm.assembler.plot(show_edges=True, scalars="ElementTag")
