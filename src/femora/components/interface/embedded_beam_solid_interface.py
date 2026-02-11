@@ -192,11 +192,11 @@ class EmbeddedBeamSolidInterface(InterfaceBase, HandlesDecompositionMixin):
         if len(intersect_ind) > 0:
             intersect_ind_point_ids = []
             for ind in intersect_ind:
-                intersect_ind_point_ids.append(assembled_mesh.get_cell(ind).point_ids)
+                intersect_ind_point_ids.extend(assembled_mesh.get_cell(ind).point_ids)
         
             intersect_ind_point_ids = np.array(intersect_ind_point_ids)
             # make it 1D array and unique
-            intersect_ind_point_ids = intersect_ind_point_ids.flatten()
+            # intersect_ind_point_ids = intersect_ind_point_ids.flatten()  # Already 1D
             intersect_ind_point_ids = np.unique(intersect_ind_point_ids)
 
 
