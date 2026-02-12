@@ -17,10 +17,41 @@ from femora.components.Analysis.convergenceTests import (
 )
 
 class TestManagerTab(QDialog):
+    """Manages the creation, editing, and deletion of convergence tests.
+
+    This dialog provides a user interface for interacting with the TestManager
+    backend, allowing users to define various types of convergence criteria
+    for numerical analyses. It displays available test types, their descriptions,
+    and a table of currently configured tests.
+
+    Attributes:
+        test_manager (TestManager): An instance of the test manager to
+            handle backend test operations.
+        test_type_combo (QComboBox): Dropdown for selecting the type of test
+            to create.
+        info_label (QLabel): Displays a description of the currently selected
+            test type.
+        tests_table (QTableWidget): Table displaying all configured convergence
+            tests.
+        checkboxes (list[QCheckBox]): List of checkboxes in the `tests_table`
+            for selecting individual tests.
+        edit_btn (QPushButton): Button to edit the selected test.
+        delete_selected_btn (QPushButton): Button to delete the selected test.
+
+    Example:
+        >>> from qtpy.QtWidgets import QApplication
+        >>> import sys
+        >>> app = QApplication(sys.argv)
+        >>> window = TestManagerTab()
+        >>> window.show()
+        >>> sys.exit(app.exec_())
     """
-    Main dialog for managing convergence tests
-    """
-    def __init__(self, parent=None):
+    def __init__(self, parent: QWidget = None):
+        """Initializes the TestManagerTab dialog.
+
+        Args:
+            parent: The parent widget of this dialog. Defaults to None.
+        """
         super().__init__(parent)
         
         # Setup dialog properties
@@ -100,7 +131,11 @@ class TestManagerTab(QDialog):
         self.update_button_state()
 
     def update_info_text(self, test_type: str):
-        """Update the info text based on the selected test type"""
+        """Updates the info text label based on the selected test type.
+
+        Args:
+            test_type: The name of the selected test type from the combo box.
+        """
         descriptions = {
             "normunbalance": "Checks the norm of the right-hand side (unbalanced forces) vector against a tolerance. "
                             "Useful for checking overall system equilibrium, but sensitive to large penalty constraint forces.",
@@ -140,7 +175,12 @@ class TestManagerTab(QDialog):
             self.info_label.setText("No description available for this test type.")
 
     def refresh_tests_list(self):
-        """Update the tests table with current tests"""
+        """Refreshes the table displaying all currently configured convergence tests.
+
+        Populates the `tests_table` with data from the `test_manager`, including
+        test tags, types, and parameters. It also manages the selection checkboxes
+        and updates the state of the action buttons.
+        """
         self.tests_table.setRowCount(0)
         tests = self.test_manager.get_all_tests()
         
@@ -183,8 +223,17 @@ class TestManagerTab(QDialog):
         
         self.update_button_state()
         
-    def on_checkbox_toggled(self, checked, btn):
-        """Handle checkbox toggling to ensure mutual exclusivity"""
+    def on_checkbox_toggled(self, checked: bool, btn: QCheckBox):
+        """Handles the toggling of checkboxes in the tests table to ensure mutual exclusivity.
+
+        When a checkbox is checked, all other checkboxes in the table are
+        unchecked. This ensures only one test can be selected at a time
+        for editing or deletion.
+
+        Args:
+            checked: True if the checkbox is checked, False otherwise.
+            btn: The QCheckBox instance that triggered the event.
+        """
         if checked:
             # Uncheck all other checkboxes
             for checkbox in self.checkboxes:
@@ -193,13 +242,22 @@ class TestManagerTab(QDialog):
         self.update_button_state()
 
     def update_button_state(self):
-        """Enable/disable edit and delete buttons based on selection"""
+        """Enables or disables the edit and delete buttons based on test selection.
+
+        The buttons are enabled if at least one test checkbox is checked,
+        otherwise they are disabled.
+        """
         enable_buttons = any(cb.isChecked() for cb in self.checkboxes) if hasattr(self, 'checkboxes') else False
         self.edit_btn.setEnabled(enable_buttons)
         self.delete_selected_btn.setEnabled(enable_buttons)
 
-    def get_selected_test_tag(self):
-        """Get the tag of the selected test"""
+    def get_selected_test_tag(self) -> int | None:
+        """Retrieves the tag of the currently selected test in the table.
+
+        Returns:
+            int | None: The integer tag of the selected test, or None if no
+                test is selected.
+        """
         for row, checkbox in enumerate(self.checkboxes):
             if checkbox.isChecked():
                 tag_item = self.tests_table.item(row, 1)
@@ -207,7 +265,12 @@ class TestManagerTab(QDialog):
         return None
 
     def open_test_creation_dialog(self):
-        """Open dialog to create a new test of selected type"""
+        """Opens a specialized dialog for creating a new convergence test.
+
+        The type of dialog opened depends on the currently selected test type
+        in the `test_type_combo` dropdown. If the dialog is accepted, the
+        tests list is refreshed.
+        """
         test_type = self.test_type_combo.currentText().lower()
         
         dialog = None
@@ -240,7 +303,11 @@ class TestManagerTab(QDialog):
             self.refresh_tests_list()
 
     def edit_selected_test(self):
-        """Edit the selected test"""
+        """Opens a specialized dialog for editing the parameters of the selected test.
+
+        The type of dialog opened depends on the type of the selected test.
+        If the dialog is accepted, the tests list is refreshed.
+        """
         tag = self.get_selected_test_tag()
         if tag is None:
             QMessageBox.warning(self, "Warning", "Please select a test to edit")
@@ -283,7 +350,10 @@ class TestManagerTab(QDialog):
             QMessageBox.critical(self, "Error", str(e))
 
     def delete_selected_test(self):
-        """Delete the selected test"""
+        """Deletes the test currently selected in the table.
+
+        A warning message is displayed if no test is selected.
+        """
         tag = self.get_selected_test_tag()
         if tag is None:
             QMessageBox.warning(self, "Warning", "Please select a test to delete")
@@ -291,8 +361,15 @@ class TestManagerTab(QDialog):
         
         self.delete_test(tag)
 
-    def delete_test(self, tag):
-        """Delete a test from the system"""
+    def delete_test(self, tag: int):
+        """Deletes a specific convergence test from the test manager.
+
+        A confirmation dialog is presented to the user before proceeding with
+        the deletion. The tests list is refreshed after deletion.
+
+        Args:
+            tag: The unique integer tag of the test to be deleted.
+        """
         reply = QMessageBox.question(
             self, 'Delete Test',
             f"Are you sure you want to delete test with tag {tag}?",
@@ -308,8 +385,31 @@ class TestManagerTab(QDialog):
 #------------------------------------------------------
 
 class BaseTestDialog(QDialog):
-    """Base dialog for creating and editing tests with common fields"""
-    def __init__(self, parent=None, title="Test Dialog"):
+    """Base dialog for creating and editing convergence tests with common fields.
+
+    This abstract base class provides the foundational structure and shared
+    UI elements for all specific test creation and editing dialogs, including
+    a parameters group box and standard Save/Cancel buttons.
+
+    Attributes:
+        test_manager (TestManager): An instance of the test manager for
+            interacting with backend test logic.
+        layout (QVBoxLayout): The main vertical layout of the dialog.
+        params_group (QGroupBox): Group box to contain test-specific parameters.
+        params_layout (QFormLayout): Form layout within `params_group` for
+            arranging parameter input widgets.
+        btn_layout (QHBoxLayout): Horizontal layout for the Save and Cancel buttons.
+        save_btn (QPushButton): Button to trigger the saving of test parameters.
+        cancel_btn (QPushButton): Button to close the dialog without saving.
+    """
+    def __init__(self, parent: QWidget = None, title: str = "Test Dialog"):
+        """Initializes the BaseTestDialog.
+
+        Args:
+            parent: The parent widget of this dialog. Defaults to None.
+            title: The title to display in the dialog's window bar.
+                Defaults to "Test Dialog".
+        """
         super().__init__(parent)
         self.setWindowTitle(title)
         self.test_manager = TestManager()
@@ -335,17 +435,45 @@ class BaseTestDialog(QDialog):
         # Add button layout at the end after subclass adds its fields
     
     def add_button_layout(self):
-        """Add button layout to main layout - call this after adding all fields"""
+        """Adds the standard button layout (Save/Cancel) to the main dialog layout.
+
+        This method should be called by subclasses after all test-specific
+        parameter fields have been added to ensure buttons appear at the bottom.
+        """
         self.layout.addLayout(self.btn_layout)
     
     def save_test(self):
-        """Placeholder for save method to be implemented by subclasses"""
+        """Placeholder method for saving test parameters.
+
+        This method must be implemented by subclasses to define how the
+        specific test's parameters are gathered and saved or updated.
+        """
         pass
 
 
 class BaseNormTestDialog(BaseTestDialog):
-    """Base dialog for tests that use norm type and print flag"""
-    def __init__(self, parent=None, title="Norm Test Dialog"):
+    """Base dialog for tests that utilize common norm-based convergence parameters.
+
+    This class extends `BaseTestDialog` by adding standard input fields for
+    tolerance, maximum iterations, print flag, and norm type. It is designed
+    for convergence tests that evaluate a norm against a specified tolerance.
+
+    Attributes:
+        tol_spin (QDoubleSpinBox): Input field for the convergence tolerance.
+        max_iter_spin (QSpinBox): Input field for the maximum number of
+            iterations allowed.
+        print_flag_combo (QComboBox): Dropdown for selecting the print verbosity level.
+        norm_type_combo (QComboBox): Dropdown for selecting the type of norm
+            (e.g., Max-norm, 1-norm, 2-norm).
+    """
+    def __init__(self, parent: QWidget = None, title: str = "Norm Test Dialog"):
+        """Initializes the BaseNormTestDialog.
+
+        Args:
+            parent: The parent widget of this dialog. Defaults to None.
+            title: The title to display in the dialog's window bar.
+                Defaults to "Norm Test Dialog".
+        """
         super().__init__(parent, title)
         
         # Tolerance parameter
@@ -385,8 +513,13 @@ class BaseNormTestDialog(BaseTestDialog):
         # Add button layout
         self.add_button_layout()
     
-    def get_params(self):
-        """Get common parameters from the dialog"""
+    def get_params(self) -> dict:
+        """Retrieves the common norm-based parameters from the dialog's input fields.
+
+        Returns:
+            dict: A dictionary containing the 'tol', 'max_iter', 'print_flag',
+                and 'norm_type' values.
+        """
         tol = self.tol_spin.value()
         max_iter = self.max_iter_spin.value()
         print_flag = int(self.print_flag_combo.currentText().split(":")[0])
@@ -401,8 +534,26 @@ class BaseNormTestDialog(BaseTestDialog):
 
 
 class BaseEnergyTestDialog(BaseTestDialog):
-    """Base dialog for energy tests"""
-    def __init__(self, parent=None, title="Energy Test Dialog"):
+    """Base dialog for tests that utilize energy-based convergence parameters.
+
+    This class extends `BaseTestDialog` by adding standard input fields for
+    tolerance, maximum iterations, and a print flag, tailored for energy-based
+    convergence criteria.
+
+    Attributes:
+        tol_spin (QDoubleSpinBox): Input field for the energy convergence tolerance.
+        max_iter_spin (QSpinBox): Input field for the maximum number of
+            iterations allowed.
+        print_flag_combo (QComboBox): Dropdown for selecting the print verbosity level.
+    """
+    def __init__(self, parent: QWidget = None, title: str = "Energy Test Dialog"):
+        """Initializes the BaseEnergyTestDialog.
+
+        Args:
+            parent: The parent widget of this dialog. Defaults to None.
+            title: The title to display in the dialog's window bar.
+                Defaults to "Energy Test Dialog".
+        """
         super().__init__(parent, title)
         
         # Tolerance parameter
@@ -432,8 +583,12 @@ class BaseEnergyTestDialog(BaseTestDialog):
         # Add button layout
         self.add_button_layout()
     
-    def get_params(self):
-        """Get common parameters from the dialog"""
+    def get_params(self) -> dict:
+        """Retrieves the common energy-based parameters from the dialog's input fields.
+
+        Returns:
+            dict: A dictionary containing the 'tol', 'max_iter', and 'print_flag' values.
+        """
         tol = self.tol_spin.value()
         max_iter = self.max_iter_spin.value()
         print_flag = int(self.print_flag_combo.currentText().split(":")[0])
@@ -446,8 +601,29 @@ class BaseEnergyTestDialog(BaseTestDialog):
 
 
 class BaseCombinedNormTestDialog(BaseTestDialog):
-    """Base dialog for tests that use two tolerances"""
-    def __init__(self, parent=None, title="Combined Norm Test Dialog"):
+    """Base dialog for convergence tests that involve two separate tolerances.
+
+    This class extends `BaseTestDialog` to provide input fields for
+    displacement tolerance, residual tolerance, maximum iterations, print flag,
+    norm type, and maximum error increase. It's suitable for tests
+    that evaluate multiple convergence criteria simultaneously.
+
+    Attributes:
+        tol_incr_spin (QDoubleSpinBox): Input for the displacement increment tolerance.
+        tol_r_spin (QDoubleSpinBox): Input for the residual (unbalanced force) tolerance.
+        max_iter_spin (QSpinBox): Input for the maximum number of iterations.
+        print_flag_combo (QComboBox): Dropdown for selecting print verbosity.
+        norm_type_combo (QComboBox): Dropdown for selecting the type of norm.
+        max_incr_spin (QSpinBox): Input for the maximum allowed error increase.
+    """
+    def __init__(self, parent: QWidget = None, title: str = "Combined Norm Test Dialog"):
+        """Initializes the BaseCombinedNormTestDialog.
+
+        Args:
+            parent: The parent widget of this dialog. Defaults to None.
+            title: The title to display in the dialog's window bar.
+                Defaults to "Combined Norm Test Dialog".
+        """
         super().__init__(parent, title)
         
         # Displacement tolerance parameter
@@ -500,8 +676,13 @@ class BaseCombinedNormTestDialog(BaseTestDialog):
         # Add button layout
         self.add_button_layout()
     
-    def get_params(self):
-        """Get common parameters from the dialog"""
+    def get_params(self) -> dict:
+        """Retrieves the common combined norm parameters from the dialog's input fields.
+
+        Returns:
+            dict: A dictionary containing 'tol_incr', 'tol_r', 'max_iter',
+                'print_flag', 'norm_type', and 'max_incr' values.
+        """
         tol_incr = self.tol_incr_spin.value()
         tol_r = self.tol_r_spin.value()
         max_iter = self.max_iter_spin.value()
@@ -524,8 +705,31 @@ class BaseCombinedNormTestDialog(BaseTestDialog):
 #------------------------------------------------------
 
 class NormUnbalanceTestDialog(BaseNormTestDialog):
-    """Dialog for creating a Norm Unbalance test"""
-    def __init__(self, parent=None):
+    """Dialog for creating a Norm Unbalance convergence test.
+
+    This dialog provides a specialized interface for defining the parameters
+    of a `NormUnbalanceTest`, including tolerance, max iterations, print flag,
+    and norm type.
+
+    Attributes:
+        info (QLabel): A label displaying a descriptive summary of the
+            NormUnbalance test.
+
+    Example:
+        >>> from qtpy.QtWidgets import QApplication, QDialog
+        >>> import sys
+        >>> app = QApplication(sys.argv)
+        >>> dialog = NormUnbalanceTestDialog()
+        >>> if dialog.exec() == QDialog.Accepted:
+        ...     print("Norm Unbalance Test Created (Tag:", dialog.test.tag, ")")
+        >>> app.quit()
+    """
+    def __init__(self, parent: QWidget = None):
+        """Initializes the NormUnbalanceTestDialog.
+
+        Args:
+            parent: The parent widget of this dialog. Defaults to None.
+        """
         super().__init__(parent, "Create Norm Unbalance Test")
         
         # Additional info
@@ -535,6 +739,17 @@ class NormUnbalanceTestDialog(BaseNormTestDialog):
         self.layout.insertWidget(1, info)
     
     def save_test(self):
+        """Creates and registers a new NormUnbalanceTest with the `TestManager`.
+
+        Retrieves parameters from the dialog's input fields and uses them to
+        instantiate and save a new test.
+
+        Returns:
+            None: The dialog accepts (closes with `QDialog.Accepted`) on success.
+
+        Raises:
+            Exception: If an error occurs during test creation or parameter retrieval.
+        """
         try:
             params = self.get_params()
             
@@ -552,8 +767,22 @@ class NormUnbalanceTestDialog(BaseNormTestDialog):
 
 
 class NormDispIncrTestDialog(BaseNormTestDialog):
-    """Dialog for creating a Norm Displacement Increment test"""
-    def __init__(self, parent=None):
+    """Dialog for creating a Norm Displacement Increment convergence test.
+
+    This dialog provides a specialized interface for defining the parameters
+    of a `NormDispIncrTest`, including tolerance, max iterations, print flag,
+    and norm type.
+
+    Attributes:
+        info (QLabel): A label displaying a descriptive summary of the
+            NormDispIncr test.
+    """
+    def __init__(self, parent: QWidget = None):
+        """Initializes the NormDispIncrTestDialog.
+
+        Args:
+            parent: The parent widget of this dialog. Defaults to None.
+        """
         super().__init__(parent, "Create Norm Displacement Increment Test")
         
         # Additional info
@@ -563,6 +792,17 @@ class NormDispIncrTestDialog(BaseNormTestDialog):
         self.layout.insertWidget(1, info)
     
     def save_test(self):
+        """Creates and registers a new NormDispIncrTest with the `TestManager`.
+
+        Retrieves parameters from the dialog's input fields and uses them to
+        instantiate and save a new test.
+
+        Returns:
+            None: The dialog accepts (closes with `QDialog.Accepted`) on success.
+
+        Raises:
+            Exception: If an error occurs during test creation or parameter retrieval.
+        """
         try:
             params = self.get_params()
             
@@ -580,8 +820,21 @@ class NormDispIncrTestDialog(BaseNormTestDialog):
 
 
 class EnergyIncrTestDialog(BaseEnergyTestDialog):
-    """Dialog for creating an Energy Increment test"""
-    def __init__(self, parent=None):
+    """Dialog for creating an Energy Increment convergence test.
+
+    This dialog provides a specialized interface for defining the parameters
+    of an `EnergyIncrTest`, including tolerance, max iterations, and print flag.
+
+    Attributes:
+        info (QLabel): A label displaying a descriptive summary of the
+            EnergyIncr test.
+    """
+    def __init__(self, parent: QWidget = None):
+        """Initializes the EnergyIncrTestDialog.
+
+        Args:
+            parent: The parent widget of this dialog. Defaults to None.
+        """
         super().__init__(parent, "Create Energy Increment Test")
         
         # Additional info
@@ -591,6 +844,17 @@ class EnergyIncrTestDialog(BaseEnergyTestDialog):
         self.layout.insertWidget(1, info)
     
     def save_test(self):
+        """Creates and registers a new EnergyIncrTest with the `TestManager`.
+
+        Retrieves parameters from the dialog's input fields and uses them to
+        instantiate and save a new test.
+
+        Returns:
+            None: The dialog accepts (closes with `QDialog.Accepted`) on success.
+
+        Raises:
+            Exception: If an error occurs during test creation or parameter retrieval.
+        """
         try:
             params = self.get_params()
             
@@ -607,8 +871,22 @@ class EnergyIncrTestDialog(BaseEnergyTestDialog):
 
 
 class RelativeNormUnbalanceTestDialog(BaseNormTestDialog):
-    """Dialog for creating a Relative Norm Unbalance test"""
-    def __init__(self, parent=None):
+    """Dialog for creating a Relative Norm Unbalance convergence test.
+
+    This dialog provides a specialized interface for defining the parameters
+    of a `RelativeNormUnbalanceTest`, including tolerance, max iterations,
+    print flag, and norm type.
+
+    Attributes:
+        info (QLabel): A label displaying a descriptive summary of the
+            RelativeNormUnbalance test.
+    """
+    def __init__(self, parent: QWidget = None):
+        """Initializes the RelativeNormUnbalanceTestDialog.
+
+        Args:
+            parent: The parent widget of this dialog. Defaults to None.
+        """
         super().__init__(parent, "Create Relative Norm Unbalance Test")
         
         # Additional info
@@ -618,6 +896,17 @@ class RelativeNormUnbalanceTestDialog(BaseNormTestDialog):
         self.layout.insertWidget(1, info)
     
     def save_test(self):
+        """Creates and registers a new RelativeNormUnbalanceTest with the `TestManager`.
+
+        Retrieves parameters from the dialog's input fields and uses them to
+        instantiate and save a new test.
+
+        Returns:
+            None: The dialog accepts (closes with `QDialog.Accepted`) on success.
+
+        Raises:
+            Exception: If an error occurs during test creation or parameter retrieval.
+        """
         try:
             params = self.get_params()
             
@@ -635,8 +924,22 @@ class RelativeNormUnbalanceTestDialog(BaseNormTestDialog):
 
 
 class RelativeNormDispIncrTestDialog(BaseNormTestDialog):
-    """Dialog for creating a Relative Norm Displacement Increment test"""
-    def __init__(self, parent=None):
+    """Dialog for creating a Relative Norm Displacement Increment convergence test.
+
+    This dialog provides a specialized interface for defining the parameters
+    of a `RelativeNormDispIncrTest`, including tolerance, max iterations,
+    print flag, and norm type.
+
+    Attributes:
+        info (QLabel): A label displaying a descriptive summary of the
+            RelativeNormDispIncr test.
+    """
+    def __init__(self, parent: QWidget = None):
+        """Initializes the RelativeNormDispIncrTestDialog.
+
+        Args:
+            parent: The parent widget of this dialog. Defaults to None.
+        """
         super().__init__(parent, "Create Relative Norm Displacement Increment Test")
         
         # Additional info
@@ -646,6 +949,17 @@ class RelativeNormDispIncrTestDialog(BaseNormTestDialog):
         self.layout.insertWidget(1, info)
     
     def save_test(self):
+        """Creates and registers a new RelativeNormDispIncrTest with the `TestManager`.
+
+        Retrieves parameters from the dialog's input fields and uses them to
+        instantiate and save a new test.
+
+        Returns:
+            None: The dialog accepts (closes with `QDialog.Accepted`) on success.
+
+        Raises:
+            Exception: If an error occurs during test creation or parameter retrieval.
+        """
         try:
             params = self.get_params()
             
@@ -663,8 +977,22 @@ class RelativeNormDispIncrTestDialog(BaseNormTestDialog):
 
 
 class RelativeTotalNormDispIncrTestDialog(BaseNormTestDialog):
-    """Dialog for creating a Relative Total Norm Displacement Increment test"""
-    def __init__(self, parent=None):
+    """Dialog for creating a Relative Total Norm Displacement Increment convergence test.
+
+    This dialog provides a specialized interface for defining the parameters
+    of a `RelativeTotalNormDispIncrTest`, including tolerance, max iterations,
+    print flag, and norm type.
+
+    Attributes:
+        info (QLabel): A label displaying a descriptive summary of the
+            RelativeTotalNormDispIncr test.
+    """
+    def __init__(self, parent: QWidget = None):
+        """Initializes the RelativeTotalNormDispIncrTestDialog.
+
+        Args:
+            parent: The parent widget of this dialog. Defaults to None.
+        """
         super().__init__(parent, "Create Relative Total Norm Displacement Increment Test")
         
         # Additional info
@@ -674,6 +1002,17 @@ class RelativeTotalNormDispIncrTestDialog(BaseNormTestDialog):
         self.layout.insertWidget(1, info)
     
     def save_test(self):
+        """Creates and registers a new RelativeTotalNormDispIncrTest with the `TestManager`.
+
+        Retrieves parameters from the dialog's input fields and uses them to
+        instantiate and save a new test.
+
+        Returns:
+            None: The dialog accepts (closes with `QDialog.Accepted`) on success.
+
+        Raises:
+            Exception: If an error occurs during test creation or parameter retrieval.
+        """
         try:
             params = self.get_params()
             
@@ -691,8 +1030,22 @@ class RelativeTotalNormDispIncrTestDialog(BaseNormTestDialog):
 
 
 class RelativeEnergyIncrTestDialog(BaseEnergyTestDialog):
-    """Dialog for creating a Relative Energy Increment test"""
-    def __init__(self, parent=None):
+    """Dialog for creating a Relative Energy Increment convergence test.
+
+    This dialog provides a specialized interface for defining the parameters
+    of a `RelativeEnergyIncrTest`, including tolerance, max iterations,
+    and print flag.
+
+    Attributes:
+        info (QLabel): A label displaying a descriptive summary of the
+            RelativeEnergyIncr test.
+    """
+    def __init__(self, parent: QWidget = None):
+        """Initializes the RelativeEnergyIncrTestDialog.
+
+        Args:
+            parent: The parent widget of this dialog. Defaults to None.
+        """
         super().__init__(parent, "Create Relative Energy Increment Test")
         
         # Additional info
@@ -702,6 +1055,17 @@ class RelativeEnergyIncrTestDialog(BaseEnergyTestDialog):
         self.layout.insertWidget(1, info)
     
     def save_test(self):
+        """Creates and registers a new RelativeEnergyIncrTest with the `TestManager`.
+
+        Retrieves parameters from the dialog's input fields and uses them to
+        instantiate and save a new test.
+
+        Returns:
+            None: The dialog accepts (closes with `QDialog.Accepted`) on success.
+
+        Raises:
+            Exception: If an error occurs during test creation or parameter retrieval.
+        """
         try:
             params = self.get_params()
             
@@ -718,8 +1082,22 @@ class RelativeEnergyIncrTestDialog(BaseEnergyTestDialog):
 
 
 class FixedNumIterTestDialog(BaseTestDialog):
-    """Dialog for creating a Fixed Number of Iterations test"""
-    def __init__(self, parent=None):
+    """Dialog for creating a Fixed Number of Iterations convergence test.
+
+    This dialog allows users to specify the exact number of iterations
+    for a `FixedNumIterTest`, which runs without convergence checks.
+
+    Attributes:
+        info (QLabel): A label displaying a descriptive summary of the
+            FixedNumIter test.
+        num_iter_spin (QSpinBox): Input field for the fixed number of iterations.
+    """
+    def __init__(self, parent: QWidget = None):
+        """Initializes the FixedNumIterTestDialog.
+
+        Args:
+            parent: The parent widget of this dialog. Defaults to None.
+        """
         super().__init__(parent, "Create Fixed Number of Iterations Test")
         
         # Additional info
@@ -738,6 +1116,17 @@ class FixedNumIterTestDialog(BaseTestDialog):
         self.add_button_layout()
     
     def save_test(self):
+        """Creates and registers a new FixedNumIterTest with the `TestManager`.
+
+        Retrieves the number of iterations from the dialog's input field and
+        uses it to instantiate and save a new test.
+
+        Returns:
+            None: The dialog accepts (closes with `QDialog.Accepted`) on success.
+
+        Raises:
+            Exception: If an error occurs during test creation or parameter retrieval.
+        """
         try:
             # Create test
             self.test = self.test_manager.create_test(
@@ -750,8 +1139,22 @@ class FixedNumIterTestDialog(BaseTestDialog):
 
 
 class NormDispAndUnbalanceTestDialog(BaseCombinedNormTestDialog):
-    """Dialog for creating a Norm Displacement AND Unbalance test"""
-    def __init__(self, parent=None):
+    """Dialog for creating a Norm Displacement AND Unbalance convergence test.
+
+    This dialog provides a specialized interface for defining the parameters
+    of a `NormDispAndUnbalanceTest`, which checks both displacement increment
+    and unbalanced force norms.
+
+    Attributes:
+        info (QLabel): A label displaying a descriptive summary of the
+            NormDispAndUnbalance test.
+    """
+    def __init__(self, parent: QWidget = None):
+        """Initializes the NormDispAndUnbalanceTestDialog.
+
+        Args:
+            parent: The parent widget of this dialog. Defaults to None.
+        """
         super().__init__(parent, "Create Norm Displacement AND Unbalance Test")
         
         # Additional info
@@ -761,6 +1164,17 @@ class NormDispAndUnbalanceTestDialog(BaseCombinedNormTestDialog):
         self.layout.insertWidget(1, info)
     
     def save_test(self):
+        """Creates and registers a new NormDispAndUnbalanceTest with the `TestManager`.
+
+        Retrieves parameters from the dialog's input fields and uses them to
+        instantiate and save a new test.
+
+        Returns:
+            None: The dialog accepts (closes with `QDialog.Accepted`) on success.
+
+        Raises:
+            Exception: If an error occurs during test creation or parameter retrieval.
+        """
         try:
             params = self.get_params()
             
@@ -780,8 +1194,22 @@ class NormDispAndUnbalanceTestDialog(BaseCombinedNormTestDialog):
 
 
 class NormDispOrUnbalanceTestDialog(BaseCombinedNormTestDialog):
-    """Dialog for creating a Norm Displacement OR Unbalance test"""
-    def __init__(self, parent=None):
+    """Dialog for creating a Norm Displacement OR Unbalance convergence test.
+
+    This dialog provides a specialized interface for defining the parameters
+    of a `NormDispOrUnbalanceTest`, which checks either displacement increment
+    or unbalanced force norms for convergence.
+
+    Attributes:
+        info (QLabel): A label displaying a descriptive summary of the
+            NormDispOrUnbalance test.
+    """
+    def __init__(self, parent: QWidget = None):
+        """Initializes the NormDispOrUnbalanceTestDialog.
+
+        Args:
+            parent: The parent widget of this dialog. Defaults to None.
+        """
         super().__init__(parent, "Create Norm Displacement OR Unbalance Test")
         
         # Additional info
@@ -791,6 +1219,17 @@ class NormDispOrUnbalanceTestDialog(BaseCombinedNormTestDialog):
         self.layout.insertWidget(1, info)
     
     def save_test(self):
+        """Creates and registers a new NormDispOrUnbalanceTest with the `TestManager`.
+
+        Retrieves parameters from the dialog's input fields and uses them to
+        instantiate and save a new test.
+
+        Returns:
+            None: The dialog accepts (closes with `QDialog.Accepted`) on success.
+
+        Raises:
+            Exception: If an error occurs during test creation or parameter retrieval.
+        """
         try:
             params = self.get_params()
             
@@ -814,8 +1253,24 @@ class NormDispOrUnbalanceTestDialog(BaseCombinedNormTestDialog):
 #------------------------------------------------------
 
 class NormUnbalanceTestEditDialog(BaseNormTestDialog):
-    """Dialog for editing a Norm Unbalance test"""
-    def __init__(self, test: NormUnbalanceTest, parent=None):
+    """Dialog for editing an existing Norm Unbalance convergence test.
+
+    This dialog pre-populates its fields with the parameters of an existing
+    `NormUnbalanceTest` and allows the user to modify and save them.
+
+    Attributes:
+        test (NormUnbalanceTest): The existing `NormUnbalanceTest` instance
+            being edited.
+        info (QLabel): A label displaying a descriptive summary of the
+            NormUnbalance test.
+    """
+    def __init__(self, test: NormUnbalanceTest, parent: QWidget = None):
+        """Initializes the NormUnbalanceTestEditDialog.
+
+        Args:
+            test: The `NormUnbalanceTest` instance to be edited.
+            parent: The parent widget of this dialog. Defaults to None.
+        """
         super().__init__(parent, "Edit Norm Unbalance Test")
         self.test = test
         
@@ -832,6 +1287,17 @@ class NormUnbalanceTestEditDialog(BaseNormTestDialog):
         self.layout.insertWidget(1, info)
     
     def save_test(self):
+        """Updates the parameters of the existing NormUnbalanceTest.
+
+        Retrieves updated parameters from the dialog's input fields and
+        applies them to the `test` instance.
+
+        Returns:
+            None: The dialog accepts (closes with `QDialog.Accepted`) on success.
+
+        Raises:
+            Exception: If an error occurs during test parameter update or retrieval.
+        """
         try:
             params = self.get_params()
             
@@ -847,8 +1313,24 @@ class NormUnbalanceTestEditDialog(BaseNormTestDialog):
 
 
 class NormDispIncrTestEditDialog(BaseNormTestDialog):
-    """Dialog for editing a Norm Displacement Increment test"""
-    def __init__(self, test: NormDispIncrTest, parent=None):
+    """Dialog for editing an existing Norm Displacement Increment convergence test.
+
+    This dialog pre-populates its fields with the parameters of an existing
+    `NormDispIncrTest` and allows the user to modify and save them.
+
+    Attributes:
+        test (NormDispIncrTest): The existing `NormDispIncrTest` instance
+            being edited.
+        info (QLabel): A label displaying a descriptive summary of the
+            NormDispIncr test.
+    """
+    def __init__(self, test: NormDispIncrTest, parent: QWidget = None):
+        """Initializes the NormDispIncrTestEditDialog.
+
+        Args:
+            test: The `NormDispIncrTest` instance to be edited.
+            parent: The parent widget of this dialog. Defaults to None.
+        """
         super().__init__(parent, "Edit Norm Displacement Increment Test")
         self.test = test
         
@@ -865,6 +1347,17 @@ class NormDispIncrTestEditDialog(BaseNormTestDialog):
         self.layout.insertWidget(1, info)
     
     def save_test(self):
+        """Updates the parameters of the existing NormDispIncrTest.
+
+        Retrieves updated parameters from the dialog's input fields and
+        applies them to the `test` instance.
+
+        Returns:
+            None: The dialog accepts (closes with `QDialog.Accepted`) on success.
+
+        Raises:
+            Exception: If an error occurs during test parameter update or retrieval.
+        """
         try:
             params = self.get_params()
             
@@ -880,8 +1373,24 @@ class NormDispIncrTestEditDialog(BaseNormTestDialog):
 
 
 class EnergyIncrTestEditDialog(BaseEnergyTestDialog):
-    """Dialog for editing an Energy Increment test"""
-    def __init__(self, test: EnergyIncrTest, parent=None):
+    """Dialog for editing an existing Energy Increment convergence test.
+
+    This dialog pre-populates its fields with the parameters of an existing
+    `EnergyIncrTest` and allows the user to modify and save them.
+
+    Attributes:
+        test (EnergyIncrTest): The existing `EnergyIncrTest` instance
+            being edited.
+        info (QLabel): A label displaying a descriptive summary of the
+            EnergyIncr test.
+    """
+    def __init__(self, test: EnergyIncrTest, parent: QWidget = None):
+        """Initializes the EnergyIncrTestEditDialog.
+
+        Args:
+            test: The `EnergyIncrTest` instance to be edited.
+            parent: The parent widget of this dialog. Defaults to None.
+        """
         super().__init__(parent, "Edit Energy Increment Test")
         self.test = test
         
@@ -897,6 +1406,17 @@ class EnergyIncrTestEditDialog(BaseEnergyTestDialog):
         self.layout.insertWidget(1, info)
     
     def save_test(self):
+        """Updates the parameters of the existing EnergyIncrTest.
+
+        Retrieves updated parameters from the dialog's input fields and
+        applies them to the `test` instance.
+
+        Returns:
+            None: The dialog accepts (closes with `QDialog.Accepted`) on success.
+
+        Raises:
+            Exception: If an error occurs during test parameter update or retrieval.
+        """
         try:
             params = self.get_params()
             
@@ -911,8 +1431,24 @@ class EnergyIncrTestEditDialog(BaseEnergyTestDialog):
 
 
 class RelativeNormUnbalanceTestEditDialog(BaseNormTestDialog):
-    """Dialog for editing a Relative Norm Unbalance test"""
-    def __init__(self, test: RelativeNormUnbalanceTest, parent=None):
+    """Dialog for editing an existing Relative Norm Unbalance convergence test.
+
+    This dialog pre-populates its fields with the parameters of an existing
+    `RelativeNormUnbalanceTest` and allows the user to modify and save them.
+
+    Attributes:
+        test (RelativeNormUnbalanceTest): The existing `RelativeNormUnbalanceTest`
+            instance being edited.
+        info (QLabel): A label displaying a descriptive summary of the
+            RelativeNormUnbalance test.
+    """
+    def __init__(self, test: RelativeNormUnbalanceTest, parent: QWidget = None):
+        """Initializes the RelativeNormUnbalanceTestEditDialog.
+
+        Args:
+            test: The `RelativeNormUnbalanceTest` instance to be edited.
+            parent: The parent widget of this dialog. Defaults to None.
+        """
         super().__init__(parent, "Edit Relative Norm Unbalance Test")
         self.test = test
         
@@ -929,6 +1465,17 @@ class RelativeNormUnbalanceTestEditDialog(BaseNormTestDialog):
         self.layout.insertWidget(1, info)
     
     def save_test(self):
+        """Updates the parameters of the existing RelativeNormUnbalanceTest.
+
+        Retrieves updated parameters from the dialog's input fields and
+        applies them to the `test` instance.
+
+        Returns:
+            None: The dialog accepts (closes with `QDialog.Accepted`) on success.
+
+        Raises:
+            Exception: If an error occurs during test parameter update or retrieval.
+        """
         try:
             params = self.get_params()
             
@@ -944,8 +1491,24 @@ class RelativeNormUnbalanceTestEditDialog(BaseNormTestDialog):
 
 
 class RelativeNormDispIncrTestEditDialog(BaseNormTestDialog):
-    """Dialog for editing a Relative Norm Displacement Increment test"""
-    def __init__(self, test: RelativeNormDispIncrTest, parent=None):
+    """Dialog for editing an existing Relative Norm Displacement Increment convergence test.
+
+    This dialog pre-populates its fields with the parameters of an existing
+    `RelativeNormDispIncrTest` and allows the user to modify and save them.
+
+    Attributes:
+        test (RelativeNormDispIncrTest): The existing `RelativeNormDispIncrTest`
+            instance being edited.
+        info (QLabel): A label displaying a descriptive summary of the
+            RelativeNormDispIncr test.
+    """
+    def __init__(self, test: RelativeNormDispIncrTest, parent: QWidget = None):
+        """Initializes the RelativeNormDispIncrTestEditDialog.
+
+        Args:
+            test: The `RelativeNormDispIncrTest` instance to be edited.
+            parent: The parent widget of this dialog. Defaults to None.
+        """
         super().__init__(parent, "Edit Relative Norm Displacement Increment Test")
         self.test = test
         
@@ -962,6 +1525,17 @@ class RelativeNormDispIncrTestEditDialog(BaseNormTestDialog):
         self.layout.insertWidget(1, info)
     
     def save_test(self):
+        """Updates the parameters of the existing RelativeNormDispIncrTest.
+
+        Retrieves updated parameters from the dialog's input fields and
+        applies them to the `test` instance.
+
+        Returns:
+            None: The dialog accepts (closes with `QDialog.Accepted`) on success.
+
+        Raises:
+            Exception: If an error occurs during test parameter update or retrieval.
+        """
         try:
             params = self.get_params()
             
@@ -977,8 +1551,24 @@ class RelativeNormDispIncrTestEditDialog(BaseNormTestDialog):
 
 
 class RelativeTotalNormDispIncrTestEditDialog(BaseNormTestDialog):
-    """Dialog for editing a Relative Total Norm Displacement Increment test"""
-    def __init__(self, test: RelativeTotalNormDispIncrTest, parent=None):
+    """Dialog for editing an existing Relative Total Norm Displacement Increment convergence test.
+
+    This dialog pre-populates its fields with the parameters of an existing
+    `RelativeTotalNormDispIncrTest` and allows the user to modify and save them.
+
+    Attributes:
+        test (RelativeTotalNormDispIncrTest): The existing
+            `RelativeTotalNormDispIncrTest` instance being edited.
+        info (QLabel): A label displaying a descriptive summary of the
+            RelativeTotalNormDispIncr test.
+    """
+    def __init__(self, test: RelativeTotalNormDispIncrTest, parent: QWidget = None):
+        """Initializes the RelativeTotalNormDispIncrTestEditDialog.
+
+        Args:
+            test: The `RelativeTotalNormDispIncrTest` instance to be edited.
+            parent: The parent widget of this dialog. Defaults to None.
+        """
         super().__init__(parent, "Edit Relative Total Norm Displacement Increment Test")
         self.test = test
         
@@ -995,6 +1585,17 @@ class RelativeTotalNormDispIncrTestEditDialog(BaseNormTestDialog):
         self.layout.insertWidget(1, info)
     
     def save_test(self):
+        """Updates the parameters of the existing RelativeTotalNormDispIncrTest.
+
+        Retrieves updated parameters from the dialog's input fields and
+        applies them to the `test` instance.
+
+        Returns:
+            None: The dialog accepts (closes with `QDialog.Accepted`) on success.
+
+        Raises:
+            Exception: If an error occurs during test parameter update or retrieval.
+        """
         try:
             params = self.get_params()
             
@@ -1010,8 +1611,24 @@ class RelativeTotalNormDispIncrTestEditDialog(BaseNormTestDialog):
 
 
 class RelativeEnergyIncrTestEditDialog(BaseEnergyTestDialog):
-    """Dialog for editing a Relative Energy Increment test"""
-    def __init__(self, test: RelativeEnergyIncrTest, parent=None):
+    """Dialog for editing an existing Relative Energy Increment convergence test.
+
+    This dialog pre-populates its fields with the parameters of an existing
+    `RelativeEnergyIncrTest` and allows the user to modify and save them.
+
+    Attributes:
+        test (RelativeEnergyIncrTest): The existing `RelativeEnergyIncrTest`
+            instance being edited.
+        info (QLabel): A label displaying a descriptive summary of the
+            RelativeEnergyIncr test.
+    """
+    def __init__(self, test: RelativeEnergyIncrTest, parent: QWidget = None):
+        """Initializes the RelativeEnergyIncrTestEditDialog.
+
+        Args:
+            test: The `RelativeEnergyIncrTest` instance to be edited.
+            parent: The parent widget of this dialog. Defaults to None.
+        """
         super().__init__(parent, "Edit Relative Energy Increment Test")
         self.test = test
         
@@ -1027,6 +1644,17 @@ class RelativeEnergyIncrTestEditDialog(BaseEnergyTestDialog):
         self.layout.insertWidget(1, info)
     
     def save_test(self):
+        """Updates the parameters of the existing RelativeEnergyIncrTest.
+
+        Retrieves updated parameters from the dialog's input fields and
+        applies them to the `test` instance.
+
+        Returns:
+            None: The dialog accepts (closes with `QDialog.Accepted`) on success.
+
+        Raises:
+            Exception: If an error occurs during test parameter update or retrieval.
+        """
         try:
             params = self.get_params()
             
@@ -1041,8 +1669,25 @@ class RelativeEnergyIncrTestEditDialog(BaseEnergyTestDialog):
 
 
 class FixedNumIterTestEditDialog(BaseTestDialog):
-    """Dialog for editing a Fixed Number of Iterations test"""
-    def __init__(self, test: FixedNumIterTest, parent=None):
+    """Dialog for editing an existing Fixed Number of Iterations convergence test.
+
+    This dialog pre-populates its fields with the parameters of an existing
+    `FixedNumIterTest` and allows the user to modify and save them.
+
+    Attributes:
+        test (FixedNumIterTest): The existing `FixedNumIterTest` instance
+            being edited.
+        info (QLabel): A label displaying a descriptive summary of the
+            FixedNumIter test.
+        num_iter_spin (QSpinBox): Input field for the fixed number of iterations.
+    """
+    def __init__(self, test: FixedNumIterTest, parent: QWidget = None):
+        """Initializes the FixedNumIterTestEditDialog.
+
+        Args:
+            test: The `FixedNumIterTest` instance to be edited.
+            parent: The parent widget of this dialog. Defaults to None.
+        """
         super().__init__(parent, "Edit Fixed Number of Iterations Test")
         self.test = test
         
@@ -1062,6 +1707,17 @@ class FixedNumIterTestEditDialog(BaseTestDialog):
         self.add_button_layout()
     
     def save_test(self):
+        """Updates the parameters of the existing FixedNumIterTest.
+
+        Retrieves the updated number of iterations from the dialog's input field
+        and applies it to the `test` instance.
+
+        Returns:
+            None: The dialog accepts (closes with `QDialog.Accepted`) on success.
+
+        Raises:
+            Exception: If an error occurs during test parameter update or retrieval.
+        """
         try:
             # Update test parameters
             self.test.num_iter = self.num_iter_spin.value()
@@ -1072,8 +1728,24 @@ class FixedNumIterTestEditDialog(BaseTestDialog):
 
 
 class NormDispAndUnbalanceTestEditDialog(BaseCombinedNormTestDialog):
-    """Dialog for editing a Norm Displacement AND Unbalance test"""
-    def __init__(self, test: NormDispAndUnbalanceTest, parent=None):
+    """Dialog for editing an existing Norm Displacement AND Unbalance convergence test.
+
+    This dialog pre-populates its fields with the parameters of an existing
+    `NormDispAndUnbalanceTest` and allows the user to modify and save them.
+
+    Attributes:
+        test (NormDispAndUnbalanceTest): The existing `NormDispAndUnbalanceTest`
+            instance being edited.
+        info (QLabel): A label displaying a descriptive summary of the
+            NormDispAndUnbalance test.
+    """
+    def __init__(self, test: NormDispAndUnbalanceTest, parent: QWidget = None):
+        """Initializes the NormDispAndUnbalanceTestEditDialog.
+
+        Args:
+            test: The `NormDispAndUnbalanceTest` instance to be edited.
+            parent: The parent widget of this dialog. Defaults to None.
+        """
         super().__init__(parent, "Edit Norm Displacement AND Unbalance Test")
         self.test = test
         
@@ -1092,6 +1764,17 @@ class NormDispAndUnbalanceTestEditDialog(BaseCombinedNormTestDialog):
         self.layout.insertWidget(1, info)
     
     def save_test(self):
+        """Updates the parameters of the existing NormDispAndUnbalanceTest.
+
+        Retrieves updated parameters from the dialog's input fields and
+        applies them to the `test` instance.
+
+        Returns:
+            None: The dialog accepts (closes with `QDialog.Accepted`) on success.
+
+        Raises:
+            Exception: If an error occurs during test parameter update or retrieval.
+        """
         try:
             params = self.get_params()
             
@@ -1109,8 +1792,24 @@ class NormDispAndUnbalanceTestEditDialog(BaseCombinedNormTestDialog):
 
 
 class NormDispOrUnbalanceTestEditDialog(BaseCombinedNormTestDialog):
-    """Dialog for editing a Norm Displacement OR Unbalance test"""
-    def __init__(self, test: NormDispOrUnbalanceTest, parent=None):
+    """Dialog for editing an existing Norm Displacement OR Unbalance convergence test.
+
+    This dialog pre-populates its fields with the parameters of an existing
+    `NormDispOrUnbalanceTest` and allows the user to modify and save them.
+
+    Attributes:
+        test (NormDispOrUnbalanceTest): The existing `NormDispOrUnbalanceTest`
+            instance being edited.
+        info (QLabel): A label displaying a descriptive summary of the
+            NormDispOrUnbalance test.
+    """
+    def __init__(self, test: NormDispOrUnbalanceTest, parent: QWidget = None):
+        """Initializes the NormDispOrUnbalanceTestEditDialog.
+
+        Args:
+            test: The `NormDispOrUnbalanceTest` instance to be edited.
+            parent: The parent widget of this dialog. Defaults to None.
+        """
         super().__init__(parent, "Edit Norm Displacement OR Unbalance Test")
         self.test = test
         
@@ -1129,6 +1828,17 @@ class NormDispOrUnbalanceTestEditDialog(BaseCombinedNormTestDialog):
         self.layout.insertWidget(1, info)
     
     def save_test(self):
+        """Updates the parameters of the existing NormDispOrUnbalanceTest.
+
+        Retrieves updated parameters from the dialog's input fields and
+        applies them to the `test` instance.
+
+        Returns:
+            None: The dialog accepts (closes with `QDialog.Accepted`) on success.
+
+        Raises:
+            Exception: If an error occurs during test parameter update or retrieval.
+        """
         try:
             params = self.get_params()
             

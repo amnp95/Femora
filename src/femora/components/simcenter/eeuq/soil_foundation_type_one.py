@@ -1189,7 +1189,7 @@ def soil_foundation_type_one(model_filename="model.tcl",
         pile_mesh_tags = [fm.meshPart.get_mesh_part(name).tag for name in pile_sections]
         foundation_mesh_tags = [fm.meshPart.get_mesh_part(name).tag for name in foundation_sections]
         soil_mesh_tags = [fm.meshPart.get_mesh_part(name).tag for name in soil_sections]
-        MeshTag = fm.assembler.AssembeledMesh.cell_data["MeshTag_cell"]
+        MeshTag = fm.assembler.AssembeledMesh.cell_data["MeshPartTag_celldata"]
         pile_mesh = mesh.extract_cells(np.isin(MeshTag, pile_mesh_tags))
         foundation_mesh = mesh.extract_cells(np.isin(MeshTag, foundation_mesh_tags))
         soil_mesh = mesh.extract_cells(np.isin(MeshTag, soil_mesh_tags))
@@ -1310,7 +1310,7 @@ proc Femora_getNodeCoordFrom {structureCores embeddedCore nTag secTag eleTag enT
             print("Error: mesh part " + name + " not found.")
             sys.exit(1)
         mesh_part_tag = mesh_part.tag
-        mesh_part_cells = fm.assembler.AssembeledMesh.cell_data["MeshTag_cell"] == mesh_part_tag
+        mesh_part_cells = fm.assembler.AssembeledMesh.cell_data["MeshPartTag_celldata"] == mesh_part_tag
         mesh_part_cell  = np.where(mesh_part_cells)[0]
         mesh_part_points = []
         for cell_id in mesh_part_cell:

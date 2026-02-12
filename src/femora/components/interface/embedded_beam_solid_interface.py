@@ -192,11 +192,11 @@ class EmbeddedBeamSolidInterface(InterfaceBase, HandlesDecompositionMixin):
         if len(intersect_ind) > 0:
             intersect_ind_point_ids = []
             for ind in intersect_ind:
-                intersect_ind_point_ids.append(assembled_mesh.get_cell(ind).point_ids)
+                intersect_ind_point_ids.extend(assembled_mesh.get_cell(ind).point_ids)
         
             intersect_ind_point_ids = np.array(intersect_ind_point_ids)
             # make it 1D array and unique
-            intersect_ind_point_ids = intersect_ind_point_ids.flatten()
+            # intersect_ind_point_ids = intersect_ind_point_ids.flatten()  # Already 1D
             intersect_ind_point_ids = np.unique(intersect_ind_point_ids)
 
 
@@ -314,7 +314,7 @@ class EmbeddedBeamSolidInterface(InterfaceBase, HandlesDecompositionMixin):
         # print(f"[EmbeddedBeamSolidInterface:{self.name}] Post-assemble hook called.")
 
         # Collect beam cells indices & compute their mean location
-        beam_cells_idx = np.where(assembled_mesh.cell_data["MeshTag_cell"] == self.beam_part.tag)[0]
+        beam_cells_idx = np.where(assembled_mesh.cell_data["MeshPartTag_celldata"] == self.beam_part.tag)[0]
         if beam_cells_idx.size == 0:
             raise ValueError("No beam elements found in assembled mesh for provided MeshPart")
         
@@ -381,7 +381,7 @@ class EmbeddedBeamSolidInterface(InterfaceBase, HandlesDecompositionMixin):
             project_beam.merge_points(tolerance=1e-3, inplace=True)
             normal = np.array([norm_x, norm_y, norm_z])
             normal = normal / np.linalg.norm(normal)  # Normalize the normal vector
-            beamindxes = np.where(assembled_mesh.cell_data["MeshTag_cell"] == self.beam_part.tag)[0]
+            beamindxes = np.where(assembled_mesh.cell_data["MeshPartTag_celldata"] == self.beam_part.tag)[0]
             for projected_point in project_beam.points:
                 point_a = projected_point - 1.1 * normal * length / 2 # 1.1 to make sure the line is longer than the mesh
                 point_b = projected_point + 1.1 * normal * length / 2 # 1.1 to make sure the line is longer than the mesh
