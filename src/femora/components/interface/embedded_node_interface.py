@@ -160,9 +160,6 @@ class EmbeddedNodeInterface(InterfaceBase, GeneratesMeshMixin):
                 normals[ids] = np.array(normal_filter)
                 original_mesh.point_data['Normals'] = normals
                     
-                    
-                
-            # pyvistaOriginalPointIds
 
 
 
@@ -176,10 +173,6 @@ class EmbeddedNodeInterface(InterfaceBase, GeneratesMeshMixin):
             offset_mesh = original_mesh.copy()
             offset_mesh.points = new_points
 
-            # pl = pv.Plotter()
-            # pl.add_mesh(original_mesh, opacity=0.5, show_edges=True, color='gray')
-            # pl.add_mesh(offset_mesh, opacity=0.5, show_edges=True, color='orange')
-            # pl.show()
             
 
             # find the points in the constrained mesh 
@@ -192,27 +185,6 @@ class EmbeddedNodeInterface(InterfaceBase, GeneratesMeshMixin):
             
             # create a new mesh with the offset points
             point_ids = constrained_mesh.point_data['NodeIndex'][indices]
-
-            # filter the points that are aligned with the normal vector
-            # if normal_filter is not None:
-            #     offset_mesh = offset_mesh.compute_normals(
-            #                                     cell_normals=False, 
-            #                                     point_normals=True, 
-            #                                     inplace=False,
-            #                                 )
-            #     normals = offset_mesh.point_data['Normals']
-            #     # Normalize the filter vector just in case
-            #     filter_vec = np.array(normal_filter) / np.linalg.norm(normal_filter)
-                
-            #     # Calculate dot product: (N_points, 3) dot (3,) -> (N_points,)
-            #     alignment = np.dot(normals, filter_vec)
-                
-            #     # Create a mask: True only for normals aligned with filter_vec
-            #     # alignment > 0.9 means roughly within 25 degrees of the vector
-            #     mask = alignment > filter_tolerance
-            # else:
-            #     # If no filter, apply offset to all points
-            #     mask = np.ones(len(points), dtype=bool)
 
             # apply the mask to the points
             offset_mesh = offset_mesh.extract_points(mask, include_cells=False)
