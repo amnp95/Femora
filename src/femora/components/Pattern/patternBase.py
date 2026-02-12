@@ -14,18 +14,32 @@ except Exception:
     SpLoad = None  # type: ignore
 
 class Pattern(ABC):
-    """
-    Base abstract class for all load patterns
+    """Base abstract class for all load patterns in OpenSees.
+
+    This class provides a foundation for creating and managing load pattern
+    objects for structural analysis. It handles automatic tag assignment and
+    pattern registration.
+
+    Attributes:
+        tag (int): The unique sequential identifier for this pattern.
+        pattern_type (str): The type of pattern (e.g., 'UniformExcitation', 'H5DRM', 'Plain').
+
+    Example:
+        >>> from femora.components.Pattern.patternBase import PatternManager
+        >>> # Assuming 'my_ts' is a TimeSeries object
+        >>> # manager = PatternManager()
+        >>> # pattern = manager.create_pattern('plain', time_series=my_ts)
+        >>> # print(pattern.tag)
+        # Output will vary based on existing patterns
     """
     _patterns = {}  # Class-level dictionary to track all patterns
     _start_tag = 1  # Class variable to track the starting tag
 
     def __init__(self, pattern_type: str):
-        """
-        Initialize a new pattern with a sequential tag
-        
+        """Initializes the Pattern with a sequential tag.
+
         Args:
-            pattern_type (str): The type of pattern (e.g., 'UniformExcitation', 'H5DRM')
+            pattern_type: The type of pattern (e.g., 'UniformExcitation', 'H5DRM').
         """
         self.tag = len(Pattern._patterns) + Pattern._start_tag
         
@@ -36,17 +50,16 @@ class Pattern(ABC):
 
     @classmethod
     def get_pattern(cls, tag: int) -> 'Pattern':
-        """
-        Retrieve a specific pattern by its tag.
-        
+        """Retrieves a specific pattern by its tag.
+
         Args:
-            tag (int): The tag of the pattern
-        
+            tag: The tag of the pattern to retrieve.
+
         Returns:
-            Pattern: The pattern with the specified tag
-        
+            The pattern with the specified tag.
+
         Raises:
-            KeyError: If no pattern with the given tag exists
+            KeyError: If no pattern with the given tag exists.
         """
         if tag not in cls._patterns:
             raise KeyError(f"No pattern found with tag {tag}")
@@ -54,11 +67,10 @@ class Pattern(ABC):
 
     @classmethod
     def remove_pattern(cls, tag: int) -> None:
-        """
-        Delete a pattern by its tag.
-        
+        """Deletes a pattern by its tag and reassigns remaining tags.
+
         Args:
-            tag (int): The tag of the pattern to delete
+            tag: The tag of the pattern to delete.
         """
         if tag in cls._patterns:
             del cls._patterns[tag]
@@ -67,35 +79,45 @@ class Pattern(ABC):
 
     @classmethod
     def get_all_patterns(cls) -> Dict[int, 'Pattern']:
-        """
-        Retrieve all created patterns.
-        
+        """Retrieves all created patterns.
+
         Returns:
-            Dict[int, Pattern]: A dictionary of all patterns, keyed by their unique tags
+            A dictionary of all patterns, keyed by their unique tags.
         """
         return cls._patterns
     
     @classmethod
     def clear_all(cls) -> None:
-        """
-        Clear all patterns and reset tags.
+        """Clears all patterns and resets the tag counter.
+
+        This method removes all registered patterns.
         """
         cls._patterns.clear()
 
     @classmethod
     def reset(cls):
+        """Resets all patterns and tag counter to initial state.
+
+        This method clears all patterns and resets the starting tag to 1.
+        """
         cls._patterns.clear()
         cls._start_tag = 1
 
     @classmethod
     def set_tag_start(cls, start_tag: int):
+        """Sets the starting tag number and reassigns all pattern tags.
+
+        Args:
+            start_tag: The new starting tag number.
+        """
         cls._start_tag = start_tag
         cls._reassign_tags()
 
     @classmethod
     def _reassign_tags(cls) -> None:
-        """
-        Reassign tags to all patterns sequentially starting from _start_tag.
+        """Reassigns tags to all patterns sequentially starting from _start_tag.
+
+        This method rebuilds the pattern tracking dictionary with new sequential tags.
         """
         new_patterns = {}
         for idx, pattern in enumerate(sorted(cls._patterns.values(), key=lambda p: p.tag), start=cls._start_tag):
@@ -105,59 +127,84 @@ class Pattern(ABC):
 
     @abstractmethod
     def to_tcl(self) -> str:
-        """
-        Convert the pattern to a TCL command string for OpenSees
-        
+        """Converts the pattern to a TCL command string for OpenSees.
+
+        Subclasses must implement this method to generate the appropriate
+        TCL command for use with OpenSees.
+
         Returns:
-            str: The TCL command string
+            TCL command string representation of the pattern.
         """
         pass
 
     @staticmethod
     def get_parameters() -> List[tuple]:
-        """
-        Get the parameters defining this pattern
-        
+        """Gets the parameters defining this pattern.
+
+        Subclasses should implement this method to return parameter metadata
+        for UI or introspection purposes.
+
         Returns:
-            List[tuple]: List of (parameter name, description) tuples
+            List of (parameter name, description) tuples.
         """
         pass
 
     @abstractmethod
     def get_values(self) -> Dict[str, Union[str, int, float, list]]:
-        """
-        Get the parameters defining this pattern
-        
+        """Gets the current parameter values of this pattern.
+
+        Subclasses must implement this method to return current parameter values.
+        The returned dictionary should be serializable.
+
         Returns:
-            Dict[str, Union[str, int, float, list]]: Dictionary of parameter values
+            Dictionary of parameter values.
         """
         pass
 
     @abstractmethod
     def update_values(self, **kwargs) -> None:
-        """
-        Update the values of the pattern
-        
+        """Updates the values of the pattern.
+
+        Subclasses must implement this method to update pattern parameters.
+
         Args:
-            **kwargs: Parameters for pattern update
+            **kwargs: Parameters for pattern update.
         """
         pass
 
 
 class UniformExcitation(Pattern):
-    """
-    UniformExcitation pattern allows applying a uniform excitation to a model
-    acting in a certain direction.
+    """UniformExcitation pattern for applying uniform ground motion to a model.
+
+    This pattern allows applying a uniform excitation (typically ground motion)
+    to all fixed nodes in a model acting in a specified direction.
+
+    Attributes:
+        dof (int): DOF direction the ground motion acts (1-based index).
+        time_series (TimeSeries): TimeSeries defining the acceleration history.
+        vel0 (float): Initial velocity at time zero.
+        factor (float): Constant factor multiplying the time series values.
+
+    Example:
+        >>> from femora.components.Pattern.patternBase import UniformExcitation
+        >>> from femora.components.TimeSeries.timeSeriesBase import TimeSeries
+        >>> # Assuming 'accel_data' is a numpy array of acceleration values
+        >>> # ts = TimeSeries(tag=100, series_type='Path', values=accel_data, dt=0.01)
+        >>> # pattern = UniformExcitation(dof=1, time_series=ts, vel0=0.0, factor=1.0)
+        >>> # print(pattern.tag)
+        # Output will vary based on existing patterns
     """
     def __init__(self, **kwargs):
-        """
-        Initialize a UniformExcitation pattern
-        
+        """Initializes the UniformExcitation pattern.
+
         Args:
-            dof (int): DOF direction the ground motion acts
-            time_series (TimeSeries): TimeSeries defining the acceleration history
-            vel0 (float, optional): Initial velocity (default=0.0)
-            factor (float, optional): Constant factor (default=1.0)
+            dof: DOF direction the ground motion acts (1-based index).
+            time_series: TimeSeries defining the acceleration history.
+            vel0: Optional. Initial velocity at time zero. Defaults to 0.0.
+            factor: Optional. Constant factor multiplying time series. Defaults to 1.0.
+
+        Raises:
+            ValueError: If required parameters are missing or invalid.
         """
         super().__init__("UniformExcitation")
         validated_params = self.validate(**kwargs)
@@ -168,17 +215,17 @@ class UniformExcitation(Pattern):
 
     @staticmethod
     def validate(**kwargs) -> Dict[str, Union[int, float, TimeSeries]]:
-        """
-        Validate parameters for UniformExcitation pattern
+        """Validates parameters for UniformExcitation pattern.
         
         Args:
-            **kwargs: Parameters to validate
+            **kwargs: Parameters to validate. Expected keys are 'dof',
+                'time_series', 'vel0' (optional), and 'factor' (optional).
             
         Returns:
-            Dict[str, Union[int, float, TimeSeries]]: Validated parameters
+            Dictionary: Validated parameters.
             
         Raises:
-            ValueError: If required parameters are missing or invalid
+            ValueError: If required parameters are missing or invalid.
         """
         if "dof" not in kwargs:
             raise ValueError("DOF direction must be specified")
@@ -217,11 +264,10 @@ class UniformExcitation(Pattern):
         return validated
 
     def to_tcl(self) -> str:
-        """
-        Convert the UniformExcitation pattern to a TCL command string for OpenSees
+        """Converts the UniformExcitation pattern to a TCL command string for OpenSees.
         
         Returns:
-            str: The TCL command string
+            The TCL command string.
         """
         cmd = f"pattern UniformExcitation {self.tag} {self.dof} -accel {self.time_series.tag}"
         
@@ -235,25 +281,23 @@ class UniformExcitation(Pattern):
 
     @staticmethod
     def get_parameters() -> List[tuple]:
-        """
-        Get the parameters defining this pattern
+        """Gets the parameters defining this pattern for UI/metadata.
         
         Returns:
-            List[tuple]: List of (parameter name, description) tuples
+            List of (parameter name, description) tuples.
         """
         return [
-            ("dof", "DOF direction the ground motion acts"),
-            ("time_series", "TimeSeries defining the acceleration history"),
-            ("vel0", "Initial velocity (optional, default=0.0)"),
-            ("factor", "Constant factor (optional, default=1.0)")
+            ("dof", "DOF direction the ground motion acts (1-based index)."),
+            ("time_series", "TimeSeries defining the acceleration history."),
+            ("vel0", "Initial velocity (optional, default=0.0)."),
+            ("factor", "Constant factor (optional, default=1.0).")
         ]
 
     def get_values(self) -> Dict[str, Union[str, int, float, TimeSeries]]:
-        """
-        Get the parameters defining this pattern
+        """Gets the current parameter values of this pattern.
         
         Returns:
-            Dict[str, Union[str, int, float, TimeSeries]]: Dictionary of parameter values
+            Dictionary of parameter values.
         """
         return {
             "dof": self.dof,
@@ -263,11 +307,11 @@ class UniformExcitation(Pattern):
         }
 
     def update_values(self, **kwargs) -> None:
-        """
-        Update the values of the pattern
+        """Updates the values of the pattern.
         
         Args:
-            **kwargs: Parameters for pattern update
+            **kwargs: Parameters for pattern update. Valid keys are 'dof',
+                'time_series', 'vel0', and 'factor'.
         """
         validated_params = self.validate(**kwargs)
         if "dof" in validated_params:
@@ -281,22 +325,52 @@ class UniformExcitation(Pattern):
 
 
 class H5DRMPattern(Pattern):
-    """
-    H5DRM pattern implements the Domain Reduction Method (DRM) 
-    using the H5DRM data format for seismic analysis.
+    """H5DRM pattern implementing the Domain Reduction Method for seismic analysis.
+
+    This pattern implements the Domain Reduction Method (DRM) using HDF5 data format
+    for efficient seismic wave propagation analysis.
+
+    Attributes:
+        filepath (str): Path to the H5DRM dataset file.
+        factor (float): Scale factor for DRM forces and displacements.
+        crd_scale (float): Scale factor for dataset coordinates.
+        distance_tolerance (float): Tolerance for matching DRM points to FE mesh nodes.
+        do_coordinate_transformation (int): Flag indicating whether to apply coordinate
+            transformation (0 or 1).
+        transform_matrix (list[float]): 3x3 transformation matrix as list of 9 values
+            [T00, T01, T02, T10, T11, T12, T20, T21, T22].
+        origin (list[float]): Origin location after transformation as list of 3 coordinates
+            [x00, x01, x02].
+
+    Example:
+        >>> from femora.components.Pattern.patternBase import H5DRMPattern
+        >>> # pattern = H5DRMPattern(
+        >>> #     filepath="/path/to/drm.h5drm",
+        >>> #     factor=1.0,
+        >>> #     crd_scale=1.0,
+        >>> #     distance_tolerance=0.001,
+        >>> #     do_coordinate_transformation=0,
+        >>> #     transform_matrix=[1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0],
+        >>> #     origin=[0.0, 0.0, 0.0]
+        >>> # )
+        >>> # print(pattern.tag)
+        # Output will vary based on existing patterns
     """
     def __init__(self, **kwargs):
-        """
-        Initialize a H5DRM pattern
-        
+        """Initializes the H5DRM pattern.
+
         Args:
-            filepath (str): Path to the H5DRM dataset
-            factor (float): Scale factor for DRM forces and displacements
-            crd_scale (float): Scale factor for dataset coordinates
-            distance_tolerance (float): Tolerance for DRM point to FE mesh matching
-            do_coordinate_transformation (int): Whether to apply coordinate transformation
-            transform_matrix (list): 3x3 transformation matrix [T00, T01, T02, T10, T11, T12, T20, T21, T22]
-            origin (list): Origin location after transformation [x00, x01, x02]
+            filepath: Path to the H5DRM dataset file.
+            factor: Scale factor for DRM forces and displacements.
+            crd_scale: Scale factor for dataset coordinates.
+            distance_tolerance: Tolerance for DRM point to FE mesh matching.
+            do_coordinate_transformation: Whether to apply coordinate transformation (0 or 1).
+            transform_matrix: 3x3 transformation matrix as list
+                [T00, T01, T02, T10, T11, T12, T20, T21, T22].
+            origin: Origin location after transformation as list [x00, x01, x02].
+
+        Raises:
+            ValueError: If required parameters are missing or invalid.
         """
         super().__init__("H5DRM")
         validated_params = self.validate(**kwargs)
@@ -310,17 +384,16 @@ class H5DRMPattern(Pattern):
 
     @staticmethod
     def validate(**kwargs) -> Dict[str, Union[str, float, int, list]]:
-        """
-        Validate parameters for H5DRM pattern
+        """Validates parameters for H5DRM pattern.
         
         Args:
-            **kwargs: Parameters to validate
+            **kwargs: Parameters to validate.
             
         Returns:
-            Dict[str, Union[str, float, int, list]]: Validated parameters
+            Dictionary: Validated parameters.
             
         Raises:
-            ValueError: If required parameters are missing or invalid
+            ValueError: If required parameters are missing or invalid.
         """
         required_params = [
             "filepath", "factor", "crd_scale", "distance_tolerance", 
@@ -359,7 +432,10 @@ class H5DRMPattern(Pattern):
             transform_matrix = kwargs["transform_matrix"]
             if len(transform_matrix) != 9:
                 raise ValueError("transform_matrix must be a list of 9 values")
-            validated["transform_matrix"] = transform_matrix
+            try:
+                validated["transform_matrix"] = [float(x) for x in transform_matrix]
+            except ValueError:
+                raise ValueError("All values in transform_matrix must be numbers")
         else:
             # Check for individual transformation parameters
             transform_matrix = []
@@ -378,7 +454,10 @@ class H5DRMPattern(Pattern):
             origin = kwargs["origin"]
             if len(origin) != 3:
                 raise ValueError("origin must be a list of 3 values")
-            validated["origin"] = origin
+            try:
+                validated["origin"] = [float(x) for x in origin]
+            except ValueError:
+                raise ValueError("All values in origin must be numbers")
         else:
             # Check for individual origin parameters
             origin = []
@@ -394,11 +473,10 @@ class H5DRMPattern(Pattern):
         return validated
 
     def to_tcl(self) -> str:
-        """
-        Convert the H5DRM pattern to a TCL command string for OpenSees
+        """Converts the H5DRM pattern to a TCL command string for OpenSees.
         
         Returns:
-            str: The TCL command string
+            The TCL command string.
         """
         # Extract transformation matrix and origin values
         T00, T01, T02, T10, T11, T12, T20, T21, T22 = self.transform_matrix
@@ -413,28 +491,27 @@ class H5DRMPattern(Pattern):
 
     @staticmethod
     def get_parameters() -> List[tuple]:
-        """
-        Get the parameters defining this pattern
+        """Gets the parameters defining this pattern for UI/metadata.
         
         Returns:
-            List[tuple]: List of (parameter name, description) tuples
+            List of (parameter name, description) tuples.
         """
         return [
-            ("filepath", "Path to the H5DRM dataset"),
-            ("factor", "Scale factor for DRM forces and displacements"),
-            ("crd_scale", "Scale factor for dataset coordinates"),
-            ("distance_tolerance", "Tolerance for DRM point to FE mesh matching"),
-            ("do_coordinate_transformation", "Whether to apply coordinate transformation (0/1)"),
-            ("transform_matrix", "3x3 transformation matrix [T00, T01, T02, T10, T11, T12, T20, T21, T22]"),
-            ("origin", "Origin location after transformation [x00, x01, x02]")
+            ("filepath", "Path to the H5DRM dataset."),
+            ("factor", "Scale factor for DRM forces and displacements."),
+            ("crd_scale", "Scale factor for dataset coordinates."),
+            ("distance_tolerance", "Tolerance for DRM point to FE mesh matching."),
+            ("do_coordinate_transformation", "Whether to apply coordinate transformation (0/1)."),
+            ("transform_matrix", "3x3 transformation matrix as list "
+                                 "[T00, T01, T02, T10, T11, T12, T20, T21, T22]."),
+            ("origin", "Origin location after transformation as list [x00, x01, x02].")
         ]
 
     def get_values(self) -> Dict[str, Union[str, float, int, list]]:
-        """
-        Get the parameters defining this pattern
+        """Gets the current parameter values of this pattern.
         
         Returns:
-            Dict[str, Union[str, float, int, list]]: Dictionary of parameter values
+            Dictionary of parameter values.
         """
         return {
             "filepath": self.filepath,
@@ -447,11 +524,12 @@ class H5DRMPattern(Pattern):
         }
 
     def update_values(self, **kwargs) -> None:
-        """
-        Update the values of the pattern
+        """Updates the values of the pattern.
         
         Args:
-            **kwargs: Parameters for pattern update
+            **kwargs: Parameters for pattern update. Valid keys are 'filepath',
+                'factor', 'crd_scale', 'distance_tolerance',
+                'do_coordinate_transformation', 'transform_matrix', and 'origin'.
         """
         validated_params = self.validate(**kwargs)
         for key, value in validated_params.items():
@@ -459,8 +537,7 @@ class H5DRMPattern(Pattern):
 
 
 class PlainPattern(Pattern):
-    """
-    Plain load pattern with a shared TimeSeries and contained loads.
+    """Plain load pattern with a shared TimeSeries and contained loads.
 
     The Plain pattern associates a single :class:`TimeSeries` with a collection
     of loads (nodal, elemental, and single-point) and emits a TCL block using
@@ -476,16 +553,27 @@ class PlainPattern(Pattern):
         factor (float): Constant factor applied to all loads in this pattern.
         _loads (List[Load]): Internal list of loads attached to this pattern.
 
-    Examples:
-        Create a plain pattern and add loads via the factory proxy::
-
-            plain = PatternManager().create_pattern('plain', time_series=ts, factor=1.0)
-            plain.add_load.node(node_tag=3, values=[0.0, -50.0, 0.0])
-            plain.add_load.sp(node_mask=mm.nodes.along_axis('z', 9.0, 10.0), dof=2, value=-0.01)
-            plain.add_load.ele(kind='beamUniform', element_mask=mm.elements.by_material(3), params={'Wy': -200.0})
+    Example:
+        >>> from femora.components.Pattern.patternBase import PlainPattern
+        >>> from femora.components.TimeSeries.timeSeriesBase import TimeSeries
+        >>> # Assuming 'my_ts' is a TimeSeries object
+        >>> # plain = PlainPattern(time_series=my_ts, factor=1.0)
+        >>> # # Add loads (examples will use the add_load proxy later)
+        >>> # print(plain.tag)
+        # Output will vary based on existing patterns
     """
 
     def __init__(self, **kwargs):
+        """Initializes a Plain load pattern.
+
+        Args:
+            time_series: The time series instance to be associated with this pattern.
+            factor: Optional. A constant factor applied to all loads in this pattern.
+                Defaults to 1.0.
+
+        Raises:
+            ValueError: If required parameters are missing or invalid.
+        """
         super().__init__("Plain")
         validated = self.validate(**kwargs)
         self.time_series: TimeSeries = validated["time_series"]
@@ -494,16 +582,15 @@ class PlainPattern(Pattern):
 
     @staticmethod
     def validate(**kwargs) -> Dict[str, Union[TimeSeries, float]]:
-        """
-        Validate constructor or update parameters.
+        """Validates constructor or update parameters for PlainPattern.
 
         Args:
             **kwargs: Supported keys are:
-                - time_series (TimeSeries): Required time series instance.
-                - factor (float, optional): Constant factor (default 1.0).
+                - time_series: Required time series instance.
+                - factor: Optional constant factor (default 1.0).
 
         Returns:
-            Dict[str, Union[TimeSeries, float]]: Normalized values.
+            Normalized validated parameters.
 
         Raises:
             ValueError: If required parameters are missing or invalid.
@@ -523,23 +610,22 @@ class PlainPattern(Pattern):
 
     @staticmethod
     def get_parameters() -> List[tuple]:
-        """
-        Get the parameters that define this pattern (for UI/metadata).
+        """Gets the parameters that define this pattern (for UI/metadata).
 
         Returns:
-            List[tuple]: Tuples of (name, description).
+            List of (name, description) tuples.
         """
         return [
-            ("time_series", "TimeSeries used by the load pattern"),
-            ("factor", "Constant factor (optional, default=1.0)"),
+            ("time_series", "TimeSeries used by the load pattern."),
+            ("factor", "Constant factor (optional, default=1.0)."),
         ]
 
     def get_values(self) -> Dict[str, Union[str, int, float, list]]:
-        """
-        Return a serializable dictionary of the current pattern state.
+        """Returns a serializable dictionary of the current pattern state.
 
         Returns:
-            Dict[str, Union[str, int, float, list]]
+            A dictionary containing the pattern's time series, factor,
+            and a list of tags of attached loads.
         """
         return {
             "time_series": self.time_series,
@@ -548,11 +634,10 @@ class PlainPattern(Pattern):
         }
 
     def update_values(self, **kwargs) -> None:
-        """
-        Update the pattern's values.
+        """Updates the pattern's values.
 
         Args:
-            **kwargs: Same keys as :meth:`validate`.
+            **kwargs: Same keys as :meth:`validate` (time_series, factor).
 
         Raises:
             ValueError: If validation fails.
@@ -568,11 +653,10 @@ class PlainPattern(Pattern):
     # Load management (direct)
     # -------------------------------
     def add_load_instance(self, load: Load) -> None:
-        """
-        Attach a load instance to this pattern.
+        """Attaches a load instance to this pattern.
 
         Args:
-            load (Load): The load to attach.
+            load: The load to attach.
 
         Notes:
             Sets ``load.pattern_tag`` to this pattern's tag.
@@ -585,39 +669,35 @@ class PlainPattern(Pattern):
         self._loads.append(load)
 
     def remove_load(self, load: Load) -> None:
-        """
-        Remove a previously attached load instance.
+        """Removes a previously attached load instance.
 
         Args:
-            load (Load): The load to remove.
+            load: The load to remove.
         """
         if load in self._loads:
             self._loads.remove(load)
             load.pattern_tag = None
 
     def clear_loads(self) -> None:
-        """
-        Remove all loads attached to this pattern.
+        """Removes all loads attached to this pattern.
         """
         for l in self._loads:
             l.pattern_tag = None
         self._loads.clear()
 
     def get_loads(self) -> List[Load]:
-        """
-        Get a copy of the attached loads list.
+        """Gets a copy of the attached loads list.
 
         Returns:
-            List[Load]: Loads currently attached to this pattern.
+            A list of loads currently attached to this pattern.
         """
         return list(self._loads)
 
     def to_tcl(self) -> str:
-        """
-        Convert the pattern to a TCL Plain pattern block.
+        """Converts the pattern to a TCL Plain pattern block.
 
         Returns:
-            str: TCL block string for OpenSees.
+            The TCL block string for OpenSees.
         """
         fact = f" -fact {self.factor}" if self.factor != 1.0 else ""
         lines: List[str] = [f"pattern Plain {self.tag} {self.time_series.tag} {fact} {{"]
@@ -630,19 +710,26 @@ class PlainPattern(Pattern):
     # Load management (factory proxy)
     # -------------------------------
     class _AddLoadProxy:
-        """
-        Factory proxy to create loads and attach them to the pattern.
+        """Factory proxy to create loads and attach them to the pattern.
 
         Methods mirror :class:`LoadManager` and return the created load after
         automatically attaching it to the owning pattern.
+
+        Attributes:
+            _pattern (PlainPattern): The PlainPattern instance to which loads will be added.
+            _manager (LoadManager): An instance of LoadManager to create load objects.
         """
         def __init__(self, pattern: 'PlainPattern'):
+            """Initializes the _AddLoadProxy.
+
+            Args:
+                pattern: The PlainPattern instance to which loads will be added.
+            """
             self._pattern = pattern
             self._manager = LoadManager()
 
         def node(self, **kwargs) -> Load:
-            """
-            Add a nodal load to THIS PlainPattern and return the created NodeLoad.
+            """Adds a nodal load to THIS PlainPattern and returns the created NodeLoad.
 
             Purpose:
                 Creates a NodeLoad and immediately attaches it to this pattern so
@@ -651,28 +738,41 @@ class PlainPattern(Pattern):
             OpenSees form:
                 ``load <nodeTag> <values...>``
 
-            Parameters (kwargs):
-                - node_tag (int, optional): Target node tag when applying to a single node.
-                  Mutually exclusive with ``node_mask``.
-                - node_mask (NodeMask, optional): Selects multiple nodes. Mutually
-                  exclusive with ``node_tag``. When provided, one ``load`` line is
-                  emitted per node tag.
-                - values (List[float], required): Reference load vector. When using a
-                  mask, this vector is padded/truncated to each node's DOF.
-                - pids (List[int], optional): Core ids. If omitted and a mask is used,
-                  cores are derived per node from the assembled mesh; otherwise defaults
-                  to ``[0]``.
+            Args:
+                node_tag: Optional. Target node tag when applying to a single node.
+                    Mutually exclusive with ``node_mask``.
+                node_mask: Optional. Selects multiple nodes. Mutually
+                    exclusive with ``node_tag``. When provided, one ``load`` line is
+                    emitted per node tag.
+                values: Required. Reference load vector. When using a
+                    mask, this vector is padded/truncated to each node's DOF.
+                pids: Optional. Core IDs. If omitted and a mask is used,
+                    cores are derived per node from the assembled mesh; otherwise defaults
+                    to ``[0]``.
 
             Returns:
-                Load: The created NodeLoad instance (already attached to this pattern).
+                The created NodeLoad instance (already attached to this pattern).
+
+            Example:
+                >>> from femora.components.Pattern.patternBase import PlainPattern
+                >>> from femora.components.TimeSeries.timeSeriesBase import TimeSeries
+                >>> from femora.components.node.node_mask import NodeMask
+                >>> # Assuming 'my_ts' is a TimeSeries object
+                >>> # plain = PlainPattern(time_series=my_ts, factor=1.0)
+                >>> # # Add a single nodal load
+                >>> # node_load_single = plain.add_load.node(node_tag=1, values=[0.0, -50.0, 0.0])
+                >>> # print(node_load_single.tag)
+                >>> # # Add nodal loads using a mask
+                >>> # my_node_mask = NodeMask(tags=[2, 3])
+                >>> # node_load_masked = plain.add_load.node(node_mask=my_node_mask, values=[10.0, 0.0])
+                >>> # print(node_load_masked.tag)
             """
             load = self._manager.node(**kwargs)
             self._pattern.add_load_instance(load)
             return load
 
         def element(self, **kwargs) -> Load:
-            """
-            Add an element load to THIS PlainPattern and return the created ElementLoad.
+            """Adds an element load to THIS PlainPattern and returns the created ElementLoad.
 
             Purpose:
                 Creates an ElementLoad and immediately attaches it to this pattern so
@@ -684,39 +784,53 @@ class PlainPattern(Pattern):
                 - 2D point:   ``eleLoad -ele/-range ... -type -beamPoint   Py xL [Px]``
                 - 3D point:   ``eleLoad -ele/-range ... -type -beamPoint   Py Pz xL [Px]``
 
-            Parameters (kwargs):
-                - kind (str, required): ``'beamUniform'`` or ``'beamPoint'``.
-                - element_mask (ElementMask, optional): Selects elements; preferred.
-                  Alternatively specify exactly one of:
-                    - ele_tags (List[int]): Explicit element tags list
-                    - ele_range (Tuple[int,int]): Inclusive tag range ``(start, end)``
-                - params (Dict[str,float], required):
+            Args:
+                kind: Required. ``'beamUniform'`` or ``'beamPoint'``.
+                element_mask: Optional. Selects elements; preferred.
+                    Alternatively specify exactly one of:
+                    - ele_tags (list[int]): Explicit element tags list.
+                    - ele_range (tuple[int, int]): Inclusive tag range ``(start, end)``.
+                params: Required. Dictionary of parameters for the specific load kind.
                     For ``beamUniform``: ``Wy`` (required), optional ``Wz``, ``Wx``.
                     For ``beamPoint``: ``Py`` and ``xL`` (required), optional ``Pz``, ``Px``.
-                - pid (int, optional): Core id. If omitted and a mask is used, pid is
-                  derived from the first selected element's core; otherwise defaults to 0.
+                pid: Optional. Core ID. If omitted and a mask is used, pid is
+                    derived from the first selected element's core; otherwise defaults to 0.
 
             Returns:
-                Load: The created ElementLoad instance (already attached to this pattern).
+                The created ElementLoad instance (already attached to this pattern).
+
+            Example:
+                >>> from femora.components.Pattern.patternBase import PlainPattern
+                >>> from femora.components.TimeSeries.timeSeriesBase import TimeSeries
+                >>> # Assuming 'my_ts' is a TimeSeries object
+                >>> # plain = PlainPattern(time_series=my_ts, factor=1.0)
+                >>> # # Add a uniform beam load to elements by tags
+                >>> # ele_load_uniform = plain.add_load.element(kind='beamUniform',
+                >>> #                                         ele_tags=[1, 2],
+                >>> #                                         params={'Wy': -200.0})
+                >>> # print(ele_load_uniform.tag)
+                >>> # # Add a point beam load to a range of elements
+                >>> # ele_load_point = plain.add_load.element(kind='beamPoint',
+                >>> #                                       ele_range=(3, 5),
+                >>> #                                       params={'Py': -50.0, 'xL': 0.5})
+                >>> # print(ele_load_point.tag)
             """
             load = self._manager.element(**kwargs)
             self._pattern.add_load_instance(load)
             return load
 
         def ele(self, **kwargs) -> Load:
-            """
-            Alias of ``element``: adds an element load to THIS PlainPattern.
+            """Alias of ``element``: adds an element load to THIS PlainPattern.
 
             See :meth:`element` for parameters and behavior.
 
             Returns:
-                Load: The created ElementLoad instance (attached to this pattern).
+                The created ElementLoad instance (attached to this pattern).
             """
             return self.element(**kwargs)
 
         def sp(self, **kwargs) -> Load:
-            """
-            Add a single-point constraint to THIS PlainPattern and return the created SpLoad.
+            """Adds a single-point constraint to THIS PlainPattern and returns the created SpLoad.
 
             Purpose:
                 Creates an SpLoad and immediately attaches it to this pattern so it is
@@ -725,20 +839,34 @@ class PlainPattern(Pattern):
             OpenSees form:
                 ``sp <nodeTag> <dof> <value>``
 
-            Parameters (kwargs):
-                - node_tag (int, optional): Target node tag when applying to a single node.
-                  Mutually exclusive with ``node_mask``.
-                - node_mask (NodeMask, optional): Selects multiple nodes. Mutually
-                  exclusive with ``node_tag``. When provided, one ``sp`` line is emitted
-                  per node tag.
-                - dof (int, required): 1-based DOF index.
-                - value (float, required): Prescribed value.
-                - pids (List[int], optional): Core ids. If omitted and a mask is used,
-                  cores are derived per node from the assembled mesh; otherwise defaults
-                  to ``[0]``.
+            Args:
+                node_tag: Optional. Target node tag when applying to a single node.
+                    Mutually exclusive with ``node_mask``.
+                node_mask: Optional. Selects multiple nodes. Mutually
+                    exclusive with ``node_tag``. When provided, one ``sp`` line is emitted
+                    per node tag.
+                dof: Required. 1-based DOF index.
+                value: Required. Prescribed value.
+                pids: Optional. Core IDs. If omitted and a mask is used,
+                    cores are derived per node from the assembled mesh; otherwise defaults
+                    to ``[0]``.
 
             Returns:
-                Load: The created SpLoad instance (already attached to this pattern).
+                The created SpLoad instance (already attached to this pattern).
+
+            Example:
+                >>> from femora.components.Pattern.patternBase import PlainPattern
+                >>> from femora.components.TimeSeries.timeSeriesBase import TimeSeries
+                >>> from femora.components.node.node_mask import NodeMask
+                >>> # Assuming 'my_ts' is a TimeSeries object
+                >>> # plain = PlainPattern(time_series=my_ts, factor=1.0)
+                >>> # # Add a single-point constraint to a specific node
+                >>> # sp_load_single = plain.add_load.sp(node_tag=4, dof=2, value=-100.0)
+                >>> # print(sp_load_single.tag)
+                >>> # # Add single-point constraints to multiple nodes via mask
+                >>> # my_node_mask = NodeMask(tags=[5, 6])
+                >>> # sp_load_masked = plain.add_load.sp(node_mask=my_node_mask, dof=1, value=50.0)
+                >>> # print(sp_load_masked.tag)
             """
             load = self._manager.sp(**kwargs)
             self._pattern.add_load_instance(load)
@@ -746,19 +874,40 @@ class PlainPattern(Pattern):
 
     @property
     def add_load(self) -> '_AddLoadProxy':
-        """
-        Access a proxy that can create and attach loads to this pattern.
+        """Access a proxy that can create and attach loads to this pattern.
 
         Examples:
-            plain.add_load.node(node_tag=3, values=[0.0, -50.0, 0.0])
-            plain.add_load.sp(node_tag=4, dof=2, value=-100.0)
-            plain.add_load.ele(kind="beamUniform", ele_tags=[3], params={"Wy": -200.0})
+            >>> from femora.components.Pattern.patternBase import PlainPattern
+            >>> from femora.components.TimeSeries.timeSeriesBase import TimeSeries
+            >>> from femora.components.node.node_mask import NodeMask
+            >>> # Assuming 'my_ts' is a TimeSeries object
+            >>> # plain = PlainPattern(time_series=my_ts, factor=1.0)
+            >>> # plain.add_load.node(node_tag=3, values=[0.0, -50.0, 0.0])
+            >>> # plain.add_load.sp(node_tag=4, dof=2, value=-100.0)
+            >>> # plain.add_load.ele(kind="beamUniform", ele_tags=[3], params={"Wy": -200.0})
         """
         return PlainPattern._AddLoadProxy(self)
 
 class PatternRegistry:
-    """
-    A registry to manage pattern types and their creation.
+    """Registry for managing pattern types and their creation.
+
+    This class provides a centralized system for registering pattern classes
+    and creating pattern instances dynamically by type name.
+
+    Attributes:
+        _pattern_types (Dict[str, Type[Pattern]]): Class-level dictionary mapping
+            pattern type names to their pattern classes.
+
+    Example:
+        >>> from femora.components.Pattern.patternBase import PatternRegistry, PlainPattern
+        >>> # Assuming 'CustomPattern' is a class inheriting from Pattern
+        >>> # PatternRegistry.register_pattern_type('custom', CustomPattern)
+        >>> # # Create a pattern (assuming a time series 'ts' exists)
+        >>> # pattern = PatternRegistry.create_pattern('plain', time_series=ts)
+        >>> # print(pattern.pattern_type)
+        >>> types = PatternRegistry.get_pattern_types()
+        >>> print('plain' in types)
+        True
     """
     _pattern_types = {
         'uniformexcitation': UniformExcitation,
@@ -768,39 +917,36 @@ class PatternRegistry:
 
     @classmethod
     def register_pattern_type(cls, name: str, pattern_class: Type[Pattern]):
-        """
-        Register a new pattern type for easy creation.
-        
+        """Registers a new pattern type for easy creation.
+
         Args:
-            name (str): The name of the pattern type
-            pattern_class (Type[Pattern]): The class of the pattern
+            name: The name of the pattern type (case-insensitive).
+            pattern_class: The class of the pattern to register.
         """
         cls._pattern_types[name.lower()] = pattern_class
 
     @classmethod
-    def get_pattern_types(cls):
-        """
-        Get available pattern types.
-        
+    def get_pattern_types(cls) -> List[str]:
+        """Gets available pattern types.
+
         Returns:
-            List[str]: Available pattern types
+            A list of registered pattern type names.
         """
         return list(cls._pattern_types.keys())
 
     @classmethod
     def create_pattern(cls, pattern_type: str, **kwargs) -> Pattern:
-        """
-        Create a new pattern of a specific type.
-        
+        """Creates a new pattern of a specific type.
+
         Args:
-            pattern_type (str): Type of pattern to create
-            **kwargs: Parameters for pattern initialization
-        
+            pattern_type: The type of pattern to create (case-insensitive).
+            **kwargs: Parameters for pattern initialization.
+
         Returns:
-            Pattern: A new pattern instance
-        
+            A new pattern instance.
+
         Raises:
-            KeyError: If the pattern type is not registered
+            KeyError: If the pattern type is not registered.
         """
         if pattern_type.lower() not in cls._pattern_types:
             raise KeyError(f"Pattern type {pattern_type} not registered")
@@ -809,12 +955,37 @@ class PatternRegistry:
 
 
 class PatternManager:
-    """
-    Singleton class for managing load patterns
+    """Singleton manager class for creating and managing load patterns.
+
+    This class provides a unified interface for creating patterns with
+    convenient access to pattern types. It ensures only one instance
+    of the manager exists.
+
+    Attributes:
+        uniformexcitation (Type[UniformExcitation]): Reference to UniformExcitation class.
+        h5drm (Type[H5DRMPattern]): Reference to H5DRMPattern class.
+        plain (Type[PlainPattern]): Reference to PlainPattern class.
+
+    Example:
+        >>> from femora.components.Pattern.patternBase import PatternManager, PlainPattern
+        >>> from femora.components.TimeSeries.timeSeriesBase import TimeSeries
+        >>> # Get the singleton instance
+        >>> manager = PatternManager()
+        >>> # Assuming 'my_ts' is a TimeSeries object
+        >>> # pattern = manager.create_pattern('plain', time_series=my_ts, factor=1.0)
+        >>> # print(pattern.pattern_type)
+        >>> all_patterns = manager.get_all_patterns()
+        >>> types = manager.get_available_types()
+        >>> print('plain' in types)
+        True
     """
     _instance = None
 
     def __init__(self):
+        """Initializes the PatternManager.
+
+        References to specific pattern classes are stored for direct access.
+        """
         self.uniformexcitation = UniformExcitation
         self.h5drm = H5DRMPattern
         self.plain = PlainPattern
@@ -825,28 +996,61 @@ class PatternManager:
         return cls._instance
 
     def create_pattern(self, pattern_type: str, **kwargs) -> Pattern:
-        """Create a new pattern"""
+        """Creates a new pattern.
+
+        Args:
+            pattern_type: The type of pattern to create (case-insensitive).
+            **kwargs: Parameters for pattern initialization.
+
+        Returns:
+            The created pattern instance.
+
+        Raises:
+            KeyError: If the pattern type is not registered.
+        """
         return PatternRegistry.create_pattern(pattern_type, **kwargs)
 
     def get_pattern(self, tag: int) -> Pattern:
-        """Get pattern by tag"""
+        """Gets a pattern by its tag.
+
+        Args:
+            tag: The tag of the pattern to retrieve.
+
+        Returns:
+            The pattern with the specified tag.
+
+        Raises:
+            KeyError: If no pattern with the given tag exists.
+        """
         return Pattern.get_pattern(tag)
 
     def remove_pattern(self, tag: int) -> None:
-        """Remove pattern by tag"""
+        """Removes a pattern by its tag.
+
+        Args:
+            tag: The tag of the pattern to remove.
+        """
         Pattern.remove_pattern(tag)
 
     def get_all_patterns(self) -> Dict[int, Pattern]:
-        """Get all patterns"""
+        """Gets all patterns.
+
+        Returns:
+            A dictionary of all patterns, keyed by their tags.
+        """
         return Pattern.get_all_patterns()
 
     def get_available_types(self) -> List[str]:
-        """Get list of available pattern types"""
+        """Gets a list of available pattern types.
+
+        Returns:
+            A list of registered pattern type names.
+        """
         return PatternRegistry.get_pattern_types()
-    
-    def clear_all(self):
-        """Clear all patterns"""  
+
+    def clear_all(self) -> None:
+        """Clears all patterns.
+
+        This method removes all registered patterns and resets the tag counter.
+        """
         Pattern.clear_all()
-
-
-

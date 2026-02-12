@@ -2,18 +2,31 @@ from abc import ABC, abstractmethod
 from typing import List, Dict, Type, Tuple, Union
 
 class TimeSeries(ABC):
-    """
-    Base abstract class for all time series with simple sequential tagging
+    """Base abstract class for all time series in OpenSees.
+
+    This class provides a foundation for creating and managing time-dependent
+    functions (time series) for load patterns in structural analysis. It handles
+    automatic tag assignment and time series registration.
+
+    Attributes:
+        tag: The unique sequential identifier for this time series.
+        series_type: The type of time series (e.g., 'Constant', 'Linear', 'Path').
+
+    Example:
+        >>> from femora.components.TimeSeries.timeSeriesBase import TimeSeriesManager
+        >>> # Create a time series through the manager
+        >>> # manager = TimeSeriesManager()
+        >>> # ts = manager.create_time_series('constant', factor=1.0)
+        >>> # print(ts.tag)
     """
     _time_series = {}  # Class-level dictionary to track all time series
     _start_tag = 1
 
     def __init__(self, series_type: str):
-        """
-        Initialize a new time series with a sequential tag
-        
+        """Initializes the TimeSeries with a sequential tag.
+
         Args:
-            series_type (str): The type of time series (e.g., 'Constant', 'Linear')
+            series_type: The type of time series (e.g., 'Constant', 'Linear').
         """
         self.tag = len(TimeSeries._time_series) + self._start_tag
         self.series_type = series_type
@@ -23,18 +36,16 @@ class TimeSeries(ABC):
 
     @classmethod
     def get_time_series(cls, tag: int) -> 'TimeSeries':
-        """
-        :no-index:
-        Retrieve a specific time series by its tag.
-        
+        """Retrieves a specific time series by its tag.
+
         Args:
-            tag (int): The tag of the time series
-        
+            tag: The tag of the time series.
+
         Returns:
-            TimeSeries: The time series with the specified tag
-        
+            The time series with the specified tag.
+
         Raises:
-            KeyError: If no time series with the given tag exists
+            KeyError: If no time series with the given tag exists.
         """
         if tag not in cls._time_series:
             raise KeyError(f"No time series found with tag {tag}")
@@ -42,12 +53,10 @@ class TimeSeries(ABC):
 
     @classmethod
     def remove_time_series(cls, tag: int) -> None:
-        """
-        :no-index:
-        Delete a time series by its tag and re-tag all remaining series sequentially.
-        
+        """Deletes a time series by its tag and reassigns remaining tags.
+
         Args:
-            tag (int): The tag of the time series to delete
+            tag: The tag of the time series to delete.
         """
         if tag in cls._time_series:
             del cls._time_series[tag]
@@ -56,8 +65,9 @@ class TimeSeries(ABC):
 
     @classmethod
     def _reassign_tags(cls) -> None:
-        """
-        Reassign tags to all time series sequentially starting from 1.
+        """Reassigns tags to all time series sequentially starting from 1.
+
+        This method rebuilds the time series tracking dictionary with new sequential tags.
         """
         new_time_series = {}
         for idx, series in enumerate(sorted(cls._time_series.values(), key=lambda ts: ts.tag), start=cls._start_tag):
@@ -67,89 +77,128 @@ class TimeSeries(ABC):
 
     @classmethod
     def get_all_time_series(cls) -> Dict[int, 'TimeSeries']:
-        """
-        :no-index:
-        Retrieve all created time series.
-        
+        """Retrieves all created time series.
+
         Returns:
-            Dict[int, TimeSeries]: A dictionary of all time series, keyed by their tags
+            A dictionary of all time series, keyed by their tags.
         """
         return cls._time_series.copy()
 
     @classmethod
     def reset(cls):
+        """Resets all time series and tag counter to initial state.
+
+        This method clears all time series and resets the starting tag to 1.
+        """
         cls._time_series.clear()
         cls._start_tag = 1
         cls._reassign_tags()
 
     @classmethod
     def set_tag_start(cls, start_tag: int):
+        """Sets the starting tag number and reassigns all time series tags.
+
+        Args:
+            start_tag: The new starting tag number.
+        """
         cls._start_tag = start_tag
         cls._reassign_tags()
 
     @classmethod
     def clear_all(cls):
+        """Clears all time series.
+
+        This method removes all registered time series.
+        """
         cls._time_series.clear()
 
 
     @abstractmethod
     def to_tcl(self) -> str:
-        """
-        Convert the time series to a TCL command string for OpenSees
-        
+        """Converts the time series to a TCL command string for OpenSees.
+
+        Subclasses must implement this method to generate the appropriate
+        TCL command for use with OpenSees.
+
         Returns:
-            str: The TCL command string
+            TCL command string representation of the time series.
         """
         pass
 
     @staticmethod
     def get_Parameters() -> List[Tuple[str, str]]:
-        """
-        Get the parameters defining this time series
-        
+        """Gets the parameters defining this time series.
+
+        Subclasses should implement this method to return parameter metadata.
+
         Returns:
-            Dict[str, float]: Dictionary of parameter names and explanations
+            List of (parameter name, description) tuples.
         """
         pass
 
     @abstractmethod
     def get_values(self) -> Dict[str, Union[str, int, float, list]]:
-        """
-        Get the parameters defining this time series
+        """Gets the parameters defining this time series.
+
+        Subclasses must implement this method to return current parameter values.
+
+        Returns:
+            Dictionary of parameter values.
         """
         pass
 
     @abstractmethod
     def update_values(self, **kwargs) -> None:
-        """
-        Update the values of the time series
-        
+        """Updates the values of the time series.
+
+        Subclasses must implement this method to update time series parameters.
+
         Args:
-            **kwargs: Parameters for time series initialization
+            **kwargs: Parameters for time series initialization.
         """
         pass
 
     @staticmethod
     @abstractmethod
     def validate(**kwargs) -> Dict[str, Union[str, list, float, int]]:
-        """
-        Validate the input parameters for creating a TimeSeries
+        """Validates the input parameters for creating a TimeSeries.
+
+        Subclasses must implement this method to validate parameters before creation.
+
+        Args:
+            **kwargs: Parameters to validate.
+
+        Returns:
+            Dictionary of validated parameter values.
+
+        Raises:
+            ValueError: If any parameter is invalid.
         """
         pass
 
 
 
 class ConstantTimeSeries(TimeSeries):
-    """
-    TimeSeries object with constant load factor
+    """Time series with a constant load factor throughout the analysis.
+
+    This time series applies a constant scaling factor to loads, useful for
+    static or constant-amplitude dynamic loads.
+
+    Attributes:
+        factor: The constant load factor value.
+
+    Example:
+        >>> from femora.components.TimeSeries.timeSeriesBase import TimeSeriesManager
+        >>> # Create a constant time series
+        >>> # manager = TimeSeriesManager()
+        >>> # ts = manager.create_time_series('constant', factor=1.5)
+        >>> # print(ts.to_tcl())
     """
     def __init__(self, **kwargs):
-        """
-        Initialize a Constant TimeSeries
-        
+        """Initializes a constant time series with the given factor.
+
         Args:
-            factor (float): The constant load factor value
-            tag (int, optional): Specific tag to use. If None, auto-assigned.
+            factor: The constant load factor value. Defaults to 1.0 if not provided.
         """
         kwargs = self.validate(**kwargs)
         super().__init__('Constant')
@@ -157,35 +206,35 @@ class ConstantTimeSeries(TimeSeries):
 
 
     def to_tcl(self) -> str:
-        """
-        Convert the time series to a TCL command string for OpenSees
-        
+        """Converts the time series to a TCL command string for OpenSees.
+
         Returns:
-            str: The TCL command string
+            TCL command string for the constant time series.
         """
         return f"timeSeries Constant {self.tag} -factor {self.factor}"
 
-    
+
     @staticmethod
     def get_Parameters() -> List[Tuple[str, str]]:
-        """
-        Get the parameters defining this time series
-        
+        """Gets the parameters defining this time series.
+
         Returns:
-            List[Tuple[str, str]]: List of parameter names and explanations
+            List of parameter names and explanations as tuples.
         """
         return [("factor", "The constant load factor value (optional , default: 1.0)")]
     
     @staticmethod
     def validate(**kwargs)-> Dict[str, Union[str, list, float, int]]:
-        """
-        Validate the input parameters for creating a Constant TimeSeries
-        
+        """Validates the input parameters for creating a constant time series.
+
         Args:
-            **kwargs: Parameters for time series initialization
-        
+            **kwargs: Parameters for time series initialization.
+
         Returns:
-            Dict[str, Union[str, list, float, int]]: Dictionary of parameter names and values
+            Dictionary of validated parameter names and values.
+
+        Raises:
+            ValueError: If factor is not a number.
         """
         factor = kwargs.get("factor", 1.0)
         factor = float(factor)
@@ -193,107 +242,135 @@ class ConstantTimeSeries(TimeSeries):
         if not isinstance(factor, (int, float)):
             raise ValueError("factor must be a number")
         return {"factor": factor}
-    
+
     def get_values(self) -> Dict[str, Union[str, int, float, list]]:
-        """
-        Get the parameters defining this time series
+        """Gets the current parameter values of this time series.
+
+        Returns:
+            Dictionary containing the factor value.
         """
         return {"factor": self.factor}
-    
+
     def update_values(self, **kwargs) -> None:
-        """
-        Update the values of the time series
-        
+        """Updates the factor value of the time series.
+
         Args:
-            **kwargs: Parameters for time series initialization
+            **kwargs: Parameters for time series initialization.
         """
         kwargs = self.validate(**kwargs)
         self.factor = kwargs["factor"]
 
 
 class LinearTimeSeries(TimeSeries):
-    """
-    TimeSeries object with linear load factor
+    """Time series with a load factor that varies linearly with time.
+
+    This time series applies a scaling factor that increases linearly with
+    pseudo-time, useful for proportional loading scenarios.
+
+    Attributes:
+        factor: The linear load factor scale multiplier.
+
+    Example:
+        >>> from femora.components.TimeSeries.timeSeriesBase import TimeSeriesManager
+        >>> # Create a linear time series
+        >>> # manager = TimeSeriesManager()
+        >>> # ts = manager.create_time_series('linear', factor=2.0)
+        >>> # print(ts.to_tcl())
     """
     def __init__(self, **kwargs):
-        """
-        Initialize a Linear TimeSeries
-        
+        """Initializes a linear time series with the given factor.
+
         Args:
-            factor (float): The linear load factor scale
-            tag (int, optional): Specific tag to use. If None, auto-assigned.
+            factor: The linear load factor scale. Defaults to 1.0 if not provided.
         """
         kwargs = self.validate(**kwargs)
         super().__init__('Linear')
         self.factor = kwargs["factor"]
 
     def to_tcl(self) -> str:
-        """
-        Convert the time series to a TCL command string for OpenSees
-        
+        """Converts the time series to a TCL command string for OpenSees.
+
         Returns:
-            str: The TCL command string
+            TCL command string for the linear time series.
         """
         return f"timeSeries Linear {self.tag} -factor {self.factor}"
 
     @staticmethod
     def get_Parameters() -> List[Tuple[str, str]]:
-        """
-        Get the parameters defining this time series
-        
+        """Gets the parameters defining this time series.
+
         Returns:
-            List[Tuple[str, str]]: List of parameter names and explanations
+            List of parameter names and explanations as tuples.
         """
         return [("factor", "The linear load factor scale (optional, default: 1.0)")]
     
     @staticmethod
     def validate(**kwargs) -> Dict[str, Union[str, list, float, int]]:
-        """
-        Validate the input parameters for creating a Linear TimeSeries
-        
+        """Validates the input parameters for creating a linear time series.
+
         Args:
-            **kwargs: Parameters for time series initialization
-        
+            **kwargs: Parameters for time series initialization.
+
         Returns:
-            Dict[str, Union[str, list, float, int]]: Dictionary of parameter names and values
+            Dictionary of validated parameter names and values.
+
+        Raises:
+            ValueError: If factor is not a number.
         """
         factor = kwargs.get("factor", 1.0)
         factor = float(factor)
         if not isinstance(factor, (int, float)):
             raise ValueError("factor must be a number")
         return {"factor": factor}
-    
+
     def get_values(self) -> Dict[str, Union[str, int, float, list]]:
-        """
-        Get the parameters defining this time series
+        """Gets the current parameter values of this time series.
+
+        Returns:
+            Dictionary containing the factor value.
         """
         return {"factor": self.factor}
-    
+
     def update_values(self, **kwargs) -> None:
-        """
-        Update the values of the time series
-        
+        """Updates the factor value of the time series.
+
         Args:
-            **kwargs: Parameters for time series initialization
+            **kwargs: Parameters for time series initialization.
         """
         kwargs = self.validate(**kwargs)
         self.factor = kwargs["factor"]
 
 
 class TrigTimeSeries(TimeSeries):
-    """
-    TimeSeries object with sinusoidal load factor
+    """Time series with a sinusoidal load factor.
+
+    This time series applies a sinusoidal (trigonometric) scaling factor,
+    useful for harmonic or cyclic loading scenarios.
+
+    Attributes:
+        tStart: Start time of the time series.
+        tEnd: End time of the time series.
+        period: Period of the sine wave.
+        factor: Load factor amplitude.
+        shift: Phase shift in radians.
+
+    Example:
+        >>> from femora.components.TimeSeries.timeSeriesBase import TimeSeriesManager
+        >>> # Create a sinusoidal time series
+        >>> # manager = TimeSeriesManager()
+        >>> # ts = manager.create_time_series('trig', tStart=0.0, tEnd=10.0,
+        >>> #                                  period=1.0, factor=1.0, shift=0.0)
+        >>> # print(ts.to_tcl())
     """
     def __init__(self, **kwargs):
-        """
-        Initialize a Trig TimeSeries
-        
+        """Initializes a sinusoidal time series with the given parameters.
+
         Args:
-            tStart (float): Start time of time series
-            tEnd (float): End time of time series
-            period (float): Period of sine wave
-            factor (float): Load factor amplitude
-            shift (float): Phase shift in radians
+            tStart: Start time of time series. Defaults to 0.0.
+            tEnd: End time of time series. Defaults to 1.0.
+            period: Period of sine wave. Defaults to 1.0.
+            factor: Load factor amplitude. Defaults to 1.0.
+            shift: Phase shift in radians. Defaults to 0.0.
         """
         kwargs = self.validate(**kwargs)
         super().__init__('Trig')
@@ -304,11 +381,10 @@ class TrigTimeSeries(TimeSeries):
         self.shift = kwargs["shift"]
 
     def to_tcl(self) -> str:
-        """
-        Convert the time series to a TCL command string for OpenSees
-        
+        """Converts the time series to a TCL command string for OpenSees.
+
         Returns:
-            str: The TCL command string
+            TCL command string for the trigonometric time series.
         """
         return (f"timeSeries Trig {self.tag} "
                 f"{self.tStart} {self.tEnd} {self.period} "
@@ -316,11 +392,10 @@ class TrigTimeSeries(TimeSeries):
 
     @staticmethod
     def get_Parameters() -> List[Tuple[str, str]]:
-        """
-        Get the parameters defining this time series
-        
+        """Gets the parameters defining this time series.
+
         Returns:
-            List[Tuple[str, str]]: List of parameter names and explanations
+            List of parameter names and explanations as tuples.
         """
         return [
             ("tStart", "Start time of time series (optional, default: 0.0)"),
@@ -332,14 +407,16 @@ class TrigTimeSeries(TimeSeries):
     
     @staticmethod
     def validate(**kwargs) -> Dict[str, Union[str, list, float, int]]:
-        """
-        Validate the input parameters for creating a Trig TimeSeries
-        
+        """Validates the input parameters for creating a trigonometric time series.
+
         Args:
-            **kwargs: Parameters for time series initialization
-        
+            **kwargs: Parameters for time series initialization.
+
         Returns:
-            Dict[str, Union[str, list, float, int]]: Dictionary of parameter names and values
+            Dictionary of validated parameter names and values.
+
+        Raises:
+            ValueError: If any parameter is not a number, tStart >= tEnd, or period <= 0.
         """
         tStart = kwargs.get("tStart", 0.0)
         tEnd = kwargs.get("tEnd", 1.0)
@@ -387,8 +464,10 @@ class TrigTimeSeries(TimeSeries):
         }
     
     def get_values(self) -> Dict[str, Union[str, int, float, list]]:
-        """
-        Get the parameters defining this time series
+        """Gets the current parameter values of this time series.
+
+        Returns:
+            Dictionary containing tStart, tEnd, period, factor, and shift values.
         """
         return {
             "tStart": self.tStart,
@@ -397,13 +476,12 @@ class TrigTimeSeries(TimeSeries):
             "factor": self.factor,
             "shift": self.shift,
         }
-    
+
     def update_values(self, **kwargs) -> None:
-        """
-        Update the values of the time series
-        
+        """Updates the parameter values of the time series.
+
         Args:
-            **kwargs: Parameters for time series initialization
+            **kwargs: Parameters for time series initialization.
         """
         kwargs = self.validate(**kwargs)
         self.tStart = kwargs["tStart"]
@@ -413,19 +491,35 @@ class TrigTimeSeries(TimeSeries):
         self.shift = kwargs["shift"]
 
 class RampTimeSeries(TimeSeries):
-    """
-    TimeSeries object with ramped load factor from tStart to tEnd
+    """Time series with a ramped load factor from start to end time.
+
+    This time series applies a load that ramps from zero to a target value
+    over a specified duration, with optional smoothness and offset parameters.
+
+    Attributes:
+        tStart: Start time of the ramp.
+        tRamp: Length of time to perform the ramp.
+        smoothness: Smoothness parameter (0.0 to 1.0).
+        offset: Vertical offset amount.
+        cFactor: Load factor scale factor.
+
+    Example:
+        >>> from femora.components.TimeSeries.timeSeriesBase import TimeSeriesManager
+        >>> # Create a ramp time series
+        >>> # manager = TimeSeriesManager()
+        >>> # ts = manager.create_time_series('ramp', tStart=0.0, tRamp=5.0,
+        >>> #                                  smoothness=0.5, cFactor=1.0)
+        >>> # print(ts.to_tcl())
     """
     def __init__(self, **kwargs):
-        """
-        Initialize a Ramp TimeSeries
-        
+        """Initializes a ramp time series with the given parameters.
+
         Args:
-            tStart (float): Start time of ramp
-            tRamp (float): Length of time to perform the ramp
-            smoothness (float): Smoothness parameter (optional, default: 0.0)
-            offset (float): Vertical offset amount (optional, default: 0.0)
-            cFactor (float): Load factor scale factor (optional, default: 1.0)
+            tStart: Start time of ramp. Defaults to 0.0.
+            tRamp: Length of time to perform the ramp. Defaults to 1.0.
+            smoothness: Smoothness parameter (0.0 to 1.0). Defaults to 0.0.
+            offset: Vertical offset amount. Defaults to 0.0.
+            cFactor: Load factor scale factor. Defaults to 1.0.
         """
         kwargs = self.validate(**kwargs)
         super().__init__('Ramp')
@@ -436,11 +530,10 @@ class RampTimeSeries(TimeSeries):
         self.cFactor = kwargs["cFactor"]
 
     def to_tcl(self) -> str:
-        """
-        Convert the time series to a TCL command string for OpenSees
-        
+        """Converts the time series to a TCL command string for OpenSees.
+
         Returns:
-            str: The TCL command string
+            TCL command string for the ramp time series.
         """
         cmd = f"timeSeries Ramp {self.tag} {self.tStart} {self.tRamp}"
         cmd += f" -smooth {self.smoothness}"
@@ -450,11 +543,10 @@ class RampTimeSeries(TimeSeries):
 
     @staticmethod
     def get_Parameters() -> List[Tuple[str, str]]:
-        """
-        Get the parameters defining this time series
-        
+        """Gets the parameters defining this time series.
+
         Returns:
-            List[Tuple[str, str]]: List of parameter names and explanations
+            List of parameter names and explanations as tuples.
         """
         return [
             ("tStart", "Start time of ramp (optional, default: 0.0)"),
@@ -466,14 +558,16 @@ class RampTimeSeries(TimeSeries):
     
     @staticmethod
     def validate(**kwargs) -> Dict[str, Union[str, list, float, int]]:
-        """
-        Validate the input parameters for creating a Ramp TimeSeries
-        
+        """Validates the input parameters for creating a ramp time series.
+
         Args:
-            **kwargs: Parameters for time series initialization
-        
+            **kwargs: Parameters for time series initialization.
+
         Returns:
-            Dict[str, Union[str, list, float, int]]: Dictionary of parameter names and values
+            Dictionary of validated parameter names and values.
+
+        Raises:
+            ValueError: If any parameter is not a number or smoothness is not between 0 and 1.
         """
         tStart = kwargs.get("tStart", 0.0)
         tRamp = kwargs.get("tRamp", 1.0)
@@ -519,8 +613,10 @@ class RampTimeSeries(TimeSeries):
         }
     
     def get_values(self) -> Dict[str, Union[str, int, float, list]]:
-        """
-        Get the parameters defining this time series
+        """Gets the current parameter values of this time series.
+
+        Returns:
+            Dictionary containing tStart, tRamp, smoothness, offset, and cFactor values.
         """
         return {
             "tStart": self.tStart,
@@ -529,13 +625,12 @@ class RampTimeSeries(TimeSeries):
             "offset": self.offset,
             "cFactor": self.cFactor
         }
-    
+
     def update_values(self, **kwargs) -> None:
-        """
-        Update the values of the time series
-        
+        """Updates the parameter values of the time series.
+
         Args:
-            **kwargs: Parameters for time series initialization
+            **kwargs: Parameters for time series initialization.
         """
         kwargs = self.validate(**kwargs)
         self.tStart = kwargs["tStart"]
@@ -547,19 +642,35 @@ class RampTimeSeries(TimeSeries):
 
 
 class TriangularTimeSeries(TimeSeries):
-    """
-    TimeSeries object with triangular load pattern
+    """Time series with a triangular wave load pattern.
+
+    This time series applies a triangular wave scaling factor, useful for
+    cyclic loading with linear ramps.
+
+    Attributes:
+        tStart: Start time of the series.
+        tEnd: End time of the series.
+        period: Period of the triangular wave.
+        factor: Load factor amplitude.
+        shift: Phase shift.
+
+    Example:
+        >>> from femora.components.TimeSeries.timeSeriesBase import TimeSeriesManager
+        >>> # Create a triangular time series
+        >>> # manager = TimeSeriesManager()
+        >>> # ts = manager.create_time_series('triangular', tStart=0.0, tEnd=10.0,
+        >>> #                                  period=2.0, factor=1.0, shift=0.0)
+        >>> # print(ts.to_tcl())
     """
     def __init__(self, **kwargs):
-        """
-        Initialize a Triangular TimeSeries
-        
+        """Initializes a triangular time series with the given parameters.
+
         Args:
-            tStart (float): Start time of series
-            tEnd (float): End time of series
-            period (float): Period of triangular wave
-            factor (float): Load factor amplitude
-            shift (float): Phase shift
+            tStart: Start time of series. Defaults to 0.0.
+            tEnd: End time of series. Defaults to 1.0.
+            period: Period of triangular wave. Defaults to 1.0.
+            factor: Load factor amplitude. Defaults to 1.0.
+            shift: Phase shift. Defaults to 0.0.
         """
         kwargs = self.validate(**kwargs)
         super().__init__('Triangular')
@@ -570,11 +681,10 @@ class TriangularTimeSeries(TimeSeries):
         self.shift = kwargs["shift"]
 
     def to_tcl(self) -> str:
-        """
-        Convert the time series to a TCL command string for OpenSees
-        
+        """Converts the time series to a TCL command string for OpenSees.
+
         Returns:
-            str: The TCL command string
+            TCL command string for the triangular time series.
         """
         return (f"timeSeries Triangular {self.tag} "
                 f"{self.tStart} {self.tEnd} {self.period} "
@@ -582,11 +692,10 @@ class TriangularTimeSeries(TimeSeries):
 
     @staticmethod
     def get_Parameters() -> List[Tuple[str, str]]:
-        """
-        Get the parameters defining this time series
-        
+        """Gets the parameters defining this time series.
+
         Returns:
-            List[Tuple[str, str]]: List of parameter names and explanations
+            List of parameter names and explanations as tuples.
         """
         return [
             ("tStart", "Start time of series (optional, default: 0.0)"),
@@ -598,14 +707,16 @@ class TriangularTimeSeries(TimeSeries):
     
     @staticmethod
     def validate(**kwargs) -> Dict[str, Union[str, list, float, int]]:
-        """
-        Validate the input parameters for creating a Triangular TimeSeries
-        
+        """Validates the input parameters for creating a triangular time series.
+
         Args:
-            **kwargs: Parameters for time series initialization
-        
+            **kwargs: Parameters for time series initialization.
+
         Returns:
-            Dict[str, Union[str, list, float, int]]: Dictionary of parameter names and values
+            Dictionary of validated parameter names and values.
+
+        Raises:
+            ValueError: If any parameter is not a number, tStart >= tEnd, or period <= 0.
         """
         tStart = kwargs.get("tStart", 0.0)
         tEnd = kwargs.get("tEnd", 1.0)
@@ -648,8 +759,10 @@ class TriangularTimeSeries(TimeSeries):
         }
     
     def get_values(self) -> Dict[str, Union[str, int, float, list]]:
-        """
-        Get the parameters defining this time series
+        """Gets the current parameter values of this time series.
+
+        Returns:
+            Dictionary containing tStart, tEnd, period, factor, and shift values.
         """
         return {
             "tStart": self.tStart,
@@ -658,13 +771,12 @@ class TriangularTimeSeries(TimeSeries):
             "factor": self.factor,
             "shift": self.shift
         }
-    
+
     def update_values(self, **kwargs) -> None:
-        """
-        Update the values of the time series
-        
+        """Updates the parameter values of the time series.
+
         Args:
-            **kwargs: Parameters for time series initialization
+            **kwargs: Parameters for time series initialization.
         """
         kwargs = self.validate(**kwargs)
         self.tStart = kwargs["tStart"]
@@ -675,17 +787,35 @@ class TriangularTimeSeries(TimeSeries):
 
 
 class RectangularTimeSeries(TimeSeries):
-    """
-    TimeSeries object with rectangular (step) load pattern
+    """Time series with a rectangular (step) wave load pattern.
+
+    This time series applies a rectangular wave scaling factor, creating
+    step-function loading patterns.
+
+    Attributes:
+        tStart: Start time of the series.
+        tEnd: End time of the series.
+        factor: Load factor amplitude.
+        period: Period of the rectangular wave.
+        shift: Phase shift.
+
+    Example:
+        >>> from femora.components.TimeSeries.timeSeriesBase import TimeSeriesManager
+        >>> # Create a rectangular time series
+        >>> # manager = TimeSeriesManager()
+        >>> # ts = manager.create_time_series('rectangular', tStart=0.0, tEnd=10.0,
+        >>> #                                  period=2.0, factor=1.0, shift=0.0)
+        >>> # print(ts.to_tcl())
     """
     def __init__(self, **kwargs):
-        """
-        Initialize a Rectangular TimeSeries
-        
+        """Initializes a rectangular time series with the given parameters.
+
         Args:
-            tStart (float): Start time of series
-            tEnd (float): End time of series
-            factor (float): Load factor amplitude
+            tStart: Start time of series. Defaults to 0.0.
+            tEnd: End time of series. Defaults to 1.0.
+            factor: Load factor amplitude. Defaults to 1.0.
+            period: Period of rectangular wave. Defaults to 0.0.
+            shift: Phase shift. Defaults to 0.0.
         """
         kwargs = self.validate(**kwargs)
         super().__init__('Rectangular')
@@ -696,22 +826,20 @@ class RectangularTimeSeries(TimeSeries):
         self.shift = kwargs["shift"]
 
     def to_tcl(self) -> str:
-        """
-        Convert the time series to a TCL command string for OpenSees
-        
+        """Converts the time series to a TCL command string for OpenSees.
+
         Returns:
-            str: The TCL command string
+            TCL command string for the rectangular time series.
         """
         return (f"timeSeries Rectangular {self.tag} "
                 f"{self.tStart} {self.tEnd}  {self.period} -shift {self.shift} -factor {self.factor}")
 
     @staticmethod
     def get_Parameters() -> List[Tuple[str, str]]:
-        """
-        Get the parameters defining this time series
-        
+        """Gets the parameters defining this time series.
+
         Returns:
-            List[Tuple[str, str]]: List of parameter names and explanations
+            List of parameter names and explanations as tuples.
         """
         return [
             ("tStart", "Start time of series (optional, default: 0.0)"),
@@ -723,14 +851,16 @@ class RectangularTimeSeries(TimeSeries):
     
     @staticmethod
     def validate(**kwargs) -> Dict[str, Union[str, list, float, int]]:
-        """
-        Validate the input parameters for creating a Rectangular TimeSeries
-        
+        """Validates the input parameters for creating a rectangular time series.
+
         Args:
-            **kwargs: Parameters for time series initialization
-        
+            **kwargs: Parameters for time series initialization.
+
         Returns:
-            Dict[str, Union[str, list, float, int]]: Dictionary of parameter names and values
+            Dictionary of validated parameter names and values.
+
+        Raises:
+            ValueError: If any parameter is not a number, tStart >= tEnd, or period <= 0.
         """
         tStart = kwargs.get("tStart", 0.0)
         tEnd = kwargs.get("tEnd", 1.0)
@@ -780,8 +910,10 @@ class RectangularTimeSeries(TimeSeries):
         }
     
     def get_values(self) -> Dict[str, Union[str, int, float, list]]:
-        """
-        Get the parameters defining this time series
+        """Gets the current parameter values of this time series.
+
+        Returns:
+            Dictionary containing tStart, tEnd, factor, period, and shift values.
         """
         return {
             "tStart": self.tStart,
@@ -790,13 +922,12 @@ class RectangularTimeSeries(TimeSeries):
             "period": self.period,
             "shift": self.shift
         }
-    
+
     def update_values(self, **kwargs) -> None:
-        """
-        Update the values of the time series
-        
+        """Updates the parameter values of the time series.
+
         Args:
-            **kwargs: Parameters for time series initialization
+            **kwargs: Parameters for time series initialization.
         """
         kwargs = self.validate(**kwargs)
         self.tStart = kwargs["tStart"]
@@ -808,20 +939,37 @@ class RectangularTimeSeries(TimeSeries):
 
 
 class PulseTimeSeries(TimeSeries):
-    """
-    TimeSeries object with pulse load pattern
+    """Time series with a pulsed load pattern.
+
+    This time series applies a periodic pulse scaling factor, useful for
+    intermittent or impulsive loading scenarios.
+
+    Attributes:
+        tStart: Start time of the pulse.
+        tEnd: End time of the pulse.
+        period: Period of the pulse.
+        width: Width of pulse as a fraction of period (0 to 1).
+        factor: Load factor amplitude.
+        shift: Phase shift.
+
+    Example:
+        >>> from femora.components.TimeSeries.timeSeriesBase import TimeSeriesManager
+        >>> # Create a pulse time series
+        >>> # manager = TimeSeriesManager()
+        >>> # ts = manager.create_time_series('pulse', tStart=0.0, tEnd=10.0,
+        >>> #                                  period=1.0, width=0.3, factor=1.0, shift=0.0)
+        >>> # print(ts.to_tcl())
     """
     def __init__(self, **kwargs):
-        """
-        Initialize a Pulse TimeSeries
-        
+        """Initializes a pulse time series with the given parameters.
+
         Args:
-            tStart (float): Start time of pulse
-            tEnd (float): End time of pulse
-            period (float): Period of pulse
-            width (float): Width of pulse as a fraction of period
-            factor (float): Load factor amplitude
-            shift (float): Phase shift
+            tStart: Start time of pulse. Defaults to 0.0.
+            tEnd: End time of pulse. Defaults to 1.0.
+            period: Period of pulse. Defaults to 1.0.
+            width: Width of pulse as a fraction of period (0 to 1). Defaults to 0.5.
+            factor: Load factor amplitude. Defaults to 1.0.
+            shift: Phase shift. Defaults to 0.0.
         """
         kwargs = self.validate(**kwargs)
         super().__init__('Pulse')
@@ -833,11 +981,10 @@ class PulseTimeSeries(TimeSeries):
         self.shift = kwargs["shift"]
 
     def to_tcl(self) -> str:
-        """
-        Convert the time series to a TCL command string for OpenSees
-        
+        """Converts the time series to a TCL command string for OpenSees.
+
         Returns:
-            str: The TCL command string
+            TCL command string for the pulse time series.
         """
         return (f"timeSeries Pulse {self.tag} "
                 f"{self.tStart} {self.tEnd} {self.period} -width {self.width} "
@@ -845,11 +992,10 @@ class PulseTimeSeries(TimeSeries):
 
     @staticmethod
     def get_Parameters() -> List[Tuple[str, str]]:
-        """
-        Get the parameters defining this time series
-        
+        """Gets the parameters defining this time series.
+
         Returns:
-            List[Tuple[str, str]]: List of parameter names and explanations
+            List of parameter names and explanations as tuples.
         """
         return [
             ("tStart", "Start time of pulse (optional, default: 0.0)"),
@@ -862,14 +1008,17 @@ class PulseTimeSeries(TimeSeries):
     
     @staticmethod
     def validate(**kwargs) -> Dict[str, Union[str, list, float, int]]:
-        """
-        Validate the input parameters for creating a Pulse TimeSeries
-        
+        """Validates the input parameters for creating a pulse time series.
+
         Args:
-            **kwargs: Parameters for time series initialization
-        
+            **kwargs: Parameters for time series initialization.
+
         Returns:
-            Dict[str, Union[str, list, float, int]]: Dictionary of parameter names and values
+            Dictionary of validated parameter names and values.
+
+        Raises:
+            ValueError: If any parameter is not a number, tStart >= tEnd, period <= 0,
+                or width is not between 0 and 1.
         """
         tStart = kwargs.get("tStart", 0.0)
         tEnd = kwargs.get("tEnd", 1.0)
@@ -920,8 +1069,10 @@ class PulseTimeSeries(TimeSeries):
         }
     
     def get_values(self) -> Dict[str, Union[str, int, float, list]]:
-        """
-        Get the parameters defining this time series
+        """Gets the current parameter values of this time series.
+
+        Returns:
+            Dictionary containing tStart, tEnd, period, width, factor, and shift values.
         """
         return {
             "tStart": self.tStart,
@@ -931,13 +1082,12 @@ class PulseTimeSeries(TimeSeries):
             "factor": self.factor,
             "shift": self.shift,
         }
-    
+
     def update_values(self, **kwargs) -> None:
-        """
-        Update the values of the time series
-        
+        """Updates the parameter values of the time series.
+
         Args:
-            **kwargs: Parameters for time series initialization
+            **kwargs: Parameters for time series initialization.
         """
         kwargs = self.validate(**kwargs)
         self.tStart = kwargs["tStart"]
@@ -949,44 +1099,45 @@ class PulseTimeSeries(TimeSeries):
 
 
 class PathTimeSeries(TimeSeries):
-    """
-    TimeSeries object that interpolates between defined time and load factor points
+    """Time series that interpolates between defined time and load factor points.
 
-    Args:
-        dt (float): Time increment for path
-        values (list): List of force values
-        filePath (str): Path to file containing force values
-        factor (float): Scale factor for force values
-        useLast (bool): Use last force value beyond the last time point if true
-        prependZero (bool): Prepend a zero value at the start
-        startTime (float): Start time of the time series
-        time (list): List of time points
-        fileTime (str): Path to file containing time points
+    This time series loads values from a file or list and interpolates between
+    points, useful for earthquake ground motions or custom loading histories.
+
+    Attributes:
+        dt: Time increment for path.
+        values: List of force values (if not using filePath).
+        filePath: Path to file containing force values.
+        factor: Scale factor for force values.
+        useLast: Whether to use last force value beyond the last time point.
+        prependZero: Whether to prepend a zero value at the start.
+        startTime: Start time of the time series.
+        time: List of time points (if not using dt or fileTime).
+        fileTime: Path to file containing time points.
 
     Example:
-        timeseries = fm.timeSeries.path(
-            dt=0.02,
-            values=[0.0, 1.0, 0.0],
-            filePath="CFG2_ax_base_02g_avg.acc",
-            factor=9.81,
-        )
-
-    
+        >>> from femora.components.TimeSeries.timeSeriesBase import TimeSeriesManager
+        >>> # Create a path time series from file
+        >>> # manager = TimeSeriesManager()
+        >>> # ts = manager.create_time_series('path', dt=0.02,
+        >>> #                                  filePath="ground_motion.acc", factor=9.81)
+        >>> # Create a path time series from values
+        >>> # ts2 = manager.create_time_series('path', dt=0.01,
+        >>> #                                   values="0.0,1.0,0.5,0.0", factor=1.0)
     """
     def __init__(self, **kwargs):
-        """
-        Initialize a Path TimeSeries
-        
+        """Initializes a path time series with the given parameters.
+
         Args:
-            dt (float): Time increment for path
-            values (list): List of force values
-            filePath (str): Path to file containing force values
-            factor (float): Scale factor for force values
-            useLast (bool): Use last force value beyond the last time point if true
-            prependZero (bool): Prepend a zero value at the start
-            startTime (float): Start time of the time series
-            time (list): List of time points
-            fileTime (str): Path to file containing time points
+            dt: Time increment for path. Required if time or fileTime not provided.
+            values: List of force values. Required if filePath not provided.
+            filePath: Path to file containing force values. Required if values not provided.
+            factor: Scale factor for force values. Defaults to 1.0.
+            useLast: Use last force value beyond the last time point. Defaults to False.
+            prependZero: Prepend a zero value at the start. Defaults to False.
+            startTime: Start time of the time series. Defaults to 0.0.
+            time: List of time points. Alternative to dt or fileTime.
+            fileTime: Path to file containing time points. Alternative to dt or time.
         """
         kwargs = self.validate(**kwargs)
         super().__init__('Path')
@@ -1001,11 +1152,10 @@ class PathTimeSeries(TimeSeries):
         self.fileTime = kwargs.get("fileTime")
 
     def to_tcl(self) -> str:
-        """
-        Convert the time series to a TCL command string for OpenSees
-        
+        """Converts the time series to a TCL command string for OpenSees.
+
         Returns:
-            str: The TCL command string
+            TCL command string for the path time series.
         """
         cmd = f"timeSeries Path {self.tag}"
         if self.dt is not None:
@@ -1032,11 +1182,10 @@ class PathTimeSeries(TimeSeries):
 
     @staticmethod
     def get_Parameters() -> List[Tuple[str, str]]:
-        """
-        Get the parameters defining this time series
-        
+        """Gets the parameters defining this time series.
+
         Returns:
-            List[Tuple[str, str]]: List of parameter names and explanations
+            List of parameter names and explanations as tuples.
         """
         return [
             ("dt", "Time increment for path"),
@@ -1052,14 +1201,17 @@ class PathTimeSeries(TimeSeries):
     
     @staticmethod
     def validate(**kwargs) -> Dict[str, Union[str, list, float, int, bool]]:
-        """
-        Validate the input parameters for creating a Path TimeSeries
-        
+        """Validates the input parameters for creating a path time series.
+
         Args:
-            **kwargs: Parameters for time series initialization
-        
+            **kwargs: Parameters for time series initialization.
+
         Returns:
-            Dict[str, Union[str, list, float, int, bool]]: Dictionary of parameter names and values
+            Dictionary of validated parameter names and values.
+
+        Raises:
+            ValueError: If required parameters are missing, invalid types provided,
+                or conflicting parameters are specified.
         """
         dt = kwargs.get("dt")
         factor = kwargs.get("factor", 1.0)
@@ -1144,8 +1296,10 @@ class PathTimeSeries(TimeSeries):
         }
     
     def get_values(self) -> Dict[str, Union[str, int, float, list, bool]]:
-        """
-        Get the parameters defining this time series
+        """Gets the current parameter values of this time series.
+
+        Returns:
+            Dictionary containing all path time series parameters.
         """
         return {
             "dt": self.dt,
@@ -1158,13 +1312,12 @@ class PathTimeSeries(TimeSeries):
             "time": ",".join(map(str, self.time)) if self.time else None,
             "fileTime": self.fileTime
         }
-    
+
     def update_values(self, **kwargs) -> None:
-        """
-        Update the values of the time series
-        
+        """Updates the parameter values of the time series.
+
         Args:
-            **kwargs: Parameters for time series initialization
+            **kwargs: Parameters for time series initialization.
         """
         kwargs = self.validate(**kwargs)
         self.dt = kwargs["dt"]
@@ -1181,8 +1334,24 @@ class PathTimeSeries(TimeSeries):
 
 
 class TimeSeriesRegistry:
-    """
-    A registry to manage time series types and their creation.
+    """Registry for managing time series types and their creation.
+
+    This class provides a centralized system for registering time series classes
+    and creating time series instances dynamically by type name.
+
+    Attributes:
+        _time_series_types: Class-level dictionary mapping time series type names
+            to their time series classes.
+
+    Example:
+        >>> from femora.components.TimeSeries.timeSeriesBase import TimeSeriesRegistry
+        >>> # Register a custom time series type
+        >>> # TimeSeriesRegistry.register_time_series_type('custom', CustomTimeSeries)
+        >>> # Create a time series
+        >>> # ts = TimeSeriesRegistry.create_time_series('constant', factor=1.0)
+        >>> types = TimeSeriesRegistry.get_time_series_types()
+        >>> print('constant' in types)
+        True
     """
     _time_series_types = {
         'constant': ConstantTimeSeries,
@@ -1197,41 +1366,36 @@ class TimeSeriesRegistry:
 
     @classmethod
     def register_time_series_type(cls, name: str, series_class: Type[TimeSeries]):
-        """
-        Register a new time series type for easy creation.
-        
+        """Registers a new time series type for easy creation.
+
         Args:
-            name (str): The name of the time series type
-            series_class (Type[TimeSeries]): The class of the time series
+            name: The name of the time series type (case-insensitive).
+            series_class: The class of the time series to register.
         """
         cls._time_series_types[name.lower()] = series_class
 
     @classmethod
     def get_time_series_types(cls):
-        """
-        :no-index:
-        Get available time series types.
-        
+        """Gets available time series types.
+
         Returns:
-            List[str]: Available time series types
+            List of registered time series type names.
         """
         return list(cls._time_series_types.keys())
 
     @classmethod
     def create_time_series(cls, series_type: str, **kwargs) -> TimeSeries:
-        """
-        :no-index:
-        Create a new time series of a specific type.
-        
+        """Creates a new time series of a specific type.
+
         Args:
-            series_type (str): Type of time series to create
-            **kwargs: Parameters for time series initialization
-        
+            series_type: Type of time series to create (case-insensitive).
+            **kwargs: Parameters for time series initialization.
+
         Returns:
-            TimeSeries: A new time series instance
-        
+            A new time series instance.
+
         Raises:
-            KeyError: If the time series type is not registered
+            KeyError: If the time series type is not registered.
         """
         if series_type.lower() not in cls._time_series_types:
             raise KeyError(f"Time series type {series_type} not registered")
@@ -1242,30 +1406,51 @@ class TimeSeriesRegistry:
 
 
 class TimeSeriesManager:
-    """
-    Singleton class for managing time series objects in the application.
-    
-    This manager provides a centralized way to create, retrieve, and manage 
-    time series objects. It maintains a singleton instance to ensure consistent 
-    access to time series throughout the application.
+    """Singleton manager class for creating and managing time series.
+
+    This class provides a unified interface for creating time series with
+    convenient access to time series types.
+
+    Attributes:
+        path: Reference to PathTimeSeries class.
+        constant: Reference to ConstantTimeSeries class.
+        linear: Reference to LinearTimeSeries class.
+        trig: Reference to TrigTimeSeries class.
+        ramp: Reference to RampTimeSeries class.
+        triangular: Reference to TriangularTimeSeries class.
+        rectangular: Reference to RectangularTimeSeries class.
+        pulse: Reference to PulseTimeSeries class.
+
+    Example:
+        >>> from femora.components.TimeSeries.timeSeriesBase import TimeSeriesManager
+        >>> # Get the singleton instance
+        >>> manager = TimeSeriesManager()
+        >>> # Create a time series
+        >>> # ts = manager.create_time_series('constant', factor=1.0)
+        >>> # Get all time series
+        >>> all_ts = manager.get_all_time_series()
+        >>> types = manager.get_available_types()
+        >>> print('constant' in types)
+        True
     """
     _instance = None
 
     def __new__(cls):
-        """
-        Create a new instance of TimeSeriesManager if one doesn't exist.
-        
-        This implements the singleton pattern, ensuring only one instance 
-        of TimeSeriesManager exists across the application.
-        
+        """Creates a new instance if one doesn't exist (singleton pattern).
+
         Returns:
-            TimeSeriesManager: The singleton instance of TimeSeriesManager
+            The singleton instance of TimeSeriesManager.
         """
         if cls._instance is None:
             cls._instance = super(TimeSeriesManager, cls).__new__(cls)
         return cls._instance
 
     def __init__(self):
+        """Initializes the TimeSeriesManager singleton instance.
+
+        This method only initializes on first creation. Subsequent calls
+        return the existing instance without re-initialization.
+        """
         self.path = PathTimeSeries
         self.constant = ConstantTimeSeries
         self.linear = LinearTimeSeries
@@ -1276,106 +1461,84 @@ class TimeSeriesManager:
         self.pulse = PulseTimeSeries
     
     def __len__(self):
-        """
-        Get the number of time series objects managed by this instance.
-        
+        """Gets the number of time series objects.
+
         Returns:
-            int: The number of time series objects
+            The number of time series objects.
         """
         return len(TimeSeries._time_series)
-    
+
     def __iter__(self):
-        """
-        Iterate over the time series objects managed by this instance.
-        
+        """Iterates over the time series objects.
+
         Returns:
-            Iterator[TimeSeries]: An iterator over the time series objects
+            An iterator over the time series objects.
         """
         return iter(TimeSeries._time_series.values())
 
     def create_time_series(self, series_type: str, **kwargs) -> TimeSeries:
-        """
-        Create a new time series of the specified type.
-
-        This method delegates to the TimeSeriesRegistry to create a new time
-        series object with the provided parameters.
+        """Creates a new time series of the specified type.
 
         Args:
-            series_type (str): The type of time series to create (e.g., 'constant', 'linear')
-            **kwargs: Parameters specific to the time series type initialization
+            series_type: The type of time series to create (e.g., 'constant', 'linear').
+            **kwargs: Parameters specific to the time series type initialization.
 
         Returns:
-            TimeSeries: A new time series instance
+            A new time series instance.
 
         Raises:
-            KeyError: If the requested time series type is not registered
-            ValueError: If validation of parameters fails
+            KeyError: If the requested time series type is not registered.
+            ValueError: If validation of parameters fails.
         """
         return TimeSeriesRegistry.create_time_series(series_type, **kwargs)
 
     def get_time_series(self, tag: int) -> TimeSeries:
-        """
-        Retrieve a specific time series by its tag.
+        """Retrieves a specific time series by its tag.
 
         Args:
-            tag (int): The unique identifier tag of the time series
+            tag: The unique identifier tag of the time series.
 
         Returns:
-            TimeSeries: The time series object with the specified tag
+            The time series object with the specified tag.
 
         Raises:
-            KeyError: If no time series with the given tag exists
+            KeyError: If no time series with the given tag exists.
         """
         return TimeSeries.get_time_series(tag)
 
     def remove_time_series(self, tag: int) -> None:
-        """
-        Remove a time series by its tag.
+        """Removes a time series by its tag.
 
         This method removes the time series with the given tag and
         reassigns sequential tags to all remaining time series objects.
 
         Args:
-            tag (int): The tag of the time series to remove
+            tag: The tag of the time series to remove.
         """
         TimeSeries.remove_time_series(tag)
 
     def get_all_time_series(self) -> Dict[int, TimeSeries]:
-        """
-        Retrieve all registered time series objects.
+        """Retrieves all registered time series objects.
 
         Returns:
-            Dict[int, TimeSeries]: A dictionary of all time series objects, where keys are the tags and values are the TimeSeries objects
+            A dictionary of all time series objects, where keys are the tags
+                and values are the TimeSeries objects.
         """
         return TimeSeries.get_all_time_series()
 
     def get_available_types(self) -> List[str]:
-        """
-        Get a list of all available time series types that can be created.
+        """Gets a list of all available time series types.
 
         Returns:
-            List[str]: A list of strings representing available time series types
-
-        Example:
-            manager = TimeSeriesManager()
-            types = manager.get_available_types()
-            print("Available time series types:", types)
+            A list of strings representing available time series types.
         """
         return TimeSeriesRegistry.get_time_series_types()
-    
+
     def clear_all(self):
-        """
-        Clears all time series from the registry.
+        """Clears all time series from the registry.
 
         This method clears all registered time series objects, effectively
         resetting the state of the time series management system.
-
-        Example:
-            manager = TimeSeriesManager()
-            # Create some time series
-            # ...
-            # Clear all time series when starting a new model
-            manager.clear_all()
         """
         TimeSeries._time_series.clear()
 

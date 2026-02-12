@@ -1177,7 +1177,7 @@ def custom_building(structure_info, soil_info, foundation_info, pile_info):
             print("Error: mesh part " + name + " not found.")
             sys.exit(1)
         mesh_part_tag = mesh_part.tag
-        mesh_part_cells = fm.assembler.AssembeledMesh.cell_data["MeshTag_cell"] == mesh_part_tag
+        mesh_part_cells = fm.assembler.AssembeledMesh.cell_data["MeshPartTag_celldata"] == mesh_part_tag
         mesh_part_cell  = np.where(mesh_part_cells)[0]
         mesh_part_points = []
         for cell_id in mesh_part_cell:
@@ -1271,7 +1271,7 @@ def custom_building(structure_info, soil_info, foundation_info, pile_info):
         print("Error: Assembled mesh is None. Cannot export the model.")
         sys.exit(1)
     from femora.components.event.event_bus import EventBus, FemoraEvent
-    from femora.components.Element.elementBase import Element
+    from femora.core.element_base import Element
 
     self = fm._instance
     with open(model_filename, 'w') as f:
