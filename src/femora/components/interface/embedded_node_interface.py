@@ -266,6 +266,14 @@ class EmbeddedNodeInterface(InterfaceBase, GeneratesMeshMixin):
         selected_points = offset_points[mask]
         selected_normals = normals[mask]
         point_ids = point_ids[mask]
+
+        if point_ids.size == 0:
+            msg = f"Interface '{self.name}': No intersection found between constrained node '{self.constrained_node.user_name}' and retained nodes.\n"
+            msg += "Possible reasons:\n"
+            msg += "1. The constrained mesh part is not inside the retained mesh parts.\n"
+            msg += f"2. The normal_filter {self._normal_filter} (tol={self._filter_tolerance}) might be too restrictive or in a wrong direction."
+            raise ValueError(msg)
+
         original_cells = tetrahedra_mesh_filtered.cell_data['CellIndex'][selected_cells]
 
 
