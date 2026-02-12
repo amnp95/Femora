@@ -35,14 +35,14 @@ class EmbeddedNodeInterface(InterfaceBase, GeneratesMeshMixin):
         K: float | None = None,
         KP: float | None = None,
         offset: float = None,
-        use_mesh_part_points = False,
+        use_mesh_part_points = True,
         normal_filter: list[float] | None = None,
         filter_tolerance: float = 0.98,
         friction_interface: bool = True,
-        friction_interface_kn: float = 1e10,
-        friction_interface_kt: float = 1e10,
+        friction_interface_kn: float = 1e8,
+        friction_interface_kt: float = 1e8,
         friction_interface_mu: float = 0.5,
-        friction_interface_int_type: int = 0
+        friction_interface_int_type: int = 1 
 
     ) -> None:
         
@@ -92,9 +92,11 @@ class EmbeddedNodeInterface(InterfaceBase, GeneratesMeshMixin):
         self._friction_interface_mu = friction_interface_mu
         self._friction_interface_int_type = friction_interface_int_type
 
-        if self._use_mesh_part_points:
-            self._friction_interface = False
-            print("Warning: Using use_mesh_part_points=True will disable friction interface.")
+        if self._friction_interface :
+            if not self._use_mesh_part_points:
+                self._use_mesh_part_points = True
+                print("Warning: Using use_friction_interface=True will automatically set use_mesh_part_points=True")
+            
 
         super().__init__(name, owners=[self.constrained_node.user_name])
         
@@ -234,6 +236,7 @@ class EmbeddedNodeInterface(InterfaceBase, GeneratesMeshMixin):
             
             offset_points = offset_points[mask]
             point_ids = point_ids[mask]
+            normals = normals[mask]
 
 
             # pl = pv.Plotter()
@@ -249,7 +252,6 @@ class EmbeddedNodeInterface(InterfaceBase, GeneratesMeshMixin):
         """Detect the nodes from the offset mesh that are inside tetrahedra elements of the retained nodes."""
 
         # 1) get the asembelled mesh
-        # asembelled_mesh = Assembler().get_mesh()
         asembelled_mesh = assembled_mesh.copy()
 
         if asembelled_mesh is None:
@@ -275,7 +277,7 @@ class EmbeddedNodeInterface(InterfaceBase, GeneratesMeshMixin):
         cell_index = np.arange(0, tetrahedra_mesh.n_cells, dtype=int)
         # tetrahedra_mesh.point_data['NodeIndex'] = node_index 
         tetrahedra_mesh.cell_data['CellIndex'] = cell_index
-        print(mask.shape)
+        
 
         # 6) extract cells that are from the retained nodes
         tetrahedra_mesh_filtered = tetrahedra_mesh.extract_cells(mask)
@@ -287,30 +289,15 @@ class EmbeddedNodeInterface(InterfaceBase, GeneratesMeshMixin):
         
 
 
-
+        # 8) filter cells and points
         selected_cells = cell_ids[mask]
         selected_points = offset_points[mask]
         selected_normals = normals[mask]
         point_ids = point_ids[mask]
-        print(f"filtered tetrahedra has {tetrahedra_mesh_filtered.n_cells} cells")
-        print(f"filtered tetrahedra has {tetrahedra_mesh_filtered.n_points} points")
-        print(f"selected points has {selected_points.shape[0]} points")
         original_cells = tetrahedra_mesh_filtered.cell_data['CellIndex'][selected_cells]
 
-        # 8) mask
-    
-        # pl = pv.Plotter()
-        # pl.add_mesh(asembelled_mesh, opacity=0.5, show_edges=True, color='gray')
-        # pl.add_mesh(asembelled_mesh.extract_points(point_ids,include_cells = False), opacity=0.5, show_edges=True, color='blue')
-        # pl.show()
 
-
-
-        
-
-
-
-        # creating tet elements
+        # 9) create tet elements
         tet_elements = np.zeros((selected_points.shape[0], 4), dtype=int)
         start = tetrahedra_mesh.offset[original_cells]
         indices = start[:, None] + np.arange(4)
@@ -320,7 +307,7 @@ class EmbeddedNodeInterface(InterfaceBase, GeneratesMeshMixin):
 
 
 
-        # now we need to create cores
+        # 10) create tet cores
         # each selected point is related to a tetrahedron element so the point should be in the core
         # each point id is related to selected_point but the point can be exist in a different core
         tet_cores = tetrahedra_mesh_filtered.cell_data['Core'][selected_cells]
@@ -328,64 +315,61 @@ class EmbeddedNodeInterface(InterfaceBase, GeneratesMeshMixin):
         for point_id in point_ids:
             tmp_mesh = asembelled_mesh.extract_points(point_id,include_cells = True)
             point_id_cores.append(np.unique(tmp_mesh.cell_data['Core']))
-            # pl = pv.Plotter()
-            # pl.add_mesh(tmp_mesh, opacity=0.5, show_edges=True, scalars = "Core", cmap = "viridis")
-            # pl.add_mesh(asembelled_mesh, opacity=0.5, show_edges=True, color='gray')
-            # pl.show()
-        print(point_id_cores)
 
         
 
         
 
-        # 8) mask
+        # 11) 
         # pl = pv.Plotter()
         mask = asembelled_mesh.cell_data['MeshPartTag_celldata'] == self.constrained_node.tag
         mask = ~mask
-        # pl.add_mesh(asembelled_mesh.extract_cells(mask), opacity=0.5, show_edges=True, color='gray')
-        # # pl.add_mesh(offset_mesh, opacity=1.0, show_edges=True, color='blue')
-        # pl.add_mesh(tetrahedra_mesh.extract_cells(original_cells), opacity=0.5, show_edges=True, color='red')
-        # pl.add_mesh(pv.PolyData(selected_points), opacity=1.0, show_edges=True, color='blue')
-        # # pl.add_mesh(self.constrained_node.mesh, opacity=1.0, show_edges=True, color='royalblue')
-        # pl.add_mesh(asembelled_mesh.extract_points(point_ids,include_cells = False), opacity=1.0, show_edges=True, color='green')
-        # pl.show()
-
         tmp = tetrahedra_mesh.extract_cells(original_cells)
         tmp = tmp.cell_quality('jacobian')
-        # assert np.all(tmp.cell_data['jacobian'] > 0), "Some tetrahedral elements have negative jacobians"
         if np.any(tmp.cell_data['jacobian'] <= 0):
-            print("Warning: Some tetrahedral elements have negative jacobians")
-        else:
-            print("All tetrahedral elements have positive jacobians")
-
-        # pl = pv.Plotter()
-        # pl.add_mesh(tmp, opacity=1.0, show_edges=True, scalars='jacobian', cmap='viridis')
-        # pl.show()
+            raise ValueError("Some tetrahedral elements have negative jacobians")
             
     
 
         # create a embedded node element
         from femora import MeshMaker
         ndf = 3
+
+
+        # 1. Get references to the existing assembled mesh data
+        base_mesh = Assembler().AssembeledMesh
+        old_points = base_mesh.points
+        # 2. Offset the indices in the new mesh
+        offset = old_points.shape[0]
+
+        start_node_tag = MeshMaker().get_start_node_tag()
+
+        # create the element orientation map 
+        orientation_map = {}
+        for i in range(point_ids.shape[0]):
+            if self._use_mesh_part_points:
+                node_tag = point_ids[i] + start_node_tag
+            else:
+                node_tag = offset + i + start_node_tag
+            orientation_map[node_tag] = selected_normals[i].tolist()
+            
         embededd_ele = MeshMaker().element.create_element("ASDEmbeddedNodeElement3D",
                                            ndof = ndf, 
                                            rot = self._rot,
                                            p = self._p, 
                                            K = self._K,
                                            KP = self._KP,
+                                           contact = self._friction_interface,
+                                           Kn = self._friction_interface_kn,
+                                           Kt = self._friction_interface_kt,
+                                           mu = self._friction_interface_mu,
+                                           int_type = self._friction_interface_int_type,
+                                           orient_map = orientation_map,
                                            )
 
         # Assembler().AssembeledMesh.merge(embedded_mesh, merge_points=True, inplace=True)
-        # 1. Get references to the existing assembled mesh data
-        base_mesh = Assembler().AssembeledMesh
-        old_points = base_mesh.points
         old_cells = base_mesh.cells
         old_celltypes = base_mesh.celltypes
-
-        # 2. Offset the indices in the new mesh
-        # We must shift the point IDs in the new cells so they point to the 
-        # correct positions in the new combined points array.
-        offset = old_points.shape[0]
 
         # Extract the cells array. Remember VTK format: [n, p1, p2, ..., n, p1, p2...]
         new_cells_raw = []
@@ -437,77 +421,6 @@ class EmbeddedNodeInterface(InterfaceBase, GeneratesMeshMixin):
 
         # 6. Update your Assembler
         Assembler().AssembeledMesh = final_mesh
-        # Assembler().plot(color="blue", opacity=0.5, show_edges=False, )
-
-
-        # # now if not use_mesh_part_points, we need to make mpconstraint for the new points to the original point
-        # if not self._use_mesh_part_points:
-        #     mk = MeshMaker()
-        #     start_node = mk.get_start_node_tag()
-        #     for i in range(selected_points.shape[0]):
-        #         original_point_id = point_ids[i] + start_node
-        #         new_point_id = i + offset + start_node
-        #         ndf = base_mesh.point_data['ndf'][original_point_id]
-        #         mk.constraint.mp.create_equal_dof(
-        #             master_node = new_point_id,
-        #             slave_nodes = [original_point_id],
-        #             dofs = list(range(1, ndf+1))
-        #         )
-                    
-        
-        if self._friction_interface:
-            # __init__(self, ndof: int, Kn: float, Kt: float, mu: float, material: Material = None, orient: List[float] = None, intType: int = 0):
-            friction_ele = MeshMaker().element.create_element("ZeroLengthContactASDimplex",
-                                           ndof = 3,
-                                           Kn = self._friction_interface_kn,
-                                           Kt = self._friction_interface_kt,
-                                           mu = self._friction_interface_mu,
-                                           material = None,
-                                           orient = [0.0, 0.0, -1.0],
-                                           intType = self._friction_interface_int_type
-                                           )
-            
-            # 1. Get the base mesh
-            base_mesh = Assembler().AssembeledMesh
-            old_points = base_mesh.points
-            old_cells = base_mesh.cells
-            old_celltypes = base_mesh.celltypes
-
-            # 2. Create the new cells
-            new_cells = []
-            new_celltypes = []
-            
-            # 3. Create the new cells for friction interface
-            # offset remains from the previous mesh before adding embedded nodes
-            for i in range(selected_points.shape[0]):
-                new_cells.append(2)
-                new_cells.append(point_ids[i])
-                new_cells.append(i + offset)
-                new_celltypes.append(pv.CellType.LINE)
-
-            # 4. Concatenate Point and Cell arrays
-            combined_points = old_points
-            combined_cells = np.concatenate((old_cells, new_cells))
-            combined_celltypes = np.concatenate((old_celltypes, new_celltypes))
-
-            # 5. Create the final Mesh
-            final_mesh = pv.UnstructuredGrid(combined_cells, combined_celltypes, combined_points)
-
-            # 6. Copy over existing data arrays
-            # cell data
-            final_mesh.cell_data['Core'] = np.concatenate((base_mesh.cell_data['Core'], tet_cores))
-            final_mesh.cell_data['ElementTag'] = np.concatenate((base_mesh.cell_data['ElementTag'], np.full(num_new_cells, friction_ele.tag, dtype=np.uint16)))
-            final_mesh.cell_data['MaterialTag'] = np.concatenate((base_mesh.cell_data['MaterialTag'], np.full(num_new_cells, 0, dtype=np.uint16)))
-            final_mesh.cell_data['Region'] = np.concatenate((base_mesh.cell_data['Region'], np.full(num_new_cells, 0, dtype=np.uint16)))
-            final_mesh.cell_data['MeshPartTag_celldata'] = np.concatenate((base_mesh.cell_data['MeshPartTag_celldata'], np.full(num_new_cells, 0, dtype=np.uint16)))
-            
-            # point data
-            final_mesh.point_data['MeshPartTag_pointdata'] = base_mesh.point_data['MeshPartTag_pointdata']
-            final_mesh.point_data['Mass'] = base_mesh.point_data['Mass']
-            final_mesh.point_data['ndf'] = base_mesh.point_data['ndf']
-
-            # 7. Update Assembler
-            Assembler().AssembeledMesh = final_mesh
             
 
 
@@ -526,8 +439,6 @@ class EmbeddedNodeInterface(InterfaceBase, GeneratesMeshMixin):
         offset = 0
 
 
-        # print(mesh.cell_data.keys())
-        # print(mesh.point_data.keys())
 
         # only tetrahedralize the cells that are from the retained nodes
         mask = np.zeros(mesh.n_cells, dtype=bool)
@@ -579,12 +490,12 @@ class EmbeddedNodeInterface(InterfaceBase, GeneratesMeshMixin):
             
         # return new_mesh
 
-        print(f"New mesh has {new_mesh.n_cells} cells")
-        print(f"New mesh has {new_mesh.n_points} points")
+        # print(f"New mesh has {new_mesh.n_cells} cells")
+        # print(f"New mesh has {new_mesh.n_points} points")
         
         # print cell types
-        print(f"original mesh has {mesh.n_cells} cells")
-        print(f"original mesh has {mesh.n_points} points")
+        # print(f"original mesh has {mesh.n_cells} cells")
+        # print(f"original mesh has {mesh.n_points} points")
 
 
         # check the number of points are equal
@@ -604,43 +515,6 @@ class EmbeddedNodeInterface(InterfaceBase, GeneratesMeshMixin):
         return new_mesh
 
     
-
-        
-    # def _on_interface_tcl_export(self, **payload):
-    #     file_handle = payload['file_handle']
-    #     file_handle.write(f"# {self.name} interface elements\n")
-        
-    #     # check if the point_ids, selected_points, tet_elements are not None
-    #     if self._point_ids is None or self._selected_points is None or self._tet_elements is None:
-    #         raise ValueError("Assemble the model first.")
-        
-    #     # mesh maker is the mother class 
-    #     from femora import MeshMaker
-    #     mesh_maker = MeshMaker()
-    #     max_ele_tag = mesh_maker.get_max_ele_tag() + 1
-    #     max_node_tag = mesh_maker.get_max_node_tag() + 1
-    #     ndfs = mesh_maker.assembler.get_mesh().point_data['ndf']
-    #     ndfs = ndfs[self._point_ids]
-    #     point_id_coords = mesh_maker.assembler.get_mesh().points[self._point_ids]
-    #     point_id_tags = mesh_maker.get_start_node_tag() + self._point_ids
- 
-
-        
-
-    #     for i in range(len(self._tet_elements)):
-    #         node_tag = i + max_node_tag
-    #         ele_tag = i + max_ele_tag
-    #         file_handle.write("if {$pid == %d} {\n" % self._tet_cores[i])
-    #         file_handle.write("\tnode %d %f %f %f -ndf %d\n" % (node_tag, self._selected_points[i][0], self._selected_points[i][1], self._selected_points[i][2], ndfs[i]))
-    #         if self._tet_cores[i] not in self._point_id_cores:
-    #             file_handle.write("\tnode %d %f %f %f -ndf %d\n" % (point_id_tags[i], point_id_coords[i][0], point_id_coords[i][1], point_id_coords[i][2], ndfs[i]))
-    #             file_handle.write("\tequalDOF %d %d 1 2 3 4\n" % (node_tag, self._tet_cores[i]))
-
-    #         # file_handle.write("\t element tetra %d %d %d %d %d\n
-    #         #  element ASDEmbeddedNodeElement $eleTag $Cnode $Rnode1 $Rnode2 $Rnode3 <$Rnode4> <-rot> <-p> <-K $K> <-KP $KP>")
-    #         # print(self._tet_elements[i])
-    #         file_handle.write("\telement ASDEmbeddedNodeElement %d %d %d %d %d %d\n" % (ele_tag, node_tag, self._tet_elements[i][0], self._tet_elements[i][1], self._tet_elements[i][2], self._tet_elements[i][3]))
-    #         file_handle.write("}\n")
 
 
         
