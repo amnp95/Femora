@@ -6,31 +6,71 @@ from .load_base import Load, LoadRegistry
 
 
 class ElementLoad(Load):
-    """
-    Elemental load wrapper for the OpenSees ``eleLoad`` command.
+    """Represents an elemental load for OpenSees' `eleLoad` command.
 
-    Supported forms:
-        - 2D uniform: ``-type -beamUniform Wy [Wx]``
-        - 3D uniform: ``-type -beamUniform Wy Wz [Wx]``
-        - 2D point:   ``-type -beamPoint   Py xL [Px]``
-        - 3D point:   ``-type -beamPoint   Py Pz xL [Px]``
-
-    Selection:
-        Provide either ``ele_tags`` (explicit tag list), ``ele_range`` (start,end),
-        or an :class:`ElementMask` (preferred). With a mask, TCL is emitted on
-        tag level via ``ElementMask.to_tags()``, while pid is inferred from the
-        first element's core unless explicitly set.
+    This class provides a flexible interface to define uniform or point loads
+    applied to beam elements, supporting both 2D and 3D forms. It allows
+    selection of target elements via explicit tags, a range of tags, or
+    an :class:`ElementMask` for more complex selections.
 
     Attributes:
-        kind (str): Either ``'beamUniform'`` or ``'beamPoint'``.
-        ele_tags (Optional[List[int]]): Explicit element tags.
-        ele_range (Optional[Tuple[int,int]]): Range of element tags.
-        params (Dict[str,float]): Numeric parameters per form/dimension.
-        pid (Optional[int]): Core to emit for; defaults to 0 if not set.
-        element_mask: Optional :class:`ElementMask` to target multiple elements.
+        kind (str): The type of load, either `'beamUniform'` or `'beamPoint'`.
+        ele_tags (Optional[List[int]]): Explicit list of element tags to apply
+            the load to. Mutually exclusive with `ele_range` and `element_mask`.
+        ele_range (Optional[Tuple[int, int]]): A tuple `(start, end)`
+            representing a range of element tags to apply the load to. Mutually
+            exclusive with `ele_tags` and `element_mask`.
+        params (Dict[str, float]): A dictionary holding the numeric parameters
+            of the load, which vary based on `kind` and dimension (e.g., 'Wy',
+            'Wz', 'Wx' for uniform loads; 'Py', 'Pz', 'Px', 'xL' for point loads).
+        pid (Optional[int]): The ID of the core (process) to which this load
+            should be emitted. Defaults to 0 if not explicitly set and
+            `element_mask` is not used. If `element_mask` is used, the pid is
+            inferred from the first element's core unless overridden.
+        element_mask: Optional :class:`ElementMask` object to dynamically select
+            multiple elements. This is the preferred method for complex selections.
+
+    Example:
+        >>> from femora.loads.element_load import ElementLoad
+        >>> # Define a uniform beam load in 2D
+        >>> uniform_load = ElementLoad(
+        ...     kind="beamUniform",
+        ...     ele_range=(1, 5),
+        ...     params={"Wy": -10.0}
+        ... )
+        >>> print(uniform_load.to_tcl())
+        eleLoad -range 1 5 -type -beamUniform -10.0
+        >>> # Define a point load on a single element
+        >>> point_load = ElementLoad(
+        ...     kind="beamPoint",
+        ...     ele_tags=[10],
+        ...     params={"Py": -5.0, "xL": 0.5}
+        ... )
+        >>> print(point_load.to_tcl())
+        eleLoad -ele 10 -type -beamPoint -5.0 0.5
     """
 
     def __init__(self, **kwargs):
+        """Initializes an ElementLoad object.
+
+        Args:
+            kind: The type of load, either `'beamUniform'` or `'beamPoint'`.
+            ele_tags: Optional. A list of element tags for the load. Mutually
+                exclusive with `ele_range` and `element_mask`.
+            ele_range: Optional. A tuple `(start, end)` defining a range of
+                element tags. Mutually exclusive with `ele_tags` and `element_mask`.
+            params: A dictionary of numeric parameters specific to the load `kind`.
+                For `beamUniform`, keys can be `Wy`, `Wz`, `Wx`. For `beamPoint`,
+                keys can be `Py`, `Pz`, `Px`, `xL`.
+            pid: Optional. The core ID (process) to emit this load for. If not
+                provided, defaults to 0.
+            element_mask: Optional. An :class:`ElementMask` instance to select
+                target elements dynamically. Mutually exclusive with `ele_tags`
+                and `ele_range`.
+
+        Raises:
+            ValueError: If validation of input parameters fails.
+        """
         super().__init__("ElementLoad")
         v = self.validate(**kwargs)
         self.kind: str = v["kind"]
@@ -45,11 +85,26 @@ class ElementLoad(Load):
 
     @staticmethod
     def get_parameters() -> List[tuple]:
-        """
-        Parameters metadata for UI/inspection.
+        """Returns metadata about the load's parameters for UI or inspection.
+
+        This method provides a list of tuples, where each tuple contains the
+        parameter's name and a short description.
 
         Returns:
-            List[tuple]: Tuples of (name, description).
+            List[tuple]: A list of `(name, description)` tuples for each
+                configurable parameter of the load.
+
+        Example:
+            >>> from femora.loads.element_load import ElementLoad
+            >>> params_info = ElementLoad.get_parameters()
+            >>> for name, desc in params_info:
+            ...     print(f"- {name}: {desc}")
+            - kind: Load kind: 'beamUniform' or 'beamPoint'
+            - ele_tags: Explicit element tags list (mutually exclusive with ele_range)
+            - ele_range: Tuple (start, end) element tag range (mutually exclusive with ele_tags)
+            - params: Dictionary of numeric parameters per kind/dimension
+            - pid: Optional core id (int) for which to emit this load
+            - element_mask: Optional ElementMask to expand into multiple elements
         """
         return [
             ("kind", "Load kind: 'beamUniform' or 'beamPoint'"),
@@ -61,11 +116,30 @@ class ElementLoad(Load):
         ]
 
     def get_values(self) -> Dict[str, Union[str, int, float, bool, list, tuple, dict]]:
-        """
-        Return a serializable dictionary of the current load state.
+        """Returns a serializable dictionary of the current load state.
+
+        This method is useful for persisting the load definition or for
+        debugging. The output dictionary contains all essential properties
+        of the element load.
 
         Returns:
-            Dict[str, Union[str, int, float, bool, list, tuple, dict]]
+            Dict[str, Union[str, int, float, bool, list, tuple, dict]]: A
+                dictionary representing the current state of the load.
+
+        Example:
+            >>> from femora.loads.element_load import ElementLoad
+            >>> load = ElementLoad(
+            ...     kind="beamUniform",
+            ...     ele_tags=[1, 2, 3],
+            ...     params={"Wy": -5.0}
+            ... )
+            >>> values = load.get_values()
+            >>> print(values["kind"])
+            beamUniform
+            >>> print(values["ele_tags"])
+            [1, 2, 3]
+            >>> print(values["params"]["Wy"])
+            -5.0
         """
         return {
             "kind": self.kind,
@@ -79,6 +153,18 @@ class ElementLoad(Load):
 
     @staticmethod
     def _require_numeric(name: str, value: Any) -> float:
+        """Converts a value to a float or raises a ValueError.
+
+        Args:
+            name: The name of the parameter being converted, used in error messages.
+            value: The value to attempt conversion for.
+
+        Returns:
+            float: The numeric representation of the input value.
+
+        Raises:
+            ValueError: If the `value` cannot be converted to a float.
+        """
         try:
             return float(value)
         except Exception:
@@ -86,19 +172,45 @@ class ElementLoad(Load):
 
     @staticmethod
     def validate(**kwargs) -> Dict[str, Any]:
-        """
-        Validate constructor/update parameters for ElementLoad.
+        """Validates and normalizes constructor/update parameters for ElementLoad.
+
+        This static method ensures that all input parameters are correctly
+        formatted and logically consistent before being assigned to an
+        `ElementLoad` instance. It handles type conversion and mutual
+        exclusivity checks.
 
         Args:
-            **kwargs: Supported keys: ``kind`` (str), ``ele_tags`` (list[int]),
-                ``ele_range`` (Tuple[int,int]), ``element_mask`` (ElementMask),
-                ``params`` (Dict[str,float]), ``pid`` (int).
+            **kwargs: Keyword arguments containing the load parameters.
+                Supported keys include: `kind`, `ele_tags`,
+                `ele_range`, `element_mask`, `params`, `pid`.
 
         Returns:
-            Dict[str, Any]: Normalized values.
+            Dict[str, Any]: A dictionary of normalized and validated parameter
+                values, ready for object instantiation or update.
 
         Raises:
-            ValueError: On missing or invalid parameters.
+            ValueError: On missing, invalid, or mutually exclusive parameters.
+
+        Example:
+            >>> from femora.loads.element_load import ElementLoad
+            >>> valid_params = ElementLoad.validate(
+            ...     kind="beamUniform",
+            ...     ele_range=(1, 10),
+            ...     params={"Wy": -2.5, "Wx": 0.5},
+            ...     pid=1
+            ... )
+            >>> print(valid_params["kind"])
+            beamUniform
+            >>> print(valid_params["ele_range"])
+            (1, 10)
+            >>> print(valid_params["params"]["Wy"])
+            -2.5
+            >>> # Example of invalid input
+            >>> try:
+            ...     ElementLoad.validate(kind="invalid_kind")
+            ... except ValueError as e:
+            ...     print(e)
+            kind must be 'beamUniform' or 'beamPoint'
         """
         if "kind" not in kwargs:
             raise ValueError("kind must be provided: 'beamUniform' or 'beamPoint'")
@@ -182,11 +294,32 @@ class ElementLoad(Load):
         return out
 
     def update_values(self, **kwargs) -> None:
-        """
-        Update the load's values after validation.
+        """Updates the current load's properties after validation.
+
+        This method allows modifying the existing `ElementLoad` instance with
+        new parameters. The input `kwargs` are validated using
+        :meth:`ElementLoad.validate` to ensure data integrity.
 
         Args:
-            **kwargs: Same keys as :meth:`validate`.
+            **kwargs: The parameters to update. Accepts the same keys as
+                :meth:`ElementLoad.validate`, such as `kind`, `ele_tags`,
+                `ele_range`, `params`, `pid`, and `element_mask`.
+
+        Example:
+            >>> from femora.loads.element_load import ElementLoad
+            >>> load = ElementLoad(
+            ...     kind="beamUniform",
+            ...     ele_tags=[1, 2],
+            ...     params={"Wy": -10.0}
+            ... )
+            >>> print(load.to_tcl())
+            eleLoad -ele 1 2 -type -beamUniform -10.0
+            >>> load.update_values(
+            ...     ele_range=(3, 5),
+            ...     params={"Wy": -15.0, "Wz": -5.0}
+            ... )
+            >>> print(load.to_tcl())
+            eleLoad -range 3 5 -type -beamUniform -15.0 -5.0
         """
         v = self.validate(
             kind=kwargs.get("kind", self.kind),
@@ -204,6 +337,14 @@ class ElementLoad(Load):
         self.element_mask = v.get("element_mask")
 
     def _selector_tcl(self) -> str:
+        """Generates the TCL element selector string for `ele_tags` or `ele_range`.
+
+        This is an internal helper method used by `to_tcl` to construct the
+        appropriate `-ele` or `-range` argument for the OpenSees command.
+
+        Returns:
+            str: The TCL string representing the element selection (e.g., `-ele 1 2 3` or `-range 1 5`).
+        """
         if self.ele_tags is not None:
             tags_str = " ".join(str(e) for e in self.ele_tags)
             return f"-ele {tags_str}"
@@ -212,14 +353,47 @@ class ElementLoad(Load):
         return f"-range {i} {j}"
 
     def to_tcl(self) -> str:
-        """
-        Convert the element load to its TCL command(s).
+        """Converts the element load definition into its equivalent TCL command(s).
 
-        With ``element_mask``, builds an ``-ele`` selector using element tags.
-        pid is inferred from the first element's core unless explicitly set.
+        This method constructs the OpenSees `eleLoad` command string based on
+        the current properties of the `ElementLoad` instance. If an
+        `element_mask` is provided, it generates an `-ele` selector from the
+        mask's tags. The process ID (pid) is automatically inferred from the
+        first element's core if `element_mask` is used and `pid` is not
+        explicitly set, otherwise it defaults to 0.
 
         Returns:
-            str: TCL command string.
+            str: The full TCL command string(s) for the `eleLoad` command.
+                If `pid` is set or inferred, the command is wrapped in an
+                `if {$pid == X}` block.
+
+        Example:
+            >>> from femora.loads.element_load import ElementLoad
+            >>> # Uniform load on a range of elements
+            >>> load_uniform = ElementLoad(
+            ...     kind="beamUniform",
+            ...     ele_range=(1, 5),
+            ...     params={"Wy": -10.0}
+            ... )
+            >>> print(load_uniform.to_tcl())
+            eleLoad -range 1 5 -type -beamUniform -10.0
+            >>> # Point load on specific elements with 3D parameters
+            >>> load_point = ElementLoad(
+            ...     kind="beamPoint",
+            ...     ele_tags=[10, 11],
+            ...     params={"Py": -5.0, "Pz": -2.0, "xL": 0.75}
+            ... )
+            >>> print(load_point.to_tcl())
+            eleLoad -ele 10 11 -type -beamPoint -5.0 -2.0 0.75
+            >>> # Load with a specific PID (core)
+            >>> load_pid = ElementLoad(
+            ...     kind="beamUniform",
+            ...     ele_tags=[20],
+            ...     params={"Wy": -20.0},
+            ...     pid=1
+            ... )
+            >>> print(load_pid.to_tcl())
+            if {$pid == 1} { eleLoad -ele 20 -type -beamUniform -20.0 }
         """
         if self.element_mask is not None:
             ids = self.element_mask.to_list()
@@ -266,5 +440,3 @@ class ElementLoad(Load):
 # Register type
 LoadRegistry.register_load_type("element", ElementLoad)
 LoadRegistry.register_load_type("eleload", ElementLoad)
-
-
