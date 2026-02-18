@@ -1,5 +1,4 @@
-"""
-Uniaxial Section GUI Dialogs
+"""Uniaxial Section GUI Dialogs
 Uses UniaxialSection class methods instead of hardcoding
 """
 
@@ -14,10 +13,53 @@ from femora.components.section.section_gui_utils import setup_material_dropdown,
 RESPONSE_CODES = ['P', 'Mz', 'My', 'Vy', 'Vz', 'T']
 
 class UniaxialSectionCreationDialog(QDialog):
+    """A dialog for creating new UniaxialSection objects.
+
+    This dialog provides a user interface to input the necessary parameters
+    for a `UniaxialSection`, including a unique name, a uniaxial material,
+    and a response code. It leverages class methods from `UniaxialSection`
+    for parameter validation and object creation.
+
+    Attributes:
+        parameters (list[str]): List of parameter names retrieved from UniaxialSection.
+        descriptions (list[str]): List of parameter descriptions from UniaxialSection.
+        user_name_input (QLineEdit): Input field for the user-defined section name.
+        material_combo (QComboBox): Dropdown for selecting a uniaxial material.
+        code_combo (QComboBox): Dropdown for selecting the response code (e.g., 'P', 'Mz').
+        param_inputs (dict[str, QWidget]): A dictionary mapping parameter names to their
+            corresponding input widgets (e.g., QComboBox).
+        created_section (UniaxialSection or None): The UniaxialSection object created
+            upon successful submission, or None if creation is canceled or fails.
+
+    Example:
+        >>> from qtpy.QtWidgets import QApplication
+        >>> from femora.components.Material.materialsOpenSees import ElasticUniaxialMaterial
+        >>> from femora.components.section.section_opensees import UniaxialSection
+        >>> import sys
+        >>> app = QApplication(sys.argv)
+        >>> # Ensure a uniaxial material exists for selection
+        >>> _ = ElasticUniaxialMaterial(user_name="ConcreteMaterial", E=30e9, nu=0.2)
+        >>> dialog = UniaxialSectionCreationDialog()
+        >>> # Simulate user input
+        >>> dialog.user_name_input.setText("NewTestSection")
+        >>> # Select the first available uniaxial material
+        >>> if dialog.material_combo.count() > 0:
+        ...     dialog.material_combo.setCurrentIndex(0)
+        >>> dialog.code_combo.setCurrentText('P')
+        >>> dialog.create_section() # Simulate button click
+        >>> if dialog.created_section:
+        ...     print(f"Section created: {dialog.created_section.user_name}")
+        ...     # Clean up for subsequent tests if necessary
+        ...     UniaxialSection.remove_section("NewTestSection")
+        ...     _ = dialog.created_section.material.remove_material() # Clean up material if created for test
+        Section created: NewTestSection
     """
-    Dialog for creating new UniaxialSection sections using class methods
-    """
-    def __init__(self, parent=None):
+    def __init__(self, parent: QWidget = None):
+        """Initializes the UniaxialSectionCreationDialog.
+
+        Args:
+            parent: The parent widget for this dialog.
+        """
         super().__init__(parent)
         self.setWindowTitle("Create Uniaxial Section")
         self.setMinimumSize(600, 400)
@@ -98,6 +140,16 @@ class UniaxialSectionCreationDialog(QDialog):
         main_layout.setStretch(2, 2)
 
     def create_section(self):
+        """Attempts to create a new UniaxialSection based on user input.
+
+        This method validates the user-provided section name, selected material,
+        and response code. If all inputs are valid and a section with the given
+        name does not already exist, a new `UniaxialSection` object is created
+        and stored in the `created_section` attribute.
+
+        Displays `QMessageBox` warnings or errors for invalid or missing inputs
+        and for existing section names.
+        """
         try:
             user_name = self.user_name_input.text().strip()
             if not user_name:
@@ -127,10 +179,59 @@ class UniaxialSectionCreationDialog(QDialog):
             QMessageBox.critical(self, "Error", f"Failed to create section: {str(e)}")
 
 class UniaxialSectionEditDialog(QDialog):
+    """A dialog for editing an existing UniaxialSection object.
+
+    This dialog allows users to modify the material and response code
+    of an existing `UniaxialSection` instance. It displays current
+    section information and provides input fields for editable parameters.
+    Changes are applied directly to the provided `UniaxialSection` object
+    upon successful saving.
+
+    Attributes:
+        section (UniaxialSection): The UniaxialSection object being edited.
+        parameters (list[str]): List of parameter names retrieved from the section.
+        descriptions (list[str]): List of parameter descriptions from the section.
+        tag_label (QLabel): Displays the unique tag of the section.
+        user_name_label (QLabel): Displays the user-defined name of the section.
+        type_label (QLabel): Displays the type name of the section (e.g., 'UniaxialSection').
+        material_combo (QComboBox): Dropdown for selecting a uniaxial material.
+        code_combo (QComboBox): Dropdown for selecting the response code.
+
+    Example:
+        >>> from qtpy.QtWidgets import QApplication
+        >>> from femora.components.Material.materialsOpenSees import ElasticUniaxialMaterial
+        >>> from femora.components.section.section_opensees import UniaxialSection
+        >>> import sys
+        >>> app = QApplication(sys.argv)
+        >>> # Ensure some uniaxial materials exist for selection
+        >>> material_a = ElasticUniaxialMaterial(user_name="MaterialA", E=20e9, nu=0.2)
+        >>> material_b = ElasticUniaxialMaterial(user_name="MaterialB", E=40e9, nu=0.25)
+        >>> # Create a dummy section to edit
+        >>> existing_section = UniaxialSection(user_name="EditMeSection", material=material_a, response_code='P')
+        >>> print(f"Initial material: {existing_section.material.user_name}")
+        Initial material: MaterialA
+        >>> dialog = UniaxialSectionEditDialog(existing_section)
+        >>> # Simulate user changing material and response code
+        >>> if dialog.material_combo.findText("MaterialB") != -1:
+        ...     dialog.material_combo.setCurrentText("MaterialB")
+        >>> dialog.code_combo.setCurrentText('Mz')
+        >>> dialog.save_changes() # Simulate button click
+        >>> print(f"Updated material: {existing_section.material.user_name}")
+        Updated material: MaterialB
+        >>> print(f"Updated response code: {existing_section.response_code}")
+        Updated response code: Mz
+        >>> # Clean up
+        >>> UniaxialSection.remove_section("EditMeSection")
+        >>> _ = material_a.remove_material()
+        >>> _ = material_b.remove_material()
     """
-    Dialog for editing existing UniaxialSection sections using class methods
-    """
-    def __init__(self, section, parent=None):
+    def __init__(self, section: UniaxialSection, parent: QWidget = None):
+        """Initializes the UniaxialSectionEditDialog.
+
+        Args:
+            section: The `UniaxialSection` instance to be edited.
+            parent: The parent widget for this dialog.
+        """
         super().__init__(parent)
         self.section = section
         self.setWindowTitle(f"Edit Uniaxial Section: {section.user_name}")
@@ -200,6 +301,14 @@ class UniaxialSectionEditDialog(QDialog):
         main_layout.setStretch(0, 3)
         main_layout.setStretch(2, 2)
     def save_changes(self):
+        """Saves the changes made to the `UniaxialSection` object.
+
+        This method retrieves the currently selected material and response code
+        from the dialog's input fields. It then updates the `section` object
+        with these new values.
+
+        Displays `QMessageBox` warnings or errors for invalid or missing inputs.
+        """
         try:
             material = get_material_by_combo_selection(self.material_combo)
             if not material:
@@ -220,7 +329,8 @@ if __name__ == "__main__":
     from femora.components.Material.materialsOpenSees import ElasticIsotropicMaterial, ElasticUniaxialMaterial
     import sys
 
-    elas1 = ElasticIsotropicMaterial(user_name="Steel", E=210e9, nu=0.3)
+    # Ensure a uniaxial material exists for the examples
+    elas1 = ElasticIsotropicMaterial(user_name="Steel", E=210e9, nu=0.3) # Not directly used but good for context
     elas2 = ElasticUniaxialMaterial(user_name="Concrete", E=30e9, nu=0.2)
 
     app = QApplication(sys.argv)
@@ -231,9 +341,14 @@ if __name__ == "__main__":
         print("Created section:", create_dialog.created_section)
     
     # Test edit dialog with a dummy section
-    dummy_section = UniaxialSection(user_name="TestSection", material=None, response_code='P')
+    dummy_section = UniaxialSection(user_name="TestSection", material=elas2, response_code='P')
     edit_dialog = UniaxialSectionEditDialog(dummy_section)
     if edit_dialog.exec_() == QDialog.Accepted:
         print("Updated section:", dummy_section)
+
+    # Clean up created objects for repeated runs
+    UniaxialSection.remove_section("TestSection")
+    ElasticIsotropicMaterial.remove_material("Steel")
+    ElasticUniaxialMaterial.remove_material("Concrete")
 
     sys.exit(app.exec_())
