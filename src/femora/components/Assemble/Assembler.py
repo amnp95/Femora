@@ -1104,6 +1104,43 @@ class AssemblySection:
 
         return snapped
     
+    def _ensure_ndf_array(self, mesh: pv.UnstructuredGrid, default_ndf: int):
+        """
+        Ensures the mesh has an 'ndf' point data array.
+        If missing, it attempts to derive it from 'ElementTag' cell data to respect
+        unique sentinels (e.g., for GhostNodeElements).
+        """
+        if "ndf" in mesh.point_data:
+            return
+            
+        n_points = mesh.n_points
+        
+        # If no ElementTag, we must use the default for all points
+        if "ElementTag" not in mesh.cell_data:
+            if "ndf" not in mesh.point_data:
+                mesh.point_data["ndf"] = np.full(n_points, default_ndf, dtype=np.uint16)
+            return
+
+        # Start with default
+        ndf_values = np.full(n_points, default_ndf, dtype=np.uint16)
+        element_tags = mesh.cell_data["ElementTag"]
+        unique_tags = np.unique(element_tags)
+        
+        for tag in unique_tags:
+            element = Element.get_element_by_tag(tag)
+            if element:
+                ele_ndof = element.get_ndof()
+                if ele_ndof != default_ndf:
+                    # Update points belonging to these cells
+                    cell_indices = np.where(element_tags == tag)[0]
+                    for cell_idx in cell_indices:
+                        start = mesh.offset[cell_idx]
+                        end = mesh.offset[cell_idx + 1]
+                        pids = mesh.cell_connectivity[start:end]
+                        ndf_values[pids] = ele_ndof
+        
+        mesh.point_data["ndf"] = ndf_values
+
     def _assemble_mesh(self, progress_callback=None):
         """
         Assemble mesh parts into a single mesh.
@@ -1170,8 +1207,8 @@ class AssemblySection:
         if "SectionTag" not in first_mesh.cell_data:
              first_mesh.cell_data["SectionTag"]  = np.full(n_cells, sectionTag, dtype=np.uint16)
         
-        if "ndf" not in first_mesh.point_data:
-            first_mesh.point_data["ndf"]        = np.full(n_points, ndf, dtype=np.uint16)
+        self._ensure_ndf_array(first_mesh, ndf)
+
         first_mesh.cell_data["Region"]      = np.full(n_cells, regionTag, dtype=np.uint16)
         first_mesh.cell_data["MeshPartTag_celldata"]   = np.full(n_cells, meshTag, dtype=np.uint16)
         first_mesh.point_data["MeshPartTag_pointdata"] = np.full(n_points, meshTag, dtype=np.uint16)
@@ -1213,11 +1250,12 @@ class AssemblySection:
             if "MaterialTag" not in second_mesh.cell_data:
                 second_mesh.cell_data["MaterialTag"] = np.full(n_cells_second, matTag, dtype=np.uint16)
             
-            if "ndf" not in second_mesh.point_data:
-                second_mesh.point_data["ndf"]        = np.full(n_points_second, ndf, dtype=np.uint16)
-            second_mesh.cell_data["Region"]      = np.full(n_cells_second, regionTag, dtype=np.uint16)
             if "SectionTag" not in second_mesh.cell_data:
                 second_mesh.cell_data["SectionTag"]  = np.full(n_cells_second, sectionTag, dtype=np.uint16)
+            
+            self._ensure_ndf_array(second_mesh, ndf)
+
+            second_mesh.cell_data["Region"]      = np.full(n_cells_second, regionTag, dtype=np.uint16)
             
             second_mesh.cell_data["MeshPartTag_celldata"]   = np.full(n_cells_second, meshTag, dtype=np.uint16)
             second_mesh.point_data["MeshPartTag_pointdata"] = np.full(n_points_second, meshTag, dtype=np.uint16)
