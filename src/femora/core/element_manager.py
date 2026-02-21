@@ -1,6 +1,7 @@
 # Provides direct references to element classes for autocompletion and easy access
 from femora.components.element import SSPQuadElement, stdBrickElement, PML3DElement, SSPbrickElement
 from femora.components.element import DispBeamColumnElement, ForceBeamColumnElement, ElasticBeamColumnElement
+from femora.components.element import GhostNodeElement
 
 
 class _BrickElements:
@@ -16,4 +17,5 @@ class _BeamElements:
     force = ForceBeamColumnElement
     elastic = ElasticBeamColumnElement
 
-
+class _SpecialElements:
+    ghost_node = GhostNodeElement
