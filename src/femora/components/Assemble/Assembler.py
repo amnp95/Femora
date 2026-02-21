@@ -1,7 +1,6 @@
 from typing import List, Optional, Dict, Any
 import numpy as np
 import pyvista as pv
-import warnings
 import logging
 import sys
 from scipy.spatial import KDTree
@@ -1080,32 +1079,7 @@ class AssemblySection:
         
         return validated_meshparts
     
-    def _validate_degrees_of_freedom(self) -> bool:
-        """
-        Check if all mesh parts have the same number of degrees of freedom.
-        
-        This internal method verifies that all mesh parts in the section have
-        consistent degrees of freedom, which is important for proper mesh assembly
-        when merging points. If merging_points is False, this check is skipped.
-        
-        If inconsistent degrees of freedom are detected, a warning is issued but
-        the method returns False rather than raising an exception.
 
-        Returns:
-            bool: True if all mesh parts have the same number of degrees of freedom,
-                 or if merging_points is False. False if inconsistencies are detected.
-        """
-        if not self.merging_points:
-            return True
-        
-        ndof_list = [meshpart.element._ndof for meshpart in self.meshparts_list]
-        unique_ndof = set(ndof_list)
-        
-        if len(unique_ndof) > 1:
-            warnings.warn("Mesh parts have different numbers of degrees of freedom", UserWarning)
-            return False
-        
-        return True
 
     @staticmethod
     def _snap_points(points, tol=1e-6):
@@ -1153,19 +1127,31 @@ class AssemblySection:
             def progress_callback(v, msg=""):
                 Progress.callback(v, msg, desc=f"Assembly Section: {len(Assembler._assembly_sections) + 1}")
 
-        # Validate degrees of freedom
-        self._validate_degrees_of_freedom()
+
             
         # Start with the first mesh
         first_meshpart = self.meshparts_list[0]
         first_mesh = first_meshpart.mesh.copy()
         
         # Collect elements and materials
-        ndf = first_meshpart.element._ndof
-        matTag = first_meshpart.element.get_material_tag()
-        EleTag = first_meshpart.element.tag
+        ndf = 0
+        if first_meshpart.element:
+            ndf = first_meshpart.element._ndof
+            matTag = first_meshpart.element.get_material_tag()
+            EleTag = first_meshpart.element.tag
+            sectionTag = first_meshpart.element.get_section_tag()
+        elif hasattr(first_meshpart, 'ndof'): # Handling CompositeMesh
+            ndf = first_meshpart.ndof
+            matTag = getattr(first_meshpart, 'material_tag', 0)
+            EleTag = getattr(first_meshpart, 'element_tag', 0)
+            sectionTag = getattr(first_meshpart, 'section_tag', 0)
+        else:
+             ndf = FEMORA_MAX_NDF # Default fallback
+             matTag = getattr(first_meshpart, 'material_tag', 0)
+             EleTag = getattr(first_meshpart, 'element_tag', 0)
+             sectionTag = getattr(first_meshpart, 'section_tag', 0)
+
         regionTag = first_meshpart.region.tag
-        sectionTag = first_meshpart.element.get_section_tag()
         meshTag  = first_meshpart.tag
         
         # Add initial metadata to the first mesh
@@ -1176,11 +1162,16 @@ class AssemblySection:
         if "Mass" not in first_mesh.point_data:
             first_mesh.point_data["Mass"] = np.zeros((n_points, FEMORA_MAX_NDF), dtype=np.float32)
 
-        # add cell and point data
-        first_mesh.cell_data["ElementTag"]  = np.full(n_cells, EleTag, dtype=np.uint16)
-        first_mesh.cell_data["MaterialTag"] = np.full(n_cells, matTag, dtype=np.uint16)
-        first_mesh.cell_data["SectionTag"]  = np.full(n_cells, sectionTag, dtype=np.uint16)
-        first_mesh.point_data["ndf"]        = np.full(n_points, ndf, dtype=np.uint16)
+        # add cell and point data - ONLY IF NOT EXISTS
+        if "ElementTag" not in first_mesh.cell_data:
+             first_mesh.cell_data["ElementTag"]  = np.full(n_cells, EleTag, dtype=np.uint16)
+        if "MaterialTag" not in first_mesh.cell_data:
+             first_mesh.cell_data["MaterialTag"] = np.full(n_cells, matTag, dtype=np.uint16)
+        if "SectionTag" not in first_mesh.cell_data:
+             first_mesh.cell_data["SectionTag"]  = np.full(n_cells, sectionTag, dtype=np.uint16)
+        
+        if "ndf" not in first_mesh.point_data:
+            first_mesh.point_data["ndf"]        = np.full(n_points, ndf, dtype=np.uint16)
         first_mesh.cell_data["Region"]      = np.full(n_cells, regionTag, dtype=np.uint16)
         first_mesh.cell_data["MeshPartTag_celldata"]   = np.full(n_cells, meshTag, dtype=np.uint16)
         first_mesh.point_data["MeshPartTag_pointdata"] = np.full(n_points, meshTag, dtype=np.uint16)
@@ -1191,22 +1182,43 @@ class AssemblySection:
         self.mesh = pv.MultiBlock([first_mesh])  # Start with the first mesh as a MultiBlock
         for idx, meshpart in enumerate(self.meshparts_list[1:], start=2):
             second_mesh = meshpart.mesh.copy()
-            ndf = meshpart.element._ndof
-            matTag = meshpart.element.get_material_tag()
-            EleTag = meshpart.element.tag
+            second_mesh = meshpart.mesh.copy()
+            
+            ndf = 0
+            if meshpart.element:
+                ndf = meshpart.element._ndof
+                matTag = meshpart.element.get_material_tag()
+                EleTag = meshpart.element.tag
+                sectionTag = meshpart.element.get_section_tag()
+            elif hasattr(meshpart, 'ndof'):
+                 ndf = meshpart.ndof
+                 matTag = getattr(meshpart, 'material_tag', 0)
+                 EleTag = getattr(meshpart, 'element_tag', 0)
+                 sectionTag = getattr(meshpart, 'section_tag', 0)
+            else:
+                 ndf = FEMORA_MAX_NDF
+                 matTag = getattr(meshpart, 'material_tag', 0)
+                 EleTag = getattr(meshpart, 'element_tag', 0)
+                 sectionTag = getattr(meshpart, 'section_tag', 0)
+
             regionTag = meshpart.region.tag
-            sectionTag = meshpart.element.get_section_tag()
             meshTag  = meshpart.tag
             n_cells_second  = second_mesh.n_cells
             n_points_second = second_mesh.n_points
             if "Mass" not in second_mesh.point_data:
                 second_mesh.point_data["Mass"] = np.zeros((n_points_second, FEMORA_MAX_NDF), dtype=np.float32)
             # add cell and point data to the second mesh
-            second_mesh.cell_data["ElementTag"]  = np.full(n_cells_second, EleTag, dtype=np.uint16)
-            second_mesh.cell_data["MaterialTag"] = np.full(n_cells_second, matTag, dtype=np.uint16)
-            second_mesh.point_data["ndf"]        = np.full(n_points_second, ndf, dtype=np.uint16)
+            if "ElementTag" not in second_mesh.cell_data:
+                second_mesh.cell_data["ElementTag"]  = np.full(n_cells_second, EleTag, dtype=np.uint16)
+            if "MaterialTag" not in second_mesh.cell_data:
+                second_mesh.cell_data["MaterialTag"] = np.full(n_cells_second, matTag, dtype=np.uint16)
+            
+            if "ndf" not in second_mesh.point_data:
+                second_mesh.point_data["ndf"]        = np.full(n_points_second, ndf, dtype=np.uint16)
             second_mesh.cell_data["Region"]      = np.full(n_cells_second, regionTag, dtype=np.uint16)
-            second_mesh.cell_data["SectionTag"]  = np.full(n_cells_second, sectionTag, dtype=np.uint16)
+            if "SectionTag" not in second_mesh.cell_data:
+                second_mesh.cell_data["SectionTag"]  = np.full(n_cells_second, sectionTag, dtype=np.uint16)
+            
             second_mesh.cell_data["MeshPartTag_celldata"]   = np.full(n_cells_second, meshTag, dtype=np.uint16)
             second_mesh.point_data["MeshPartTag_pointdata"] = np.full(n_points_second, meshTag, dtype=np.uint16)
             # Merge with tolerance and optional point merging
