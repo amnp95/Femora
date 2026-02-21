@@ -131,6 +131,18 @@ class ElasticSection(Section):
     def get_materials(self) -> List[Material]:
         """Elastic sections don't use external materials"""
         return []
+    
+    def get_area(self):
+        return self.params.get("A", 0.0)
+    
+    def get_Iz(self):
+        return self.params.get("Iz", 0.0)
+
+    def get_Iy(self):
+        return self.params.get("Iy",0.0)
+
+    def get_J(self):
+        return self.params.get("J", 0.0)
 
 
 class AggregatorSection(Section):
