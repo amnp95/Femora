@@ -32,6 +32,7 @@ import os
 from femora.components.Mesh.meshPartBase import MeshPart, MeshPartRegistry
 from femora.core.element_base import Element
 from femora.components.Region.regionBase import RegionBase
+from femora.components.Material.materialBase import Material
 from femora.constants import FEMORA_MAX_NDF
 
 
@@ -2021,3 +2022,83 @@ MeshPartRegistry.register_mesh_part_type('Surface mesh', 'Circular O-Grid', Circ
 class SurfaceMeshManager:
     """Manager class for surface mesh types"""
     circular_o_grid = CircularOGrid2D
+
+
+class CompositeMesh(MeshPart):
+    """
+    A mesh part that can contain multiple types of elements (sections).
+    The mesh's cell_data['ElementTag'] determines which Element instance handles each cell.
+    
+    Parameters
+    ----------
+    user_name : str
+        Unique user name for the mesh part.
+    mesh : pv.UnstructuredGrid
+        The pre-constructed pyvista mesh containing all geometry. 
+        Must have 'ElementTag' cell data populated.
+    region : RegionBase, optional
+        Associated region.
+    """
+    _compatible_elements = ["variable"] 
+
+    def __init__(self, user_name: str, mesh: pv.UnstructuredGrid, region: RegionBase=None, ndof: int = 6, 
+                 element_tag: int = 0, material_tag: int = 0, section_tag: int = 0, **kwargs):
+        """
+        Initialize a Composite Mesh Part.
+        """
+        # Pass None for element as this mesh part manages multiple elements internally via tags
+        super().__init__(
+            category='structure',
+            mesh_type='Composite Mesh',
+            user_name=user_name,
+            element=None, 
+            region=region
+        )
+        self.mesh = mesh
+        self.params = kwargs
+        self.ndof = ndof
+        self.element_tag = element_tag
+        self.material_tag = material_tag
+        self.section_tag = section_tag
+        
+        # Ensure mass array exists
+        self._ensure_mass_array()
+
+    def generate_mesh(self) -> pv.UnstructuredGrid:
+        """
+        Return the pre-existing mesh.
+        """
+        return self.mesh
+
+    def assign_material(self, material: Material) -> None:
+        """
+        Override to prevent overwriting individual element materials.
+        """
+        # No-op or warning
+        pass
+
+    @classmethod
+    def get_parameters(cls) -> List[Tuple[str, str]]:
+        return []
+
+    @classmethod
+    def validate_parameters(cls, **kwargs) -> Dict[str, Union[int, float, str]]:
+        return kwargs
+
+    def update_parameters(self, **kwargs) -> None:
+        pass
+    
+    @classmethod
+    def is_elemnt_compatible(cls, element: str) -> bool:
+        return True
+
+    @staticmethod
+    def get_Notes() -> Dict[str, Union[str, list]]:
+        return {
+            "description": "A composite mesh part capable of holding multiple element types.",
+            "usage": ["Complex structures with various sections."],
+            "limitations": ["ElementTag cell data must be manually managed."]
+        }
+
+# Register the Composite Mesh part type
+MeshPartRegistry.register_mesh_part_type('General mesh', 'Composite Mesh', CompositeMesh)
