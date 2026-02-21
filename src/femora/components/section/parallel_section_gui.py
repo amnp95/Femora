@@ -12,10 +12,50 @@ from femora.components.section.section_opensees import ParallelSection
 from femora.components.section.section_base import Section
 
 class ParallelSectionCreationDialog(QDialog):
+    """Dialog for creating new ParallelSection sections.
+
+    This dialog allows users to specify a unique name for a new parallel
+    section and select multiple existing sections to combine in parallel.
+    It leverages the static methods of the `ParallelSection` class for
+    parameter retrieval and validation.
+
+    Attributes:
+        parameters (dict): The parameters required for a ParallelSection,
+            retrieved from `ParallelSection.get_parameters()`.
+        descriptions (dict): Descriptions for the ParallelSection parameters,
+            retrieved from `ParallelSection.get_description()`.
+        user_name_input (QLineEdit): Input field for the new section's name.
+        sections_list (QListWidget): List widget displaying available sections
+            for selection.
+        created_section (ParallelSection): The `ParallelSection` instance
+            created upon successful dialog acceptance.
+
+    Example:
+        >>> from qtpy.QtWidgets import QApplication
+        >>> from femora.components.section.section_base import Section
+        >>> from femora.components.section.section_opensees import ElasticSection
+        >>> # Assume some sections exist for selection
+        >>> _ = QApplication([]) # Required for Qt widgets in a script
+        >>> s1 = ElasticSection(user_name="Steel_1", E=200e9, G=77e9, A=0.01, Iz=8.33e-05, Iy=8.33e-05, J=1.66e-04)
+        >>> s2 = ElasticSection(user_name="Concrete_2", E=30e9, G=12e9, A=0.02, Iz=1.0e-04, Iy=1.0e-04, J=2.0e-04)
+        >>> dialog = ParallelSectionCreationDialog()
+        >>> if dialog.exec_():
+        ...     new_section = dialog.created_section
+        ...     print(f"Created section: {new_section.user_name} (Tag: {new_section.tag})")
+        ...     # Further interaction with new_section
+        ...     # Remove sections for cleanup in example
+        ...     Section.remove_section_by_tag(s1.tag)
+        ...     Section.remove_section_by_tag(s2.tag)
+        ...     Section.remove_section_by_tag(new_section.tag)
     """
-    Dialog for creating new ParallelSection sections using class methods
-    """
+
     def __init__(self, parent=None):
+        """Initializes the ParallelSectionCreationDialog.
+
+        Args:
+            parent (QWidget, optional): The parent widget for this dialog.
+                Defaults to None.
+        """
         super().__init__(parent)
         self.setWindowTitle("Create Parallel Section")
         self.setMinimumSize(600, 400)
@@ -78,6 +118,20 @@ class ParallelSectionCreationDialog(QDialog):
         main_layout.setStretch(2, 2)
 
     def create_section(self):
+        """Handles the creation of a new ParallelSection.
+
+        This method is connected to the 'Create Section' button. It performs
+        the following steps:
+        1. Validates that a unique section name has been entered.
+        2. Validates that at least one component section has been selected.
+        3. Retrieves the selected `Section` objects.
+        4. Calls `ParallelSection.validate_section_parameters` to ensure
+           the selected sections are valid for combination.
+        5. Instantiates a new `ParallelSection` with the provided name and
+           selected component sections.
+        6. Displays success or error messages using `QMessageBox`.
+        7. If successful, sets `self.created_section` and accepts the dialog.
+        """
         try:
             user_name = self.user_name_input.text().strip()
             if not user_name:
@@ -107,10 +161,50 @@ class ParallelSectionCreationDialog(QDialog):
             QMessageBox.critical(self, "Error", f"Failed to create section: {str(e)}")
 
 class ParallelSectionEditDialog(QDialog):
+    """Dialog for editing an existing ParallelSection.
+
+    This dialog displays the properties of an existing `ParallelSection`
+    and allows the user to modify the component sections that are combined
+    in parallel.
+
+    Attributes:
+        section (ParallelSection): The `ParallelSection` instance being edited.
+        parameters (dict): The parameters definition for the section type.
+        descriptions (dict): Descriptions of the section parameters.
+        tag_label (QLabel): Displays the unique tag of the section.
+        user_name_label (QLabel): Displays the user-defined name of the section.
+        type_label (QLabel): Displays the type of the section (e.g., 'ParallelSection').
+        sections_list (QListWidget): List widget displaying all available sections,
+            with currently combined sections pre-selected.
+
+    Example:
+        >>> from qtpy.QtWidgets import QApplication
+        >>> from femora.components.section.section_base import Section
+        >>> from femora.components.section.section_opensees import ElasticSection, ParallelSection
+        >>> # Assume some sections exist and a parallel section needs editing
+        >>> _ = QApplication([]) # Required for Qt widgets in a script
+        >>> s1 = ElasticSection(user_name="Steel_Beam", E=200e9, G=77e9, A=0.01, Iz=8.33e-05, Iy=8.33e-05, J=1.66e-04)
+        >>> s2 = ElasticSection(user_name="Concrete_Slab", E=30e9, G=12e9, A=0.02, Iz=1.0e-04, Iy=1.0e-04, J=2.0e-04)
+        >>> current_parallel = ParallelSection(user_name="Combined_Section", sections=[s1, s2])
+        >>>
+        >>> dialog = ParallelSectionEditDialog(section=current_parallel)
+        >>> if dialog.exec_():
+        ...     print(f"Updated section '{current_parallel.user_name}' with sections:")
+        ...     for s in current_parallel.sections:
+        ...         print(f"- {s.user_name} (Tag: {s.tag})")
+        ...     # Remove sections for cleanup in example
+        ...     Section.remove_section_by_tag(s1.tag)
+        ...     Section.remove_section_by_tag(s2.tag)
+        ...     Section.remove_section_by_tag(current_parallel.tag)
     """
-    Dialog for editing existing ParallelSection sections using class methods
-    """
-    def __init__(self, section, parent=None):
+    def __init__(self, section: ParallelSection, parent=None):
+        """Initializes the ParallelSectionEditDialog.
+
+        Args:
+            section: The `ParallelSection` instance to be edited.
+            parent (QWidget, optional): The parent widget for this dialog.
+                Defaults to None.
+        """
         super().__init__(parent)
         self.section = section
         self.setWindowTitle(f"Edit Parallel Section: {section.user_name}")
@@ -166,6 +260,15 @@ class ParallelSectionEditDialog(QDialog):
         main_layout.setStretch(0, 3)
         main_layout.setStretch(2, 2)
     def save_changes(self):
+        """Handles saving changes to the existing ParallelSection.
+
+        This method is connected to the 'Save Changes' button. It performs
+        the following steps:
+        1. Validates that at least one component section has been selected.
+        2. Updates the `sections` attribute of the `self.section` object
+           with the newly selected component sections.
+        3. Displays success or error messages using `QMessageBox`.
+        """
         try:
             selected_items = self.sections_list.selectedItems()
             if not selected_items:
