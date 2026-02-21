@@ -10,6 +10,7 @@ from femora.components.element.ghost_node import GhostNodeElement
 from femora.components.Material.materialBase import Material
 from femora.tools.sections import aisc
 from femora.components.transformation.transformation import GeometricTransformation3D
+from femora.core.element_base import Element
 from femora.constants import FEMORA_MAX_NDF
 
 class FEMA_SAC_SteelFrame:
@@ -771,6 +772,12 @@ class FEMA_SAC_SteelFrame:
 
             com_grid.cell_data["ElementTag"] = np.array(com_element_tags)
 
+            # --- Fix: Ensure Ghost Nodes have their unique 'ndf' sentinels ---
+            # This prevents them from being merged with structural nodes or each other
+            # during the Assembler's cleaning step.
+            com_ndfs = [Element.get_element_by_tag(tag).get_ndof() for tag in com_element_tags]
+            com_grid.point_data["ndf"] = np.array(com_ndfs, dtype=np.uint16)
+
             # Initialize center-of-mass Mass array
             com_mass = np.zeros((len(com_coords), FEMORA_MAX_NDF))
 
@@ -786,7 +793,13 @@ class FEMA_SAC_SteelFrame:
             com_grid.point_data["Mass"] = com_mass
 
             # Merge center-of-mass grid into the main grid (no point merging)
+            print("grid num points", grid.n_points)
+            print("com_grid num points", com_grid.n_points)
+            print("grid num cells", grid.n_cells)
+            print("com_grid num cells", com_grid.n_cells)
             grid = grid.merge(com_grid, merge_points=False)
+            print("grid num points", grid.n_points)
+            print("grid num cells", grid.n_cells)
 
             print(f"Added {len(com_coords)} center-of-mass nodes at floor centers "
                   f"(x={x_center:.1f}, y={y_center:.1f}, "

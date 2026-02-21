@@ -6,6 +6,7 @@ from femora.components.Region.regionBase import RegionManager
 from femora.components.Constraint.constraint import Constraint
 from femora.components.Mesh.meshPartBase import MeshPartManager
 from femora.components.Mesh.meshPartInstance import *
+from femora.components.element.ghost_node import GhostNodeElement
 from femora.components.TimeSeries.timeSeriesBase import TimeSeriesManager
 from femora.components.Analysis.analysis import AnalysisManager
 from femora.components.Pattern.patternBase import PatternManager
@@ -398,9 +399,13 @@ class MeshMaker:
                     # writing nodes
                     for pid in pids:
                         if not wroted[pid][core]:
-                            f.write(f"\tnode {nodeTags[pid]} {nodes[pid][0]} {nodes[pid][1]} {nodes[pid][2]} -ndf {ndfs[pid]}\n")
+                            # Resolve potential ghost node sentinels back to real DOFs
+                            raw_ndf = ndfs[pid]
+                            real_ndf = GhostNodeElement.resolve_ndf(raw_ndf) if raw_ndf >= 1000 else raw_ndf
+                            f.write(f"\tnode {nodeTags[pid]} {nodes[pid][0]} {nodes[pid][1]} {nodes[pid][2]} -ndf {real_ndf}\n")
+                            
                             mass_vec = mass[pid]
-                            mass_vec = mass_vec[:ndfs[pid]] 
+                            mass_vec = mass_vec[:real_ndf] 
                             # if any of the mass vector is not zero then write it
                             if abs(mass_vec).sum() > 1e-6:
                                 f.write(f"\tmass {nodeTags[pid]} {' '.join(map(str, mass_vec))}\n")
