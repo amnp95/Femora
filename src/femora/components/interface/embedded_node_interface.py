@@ -131,14 +131,19 @@ class EmbeddedNodeInterface(InterfaceBase, GeneratesMeshMixin):
             normal_filter = self._normal_filter
             filter_tolerance = self._filter_tolerance
             if normal_filter is None:
-                mesh_with_normals = original_mesh.compute_normals(
-                                                cell_normals=False, 
-                                                point_normals=True, 
-                                                inplace=False,
-                                                split_vertices= False,
+                try:
+                    mesh_with_normals = original_mesh.compute_normals(
+                                                    cell_normals=False, 
+                                                    point_normals=True, 
+                                                    inplace=False,
+                                                    split_vertices= False,
                                             )
+                    normals = mesh_with_normals.point_data['Normals']
+                except Exception as e:
+                    print("warning: could not compute the normals assuming zero normals")
+                    normals = np.zeros((original_mesh.n_points, 3))
                 mask = np.ones(original_mesh.n_points, dtype=bool)
-                original_mesh.point_data['Normals'] = mesh_with_normals.point_data['Normals']
+                original_mesh.point_data['Normals'] = normals
             else:
                 mesh_with_normals = original_mesh.compute_normals(
                                                 cell_normals=False, 
