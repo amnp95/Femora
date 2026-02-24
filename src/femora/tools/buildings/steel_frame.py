@@ -28,26 +28,41 @@ class FEMA_SAC_SteelFrame:
         story_heights: Optional[List[float]] = None,
         section_map: Optional[Dict[str, List[Union[str, Tuple]]]] = None,
         defaults: Optional[Dict[str, str]] = None,
-        n_ele_col: int = 5,
-        n_ele_beam: int = 5,
-        section_unit_system: str = 'in',
+        n_ele_col: int = 1,
+        n_ele_beam: int = 1,
+        length_unit_system: str = 'm',
         origin: Tuple[float, float, float] = (0.0, 0.0, 0.0),
         floor_masses: Optional[List[float]] = None
     ):
+        unit_system_low = length_unit_system.lower()
+        section_unit_system = unit_system_low
+        if unit_system_low == 'in':
+            inch = 1.0
+        elif unit_system_low == 'ft':
+            inch = 0.0833333
+        elif unit_system_low == 'm':
+            inch = 0.0254
+        elif unit_system_low == 'cm':
+            inch = 0.00254
+        elif unit_system_low == 'mm':
+            inch = 0.000254
+        else:
+            raise ValueError(f"Invalid unit system: {length_unit_system}")
+
         # --- 1. Geometry Setup ---
         # Default to SAC 9-Story (LA9) geometry if not provided
         if x_bays is None:
-            self.x_bays = [240.0] * 3
+            self.x_bays = [360.0 * inch] * 3
         else:
             self.x_bays = x_bays
             
         if y_bays is None:
-            self.y_bays = [240.0] * 2
+            self.y_bays = [360.0 * inch] * 3
         else:
             self.y_bays = y_bays
             
         if story_heights is None:
-            self.story_heights = [180.0] + [156.0] * 8
+            self.story_heights = [144.0 * inch, 216.0 * inch] + [156.0 * inch] * 8
         else:
             self.story_heights = story_heights
             
@@ -56,19 +71,29 @@ class FEMA_SAC_SteelFrame:
         self.n_ele_beam = n_ele_beam
         self.section_unit_system = section_unit_system
         self.origin = origin
-        self.floor_masses = floor_masses
         
         # Derived Geometry Stats
         self.num_x_grid = len(self.x_bays) + 1
         self.num_y_grid = len(self.y_bays) + 1
         self.num_stories = len(self.story_heights)
 
+        # --- 1.5 Mass Setup ---
+        # Default to zero masses if not provided
+        if floor_masses is None:
+            self.floor_masses = [0.0] * self.num_stories
+        else:
+            # Validate mass list length matches stories (including roof)
+            if len(floor_masses) != self.num_stories:
+                raise ValueError(f"Number of floor masses ({len(floor_masses)}) must match "
+                                 f"the number of stories ({self.num_stories}).")
+            self.floor_masses = floor_masses
+
         # --- 2. Section Storage (The Grids) ---
         # Initialize defaults
         self.defaults = {
-            'grav_column': 'W14X90', 
-            'mom_column': 'W14X90', 
-            'mom_girder': 'W24X55'
+            'grav_column': 'W14X159', 
+            'mom_column': 'W24X229', 
+            'mom_girder': 'W27X114'
         }
         if defaults:
             self.defaults.update(defaults)
@@ -147,6 +172,13 @@ class FEMA_SAC_SteelFrame:
             self.beam_x_sections[(story, j, i)] = section
         elif direction == 'Y':
             self.beam_y_sections[(story, i, j)] = section
+
+    def get_coordinates(self) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+        """Returns the X, Y, and Z coordinates of the building grid intersections."""
+        x_coords = np.cumsum([0] + list(self.x_bays)) + self.origin[0]
+        y_coords = np.cumsum([0] + list(self.y_bays)) + self.origin[1]
+        z_coords = np.cumsum([0] + list(self.story_heights)) + self.origin[2]
+        return x_coords, y_coords, z_coords
 
     def _initialize_sections(self):
         """Populate the section grids based on defaults and section_map."""
@@ -344,9 +376,9 @@ class FEMA_SAC_SteelFrame:
 
     def _load_sac_9_story_defaults(self):
         """Internal helper to load the specific LA9 benchmark sections."""
-        grav_columns = ["W14X145", "W14X132", "W14X120", "W14X109", "W14X99", "W14X90", "W14X82", "W14X74", "W14X68"]
-        mom_columns  = ["W24X335", "W24X306", "W24X279", "W24X250", "W24X229", "W24X207", "W24X192", "W24X176", "W24X162"]
-        mom_girders  = ["W30X116", "W30X108", "W30X99", "W27X94", "W27X84", "W24X76", "W24X68", "W21X62", "W21X55"]
+        grav_columns = ["W14X159", "W14X159", "W14X159", "W14X132", "W14X132", "W14X109", "W14X109", "W14X90", "W14X90", "W14X61"]
+        mom_columns  = ["W24X229", "W24X229", "W24X229", "W24X229", "W24X229", "W24X207", "W24X207", "W24X162", "W24X162", "W24X131"]
+        mom_girders  = ["W27X114", "W27X114", "W27X114", "W27X94", "W27X94", "W27X94", "W24X76", "W21X62", "W21X62", "W21X62"]
         
         # Columns
         for k in range(self.num_stories):
@@ -538,7 +570,7 @@ class FEMA_SAC_SteelFrame:
             
         # --- Construct Composite Mesh ---
         if not all_points:
-            return CompositeMesh(f"{self.name_prefix}_frame", pv.UnstructuredGrid())
+            return CompositeMesh(f"{self.name_prefix}", pv.UnstructuredGrid())
     
         points_array = np.array(all_points)
         cells_array = np.array(all_cells)
@@ -546,17 +578,17 @@ class FEMA_SAC_SteelFrame:
         cell_types = np.array([pv.CellType.LINE] * num_cells)
         
         grid = pv.UnstructuredGrid(cells_array, cell_types, points_array)
-        grid.cell_data["ElementTag"] = np.array(cell_element_tags)
+        grid.cell_data["ElementTag"] = np.array(cell_element_tags, dtype=np.uint16)
         
         # Merge coincident points
         grid = grid.clean(tolerance=1e-5)
-        
         # --- Explicit Element Mass Calculation ---
         # Initialize Mass Array (N, 6)
         if "Mass" not in grid.point_data:
-            grid.point_data["Mass"] = np.zeros((grid.n_points, FEMORA_MAX_NDF))
-
-    
+            grid.point_data["Mass"] = np.zeros((grid.n_points, FEMORA_MAX_NDF), dtype=np.float32)
+            
+        if "ndf" not in grid.point_data:
+            grid.point_data["ndf"] = np.full(grid.n_points, 6, dtype=np.uint16)    
         
         # Robustly get rho (handle if it's an attribute or in params dict)
         # print(material)
@@ -753,6 +785,9 @@ class FEMA_SAC_SteelFrame:
         x_center = (x_coords[0] + x_coords[-1]) / 2.0
         y_center = (y_coords[0] + y_coords[-1]) / 2.0
 
+        Lx = x_coords[-1] - x_coords[0]
+        Ly = y_coords[-1] - y_coords[0]
+
         com_coords = []
         com_element_tags = []
 
@@ -770,7 +805,7 @@ class FEMA_SAC_SteelFrame:
             com_grid = pv.PolyData(np.array(com_coords))
             com_grid = com_grid.cast_to_unstructured_grid()
 
-            com_grid.cell_data["ElementTag"] = np.array(com_element_tags)
+            com_grid.cell_data["ElementTag"] = np.array(com_element_tags, dtype=np.uint16)
 
             # --- Fix: Ensure Ghost Nodes have their unique 'ndf' sentinels ---
             # This prevents them from being merged with structural nodes or each other
@@ -779,7 +814,7 @@ class FEMA_SAC_SteelFrame:
             com_grid.point_data["ndf"] = np.array(com_ndfs, dtype=np.uint16)
 
             # Initialize center-of-mass Mass array
-            com_mass = np.zeros((len(com_coords), FEMORA_MAX_NDF))
+            com_mass = np.zeros((len(com_coords), FEMORA_MAX_NDF), dtype=np.float32)
 
             # Apply floor_masses if provided
             if self.floor_masses is not None:
@@ -789,6 +824,9 @@ class FEMA_SAC_SteelFrame:
                         com_mass[i, 0] = fm  # Mx
                         com_mass[i, 1] = fm  # My
                         com_mass[i, 2] = fm  # Mz
+                        com_mass[i, 3] = fm * Ly**2 / 12.0  # Rx
+                        com_mass[i, 4] = fm * Lx**2 / 12.0  # Ry
+                        com_mass[i, 5] = fm * (Lx**2 + Ly**2) / 12.0  # Rz
 
             com_grid.point_data["Mass"] = com_mass
 
@@ -805,9 +843,95 @@ class FEMA_SAC_SteelFrame:
                   f"(x={x_center:.1f}, y={y_center:.1f}, "
                   f"z={z_coords[1]:.1f}..{z_coords[-1]:.1f})")
 
-        composite_mesh = CompositeMesh(f"{self.name_prefix}_frame", grid)
-        
+        composite_mesh = CompositeMesh(f"{self.name_prefix}", grid)
         return composite_mesh
+
+    def create_rigid_diaphragms(self, model):
+        """
+        Creates rigid diaphragm constraints for each floor.
+        
+        This method identifies the Center-of-Mass (CoM) node at each floor and
+        connects it to all column endpoint nodes on that floor. It ensures
+        that intermediate beam nodes (from subdivided beams) are excluded.
+        
+        Must be called AFTER model.assembler.Assemble().
+        """
+        mesh = model.assembler.AssembeledMesh
+        if mesh is None:
+            raise ValueError("Mesh must be assembled before creating rigid diaphragms.")
+        
+        points = mesh.points
+        ndfs = mesh.point_data["ndf"]
+        start_node_tag = model._start_nodetag
+        
+        x_coords, y_coords, z_coords = self.get_coordinates()
+        
+        # Round coordinates for robust matching
+        x_set = {round(val, 4) for val in x_coords}
+        y_set = {round(val, 4) for val in y_coords}
+        
+        print(f"\nAdding Rigid Diaphragms for {self.num_stories} stories...")
+        
+        for s in range(1, self.num_stories + 1):
+            z_floor = z_coords[s]
+            
+            # 1. Potential floor nodes (vectorized search for Z)
+            mask_z = np.abs(points[:, 2] - z_floor) < 1e-4
+            floor_indices = np.where(mask_z)[0]
+            
+            if len(floor_indices) == 0:
+                print(f"  [Floor {s}] No nodes found at z={z_floor:.2f}")
+                continue
+            
+            floor_points = points[floor_indices]
+            floor_ndfs = ndfs[floor_indices]
+            
+            # 2. Identify Master (CoM) node by sentinel ndf (>= 1000)
+            com_mask = floor_ndfs >= 1000
+            com_local_indices = np.where(com_mask)[0]
+            
+            if len(com_local_indices) == 0:
+                print(f"  [Floor {s}] Warning: No Center-of-Mass ghost node found.")
+                continue
+            
+            # Take the first CoM node found (should be exactly one per floor)
+            com_idx_in_floor = com_local_indices[0]
+            com_global_idx = floor_indices[com_idx_in_floor]
+            master_tag = int(com_global_idx + start_node_tag)
+            
+            # 3. Identify Slaves (Column endpoints)
+            # A node is a column endpoint if (x,y) is exactly on the grid intersections
+            # AND it's not the CoM node itself.
+            slave_tags = []
+            for i, p in enumerate(floor_points):
+                if i == com_idx_in_floor:
+                    continue
+                
+                px, py = round(p[0], 4), round(p[1], 4)
+                if px in x_set and py in y_set:
+                    # check if this intersection actually has a column
+                    # To be perfectly rigorous, we should check col_sections, 
+                    # but in a mostly regular frame, grid nodes ARE column nodes.
+                    global_idx = floor_indices[i]
+                    slave_tags.append(int(global_idx + start_node_tag))
+            
+            if slave_tags:
+                model.constraint.mp.create_rigid_diaphragm(
+                    direction=3, # Normal to XY plane
+                    master_node=master_tag,
+                    slave_nodes=slave_tags
+                )
+                print(f"  [Floor {s}] Created diaphragm: Master={master_tag}, Slaves={len(slave_tags)}")
+            else:
+                print(f"  [Floor {s}] Warning: No slave nodes found for diaphragm.")
+
+            # 4. Add Fixities to CoM Node
+            # We want: X=Free, Y=Free, Z=Fixed, Rx=Fixed, Ry=Fixed, Rz=Free
+            # OpenSees/Femora 'fix' uses [dof1, dof2, dof3, dof4, dof5, dof6] (1=fixed, 0=free)
+            # So: [0, 0, 1, 1, 1, 0]
+            model.constraint.sp.fix(master_tag, [0, 0, 1, 1, 1, 0])
+             
+
 
 def create_steel_frame(
     name_prefix: str,
