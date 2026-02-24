@@ -19,6 +19,7 @@ from femora.components.section.section_base import SectionManager
 from femora.components.mass.mass_manager import MassManager
 from femora.components.geometry_ops.spatial_transform_manager import SpatialTransformManager
 from femora.components.mask.mask_manager import MaskManager
+from femora.components.Actions.action import ActionManager
 import os
 from numpy import unique, zeros, arange, array, abs, concatenate, meshgrid, ones, full, uint16, repeat, where, isin
 from pyvista import Cube, MultiBlock, StructuredGrid
@@ -80,6 +81,7 @@ class MeshMaker:
         self.transformation = GeometricTransformationManager()
         self.section = SectionManager()
         self.spatial_transform = SpatialTransformManager()
+        self.actions = ActionManager()
         
         # Tag start controls for node and element IDs written to TCL
         # These control only exported OpenSees node/element tags (not Material/Element class tags)
@@ -262,7 +264,7 @@ class MeshMaker:
             print("Please ensure qtpy, pyvista, and other GUI dependencies are installed.")
             return None
 
-    def export_to_tcl(self, filename=None, progress_callback=None):
+    def export_to_tcl(self, filename=None, progress_callback=None, decimals=5):
         """
         Export the model to a TCL file
         
@@ -402,7 +404,7 @@ class MeshMaker:
                             # Resolve potential ghost node sentinels back to real DOFs
                             raw_ndf = ndfs[pid]
                             real_ndf = GhostNodeElement.resolve_ndf(raw_ndf) if raw_ndf >= 1000 else raw_ndf
-                            f.write(f"\tnode {nodeTags[pid]} {nodes[pid][0]} {nodes[pid][1]} {nodes[pid][2]} -ndf {real_ndf}\n")
+                            f.write(f"\tnode {nodeTags[pid]} {round(nodes[pid][0], decimals)} {round(nodes[pid][1], decimals)} {round(nodes[pid][2], decimals)} -ndf {real_ndf}\n")
                             
                             mass_vec = mass[pid]
                             mass_vec = mass_vec[:real_ndf] 
