@@ -9,9 +9,44 @@ from femora.components.interface.interface_base import InterfaceBase
 
 
 class EmbeddedInterfaceCreationDialog(QDialog):
-    """Dialog to create a new EmbeddedBeamSolidInterface."""
+    """A dialog for creating new EmbeddedBeamSolidInterface instances.
+
+    This dialog allows users to define the properties of an embedded
+    beam-solid interface, including selecting beam and solid MeshParts,
+    and specifying numeric parameters like radius, penalization, etc.
+
+    Attributes:
+        name_edit (QLineEdit): Input field for the interface name.
+        beam_combo (QComboBox): Dropdown for selecting the beam MeshPart.
+        solid_list (QListWidget): Multi-select list for solid MeshParts.
+        radius_edit (QLineEdit): Input field for the interface radius.
+        n_peri_edit (QLineEdit): Input field for the number of elements
+            around the beam perimeter.
+        n_long_edit (QLineEdit): Input field for the number of elements
+            along the beam length.
+        penalty_edit (QLineEdit): Input field for the penalty parameter.
+        gpenalty_chk (QCheckBox): Checkbox for the -gPenalty flag.
+        created_interface (EmbeddedBeamSolidInterface or None): Stores
+            the newly created interface instance upon successful creation.
+
+    Example:
+        >>> from qtpy.QtWidgets import QApplication, QDialog
+        >>> # A QApplication instance is typically required for Qt dialogs.
+        >>> # app = QApplication([]) # Uncomment if running standalone
+        >>>
+        >>> dialog = EmbeddedInterfaceCreationDialog()
+        >>> dialog.setWindowTitle("New Interface Dialog Demo")
+        >>> # In a real application, you would populate inputs and call dialog.exec_()
+        >>> dialog.close()
+    """
 
     def __init__(self, parent=None):
+        """Initializes the EmbeddedInterfaceCreationDialog.
+
+        Args:
+            parent (QWidget, optional): The parent widget for this dialog.
+                Defaults to None.
+        """
         super().__init__(parent)
         self.setWindowTitle("Create Embedded Beam–Solid Interface")
         self._build_ui()
@@ -131,9 +166,80 @@ class EmbeddedInterfaceCreationDialog(QDialog):
 
 
 class EmbeddedInterfaceEditDialog(QDialog):
-    """Dialog to edit an existing EmbeddedBeamSolidInterface."""
+    """A dialog for editing an existing EmbeddedBeamSolidInterface.
+
+    This dialog displays the current properties of an embedded
+    beam-solid interface and allows the user to modify parameters
+    such as radius, penalization, and flags.
+
+    Attributes:
+        interface (EmbeddedBeamSolidInterface): The interface instance
+            being edited.
+        radius_edit (QLineEdit): Input field for the interface radius.
+        n_peri_edit (QLineEdit): Input field for the number of elements
+            around the beam perimeter.
+        n_long_edit (QLineEdit): Input field for the number of elements
+            along the beam length.
+        penalty_edit (QLineEdit): Input field for the penalty parameter.
+        gpenalty_chk (QCheckBox): Checkbox for the -gPenalty flag.
+
+    Example:
+        >>> from qtpy.QtWidgets import QApplication, QDialog
+        >>> from femora.components.interface.embedded_beam_solid_interface import EmbeddedBeamSolidInterface
+        >>> from femora.components.Mesh.meshPartBase import MeshPart
+        >>>
+        >>> # A QApplication instance is typically required for Qt dialogs.
+        >>> # app = QApplication([]) # Uncomment if running standalone
+        >>>
+        >>> # Create a minimal mock MeshPart for the EmbeddedBeamSolidInterface
+        >>> class MinimalMeshPart(MeshPart):
+        ...     def __init__(self, name):
+        ...         super().__init__()
+        ...         self.user_name = name
+        ...         # Do not add to global registry to avoid side effects
+        ...
+        >>> # Create a dummy EmbeddedBeamSolidInterface instance
+        >>> # This requires a minimal setup for its constructor
+        >>> dummy_beam_part = MinimalMeshPart("MockBeam")
+        >>>
+        >>> # A minimal mock for EmbeddedBeamSolidInterface if the actual class is not available
+        >>> # or for simpler testing:
+        >>> class MockEmbeddedBeamSolidInterface:
+        ...     def __init__(self, name, beam_part, soild_parts, radius, n_peri, n_long, penalty_param, g_penalty):
+        ...         self.name = name
+        ...         self.beam_part = beam_part
+        ...         self.soild_parts = soild_parts
+        ...         self.radius = radius
+        ...         self.n_peri = n_peri
+        ...         self.n_long = n_long
+        ...         self.penalty_param = penalty_param
+        ...         self.g_penalty = g_penalty
+        >>>
+        >>> initial_interface = MockEmbeddedBeamSolidInterface(
+        ...     name="ExampleEditInterface",
+        ...     beam_part=dummy_beam_part,
+        ...     soild_parts=["MockSolid1", "MockSolid2"],
+        ...     radius=0.75,
+        ...     n_peri=8,
+        ...     n_long=10,
+        ...     penalty_param=1.0e10,
+        ...     g_penalty=False
+        ... )
+        >>>
+        >>> dialog = EmbeddedInterfaceEditDialog(interface=initial_interface)
+        >>> dialog.setWindowTitle("Edit Dialog Demo")
+        >>> # In a real application, user would modify inputs and call dialog.exec_()
+        >>> dialog.close()
+    """
 
     def __init__(self, interface: EmbeddedBeamSolidInterface, parent=None):
+        """Initializes the EmbeddedInterfaceEditDialog.
+
+        Args:
+            interface: The `EmbeddedBeamSolidInterface` instance to be edited.
+            parent (QWidget, optional): The parent widget for this dialog.
+                Defaults to None.
+        """
         super().__init__(parent)
         self.interface = interface
         self.setWindowTitle(f"Edit Interface – {interface.name}")
@@ -193,4 +299,4 @@ class EmbeddedInterfaceEditDialog(QDialog):
         except ValueError:
             QMessageBox.warning(self, "Input Error", "Numeric fields are invalid.")
             return
-        self.accept() 
+        self.accept()
