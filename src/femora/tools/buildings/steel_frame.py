@@ -831,13 +831,7 @@ class FEMA_SAC_SteelFrame:
             com_grid.point_data["Mass"] = com_mass
 
             # Merge center-of-mass grid into the main grid (no point merging)
-            print("grid num points", grid.n_points)
-            print("com_grid num points", com_grid.n_points)
-            print("grid num cells", grid.n_cells)
-            print("com_grid num cells", com_grid.n_cells)
             grid = grid.merge(com_grid, merge_points=False)
-            print("grid num points", grid.n_points)
-            print("grid num cells", grid.n_cells)
 
             print(f"Added {len(com_coords)} center-of-mass nodes at floor centers "
                   f"(x={x_center:.1f}, y={y_center:.1f}, "
@@ -916,11 +910,17 @@ class FEMA_SAC_SteelFrame:
                     slave_tags.append(int(global_idx + start_node_tag))
             
             if slave_tags:
-                model.constraint.mp.create_rigid_diaphragm(
-                    direction=3, # Normal to XY plane
-                    master_node=master_tag,
-                    slave_nodes=slave_tags
-                )
+                # model.constraint.mp.create_rigid_diaphragm(
+                #     direction=3, # Normal to XY plane
+                #     master_node=master_tag,
+                #     slave_nodes=slave_tags
+                # )
+                for slave_tag in slave_tags:
+                    model.constraint.mp.create_rigid_diaphragm(
+                        direction=3, # Normal to XY plane
+                        master_node=master_tag,
+                        slave_nodes=[slave_tag]
+                    )
                 print(f"  [Floor {s}] Created diaphragm: Master={master_tag}, Slaves={len(slave_tags)}")
             else:
                 print(f"  [Floor {s}] Warning: No slave nodes found for diaphragm.")
