@@ -454,7 +454,7 @@ soil_layers = ["Layer1", "Layer2",
               "Layer3", "Layer4", 
               "Layer5", "Layer6", "basin1", "basin2"]
 
-building = ["foundation", "nine_story_building"]
+building_parts = ["foundation", "nine_story_building"]
 
 # ========================================================================
 # Interfaces
@@ -489,27 +489,46 @@ model.interface.node_interface(
 
 
 
-model.assembler.create_section(soil_layers, num_partitions=4)
-model.assembler.create_section(building, num_partitions=1)
+model.assembler.create_section(soil_layers, num_partitions=4, merging_points=True)
+model.assembler.create_section(building_parts, num_partitions=1, merging_points=False)
 
 
 
 model.assembler.Assemble()
-model.drm.addAbsorbingLayer(numLayers=5,
-                        numPartitions=2,
+
+model.drm.addAbsorbingLayer(numLayers=2,
+                        numPartitions=1,
                         partitionAlgo="kd-tree",
                         geometry="Rectangular",
                         rayleighDamping=0.95,
                         matchDamping=False,
                         type="Rayleigh",
                         )
+model.drm.addAbsorbingLayer(numLayers=2,
+                        numPartitions=1,
+                        partitionAlgo="kd-tree",
+                        geometry="Rectangular",
+                        rayleighDamping=0.95,
+                        matchDamping=False,
+                        type="Rayleigh",
+                        ) 
+model.drm.addAbsorbingLayer(numLayers=1,
+                    numPartitions=1,
+                    partitionAlgo="kd-tree",
+                    geometry="Rectangular",
+                    rayleighDamping=0.95,
+                    matchDamping=False,
+                    type="Rayleigh",
+                    )                        
 
 
 model.constraint.sp.fixMacroXmax(dofs=[1,1,1,1,1,1,1,1,1], tol = 0.01)
 model.constraint.sp.fixMacroXmin(dofs=[1,1,1,1,1,1,1,1,1], tol = 0.01)
 model.constraint.sp.fixMacroYmax(dofs=[1,1,1,1,1,1,1,1,1], tol = 0.01)
 model.constraint.sp.fixMacroYmin(dofs=[1,1,1,1,1,1,1,1,1], tol = 0.01)
-model.constraint.sp.fixMacroZmin(dofs=[1,1,1,1,1,1,1,1,1], tol = 0.01)                             
+model.constraint.sp.fixMacroZmin(dofs=[1,1,1,1,1,1,1,1,1], tol = 0.01)      
+
+building.create_rigid_diaphragms(model)
 
 
 
@@ -591,5 +610,5 @@ model.export_to_tcl("model.tcl")
 # model.export_to_vtk("mesh.vtk")
 # print(model.assembler.AssembeledMesh.point_data.keys())
 # print(model.assembler.AssembeledMesh.cell_data.keys())
-model.assembler.plot(show_edges=True, scalars="MeshPartTag_celldata")
+model.assembler.plot(show_edges=True, scalars="Core")
 # fm.gui()
