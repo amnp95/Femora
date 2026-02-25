@@ -1602,12 +1602,75 @@ class SingleLineMesh(MeshPart):
 
 
         mass_per_length = self.element.get_mass_per_length()
-        print(f"Mass per length: {mass_per_length}")
+        # print(f"Mass per length: {mass_per_length}")
         L = np.linalg.norm(direction)/ number_of_lines
         m = mass_per_length * L /2
         Mass = np.zeros((self.mesh.n_points, FEMORA_MAX_NDF), dtype=np.float32)
         Mass[:, :3] = m  # Assign mass in translational DOFs
-        Mass[:, 3:6] = m*(L**2)/4.
+        
+        m_rot = m * (L**2) / 4.0
+        m_rx, m_ry, m_rz = m_rot, m_rot, m_rot
+        
+        section = getattr(self.element, '_section', None)
+        transf = getattr(self.element, '_transformation', None)
+        
+        if section and hasattr(section, 'get_area') and hasattr(section, 'get_Iy') and hasattr(section, 'get_Iz'):
+            A = section.get_area()
+            if A > 0:
+                rho = mass_per_length / A
+                Iy = section.get_Iy()
+                Iz = section.get_Iz()
+                J = section.get_J() if hasattr(section, 'get_J') and section.get_J() is not None else (Iy + Iz)
+                
+                m_rot_torsion = rho * J * L / 2.0
+                m_rot_iy = rho * Iy * L / 2.0
+                m_rot_iz = rho * Iz * L / 2.0
+                
+                dir_norm = direction / np.linalg.norm(direction)
+                
+                if transf and hasattr(transf, 'vecxz_x'):
+                    # Local x axis (normalized direction vector)
+                    x_axis = dir_norm
+                    
+                    # vecxz vector (vector in xz plane)
+                    vecxz = np.array([transf.vecxz_x, transf.vecxz_y, transf.vecxz_z])
+                    vecxz_norm = np.linalg.norm(vecxz)
+                    if vecxz_norm > 1e-12:
+                        vecxz = vecxz / vecxz_norm
+                    else:
+                        vecxz = np.array([0.0, 0.0, 1.0])
+                    
+                    # Local y axis = vecxz cross x_axis
+                    y_axis = np.cross(vecxz, x_axis)
+                    y_axis_norm = np.linalg.norm(y_axis)
+                    if y_axis_norm > 1e-12:
+                        y_axis = y_axis / y_axis_norm
+                    else:
+                        y_axis = np.array([0.0, 1.0, 0.0])
+                        
+                    # Local z axis = x_axis cross y_axis
+                    z_axis = np.cross(x_axis, y_axis)
+                    z_axis_norm = np.linalg.norm(z_axis)
+                    if z_axis_norm > 1e-12:
+                        z_axis = z_axis / z_axis_norm
+                    else:
+                        z_axis = np.array([0.0, 0.0, 1.0]) # fallback
+                        
+                    # Calculate lumped diagonal global rotational mass (R^T M R diagonal)
+                    m_rx = (x_axis[0]**2)*m_rot_torsion + (y_axis[0]**2)*m_rot_iy + (z_axis[0]**2)*m_rot_iz
+                    m_ry = (x_axis[1]**2)*m_rot_torsion + (y_axis[1]**2)*m_rot_iy + (z_axis[1]**2)*m_rot_iz
+                    m_rz = (x_axis[2]**2)*m_rot_torsion + (y_axis[2]**2)*m_rot_iy + (z_axis[2]**2)*m_rot_iz
+                else:
+                    if abs(dir_norm[2]) >= max(abs(dir_norm[0]), abs(dir_norm[1])):
+                        m_rx, m_ry, m_rz = m_rot_iz, m_rot_iy, m_rot_torsion
+                    elif abs(dir_norm[0]) >= max(abs(dir_norm[1]), abs(dir_norm[2])):
+                        m_rx, m_ry, m_rz = m_rot_torsion, m_rot_iy, m_rot_iz
+                    else:
+                        m_rx, m_ry, m_rz = m_rot_iy, m_rot_torsion, m_rot_iz
+
+        Mass[:, 3] = m_rx
+        Mass[:, 4] = m_ry
+        Mass[:, 5] = m_rz
         if merge_points:
             start_ind = pv.UnstructuredGrid(self.mesh).find_closest_point(start_point)
             end_ind = pv.UnstructuredGrid(self.mesh).find_closest_point(end_point)
