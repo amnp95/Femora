@@ -33,7 +33,7 @@ for i in range(len(floor_masses)):
 building = FEMA_SAC_SteelFrame(
     name_prefix="nine_story_building",
     length_unit_system='m',
-    origin=(-13.716, -13.716, -1.5),
+    origin=(-13.716, -13.716, -1.0),
     floor_masses=floor_masses
 )
 
@@ -81,6 +81,123 @@ model.meshPart.volume.uniform_rectangular_grid(
 )
 
 
+# =================================================================
+# Define anchor dowels
+# =================================================================
+# Create anchor dowels for the building columns
+dowel_diameter = 4.0 * inch  # 4-inch equivalent diameter for anchor bolts group
+dowel_radius = dowel_diameter / 2.0
+dowel_E = 29000.0 * kip / (inch * inch)
+dowel_nu = 0.3
+dowel_rho = 490.0*lb/(ft*ft*ft)
+dowel_rho = dowel_rho / 1000.0
+dowel_G = dowel_E / (2 * (1 + dowel_nu))
+dowel_I = (np.pi * dowel_diameter**4) / 64.0
+dowel_A = (np.pi * dowel_diameter**2) / 4.0
+dowel_J = (np.pi * dowel_diameter**4) / 32.0
+
+
+dowel_section = model.section.elastic(user_name="dowel_section", 
+                                     E=dowel_E,   A=dowel_A, 
+                                     Iz=dowel_I, Iy=dowel_I,
+                                     G=dowel_G,  J=dowel_J)
+
+dowel_transf = model.transformation.transformation3d(
+    transf_type="Linear",
+    vecxz_x=1,
+    vecxz_y=0,
+    vecxz_z=0,
+    description="dowel elements transformation"
+)
+
+dowel_ele = model.element.beam.disp(ndof=6, 
+                                   section=dowel_section, 
+                                   transformation=dowel_transf,
+                                   numIntgrPts=5,
+                                   massDens=dowel_rho*dowel_A,
+                                   )
+
+x_coords, y_coords, z_coords = building.get_coordinates()
+dowel_parts = []
+dowel_z_top = -1.0          # Base of the steel frame (z = -1.0)
+embed_depth = 0.25
+dowel_z_bot = dowel_z_top - embed_depth
+
+for (s, i, j), section in building.col_sections.items():
+    if s == 1:  # Only for ground-floor columns
+        x = x_coords[i]
+        y = y_coords[j]
+        dowel_name = f"dowel_{i}_{j}"
+        model.meshPart.line.single_line(
+            user_name=dowel_name,
+            element=dowel_ele, # Use the specific dowel element
+            region=None,
+            x0=x, y0=y, z0=dowel_z_bot,
+            x1=x, y1=y, z1=dowel_z_top,
+            number_of_lines=1,
+            merge_points=True,
+        )
+        dowel_parts.append(dowel_name)
+
+
+# =================================================================
+# Define piles
+# =================================================================
+x_pile = np.linspace(-14,14,3)
+y_pile = np.linspace(-14,14,3)
+z_pile = [-8, -3]
+
+pile_diameter = 0.8
+pile_radius = pile_diameter / 2.0
+pil_E = 29000.0*kip/(inch*inch)
+pile_nu = 0.3
+pile_rho = 490.0*lb/(ft*ft*ft)
+pile_rho = pile_rho / 1000.0
+pile_G = pil_E / (2 * (1 + pile_nu))
+
+pile_I = (np.pi * pile_diameter**4) / 64.0
+pile_A = (np.pi * pile_diameter**2) / 4.0
+pile_J = (np.pi * pile_diameter**4) / 32.0
+
+pile_section = model.section.elastic(user_name="pile_section", 
+                                     E=pil_E,   A=pile_A, 
+                                     Iz=pile_I, Iy=pile_I,
+                                     G=pile_G,  J=pile_J)
+
+
+pile_transf = model.transformation.transformation3d(
+    transf_type="Linear",
+    vecxz_x=1,
+    vecxz_y=0,
+    vecxz_z=0,
+    description="pile elements transformation"
+)
+
+pile_ele = model.element.beam.disp(ndof=6, 
+                                   section=pile_section, 
+                                   transformation=pile_transf,
+                                   numIntgrPts=5,
+                                   massDens=pile_rho*pile_A,
+                                   )
+piles_part = []
+for i in range(x_pile.shape[0]):
+    for j in range(y_pile.shape[0]):
+        model.meshPart.line.single_line(
+            user_name=f"pile_{i}_{j}",
+            element=pile_ele,
+            region=None,
+            x0 = x_pile[i],
+            y0 = y_pile[j],
+            z0 = z_pile[0],
+            x1 = x_pile[i],
+            y1 = y_pile[j],
+            z1 = z_pile[1],
+            number_of_lines = 4,
+            merge_points = True,
+        )
+        piles_part.append(f"pile_{i}_{j}")
+
+
 
 # this example is the extension of the example2 which we have semihemispherical basin at the center in this model we are going to use External mesh as a part of the model
 # Parameters for the semihemispherical hole
@@ -103,7 +220,7 @@ radius = 85.0  # Radius of the semihemisphere
 # Layering and initial information
 # =========================================================
 
-# layers [ layer, rho(m/ton), vp(m/s), vs(m/s), xi_s, xi_p, thickness(m) ]
+# layers [ layer, rho(ton/m^3), vp(m/s), vs(m/s), xi_s, xi_p, thickness(m) ]
 layers = [
     [1, 2.1420500, 669.0500, 353.1000, 0.0296, 0.0148, 8],
     [2, 2.1462000, 785.2500, 414.4000, 0.0269, 0.0134, 8],
@@ -152,12 +269,6 @@ softMat_G = softMat_E / (2 * (1 + softMat_nu))
 softMat_K = softMat_E / (3 * (1 - 2 * softMat_nu))
 softMat_Cohesion = 8.0
 softMat_peakStrain = 0.1
-# softMat_E = softMat_E / 1000.
-# softMat_rho = softMat_rho / 1000.
-# sofmat = model.material.create_material("nDMaterial", "ElasticIsotropic",
-#                                 user_name=f"softMaterial",
-#                                 E=softMat_E, nu=softMat_nu, rho=softMat_rho)
-
 sofmat = model.material.nd.pressure_independ_multi_yield(
     user_name="softMaterial",
     nd=3,
@@ -181,14 +292,12 @@ softMat_reg = model.region.create_region("elementRegion", damping=None)
 
 
 # =========================================================
-# Defining a helpher function
+# Defining a helper function
 # =========================================================
 def helperfunction(layer, rho, vp, vs, xi_s, xi_p, thickness):
     vp_vs_ratio = (vp / vs) ** 2
     nu = (vp_vs_ratio - 2) / (2 * (vp_vs_ratio - 1))
     E = 2 * rho * (vs ** 2) * (1 + nu)
-    # E = E / 1000.
-    # rho = rho / 1000.
     mat = model.material.create_material("nDMaterial", "ElasticIsotropic",
                                 user_name=f"Layer{layer}",
                                 E=E, nu=nu, rho=rho)
@@ -452,45 +561,46 @@ if PLOTTING:
 # create a list of mesh parts
 soil_layers = ["Layer1", "Layer2", 
               "Layer3", "Layer4", 
-              "Layer5", "Layer6", "basin1", "basin2"]
+              "Layer5", "Layer6", 
+              "basin1", "basin2"]
 
-building_parts = ["foundation", "nine_story_building"]
+
+building_parts = ["nine_story_building","foundation"]
+building_parts.extend(piles_part)
+building_parts.extend(dowel_parts)
+print(building_parts)
 
 # ========================================================================
 # Interfaces
 # ========================================================================
-# create interface between foundation and building ==================
-# model.interface.beam_solid_interface(name="foundation_building_interface",
-#                                     beam_part="nine_story_building",
-#                                     radius=0.25,
-#                                     n_peri=8,
-#                                     n_long=4)
+# create interface between foundation and dowels ==================
+for dowel in dowel_parts:
+    model.interface.beam_solid_interface(name=f"{dowel}_interface",
+                                        beam_part=dowel,
+                                        radius=dowel_radius,
+                                        n_peri=8,
+                                        n_long=4)
 
 
 
-# create the interface between the building and the foundation
-model.interface.node_interface(
-    name="building_foundation_interface",
-    constrained_node="nine_story_building",
-    retained_nodes=["foundation"],
-    rot=True,
-    K=1e8,
-    friction_interface=False
+
+
+# create interface between soil and foundation ==================
+
+for pile in piles_part:
+    model.interface.beam_solid_interface(
+        name=f"{pile}_interface",
+        beam_part=pile,
+        radius=pile_radius,
+        n_peri=8,
+        n_long=4
     )
 
-# create interface between soil and foundation ==================
-model.interface.node_interface(
-    name="soil_foundation_interface",
-    constrained_node="foundation",
-    retained_nodes=["basin1"],
-    friction_interface=False,
-    K=1e8)
 
 
 
-
+model.assembler.create_section(building_parts, num_partitions=1, merging_points=True)
 model.assembler.create_section(soil_layers, num_partitions=4, merging_points=True)
-model.assembler.create_section(building_parts, num_partitions=1, merging_points=False)
 
 
 
@@ -605,10 +715,20 @@ model.process.add_step(dynamic_analysis, description="Transient analysis")
 
 model.export_to_tcl("model.tcl")
 
-
+# %%
 
 # model.export_to_vtk("mesh.vtk")
 # print(model.assembler.AssembeledMesh.point_data.keys())
 # print(model.assembler.AssembeledMesh.cell_data.keys())
-model.assembler.plot(show_edges=True, scalars="Core")
+model.assembler.plot(show_edges=True, 
+                    scalars="Core", 
+                    opacity=0.8       
+                    )
 # fm.gui()
+# mesh = model.assembler.AssembeledMesh
+# Cores = mesh.cell_data["Core"]
+# cores = np.unique(Cores)
+# for core in cores:
+#     mask = Cores == core
+#     mesh.extract_cells(mask).plot(show_edges=True, 
+#                     scalars="Core")
