@@ -532,7 +532,10 @@ class MeshMaker:
                         f.write("\t# Master nodes not defined in this core\n")
                         for master_id in valid_masters:
                             node = nodes[master_id]
-                            f.write(f"\tnode {master_id+1} {node[0]} {node[1]} {node[2]} -ndf {ndfs[master_id]}\n")
+                            raw_ndf = ndfs[master_id]
+                            real_ndf = GhostNodeElement.resolve_ndf(raw_ndf) if raw_ndf >= 1000 else raw_ndf
+                            f.write(f"\tnode {nodeTags[master_id]} {round(node[0], decimals)} {round(node[1], decimals)} {round(node[2], decimals)} -ndf {real_ndf}\n")
+
 
                     # Process all slave nodes that are not in the current core
                     # Collect all unique slave nodes from active master nodes' constraints
@@ -548,7 +551,9 @@ class MeshMaker:
                         f.write("\t# Slave nodes not defined in this core\n")
                         for slave_id in unique(valid_slaves):
                             node = nodes[slave_id]
-                            f.write(f"\tnode {slave_id+1} {node[0]} {node[1]} {node[2]} -ndf {ndfs[slave_id]}\n")
+                            raw_ndf = ndfs[slave_id]
+                            real_ndf = GhostNodeElement.resolve_ndf(raw_ndf) if raw_ndf >= 1000 else raw_ndf
+                            f.write(f"\tnode {nodeTags[slave_id]} {round(node[0], decimals)} {round(node[1], decimals)} {round(node[2], decimals)} -ndf {real_ndf}\n")
 
                     # Write constraints after nodes
                     f.write("\t# Constraints\n")
