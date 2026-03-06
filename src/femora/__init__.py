@@ -1,29 +1,23 @@
-"""
-femora: Fast Efficient Meshing for OpenSees based Resilient Analysis
-===================================================================
+"""Femora: Fast Efficient Meshing for OpenSees based Resilient Analysis.
 
 This package provides tools for creating and managing meshes for OpenSees simulations.
-
 When imported as `import femora as fm`, the module itself acts as a MeshMaker instance,
-allowing for direct access to all MeshMaker methods and properties.
+allowing direct access to all MeshMaker methods and properties.
 
-Example usage:
--------------
-```python
-import femora as fm
-
-# Create materials
-material = fm.material.create_material(...)
-
-# Create elements
-element = fm.element.create_element(...)
-
-# Create mesh parts
-fm.meshPart.create_mesh_part(...)
-
-# Assemble the mesh
-fm.assembler.Assemble()
-```
+Example:
+    >>> import femora as fm
+    >>> # Create a material definition
+    >>> material_properties = {"name": "Concrete01", "fc": -4000, "fpc": -5000}
+    >>> concrete_material = fm.material.create_material(
+    ...     material_type="Concrete01",
+    ...     properties=material_properties,
+    ...     tag=1
+    ... )
+    >>> print(concrete_material.tag)
+    1
+    >>> # Access a lazily loaded property
+    >>> print(fm.mask)
+    <MeshMask instance at ...>
 """
 
 from .components.MeshMaker import MeshMaker
@@ -68,7 +62,6 @@ spatial_transform = _instance.spatial_transform
 set_results_folder = MeshMaker.set_results_folder
 
 
-
 # Add actions as a separate direct property
 actions = _action_manager
 
@@ -78,10 +71,34 @@ get_instance = MeshMaker.get_instance
 
 
 def __getattr__(name):
-    """
-    Lazy attribute access for module-level conveniences.
+    """Lazily retrieves module-level attributes.
 
-    This avoids evaluating certain properties (like `mask`) at import time.
+    This method provides lazy access for certain module-level properties (e.g., `mask`),
+    avoiding their evaluation at module import time. For other attributes, it raises
+    an `AttributeError` if the attribute is not explicitly defined or exported.
+
+    Args:
+        name: The name of the attribute to retrieve.
+
+    Returns:
+        The value of the requested attribute.
+
+    Raises:
+        AttributeError: If the attribute does not exist or is not supported for lazy
+            retrieval.
+
+    Example:
+        >>> import femora as fm
+        >>> # The 'mask' attribute is lazily loaded the first time it's accessed
+        >>> mask_instance = fm.mask
+        >>> print(type(mask_instance).__name__)
+        MeshMask
+        >>> # Attempting to access a non-existent attribute raises an error
+        >>> try:
+        ...     fm.non_existent_attribute
+        ... except AttributeError as e:
+        ...     print(e)
+        module 'femora' has no attribute 'non_existent_attribute'
     """
     if name == 'mask':
         return _instance.mask
