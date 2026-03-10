@@ -1,28 +1,22 @@
 """
-This module defines various mesh part instances with the base class of MeshPart.
-It includes the StructuredRectangular3D class, which represents a 3D 
-structured rectangular mesh part.It provides functionality to 
-initialize, generate, and validate a structured rectangular mesh grid using 
-the PyVista library.
+This module defines various mesh part instances, all inheriting from `MeshPart`.
 
-Classes:
-    StructuredRectangular3D: A class representing a 3D structured rectangular mesh part.
-    CustomRectangularGrid3D: A class representing a 3D custom rectangular grid mesh part.
-    GeometricStructuredRectangular3D: A class representing a 3D geometric structured rectangular mesh part.
-    CustomMesh: A class representing a custom mesh part that can load from a file or accept an existing PyVista mesh.
+It includes classes for creating structured 3D rectangular meshes, custom rectangular
+grids, geometrically graded rectangular grids, external meshes loaded from files,
+and structured and single line meshes for beam elements.
 
-Functions:
-    generate_mesh: Generates a structured rectangular mesh.
-    get_parameters: Returns a list of parameters for the mesh part type.
-    validate_parameters: Validates the input parameters for the mesh part.
-    is_elemnt_compatible: Returns True if the element is compatible with the mesh part type.
-    update_parameters: Updates the mesh part parameters.
-    get_Notes: Returns notes for the mesh part type.
-
-
-Usage:
-    This module is intended to be used as part of the MeshMaker lib for 
-    defining and manipulating 3D structured rectangular mesh parts.
+Attributes:
+    StructuredRectangular3D: Represents a 3D structured rectangular mesh part with uniform spacing.
+    CustomRectangularGrid3D: Represents a 3D custom rectangular grid mesh part with user-defined coordinates.
+    GeometricStructuredRectangular3D: Represents a 3D rectangular mesh with geometric spacing.
+    ExternalMesh: Represents a mesh loaded from a file or provided as a PyVista mesh.
+    StructuredLineMesh: Represents a 2D structured grid of 3D line elements.
+    SingleLineMesh: Represents a single 3D line element.
+    CircularOGrid2D: Represents a 2D circular quad mesh with O-grid topology.
+    CompositeMesh: Represents a mesh part containing multiple element types defined by cell data.
+    LineMeshManager: A manager class for line mesh types.
+    VolumeMeshManager: A manager class for volume mesh types.
+    SurfaceMeshManager: A manager class for surface mesh types.
 """
 from typing import Dict, List, Tuple, Union, Optional
 from abc import ABC, abstractmethod
@@ -38,67 +32,59 @@ from femora.constants import FEMORA_MAX_NDF
 
 
 class StructuredRectangular3D(MeshPart):
-    """
-    Structured Rectangular 3D Mesh Part
+    """Represents a 3D structured rectangular mesh part with uniform cell spacing.
 
-    Parameters
-    ----------
-    user_name : str
-        Unique user name for the mesh part.
-    element : Element
-        Associated element.
-    region : RegionBase, optional
-        Associated region.
-    X Min or x_min : float
-        Minimum X coordinate.
-    X Max or x_max : float
-        Maximum X coordinate.
-    Y Min or y_min : float
-        Minimum Y coordinate.
-    Y Max or y_max : float
-        Maximum Y coordinate.
-    Z Min or z_min : float
-        Minimum Z coordinate.
-    Z Max or z_max : float
-        Maximum Z coordinate.
-    Nx Cells or nx : int
-        Number of cells in X direction.
-    Ny Cells or ny : int
-        Number of cells in Y direction.
-    Nz Cells or nz : int
-        Number of cells in Z direction.
+    This class provides functionality to initialize, generate, and validate
+    a structured rectangular mesh grid using the PyVista library.
+
+    Attributes:
+        _compatible_elements (list[str]): List of compatible element types for this mesh part.
+        params (dict): Dictionary storing the validated parameters for mesh generation.
+        mesh (pv.UnstructuredGrid): The generated PyVista unstructured grid.
     """
     _compatible_elements = ["stdBrick", "bbarBrick", "SSPbrick", "PML3D"]
     def __init__(self, user_name: str, element: Element, region: RegionBase=None,**kwargs):
-        """
-        Initialize a 3D Structured Rectangular Mesh Part.
+        """Initializes a 3D Structured Rectangular Mesh Part.
 
-        Parameters
-        ----------
-        user_name : str
-            Unique user name for the mesh part.
-        element : Element
-            Associated element.
-        region : RegionBase, optional
-            Associated region.
-        X Min or x_min : float
-            Minimum X coordinate.
-        X Max or x_max : float
-            Maximum X coordinate.
-        Y Min or y_min : float
-            Minimum Y coordinate.
-        Y Max or y_max : float
-            Maximum Y coordinate.
-        Z Min or z_min : float
-            Minimum Z coordinate.
-        Z Max or z_max : float
-            Maximum Z coordinate.
-        Nx Cells or nx : int
-            Number of cells in X direction.
-        Ny Cells or ny : int
-            Number of cells in Y direction.
-        Nz Cells or nz : int
-            Number of cells in Z direction.
+        Args:
+            user_name: The unique user-defined name for this mesh part.
+            element: The associated Femora Element object.
+            region: Optional. The associated Femora RegionBase object.
+            **kwargs: Additional parameters for mesh generation. These can include:
+                X Min (float): Minimum X coordinate.
+                X Max (float): Maximum X coordinate.
+                Y Min (float): Minimum Y coordinate.
+                Y Max (float): Maximum Y coordinate.
+                Z Min (float): Minimum Z coordinate.
+                Z Max (float): Maximum Z coordinate.
+                Nx Cells (int): Number of cells in X direction.
+                Ny Cells (int): Number of cells in Y direction.
+                Nz Cells (int): Number of cells in Z direction.
+                (Also accepts 'x_min', 'x_max', etc. for backward compatibility).
+
+        Raises:
+            ValueError: If any required parameter is missing or invalid.
+
+        Example:
+            >>> import femora as fm
+            >>> from femora.components.Element.elementBase import Element # Assuming Element base exists
+            >>> from femora.components.Material.materialBase import Material
+            >>> class DummyElement(Element):
+            ...     def __init__(self, tag, nodes, section=None, transformation=None, material=None):
+            ...         super().__init__(tag, nodes, section, transformation, material, 3)
+            ...         self.element_type = "stdBrick"
+            ...     def get_section(self): return None
+            ...     def get_transformation(self): return None
+            ...     def get_mass_per_length(self): return 1.0
+            >>> dummy_element = DummyElement(tag=1, nodes=[])
+            >>> mesh_part = fm.components.Mesh.meshParts.StructuredRectangular3D(
+            ...     user_name="my_volume_mesh",
+            ...     element=dummy_element,
+            ...     x_min=0, x_max=10, y_min=0, y_max=5, z_min=0, z_max=2,
+            ...     nx=10, ny=5, nz=2
+            ... )
+            >>> print(mesh_part.mesh.n_cells)
+            100
         """
         super().__init__(
             category='volume mesh',
@@ -113,11 +99,29 @@ class StructuredRectangular3D(MeshPart):
 
 
     def generate_mesh(self) -> pv.UnstructuredGrid:
-        """
-        Generate a structured rectangular mesh
-        
+        """Generates a structured rectangular mesh based on current parameters.
+
         Returns:
-            pv.UnstructuredGrid: Generated mesh
+            pv.UnstructuredGrid: The generated PyVista unstructured grid.
+
+        Example:
+            >>> import femora as fm
+            >>> from femora.components.Element.elementBase import Element
+            >>> class DummyElement(Element):
+            ...     def __init__(self, tag, nodes, section=None, transformation=None, material=None):
+            ...         super().__init__(tag, nodes, section, transformation, material, 3)
+            ...         self.element_type = "stdBrick"
+            ...     def get_section(self): return None
+            ...     def get_transformation(self): return None
+            ...     def get_mass_per_length(self): return 1.0
+            >>> dummy_element = DummyElement(tag=1, nodes=[])
+            >>> mesh_part = fm.components.Mesh.meshParts.StructuredRectangular3D(
+            ...     user_name="my_mesh", element=dummy_element, nx=2, ny=2, nz=2,
+            ...     x_min=0, x_max=2, y_min=0, y_max=2, z_min=0, z_max=2
+            ... )
+            >>> mesh = mesh_part.generate_mesh()
+            >>> print(mesh.n_cells)
+            8
         """
         
         # Extract parameters - support both old and new naming conventions
@@ -140,11 +144,19 @@ class StructuredRectangular3D(MeshPart):
 
     @classmethod
     def get_parameters(cls) -> List[Tuple[str, str]]:
-        """
-        Get the list of parameters for this mesh part type.
-        
+        """Gets a list of parameters required for this mesh part type.
+
         Returns:
-            List[str]: List of parameter names
+            List[Tuple[str, str]]: A list of tuples, where each tuple contains
+                (parameter_name, parameter_description).
+
+        Example:
+            >>> import femora as fm
+            >>> params = fm.components.Mesh.meshParts.StructuredRectangular3D.get_parameters()
+            >>> print(len(params))
+            9
+            >>> print(params[0])
+            ('X Min', 'Minimum X coordinate (float)')
         """
         return [
             ("X Min", "Minimum X coordinate (float)"),
@@ -161,11 +173,31 @@ class StructuredRectangular3D(MeshPart):
 
     @classmethod
     def validate_parameters(cls, **kwargs) -> Dict[str, Union[int, float, str]]:
-        """
-        Check if the mesh part input parameters are valid.
-        
+        """Validates the input parameters for creating this mesh part.
+
+        Args:
+            **kwargs: Arbitrary keyword arguments representing the mesh parameters.
+
         Returns:
-            Dict[str, Union[int, float, str]]: Dictionary of parmaeters with valid values
+            Dict[str, Union[int, float, str]]: A dictionary of validated parameters
+                with their correct types.
+
+        Raises:
+            ValueError: If any parameter is missing, has an invalid type, or an invalid value.
+
+        Example:
+            >>> import femora as fm
+            >>> valid_params = fm.components.Mesh.meshParts.StructuredRectangular3D.validate_parameters(
+            ...     x_min=0, x_max=10, y_min=0, y_max=5, z_min=0, z_max=2,
+            ...     nx=10, ny=5, nz=2
+            ... )
+            >>> print(valid_params['X Min'])
+            0.0
+            >>> try:
+            ...     fm.components.Mesh.meshParts.StructuredRectangular3D.validate_parameters(nx=-1)
+            ... except ValueError as e:
+            ...     print(e)
+            Nx Cells must be greater than 0
         """
         valid_params = {}
         
@@ -226,33 +258,80 @@ class StructuredRectangular3D(MeshPart):
     
     @classmethod
     def is_elemnt_compatible(cls, element:str) -> bool:
-        """
-        Get the list of compatible element types
+        """Checks if the given element type is compatible with this mesh part.
+
+        Args:
+            element: The string name of the element type to check.
+
         Returns:
-            List[str]: List of compatible element types
+            bool: True if the element type is compatible, False otherwise.
+
+        Example:
+            >>> import femora as fm
+            >>> is_compatible = fm.components.Mesh.meshParts.StructuredRectangular3D.is_elemnt_compatible("stdBrick")
+            >>> print(is_compatible)
+            True
+            >>> is_compatible = fm.components.Mesh.meshParts.StructuredRectangular3D.is_elemnt_compatible("beamElement")
+            >>> print(is_compatible)
+            False
         """
         return element in cls._compatible_elements
     
 
 
     def update_parameters(self, **kwargs) -> None:
-        """
-        Update mesh part parameters
-        
+        """Updates the mesh part's parameters and regenerates the mesh.
+
         Args:
-            **kwargs: Keyword arguments to update
+            **kwargs: Keyword arguments for the parameters to update.
+                These will be validated before updating.
+
+        Raises:
+            ValueError: If any provided parameter is invalid.
+
+        Example:
+            >>> import femora as fm
+            >>> from femora.components.Element.elementBase import Element
+            >>> class DummyElement(Element):
+            ...     def __init__(self, tag, nodes, section=None, transformation=None, material=None):
+            ...         super().__init__(tag, nodes, section, transformation, material, 3)
+            ...         self.element_type = "stdBrick"
+            ...     def get_section(self): return None
+            ...     def get_transformation(self): return None
+            ...     def get_mass_per_length(self): return 1.0
+            >>> dummy_element = DummyElement(tag=1, nodes=[])
+            >>> mesh_part = fm.components.Mesh.meshParts.StructuredRectangular3D(
+            ...     user_name="my_mesh", element=dummy_element, nx=2, ny=2, nz=2,
+            ...     x_min=0, x_max=2, y_min=0, y_max=2, z_min=0, z_max=2
+            ... )
+            >>> print(mesh_part.mesh.n_cells)
+            8
+            >>> mesh_part.update_parameters(nx=4, ny=4, nz=4)
+            >>> print(mesh_part.mesh.n_cells)
+            64
         """
         validated_params = self.validate_parameters(**kwargs)
         self.params = validated_params
+        self.generate_mesh()
 
 
     @staticmethod
     def get_Notes() -> Dict[str, Union[str, list]]:
-        """
-        Get notes for the mesh part type
-        
+        """Provides notes, usage, limitations, and tips for this mesh part type.
+
         Returns:
-            Dict[str, Union[str, list]]: Dictionary containing notes about the mesh part
+            Dict[str, Union[str, list]]: A dictionary containing various notes
+                about the mesh part, including:
+                - 'description': A brief description.
+                - 'usage': A list of use cases.
+                - 'limitations': A list of limitations.
+                - 'tips': A list of helpful tips.
+
+        Example:
+            >>> import femora as fm
+            >>> notes = fm.components.Mesh.meshParts.StructuredRectangular3D.get_Notes()
+            >>> print(notes["description"])
+            Generates a structured 3D rectangular grid mesh with uniform spacing
         """
         return {
             "description": "Generates a structured 3D rectangular grid mesh with uniform spacing",
@@ -278,43 +357,52 @@ MeshPartRegistry.register_mesh_part_type('Volume mesh', 'Uniform Rectangular Gri
 
 
 class CustomRectangularGrid3D(MeshPart):
-    """
-    Custom Rectangular Grid 3D Mesh Part
+    """Represents a 3D custom rectangular grid mesh part with user-defined coordinate arrays.
 
-    Parameters
-    ----------
-    user_name : str
-        Unique user name for the mesh part.
-    element : Element
-        Associated element.
-    region : RegionBase, optional
-        Associated region.
-    x_coords : list of float (comma separated string)
-        List of X coordinates.
-    y_coords : list of float (comma separated string)
-        List of Y coordinates.
-    z_coords : list of float (comma separated string)
-        List of Z coordinates.
+    This class allows for the creation of 3D rectangular meshes with non-uniform
+    spacing by specifying explicit coordinate lists for each axis.
+
+    Attributes:
+        _compatible_elements (list[str]): List of compatible element types for this mesh part.
+        params (dict): Dictionary storing the validated parameters for mesh generation.
+        mesh (pv.UnstructuredGrid): The generated PyVista unstructured grid.
     """
     _compatible_elements = ["stdBrick", "bbarBrick", "SSPbrick", "PML3D"]
     def __init__(self, user_name: str, element: Element, region: RegionBase=None,**kwargs):
-        """
-        Initialize a 3D Custom Rectangular Grid Mesh Part.
+        """Initializes a 3D Custom Rectangular Grid Mesh Part.
 
-        Parameters
-        ----------
-        user_name : str
-            Unique user name for the mesh part.
-        element : Element
-            Associated element.
-        region : RegionBase, optional
-            Associated region.
-        x_coords : list of float (comma separated string)
-            List of X coordinates.
-        y_coords : list of float (comma separated string)
-            List of Y coordinates.
-        z_coords : list of float (comma separated string)
-            List of Z coordinates.
+        Args:
+            user_name: The unique user-defined name for this mesh part.
+            element: The associated Femora Element object.
+            region: Optional. The associated Femora RegionBase object.
+            **kwargs: Additional parameters for mesh generation. These must include:
+                x_coords (str): Comma-separated string of float values for X coordinates.
+                y_coords (str): Comma-separated string of float values for Y coordinates.
+                z_coords (str): Comma-separated string of float values for Z coordinates.
+
+        Raises:
+            ValueError: If any required parameter is missing or invalid.
+
+        Example:
+            >>> import femora as fm
+            >>> from femora.components.Element.elementBase import Element
+            >>> class DummyElement(Element):
+            ...     def __init__(self, tag, nodes, section=None, transformation=None, material=None):
+            ...         super().__init__(tag, nodes, section, transformation, material, 3)
+            ...         self.element_type = "stdBrick"
+            ...     def get_section(self): return None
+            ...     def get_transformation(self): return None
+            ...     def get_mass_per_length(self): return 1.0
+            >>> dummy_element = DummyElement(tag=1, nodes=[])
+            >>> mesh_part = fm.components.Mesh.meshParts.CustomRectangularGrid3D(
+            ...     user_name="my_custom_mesh",
+            ...     element=dummy_element,
+            ...     x_coords="0.0, 1.0, 3.0",
+            ...     y_coords="0.0, 0.5, 1.0",
+            ...     z_coords="0.0, 2.0"
+            ... )
+            >>> print(mesh_part.mesh.n_cells)
+            4
         """
         super().__init__(
             category='volume mesh',
@@ -323,22 +411,48 @@ class CustomRectangularGrid3D(MeshPart):
             element=element,
             region=region
         )
-        self.params = kwargs
+        self.params = self.validate_parameters(**kwargs)
         self.generate_mesh()
 
     def generate_mesh(self) -> pv.UnstructuredGrid:
-        """
-        Generate a custom rectangular grid mesh
-        
+        """Generates a custom rectangular grid mesh based on provided coordinates.
+
         Returns:
-            pv.UnstructuredGrid: Generated mesh
+            pv.UnstructuredGrid: The generated PyVista unstructured grid.
+
+        Raises:
+            ValueError: If 'x_coords', 'y_coords', or 'z_coords' are missing from parameters.
+
+        Example:
+            >>> import femora as fm
+            >>> from femora.components.Element.elementBase import Element
+            >>> class DummyElement(Element):
+            ...     def __init__(self, tag, nodes, section=None, transformation=None, material=None):
+            ...         super().__init__(tag, nodes, section, transformation, material, 3)
+            ...         self.element_type = "stdBrick"
+            ...     def get_section(self): return None
+            ...     def get_transformation(self): return None
+            ...     def get_mass_per_length(self): return 1.0
+            >>> dummy_element = DummyElement(tag=1, nodes=[])
+            >>> mesh_part = fm.components.Mesh.meshParts.CustomRectangularGrid3D(
+            ...     user_name="my_custom_mesh", element=dummy_element,
+            ...     x_coords="0.0,1.0,2.0", y_coords="0.0,1.0", z_coords="0.0,1.0"
+            ... )
+            >>> mesh = mesh_part.generate_mesh()
+            >>> print(mesh.n_cells)
+            2
         """
-        x_coords = self.params.get('x_coords', None).split(',')
-        y_coords = self.params.get('y_coords', None).split(',')
-        z_coords = self.params.get('z_coords', None).split(',')
-        x = np.array(x_coords)
-        y = np.array(y_coords)
-        z = np.array(z_coords)
+        x_coords_str = self.params.get('x_coords')
+        y_coords_str = self.params.get('y_coords')
+        z_coords_str = self.params.get('z_coords')
+
+        if not all([x_coords_str, y_coords_str, z_coords_str]):
+            raise ValueError("All 'x_coords', 'y_coords', and 'z_coords' must be provided.")
+
+        x = np.array([float(val) for val in x_coords_str.split(',')])
+        y = np.array([float(val) for val in y_coords_str.split(',')])
+        z = np.array([float(val) for val in z_coords_str.split(',')])
+
         X, Y, Z = np.meshgrid(x, y, z, indexing='ij')
         self.mesh = pv.StructuredGrid(X, Y, Z).cast_to_unstructured_grid()
         del x, y, z, X, Y, Z
@@ -346,11 +460,19 @@ class CustomRectangularGrid3D(MeshPart):
     
     @classmethod
     def get_parameters(cls) -> List[Tuple[str, str]]:
-        """
-        Get the list of parameters for this mesh part type.
-        
+        """Gets a list of parameters required for this mesh part type.
+
         Returns:
-            List[str]: List of parameter names
+            List[Tuple[str, str]]: A list of tuples, where each tuple contains
+                (parameter_name, parameter_description).
+
+        Example:
+            >>> import femora as fm
+            >>> params = fm.components.Mesh.meshParts.CustomRectangularGrid3D.get_parameters()
+            >>> print(len(params))
+            3
+            >>> print(params[0])
+            ('x_coords', 'List of X coordinates (List[float] , comma separated, required)')
         """
         return [
             ("x_coords", "List of X coordinates (List[float] , comma separated, required)"),
@@ -360,55 +482,121 @@ class CustomRectangularGrid3D(MeshPart):
     
     @classmethod
     def validate_parameters(cls, **kwargs) -> Dict[str, Union[int, float, str, List[float]]]:
-        """
-        Check if the mesh part input parameters are valid.
-        
+        """Validates the input parameters for creating this mesh part.
+
+        Args:
+            **kwargs: Arbitrary keyword arguments representing the mesh parameters.
+
         Returns:
-            Dict[str, Union[int, float, str, List[float]]: Dictionary of parmaeters with valid values
+            Dict[str, Union[int, float, str, List[float]]]: A dictionary of validated
+                parameters with their correct types.
+
+        Raises:
+            ValueError: If any parameter is missing, has an invalid type, or if
+                coordinates are not in ascending order.
+
+        Example:
+            >>> import femora as fm
+            >>> valid_params = fm.components.Mesh.meshParts.CustomRectangularGrid3D.validate_parameters(
+            ...     x_coords="0.0, 1.0, 2.0", y_coords="0.0, 0.5, 1.0", z_coords="0.0, 2.0"
+            ... )
+            >>> print(valid_params['x_coords'])
+            0.0, 1.0, 2.0
+            >>> try:
+            ...     fm.components.Mesh.meshParts.CustomRectangularGrid3D.validate_parameters(x_coords="1.0, 0.0")
+            ... except ValueError as e:
+            ...     print(e)
+            x_coords must be in ascending order
         """
         valid_params = {}
         for param_name in ['x_coords', 'y_coords', 'z_coords']:
             if param_name in kwargs:
                 try:
-                    valid_params[param_name] = [float(x) for x in kwargs[param_name].split(',')]
+                    # Temporarily convert to list of floats for validation
+                    coords_list = [float(x) for x in kwargs[param_name].split(',')]
                     # check if the values are in ascending order
-                    if not all(valid_params[param_name][i] < valid_params[param_name][i+1] for i in range(len(valid_params[param_name])-1)):
+                    if not all(coords_list[i] < coords_list[i+1] for i in range(len(coords_list)-1)):
                         raise ValueError(f"{param_name} must be in ascending order")
+                    # Store the original string back
                     valid_params[param_name] = kwargs[param_name]
                 except ValueError:
-                    raise ValueError(f"{param_name} must be a list of float numbers")
+                    raise ValueError(f"{param_name} must be a comma-separated list of float numbers "
+                                     "and in ascending order.")
             else:
                 raise ValueError(f"{param_name} parameter is required")
         return valid_params
 
     @classmethod
     def is_elemnt_compatible(cls, element:str) -> bool:
-        """
-        Get the list of compatible element types
+        """Checks if the given element type is compatible with this mesh part.
+
+        Args:
+            element: The string name of the element type to check.
+
         Returns:
-            List[str]: List of compatible element types
+            bool: True if the element type is compatible, False otherwise.
+
+        Example:
+            >>> import femora as fm
+            >>> is_compatible = fm.components.Mesh.meshParts.CustomRectangularGrid3D.is_elemnt_compatible("bbarBrick")
+            >>> print(is_compatible)
+            True
+            >>> is_compatible = fm.components.Mesh.meshParts.CustomRectangularGrid3D.is_elemnt_compatible("shellElement")
+            >>> print(is_compatible)
+            False
         """
         return element in ["stdBrick", "bbarBrick", "SSPbrick", "PML3D"]
 
 
     def update_parameters(self, **kwargs) -> None:
-        """
-        Update mesh part parameters
-        
+        """Updates the mesh part's parameters and regenerates the mesh.
+
         Args:
-            **kwargs: Keyword arguments to update
+            **kwargs: Keyword arguments for the parameters to update.
+                These will be validated before updating.
+
+        Raises:
+            ValueError: If any provided parameter is invalid.
+
+        Example:
+            >>> import femora as fm
+            >>> from femora.components.Element.elementBase import Element
+            >>> class DummyElement(Element):
+            ...     def __init__(self, tag, nodes, section=None, transformation=None, material=None):
+            ...         super().__init__(tag, nodes, section, transformation, material, 3)
+            ...         self.element_type = "stdBrick"
+            ...     def get_section(self): return None
+            ...     def get_transformation(self): return None
+            ...     def get_mass_per_length(self): return 1.0
+            >>> dummy_element = DummyElement(tag=1, nodes=[])
+            >>> mesh_part = fm.components.Mesh.meshParts.CustomRectangularGrid3D(
+            ...     user_name="my_custom_mesh", element=dummy_element,
+            ...     x_coords="0.0,1.0", y_coords="0.0,1.0", z_coords="0.0,1.0"
+            ... )
+            >>> print(mesh_part.mesh.n_cells)
+            1
+            >>> mesh_part.update_parameters(x_coords="0.0,1.0,2.0", y_coords="0.0,0.5,1.0")
+            >>> print(mesh_part.mesh.n_cells)
+            4
         """
         validated_params = self.validate_parameters(**kwargs)
         self.params = validated_params
+        self.generate_mesh()
 
 
     @staticmethod
     def get_Notes() -> Dict[str, Union[str, list]]:
-        """
-        Get notes for the mesh part type
-        
+        """Provides notes, usage, limitations, and tips for this mesh part type.
+
         Returns:
-            Dict[str, Union[str, list]]: Dictionary containing notes about the mesh part
+            Dict[str, Union[str, list]]: A dictionary containing various notes
+                about the mesh part.
+
+        Example:
+            >>> import femora as fm
+            >>> notes = fm.components.Mesh.meshParts.CustomRectangularGrid3D.get_Notes()
+            >>> print(notes["description"])
+            Generates a 3D rectangular grid mesh with custom spacing
         """
         return {
             "description": "Generates a 3D rectangular grid mesh with custom spacing",
@@ -437,79 +625,61 @@ MeshPartRegistry.register_mesh_part_type('Volume mesh', 'Custom Rectangular Grid
 
 
 class GeometricStructuredRectangular3D(MeshPart):
-    """
-    Geometric Structured Rectangular 3D Mesh Part
+    """Represents a 3D structured rectangular mesh with geometrically graded spacing.
 
-    Parameters
-    ----------
-    user_name : str
-        Unique user name for the mesh part.
-    element : Element
-        Associated element.
-    region : RegionBase, optional
-        Associated region.
-    x_min : float
-        Minimum X coordinate.
-    x_max : float
-        Maximum X coordinate.
-    y_min : float
-        Minimum Y coordinate.
-    y_max : float
-        Maximum Y coordinate.
-    z_min : float
-        Minimum Z coordinate.
-    z_max : float
-        Maximum Z coordinate.
-    nx : int
-        Number of cells in X direction.
-    ny : int
-        Number of cells in Y direction.
-    nz : int
-        Number of cells in Z direction.
-    x_ratio : float, optional
-        Ratio of cell increment in X direction (default 1).
-    y_ratio : float, optional
-        Ratio of cell increment in Y direction (default 1).
-    z_ratio : float, optional
-        Ratio of cell increment in Z direction (default 1).
+    This class provides functionality to create 3D rectangular meshes where the
+    element sizes can be graded along each axis using a specified ratio.
+
+    Attributes:
+        _compatible_elements (list[str]): List of compatible element types for this mesh part.
+        params (dict): Dictionary storing the validated parameters for mesh generation.
+        mesh (pv.UnstructuredGrid): The generated PyVista unstructured grid.
     """
     _compatible_elements = ["stdBrick", "bbarBrick", "SSPbrick", "PML3D"]
     def __init__(self, user_name: str, element: Element, region: RegionBase=None,**kwargs):
-        """
-        Initialize a 3D Geometric Structured Rectangular Mesh Part.
+        """Initializes a 3D Geometric Structured Rectangular Mesh Part.
 
-        Parameters
-        ----------
-        user_name : str
-            Unique user name for the mesh part.
-        element : Element
-            Associated element.
-        region : RegionBase, optional
-            Associated region.
-        x_min : float
-            Minimum X coordinate.
-        x_max : float
-            Maximum X coordinate.
-        y_min : float
-            Minimum Y coordinate.
-        y_max : float
-            Maximum Y coordinate.
-        z_min : float
-            Minimum Z coordinate.
-        z_max : float
-            Maximum Z coordinate.
-        nx : int
-            Number of cells in X direction.
-        ny : int
-            Number of cells in Y direction.
-        nz : int
-            Number of cells in Z direction.
-        x_ratio : float, optional
-            Ratio of cell increment in X direction (default 1).
-        y_ratio : float, optional
-            Ratio of cell increment in Y direction (default 1).
-        z_ratio : float, optional
-            Ratio of cell increment in Z direction (default 1).
+        Args:
+            user_name: The unique user-defined name for this mesh part.
+            element: The associated Femora Element object.
+            region: Optional. The associated Femora RegionBase object.
+            **kwargs: Additional parameters for mesh generation. These can include:
+                x_min (float): Minimum X coordinate.
+                x_max (float): Maximum X coordinate.
+                y_min (float): Minimum Y coordinate.
+                y_max (float): Maximum Y coordinate.
+                z_min (float): Minimum Z coordinate.
+                z_max (float): Maximum Z coordinate.
+                nx (int): Number of cells in X direction.
+                ny (int): Number of cells in Y direction.
+                nz (int): Number of cells in Z direction.
+                x_ratio (float, optional): Ratio of cell increment in X direction. Defaults to 1 (uniform).
+                y_ratio (float, optional): Ratio of cell increment in Y direction. Defaults to 1 (uniform).
+                z_ratio (float, optional): Ratio of cell increment in Z direction. Defaults to 1 (uniform).
+
+        Raises:
+            ValueError: If any required parameter is missing or invalid.
+
+        Example:
+            >>> import femora as fm
+            >>> from femora.components.Element.elementBase import Element
+            >>> class DummyElement(Element):
+            ...     def __init__(self, tag, nodes, section=None, transformation=None, material=None):
+            ...         super().__init__(tag, nodes, section, transformation, material, 3)
+            ...         self.element_type = "stdBrick"
+            ...     def get_section(self): return None
+            ...     def get_transformation(self): return None
+            ...     def get_mass_per_length(self): return 1.0
+            >>> dummy_element = DummyElement(tag=1, nodes=[])
+            >>> mesh_part = fm.components.Mesh.meshParts.GeometricStructuredRectangular3D(
+            ...     user_name="my_graded_mesh",
+            ...     element=dummy_element,
+            ...     x_min=0, x_max=10, nx=5, x_ratio=1.5,
+            ...     y_min=0, y_max=5, ny=3, y_ratio=1.2,
+            ...     z_min=0, z_max=2, nz=2
+            ... )
+            >>> print(mesh_part.mesh.n_cells)
+            30
         """
         super().__init__(
             category='volume mesh',
@@ -518,22 +688,42 @@ class GeometricStructuredRectangular3D(MeshPart):
             element=element,
             region=region
         )
-        self.params = kwargs
+        self.params = self.validate_parameters(**kwargs)
         self.generate_mesh()
 
     @staticmethod
-    def custom_linspace(start, end, num_elements, ratio=1):
-        """
-        Generate a sequence of numbers between start and end with specified spacing ratio.
+    def custom_linspace(start: float, end: float, num_elements: int, ratio: float = 1) -> np.ndarray:
+        """Generates a sequence of numbers between start and end with specified spacing ratio.
 
-        Parameters:
-        - start (float): The starting value of the sequence.
-        - end (float): The ending value of the sequence.
-        - num_elements (int): The number of elements in the sequence.
-        - ratio (float, optional): The ratio of increment between consecutive intervals. Defaults to 1 (linear spacing).
+        Args:
+            start: The starting value of the sequence.
+            end: The ending value of the sequence.
+            num_elements: The number of intervals/cells in the sequence (not points).
+            ratio: Optional. The ratio of increment between consecutive intervals.
+                Defaults to 1 (linear spacing). If ratio > 1, increments increase.
+                If ratio < 1, increments decrease.
 
         Returns:
-        - numpy.ndarray: The generated sequence.
+            np.ndarray: The generated sequence of coordinates (num_elements + 1 points).
+
+        Raises:
+            ValueError: If `num_elements` is not greater than 0.
+
+        Example:
+            >>> import numpy as np
+            >>> from femora.components.Mesh.meshParts import GeometricStructuredRectangular3D
+            >>> # Uniform spacing
+            >>> coords_uniform = GeometricStructuredRectangular3D.custom_linspace(0, 10, 2, ratio=1)
+            >>> print(np.round(coords_uniform, 2))
+            [ 0.  5. 10.]
+            >>> # Increasing spacing
+            >>> coords_increasing = GeometricStructuredRectangular3D.custom_linspace(0, 10, 2, ratio=2)
+            >>> print(np.round(coords_increasing, 2))
+            [ 0.   3.33 10.  ]
+            >>> # Decreasing spacing
+            >>> coords_decreasing = GeometricStructuredRectangular3D.custom_linspace(0, 10, 2, ratio=0.5)
+            >>> print(np.round(coords_decreasing, 2))
+            [ 0.   6.67 10.  ]
         """
         if num_elements <= 0:
             raise ValueError("Number of elements must be greater than 0")
@@ -556,11 +746,33 @@ class GeometricStructuredRectangular3D(MeshPart):
             return elements
 
     def generate_mesh(self) -> pv.UnstructuredGrid:
-        """
-        Generate a geometric structured rectangular mesh
-        
+        """Generates a geometric structured rectangular mesh based on current parameters.
+
         Returns:
-            pv.UnstructuredGrid: Generated mesh
+            pv.UnstructuredGrid: The generated PyVista unstructured grid.
+
+        Example:
+            >>> import femora as fm
+            >>> from femora.components.Element.elementBase import Element
+            >>> class DummyElement(Element):
+            ...     def __init__(self, tag, nodes, section=None, transformation=None, material=None):
+            ...         super().__init__(tag, nodes, section, transformation, material, 3)
+            ...         self.element_type = "stdBrick"
+            ...     def get_section(self): return None
+            ...     def get_transformation(self): return None
+            ...     def get_mass_per_length(self): return 1.0
+            >>> dummy_element = DummyElement(tag=1, nodes=[])
+            >>> mesh_part = fm.components.Mesh.meshParts.GeometricStructuredRectangular3D(
+            ...     user_name="my_mesh", element=dummy_element,
+            ...     x_min=0, x_max=1, nx=2, x_ratio=2,
+            ...     y_min=0, y_max=1, ny=1,
+            ...     z_min=0, z_max=1, nz=1
+            ... )
+            >>> mesh = mesh_part.generate_mesh()
+            >>> print(mesh.n_cells)
+            2
+            >>> print(np.round(mesh.points[:, 0], 2)) # X coordinates will be graded
+            [0.   0.33 1.   0.   0.33 1.   0.   0.33 1.   0.   0.33 1.  ]
         """
         x_min = self.params.get('x_min', 0)
         x_max = self.params.get('x_max', 1)
@@ -584,11 +796,19 @@ class GeometricStructuredRectangular3D(MeshPart):
 
     @classmethod
     def get_parameters(cls) -> List[Tuple[str, str]]:
-        """
-        Get the list of parameters for this mesh part type.
-        
+        """Gets a list of parameters required for this mesh part type.
+
         Returns:
-            List[str]: List of parameter names
+            List[Tuple[str, str]]: A list of tuples, where each tuple contains
+                (parameter_name, parameter_description).
+
+        Example:
+            >>> import femora as fm
+            >>> params = fm.components.Mesh.meshParts.GeometricStructuredRectangular3D.get_parameters()
+            >>> print(len(params))
+            12
+            >>> print(params[0])
+            ('x_min', 'Minimum X coordinate (float)')
         """
         return [
             ("x_min", "Minimum X coordinate (float)"),
@@ -607,11 +827,32 @@ class GeometricStructuredRectangular3D(MeshPart):
     
     @classmethod
     def validate_parameters(cls, **kwargs) -> Dict[str, Union[int, float, str]]:
-        """
-        Check if the mesh part input parameters are valid.
-        
+        """Validates the input parameters for creating this mesh part.
+
+        Args:
+            **kwargs: Arbitrary keyword arguments representing the mesh parameters.
+
         Returns:
-            Dict[str, Union[int, float, str]]: Dictionary of parmaeters with valid values
+            Dict[str, Union[int, float, str]]: A dictionary of validated parameters
+                with their correct types.
+
+        Raises:
+            ValueError: If any parameter is missing, has an invalid type,
+                an invalid value (e.g., min > max, cells <= 0, ratio <= 0).
+
+        Example:
+            >>> import femora as fm
+            >>> valid_params = fm.components.Mesh.meshParts.GeometricStructuredRectangular3D.validate_parameters(
+            ...     x_min=0, x_max=10, y_min=0, y_max=5, z_min=0, z_max=2,
+            ...     nx=10, ny=5, nz=2, x_ratio=1.1
+            ... )
+            >>> print(valid_params['x_max'])
+            10.0
+            >>> try:
+            ...     fm.components.Mesh.meshParts.GeometricStructuredRectangular3D.validate_parameters(nx=-1)
+            ... except ValueError as e:
+            ...     print(e)
+            nx must be greater than 0
         """
         valid_params = {}
         for param_name in ['x_min', 'x_max', 'y_min', 'y_max', 'z_min', 'z_max']:
@@ -642,7 +883,7 @@ class GeometricStructuredRectangular3D(MeshPart):
                 except ValueError:
                     raise ValueError(f"{param_name} must be a float number")
             else:
-                valid_params[param_name] = 1
+                valid_params[param_name] = 1.0 # Default value
         
         if valid_params['x_min'] >= valid_params['x_max']:
             raise ValueError("x_min must be less than x_max")
@@ -662,31 +903,75 @@ class GeometricStructuredRectangular3D(MeshPart):
     
     @classmethod
     def is_elemnt_compatible(cls, element:str) -> bool:
-        """
-        Get the list of compatible element types
+        """Checks if the given element type is compatible with this mesh part.
+
+        Args:
+            element: The string name of the element type to check.
+
         Returns:
-            List[str]: List of compatible element types
+            bool: True if the element type is compatible, False otherwise.
+
+        Example:
+            >>> import femora as fm
+            >>> is_compatible = fm.components.Mesh.meshParts.GeometricStructuredRectangular3D.is_elemnt_compatible("SSPbrick")
+            >>> print(is_compatible)
+            True
+            >>> is_compatible = fm.components.Mesh.meshParts.GeometricStructuredRectangular3D.is_elemnt_compatible("quad")
+            >>> print(is_compatible)
+            False
         """
         return element in ["stdBrick", "bbarBrick", "SSPbrick", "PML3D"]
     
     def update_parameters(self, **kwargs) -> None:
-        """
-        Update mesh part parameters
-        
+        """Updates the mesh part's parameters and regenerates the mesh.
+
         Args:
-            **kwargs: Keyword arguments to update
+            **kwargs: Keyword arguments for the parameters to update.
+                These will be validated before updating.
+
+        Raises:
+            ValueError: If any provided parameter is invalid.
+
+        Example:
+            >>> import femora as fm
+            >>> from femora.components.Element.elementBase import Element
+            >>> class DummyElement(Element):
+            ...     def __init__(self, tag, nodes, section=None, transformation=None, material=None):
+            ...         super().__init__(tag, nodes, section, transformation, material, 3)
+            ...         self.element_type = "stdBrick"
+            ...     def get_section(self): return None
+            ...     def get_transformation(self): return None
+            ...     def get_mass_per_length(self): return 1.0
+            >>> dummy_element = DummyElement(tag=1, nodes=[])
+            >>> mesh_part = fm.components.Mesh.meshParts.GeometricStructuredRectangular3D(
+            ...     user_name="my_mesh", element=dummy_element,
+            ...     x_min=0, x_max=1, nx=2, x_ratio=1.0,
+            ...     y_min=0, y_max=1, ny=1, z_min=0, z_max=1, nz=1
+            ... )
+            >>> print(mesh_part.mesh.n_cells)
+            2
+            >>> mesh_part.update_parameters(x_ratio=1.5, nx=3)
+            >>> print(mesh_part.mesh.n_cells)
+            3
         """
         validated_params = self.validate_parameters(**kwargs)
         self.params = validated_params
+        self.generate_mesh()
 
     
     @staticmethod
     def get_Notes() -> Dict[str, Union[str, list]]:
-        """
-        Get notes for the mesh part type
-        
+        """Provides notes, usage, limitations, and tips for this mesh part type.
+
         Returns:
-            Dict[str, Union[str, list]]: Dictionary containing notes about the mesh part
+            Dict[str, Union[str, list]]: A dictionary containing various notes
+                about the mesh part.
+
+        Example:
+            >>> import femora as fm
+            >>> notes = fm.components.Mesh.meshParts.GeometricStructuredRectangular3D.get_Notes()
+            >>> print(notes["description"])
+            Generates a structured 3D rectangular grid mesh with geometric spacing
         """
         return {
             "description": "Generates a structured 3D rectangular grid mesh with geometric spacing",
@@ -698,12 +983,13 @@ class GeometricStructuredRectangular3D(MeshPart):
             "limitations": [
                 "Only creates rectangular/cuboid domains",
                 "Cannot handle irregular geometries",
-                "Requires manual specification of all grid points"
+                "Uniform spacing is an option, but not truly custom spacing"
             ],
             "tips": [
-                "Provide coordinates as comma-separated lists of float values",
-                "Ensure coordinates are in ascending order",
-                "Consider gradual transitions in spacing for better numerical results"
+                "A ratio > 1 increases element size away from the start_point (min coordinate)",
+                "A ratio < 1 decreases element size away from the start_point (min coordinate)",
+                "Ensure ratios are positive (ratio = 1 means uniform spacing)",
+                "Ensure min coordinates are less than max coordinates"
             ]
         }
     
@@ -712,72 +998,79 @@ MeshPartRegistry.register_mesh_part_type('Volume mesh', 'Geometric Rectangular G
 
 
 class ExternalMesh(MeshPart):
-    """
-    Custom Mesh Part that can load from a file or accept an existing PyVista mesh.
+    """Represents a custom mesh part that can load from a file or accept an existing PyVista mesh.
 
-    Parameters
-    ----------
-    user_name : str
-        Unique user name for the mesh part.
-    element : Element
-        Associated element.
-    region : RegionBase, optional
-        Associated region.
-    mesh : pv.UnstructuredGrid, optional
-        Existing PyVista mesh to use.
-    filepath : str, optional
-        Path to mesh file to load.
-    scale : float, optional
-        Scale factor for the mesh.
-    rotate_x : float, optional
-        Rotation angle around X-axis in degrees.
-    rotate_y : float, optional
-        Rotation angle around Y-axis in degrees.
-    rotate_z : float, optional
-        Rotation angle around Z-axis in degrees.
-    translate_x : float, optional
-        Translation along X-axis.
-    translate_y : float, optional
-        Translation along Y-axis.
-    translate_z : float, optional
-        Translation along Z-axis.
-    transform_args : dict, optional
-        Optional transformation arguments dictionary containing any of the above transformation parameters.
+    This class provides functionality to import meshes from various file formats
+    or directly from PyVista objects, and allows for optional scaling, rotation,
+    and translation transformations.
+
+    Attributes:
+        _compatible_elements (list[str]): List of compatible element types.
+        params (dict): Dictionary storing the validated parameters, including mesh
+            source and transformations.
+        mesh (pv.UnstructuredGrid): The generated or loaded PyVista unstructured grid.
     """
     _compatible_elements = ["stdBrick", "bbarBrick", "SSPbrick", "PML3D"]
     
     def __init__(self, user_name: str, element: Element, region: RegionBase=None, **kwargs):
-        """
-        Initialize a Custom Mesh Part.
+        """Initializes an External Mesh Part.
 
-        Parameters
-        ----------
-        user_name : str
-            Unique user name for the mesh part.
-        element : Element
-            Associated element.
-        region : RegionBase, optional
-            Associated region.
-        mesh : pv.UnstructuredGrid, optional
-            Existing PyVista mesh to use.
-        filepath : str, optional
-            Path to mesh file to load.
-        scale : float, optional
-            Scale factor for the mesh.
-        rotate_x : float, optional
-            Rotation angle around X-axis in degrees.
-        rotate_y : float, optional
-            Rotation angle around Y-axis in degrees.
-        rotate_z : float, optional
-            Rotation angle around Z-axis in degrees.
-        translate_x : float, optional
-            Translation along X-axis.
-        translate_y : float, optional
-            Translation along Y-axis.
-        translate_z : float, optional
-            Translation along Z-axis.
-        transform_args : dict, optional
-            Optional transformation arguments dictionary containing any of the above transformation parameters.
+        Args:
+            user_name: The unique user-defined name for this mesh part.
+            element: The associated Femora Element object.
+            region: Optional. The associated Femora RegionBase object.
+            **kwargs: Additional parameters for mesh loading and transformation.
+                These can include:
+                mesh (pv.UnstructuredGrid): An existing PyVista mesh object to use.
+                filepath (str): Path to a mesh file to load (e.g., .vtk, .vtu, .stl, .obj, .ply).
+                scale (float, optional): Scale factor for the mesh.
+                rotate_x (float, optional): Rotation angle around X-axis in degrees.
+                rotate_y (float, optional): Rotation angle around Y-axis in degrees.
+                rotate_z (float, optional): Rotation angle around Z-axis in degrees.
+                translate_x (float, optional): Translation distance along X-axis.
+                translate_y (float, optional): Translation distance along Y-axis.
+                translate_z (float, optional): Translation distance along Z-axis.
+                transform_args (dict, optional): A dictionary of transformation
+                    parameters, which will be merged with direct `**kwargs`.
+                    Direct `**kwargs` take precedence.
+
+        Raises:
+            ValueError: If neither 'mesh' nor 'filepath' is provided, or if
+                any parameter is invalid.
+            FileNotFoundError: If `filepath` is provided but the file does not exist.
+
+        Example:
+            >>> import femora as fm
+            >>> import pyvista as pv
+            >>> from femora.components.Element.elementBase import Element
+            >>> # Create a dummy PyVista mesh for the example
+            >>> dummy_pv_mesh = pv.Cube().extract_surface().cast_to_unstructured_grid()
+            >>> class DummyElement(Element):
+            ...     def __init__(self, tag, nodes, section=None, transformation=None, material=None):
+            ...         super().__init__(tag, nodes, section, transformation, material, 3)
+            ...         self.element_type = "stdBrick"
+            ...     def get_section(self): return None
+            ...     def get_transformation(self): return None
+            ...     def get_mass_per_length(self): return 1.0
+            >>> dummy_element = DummyElement(tag=1, nodes=[])
+            >>>
+            >>> # Example 1: Load from existing PyVista mesh and scale
+            >>> mesh_part_1 = fm.components.Mesh.meshParts.ExternalMesh(
+            ...     user_name="my_external_mesh_1", element=dummy_element,
+            ...     mesh=dummy_pv_mesh, scale=2.0
+            ... )
+            >>> print(f"Mesh 1 points: {mesh_part_1.mesh.n_points}")
+            Mesh 1 points: 8
+            >>>
+            >>> # Example 2: Demonstrate file loading (requires a dummy file)
+            >>> # To run this, you'd need a simple VTK file like 'test_cube.vtk'
+            >>> # (e.g., pv.Cube().save('test_cube.vtk'))
+            >>> # dummy_element_2 = DummyElement(tag=2, nodes=[])
+            >>> # mesh_part_2 = fm.components.Mesh.meshParts.ExternalMesh(
+            >>> #     user_name="my_external_mesh_2", element=dummy_element_2,
+            >>> #     filepath="test_cube.vtk", rotate_z=90, translate_x=5
+            >>> # )
+            >>> # print(f"Mesh 2 points: {mesh_part_2.mesh.n_points}")
         """
         super().__init__(
             category='volume mesh',
@@ -790,11 +1083,39 @@ class ExternalMesh(MeshPart):
         self.generate_mesh()
 
     def generate_mesh(self) -> pv.UnstructuredGrid:
-        """
-        Generate a mesh by loading from file or using the provided mesh and apply transformations
-        
+        """Generates a mesh by loading from a file or using a provided PyVista mesh,
+        and then applies specified transformations.
+
         Returns:
-            pv.UnstructuredGrid: Generated mesh
+            pv.UnstructuredGrid: The generated and transformed PyVista unstructured grid.
+
+        Raises:
+            ValueError: If neither 'mesh' nor 'filepath' is found in parameters,
+                or if the loaded mesh cannot be converted to an unstructured grid.
+
+        Example:
+            >>> import femora as fm
+            >>> import pyvista as pv
+            >>> from femora.components.Element.elementBase import Element
+            >>> # Create a dummy PyVista mesh
+            >>> dummy_pv_mesh = pv.Sphere(radius=1.0).extract_surface().cast_to_unstructured_grid()
+            >>> class DummyElement(Element):
+            ...     def __init__(self, tag, nodes, section=None, transformation=None, material=None):
+            ...         super().__init__(tag, nodes, section, transformation, material, 3)
+            ...         self.element_type = "stdBrick"
+            ...     def get_section(self): return None
+            ...     def get_transformation(self): return None
+            ...     def get_mass_per_length(self): return 1.0
+            >>> dummy_element = DummyElement(tag=1, nodes=[])
+            >>> mesh_part = fm.components.Mesh.meshParts.ExternalMesh(
+            ...     user_name="gen_mesh_example", element=dummy_element,
+            ...     mesh=dummy_pv_mesh, scale=0.5, translate_x=1.0
+            ... )
+            >>> mesh = mesh_part.generate_mesh()
+            >>> print(mesh.n_points) # Still same number of points
+            80
+            >>> print(f"Mesh bounds after transform: {np.round(mesh.bounds, 2)}")
+            Mesh bounds after transform: [0.5  1.5 -0.5  0.5 -0.5  0.5]
         """
         if 'mesh' in self.params:
             # Use the provided mesh
@@ -837,11 +1158,19 @@ class ExternalMesh(MeshPart):
 
     @classmethod
     def get_parameters(cls) -> List[Tuple[str, str]]:
-        """
-        Get the list of parameters for this mesh part type.
-        
+        """Gets a list of parameters required for this mesh part type.
+
         Returns:
-            List[Tuple[str, str]]: List of parameter names and descriptions
+            List[Tuple[str, str]]: A list of tuples, where each tuple contains
+                (parameter_name, parameter_description).
+
+        Example:
+            >>> import femora as fm
+            >>> params = fm.components.Mesh.meshParts.ExternalMesh.get_parameters()
+            >>> print(len(params))
+            9
+            >>> print(params[0])
+            ('mesh', 'Existing PyVista mesh object (pv.UnstructuredGrid or convertible)')
         """
         return [
             ("mesh", "Existing PyVista mesh object (pv.UnstructuredGrid or convertible)"),
@@ -857,11 +1186,34 @@ class ExternalMesh(MeshPart):
     
     @classmethod
     def validate_parameters(cls, **kwargs) -> Dict[str, Union[int, float, str, pv.UnstructuredGrid, Dict]]:
-        """
-        Check if the mesh part input parameters are valid.
-        
+        """Validates the input parameters for creating this mesh part.
+
+        Args:
+            **kwargs: Arbitrary keyword arguments representing the mesh parameters.
+
         Returns:
-            Dict[str, Union[int, float, str, pv.UnstructuredGrid, Dict]]: Dictionary of parameters with valid values
+            Dict[str, Union[int, float, str, pv.UnstructuredGrid, Dict]]: A dictionary
+                of validated parameters with their correct types.
+
+        Raises:
+            ValueError: If neither 'mesh' nor 'filepath' is provided, or if
+                any parameter has an invalid type or value.
+            FileNotFoundError: If `filepath` is provided but the file does not exist.
+
+        Example:
+            >>> import femora as fm
+            >>> import pyvista as pv
+            >>> dummy_pv_mesh = pv.Sphere()
+            >>> valid_params = fm.components.Mesh.meshParts.ExternalMesh.validate_parameters(
+            ...     mesh=dummy_pv_mesh, scale=2.0, rotate_x=45
+            ... )
+            >>> print(valid_params['scale'])
+            2.0
+            >>> try:
+            ...     fm.components.Mesh.meshParts.ExternalMesh.validate_parameters(scale=-1)
+            ... except ValueError as e:
+            ...     print(e)
+            Scale factor must be greater than 0
         """
         valid_params = {}
         
@@ -915,23 +1267,57 @@ class ExternalMesh(MeshPart):
     
     @classmethod
     def is_elemnt_compatible(cls, element:str) -> bool:
-        """
-        Check if an element type is compatible with this mesh part
-        
+        """Checks if an element type is compatible with this mesh part.
+
         Args:
-            element (str): Element type name to check
-            
+            element: Element type name to check.
+
         Returns:
-            bool: True if compatible, False otherwise
+            bool: True if compatible, False otherwise.
+
+        Example:
+            >>> import femora as fm
+            >>> is_compatible = fm.components.Mesh.meshParts.ExternalMesh.is_elemnt_compatible("PML3D")
+            >>> print(is_compatible)
+            True
+            >>> is_compatible = fm.components.Mesh.meshParts.ExternalMesh.is_elemnt_compatible("LineElement")
+            >>> print(is_compatible)
+            False
         """
         return element in cls._compatible_elements
     
     def update_parameters(self, **kwargs) -> None:
-        """
-        Update mesh part parameters
-        
+        """Updates the mesh part parameters and regenerates the mesh.
+
         Args:
-            **kwargs: Keyword arguments to update
+            **kwargs: Keyword arguments to update. These will be validated.
+
+        Raises:
+            ValueError: If any provided parameter is invalid.
+            FileNotFoundError: If a new `filepath` is provided but the file does not exist.
+
+        Example:
+            >>> import femora as fm
+            >>> import pyvista as pv
+            >>> from femora.components.Element.elementBase import Element
+            >>> dummy_pv_mesh = pv.Sphere(radius=1.0).extract_surface().cast_to_unstructured_grid()
+            >>> class DummyElement(Element):
+            ...     def __init__(self, tag, nodes, section=None, transformation=None, material=None):
+            ...         super().__init__(tag, nodes, section, transformation, material, 3)
+            ...         self.element_type = "stdBrick"
+            ...     def get_section(self): return None
+            ...     def get_transformation(self): return None
+            ...     def get_mass_per_length(self): return 1.0
+            >>> dummy_element = DummyElement(tag=1, nodes=[])
+            >>> mesh_part = fm.components.Mesh.meshParts.ExternalMesh(
+            ...     user_name="update_example", element=dummy_element,
+            ...     mesh=dummy_pv_mesh, scale=1.0
+            ... )
+            >>> old_bounds = mesh_part.mesh.bounds
+            >>> mesh_part.update_parameters(scale=2.0, translate_x=5.0)
+            >>> new_bounds = mesh_part.mesh.bounds
+            >>> print(f"Old bounds: {np.round(old_bounds, 2)}, New bounds: {np.round(new_bounds, 2)}")
+            Old bounds: [-1.  1. -1.  1. -1.  1.], New bounds: [3.  7. -2.  2. -2.  2.]
         """
         # Merge with existing parameters to maintain required params
         merged_params = {**self.params, **kwargs}
@@ -941,11 +1327,17 @@ class ExternalMesh(MeshPart):
 
     @staticmethod
     def get_Notes() -> Dict[str, Union[str, list]]:
-        """
-        Get notes for the mesh part type
-        
+        """Provides notes, usage, limitations, and tips for this mesh part type.
+
         Returns:
-            Dict[str, Union[str, list]]: Dictionary containing notes about the mesh part
+            Dict[str, Union[str, list]]: A dictionary containing various notes
+                about the mesh part.
+
+        Example:
+            >>> import femora as fm
+            >>> notes = fm.components.Mesh.meshParts.ExternalMesh.get_Notes()
+            >>> print(notes["description"])
+            Handles custom meshes imported from files or existing PyVista meshes
         """
         return {
             "description": "Handles custom meshes imported from files or existing PyVista meshes",
@@ -976,117 +1368,95 @@ MeshPartRegistry.register_mesh_part_type('General mesh', 'External mesh', Extern
 
 
 class StructuredLineMesh(MeshPart):
-    """
-    Structured Line Mesh Part for beam/column elements.
-    Creates a grid of line elements with arbitrary normal direction.
+    """Represents a structured line mesh part for beam/column elements.
 
-    Parameters
-    ----------
-    user_name : str
-        Unique user name for the mesh part.
-    element : Element
-        Associated beam element (must have section and transformation).
-    region : RegionBase, optional
-        Associated region.
-    base_point_x : float, optional
-        Base point X coordinate. Default: 0.0
-    base_point_y : float, optional
-        Base point Y coordinate. Default: 0.0
-    base_point_z : float, optional
-        Base point Z coordinate. Default: 0.0
-    base_vector_1_x : float, optional
-        First base vector X component. Default: 1.0
-    base_vector_1_y : float, optional
-        First base vector Y component. Default: 0.0
-    base_vector_1_z : float, optional
-        First base vector Z component. Default: 0.0
-    base_vector_2_x : float, optional
-        Second base vector X component. Default: 0.0
-    base_vector_2_y : float, optional
-        Second base vector Y component. Default: 1.0
-    base_vector_2_z : float, optional
-        Second base vector Z component. Default: 0.0
-    normal_x : float, optional
-        Normal direction X component. Default: 0.0
-    normal_y : float, optional
-        Normal direction Y component. Default: 0.0
-    normal_z : float, optional
-        Normal direction Z component. Default: 1.0
-    grid_size_1 : int, optional
-        Number of elements in direction 1. Default: 10
-    grid_size_2 : int, optional
-        Number of elements in direction 2. Default: 10
-    spacing_1 : float, optional
-        Spacing in direction 1. Default: 1.0
-    spacing_2 : float, optional
-        Spacing in direction 2. Default: 1.0
-    length : float, optional
-        Length of each line element along normal. Default: 1.0
-    offset_1 : float, optional
-        Optional offset in direction 1. Default: 0.0
-    offset_2 : float, optional
-        Optional offset in direction 2. Default: 0.0
-    number_of_lines : int, optional
-        Number of line elements along normal direction per grid point. Default: 1
-    merge_points : bool, optional
-        Whether to merge duplicate points. Default: True
+    This class creates a 2D grid of 3D line elements (beams or columns)
+    with an arbitrary normal direction. Each grid point generates a stack
+    of line elements along the normal.
+
+    Attributes:
+        _compatible_elements (list[str]): List of compatible element types.
+        params (dict): Dictionary storing the validated parameters for mesh generation.
+        mesh (pv.UnstructuredGrid): The generated PyVista unstructured grid containing line elements.
     """
     _compatible_elements = ["DispBeamColumn", "ForceBeamColumn", "ElasticBeamColumn", "NonlinearBeamColumn"]
     
     def __init__(self, user_name: str, element: Element, region: Optional[RegionBase]=None, **kwargs):
-        """
-        Initialize a Structured Line Mesh Part.
+        """Initializes a Structured Line Mesh Part.
 
-        Parameters
-        ----------
-        user_name : str
-            Unique user name for the mesh part.
-        element : Element
-            Associated beam element (must have section and transformation).
-        region : RegionBase, optional
-            Associated region.
-        base_point_x : float, optional
-            Base point X coordinate. Default: 0.0
-        base_point_y : float, optional
-            Base point Y coordinate. Default: 0.0
-        base_point_z : float, optional
-            Base point Z coordinate. Default: 0.0
-        base_vector_1_x : float, optional
-            First base vector X component. Default: 1.0
-        base_vector_1_y : float, optional
-            First base vector Y component. Default: 0.0
-        base_vector_1_z : float, optional
-            First base vector Z component. Default: 0.0
-        base_vector_2_x : float, optional
-            Second base vector X component. Default: 0.0
-        base_vector_2_y : float, optional
-            Second base vector Y component. Default: 1.0
-        base_vector_2_z : float, optional
-            Second base vector Z component. Default: 0.0
-        normal_x : float, optional
-            Normal direction X component. Default: 0.0
-        normal_y : float, optional
-            Normal direction Y component. Default: 0.0
-        normal_z : float, optional
-            Normal direction Z component. Default: 1.0
-        grid_size_1 : int, optional
-            Number of elements in direction 1. Default: 10
-        grid_size_2 : int, optional
-            Number of elements in direction 2. Default: 10
-        spacing_1 : float, optional
-            Spacing in direction 1. Default: 1.0
-        spacing_2 : float, optional
-            Spacing in direction 2. Default: 1.0
-        length : float, optional
-            Length of each line element along normal. Default: 1.0
-        offset_1 : float, optional
-            Optional offset in direction 1. Default: 0.0
-        offset_2 : float, optional
-            Optional offset in direction 2. Default: 0.0
-        number_of_lines : int, optional
-            Number of line elements along normal direction per grid point. Default: 1
-        merge_points : bool, optional
-            Whether to merge duplicate points. Default: True
+        Args:
+            user_name: The unique user-defined name for this mesh part.
+            element: The associated beam Element object. Must have a section and transformation.
+            region: Optional. The associated Femora RegionBase object.
+            **kwargs: Additional parameters for mesh generation. These can include:
+                base_point_x (float, optional): X coordinate of the grid's origin. Defaults to 0.0.
+                base_point_y (float, optional): Y coordinate of the grid's origin. Defaults to 0.0.
+                base_point_z (float, optional): Z coordinate of the grid's origin. Defaults to 0.0.
+                base_vector_1_x (float, optional): X component of the first grid direction vector. Defaults to 1.0.
+                base_vector_1_y (float, optional): Y component of the first grid direction vector. Defaults to 0.0.
+                base_vector_1_z (float, optional): Z component of the first grid direction vector. Defaults to 0.0.
+                base_vector_2_x (float, optional): X component of the second grid direction vector. Defaults to 0.0.
+                base_vector_2_y (float, optional): Y component of the second grid direction vector. Defaults to 1.0.
+                base_vector_2_z (float, optional): Z component of the second grid direction vector. Defaults to 0.0.
+                normal_x (float, optional): X component of the normal direction for line elements. Defaults to 0.0.
+                normal_y (float, optional): Y component of the normal direction for line elements. Defaults to 0.0.
+                normal_z (float, optional): Z component of the normal direction for line elements. Defaults to 1.0.
+                grid_size_1 (int, optional): Number of elements (intervals) in direction 1. Defaults to 10.
+                grid_size_2 (int, optional): Number of elements (intervals) in direction 2. Defaults to 10.
+                spacing_1 (float, optional): Spacing between grid points in direction 1. Defaults to 1.0.
+                spacing_2 (float, optional): Spacing between grid points in direction 2. Defaults to 1.0.
+                length (float, optional): Total length of the stack of line elements at each grid point. Defaults to 1.0.
+                offset_1 (float, optional): Optional offset for the grid in direction 1. Defaults to 0.0.
+                offset_2 (float, optional): Optional offset for the grid in direction 2. Defaults to 0.0.
+                number_of_lines (int, optional): Number of line elements to create along
+                    the normal direction at each grid point. Defaults to 1.
+                merge_points (bool, optional): Whether to merge duplicate points generated
+                    at shared grid locations. Defaults to True.
+
+        Raises:
+            ValueError: If the `element` is not compatible (e.g., not a beam element
+                or missing section/transformation) or if any parameter is invalid.
+
+        Example:
+            >>> import femora as fm
+            >>> import pyvista as pv
+            >>> from femora.core.element_base import Element
+            >>> from femora.components.Section.SectionBase import Section # Assuming Section exists
+            >>> from femora.components.Transformation.TransformationBase import Transformation # Assuming Transformation exists
+            >>> class DummySection(Section):
+            ...     def __init__(self, tag, A=1.0, Iy=1.0, Iz=1.0, G=1.0, J=1.0): self.tag, self.A, self.Iy, self.Iz, self.J = tag, A, Iy, Iz, J
+            ...     def get_area(self): return self.A
+            ...     def get_Iy(self): return self.Iy
+            ...     def get_Iz(self): return self.Iz
+            ...     def get_J(self): return self.J
+            >>> class DummyTransformation(Transformation):
+            ...     def __init__(self, tag, vecxz=[0,0,1]): self.tag, self.vecxz_x, self.vecxz_y, self.vecxz_z = tag, vecxz[0], vecxz[1], vecxz[2]
+            >>> class DummyBeamElement(Element):
+            ...     def __init__(self, tag, nodes, section, transformation, material=None):
+            ...         super().__init__(tag, nodes, section, transformation, material, 6)
+            ...         self.element_type = "DispBeamColumn"
+            ...     def get_section(self): return self._section
+            ...     def get_transformation(self): return self._transformation
+            ...     def get_mass_per_length(self): return 10.0
+            >>> dummy_section = DummySection(tag=1)
+            >>> dummy_transf = DummyTransformation(tag=1)
+            >>> beam_element = DummyBeamElement(tag=1, nodes=[], section=dummy_section, transformation=dummy_transf)
+            >>>
+            >>> # Example: Create a 2x2 grid of columns
+            >>> mesh_part = fm.components.Mesh.meshParts.StructuredLineMesh(
+            ...     user_name="my_column_grid",
+            ...     element=beam_element,
+            ...     base_point_x=0, base_point_y=0, base_point_z=0,
+            ...     base_vector_1_x=1, base_vector_1_y=0, base_vector_1_z=0,
+            ...     base_vector_2_x=0, base_vector_2_y=1, base_vector_2_z=0,
+            ...     normal_x=0, normal_y=0, normal_z=1,
+            ...     grid_size_1=1, grid_size_2=1, spacing_1=5, spacing_2=5,
+            ...     length=3, number_of_lines=2 # Two segments per column
+            ... )
+            >>> print(f"Number of nodes: {mesh_part.mesh.n_points}") # (1+1)*(1+1) * (2+1) merged points
+            Number of nodes: 12
+            >>> print(f"Number of cells: {mesh_part.mesh.n_cells}") # (1+1)*(1+1) * 2 cells
+            Number of cells: 8
         """
         super().__init__(
             category='line mesh',
@@ -1106,14 +1476,42 @@ class StructuredLineMesh(MeshPart):
         self.generate_mesh()
 
     def is_element_compatible(self, element: Element) -> bool:
-        """
-        Check if element is compatible with line mesh
-        
+        """Checks if the given element is compatible with line mesh generation.
+
+        This involves checking if the element's type is in the compatible list
+        and if it possesses both a section and a transformation object.
+
         Args:
-            element (Element): Element to check
-            
+            element: The Element object to check for compatibility.
+
         Returns:
-            bool: True if compatible, False otherwise
+            bool: True if the element is compatible, False otherwise.
+
+        Example:
+            >>> import femora as fm
+            >>> from femora.core.element_base import Element
+            >>> from femora.components.Section.SectionBase import Section
+            >>> from femora.components.Transformation.TransformationBase import Transformation
+            >>> class ValidBeamElement(Element):
+            ...     def __init__(self, tag, nodes, section, transformation):
+            ...         super().__init__(tag, nodes, section, transformation, None, 6)
+            ...         self.element_type = "DispBeamColumn"
+            ...     def get_section(self): return Section(1)
+            ...     def get_transformation(self): return Transformation(1)
+            ...     def get_mass_per_length(self): return 1.0
+            >>> class InvalidBeamElement(Element):
+            ...     def __init__(self, tag, nodes, section, transformation):
+            ...         super().__init__(tag, nodes, section, transformation, None, 6)
+            ...         self.element_type = "DispBeamColumn"
+            ...     def get_section(self): return None # Missing section
+            ...     def get_transformation(self): return Transformation(1)
+            ...     def get_mass_per_length(self): return 1.0
+            >>> valid_element = ValidBeamElement(1, [], None, None)
+            >>> invalid_element = InvalidBeamElement(2, [], None, None)
+            >>> print(fm.components.Mesh.meshParts.StructuredLineMesh.is_element_compatible(valid_element))
+            True
+            >>> print(fm.components.Mesh.meshParts.StructuredLineMesh.is_element_compatible(invalid_element))
+            False
         """
         # Check element type compatibility using base class method
         if not self.is_elemnt_compatible(element.element_type):
@@ -1126,11 +1524,52 @@ class StructuredLineMesh(MeshPart):
         return True
 
     def generate_mesh(self) -> pv.UnstructuredGrid:
-        """
-        Generate a structured line mesh
-        
+        """Generates a structured line mesh based on the current parameters.
+
+        Constructs a grid of points and connects them to form line elements.
+        If `merge_points` is True, duplicate points at grid intersections are merged.
+        Mass properties are also assigned to the mesh points based on the element's
+        mass per length and section properties.
+
         Returns:
-            pv.UnstructuredGrid: Generated line mesh
+            pv.UnstructuredGrid: The generated PyVista unstructured grid representing the line mesh.
+
+        Example:
+            >>> import femora as fm
+            >>> import pyvista as pv
+            >>> from femora.core.element_base import Element
+            >>> from femora.components.Section.SectionBase import Section
+            >>> from femora.components.Transformation.TransformationBase import Transformation
+            >>> class DummySection(Section):
+            ...     def __init__(self, tag, A=1.0, Iy=1.0, Iz=1.0, J=1.0): self.tag, self.A, self.Iy, self.Iz, self.J = tag, A, Iy, Iz, J
+            ...     def get_area(self): return self.A
+            ...     def get_Iy(self): return self.Iy
+            ...     def get_Iz(self): return self.Iz
+            ...     def get_J(self): return self.J if self.J is not None else (self.Iy + self.Iz) # Ensure J exists
+            >>> class DummyTransformation(Transformation):
+            ...     def __init__(self, tag, vecxz=[0,0,1]): self.tag, self.vecxz_x, self.vecxz_y, self.vecxz_z = tag, vecxz[0], vecxz[1], vecxz[2]
+            >>> class DummyBeamElement(Element):
+            ...     def __init__(self, tag, nodes, section, transformation, material=None):
+            ...         super().__init__(tag, nodes, section, transformation, material, 6)
+            ...         self.element_type = "DispBeamColumn"
+            ...         self._section = section # Store section for get_section()
+            ...         self._transformation = transformation # Store transformation
+            ...     def get_section(self): return self._section
+            ...     def get_transformation(self): return self._transformation
+            ...     def get_mass_per_length(self): return 1.0 # Unit mass per length
+            >>> dummy_section = DummySection(tag=1, A=0.1, Iy=0.001, Iz=0.002, J=0.003)
+            >>> dummy_transf = DummyTransformation(tag=1)
+            >>> beam_element = DummyBeamElement(tag=1, nodes=[], section=dummy_section, transformation=dummy_transf)
+            >>>
+            >>> mesh_part = fm.components.Mesh.meshParts.StructuredLineMesh(
+            ...     user_name="gen_mesh_ex", element=beam_element,
+            ...     grid_size_1=1, grid_size_2=0, spacing_1=1.0, length=1.0, number_of_lines=1
+            ... )
+            >>> mesh = mesh_part.generate_mesh()
+            >>> print(mesh.n_cells)
+            1
+            >>> print(mesh.point_data['Mass'].shape)
+            (2, 6)
         """
         import numpy as np
         
@@ -1170,9 +1609,23 @@ class StructuredLineMesh(MeshPart):
         merge_points = self.params.get('merge_points', True)
         
         # Normalize vectors
-        base_vector_1 = base_vector_1 / np.linalg.norm(base_vector_1)
-        base_vector_2 = base_vector_2 / np.linalg.norm(base_vector_2)
-        normal = normal / np.linalg.norm(normal)
+        base_vector_1_norm = np.linalg.norm(base_vector_1)
+        if base_vector_1_norm > 1e-12:
+            base_vector_1 = base_vector_1 / base_vector_1_norm
+        else:
+            base_vector_1 = np.array([1.0, 0.0, 0.0])
+
+        base_vector_2_norm = np.linalg.norm(base_vector_2)
+        if base_vector_2_norm > 1e-12:
+            base_vector_2 = base_vector_2 / base_vector_2_norm
+        else:
+            base_vector_2 = np.array([0.0, 1.0, 0.0])
+
+        normal_norm = np.linalg.norm(normal)
+        if normal_norm > 1e-12:
+            normal = normal / normal_norm
+        else:
+            normal = np.array([0.0, 0.0, 1.0])
         
         # Generate grid points
         points = []
@@ -1220,948 +1673,23 @@ class StructuredLineMesh(MeshPart):
         else:
             # Create empty mesh if no points
             self.mesh = pv.PolyData().cast_to_unstructured_grid()
-        
-        return self.mesh
 
-    @classmethod
-    def get_parameters(cls) -> List[Tuple[str, str]]:
-        """
-        Get the list of parameters for this mesh part type.
-        
-        Returns:
-            List[Tuple[str, str]]: List of (parameter_name, description) tuples
-        """
-        return [
-            ('base_point_x', 'Base point X coordinate'),
-            ('base_point_y', 'Base point Y coordinate'),
-            ('base_point_z', 'Base point Z coordinate'),
-            ('base_vector_1_x', 'First base vector X component'),
-            ('base_vector_1_y', 'First base vector Y component'),
-            ('base_vector_1_z', 'First base vector Z component'),
-            ('base_vector_2_x', 'Second base vector X component'),
-            ('base_vector_2_y', 'Second base vector Y component'),
-            ('base_vector_2_z', 'Second base vector Z component'),
-            ('normal_x', 'Normal direction X component'),
-            ('normal_y', 'Normal direction Y component'),
-            ('normal_z', 'Normal direction Z component'),
-            ('grid_size_1', 'Number of elements in direction 1'),
-            ('grid_size_2', 'Number of elements in direction 2'),
-            ('spacing_1', 'Spacing in direction 1'),
-            ('spacing_2', 'Spacing in direction 2'),
-            ('length', 'Length of each line element along normal'),
-            ('offset_1', 'Optional offset in direction 1'),
-            ('offset_2', 'Optional offset in direction 2'),
-            ('number_of_lines', 'Number of line elements along normal direction per grid point'),
-            ('merge_points', 'Whether to merge duplicate points (True/False)')
-        ]
-
-    @classmethod
-    def validate_parameters(cls, **kwargs) -> Dict[str, Union[int, float, str]]:
-        """
-        Validate the input parameters for the line mesh part.
-        
-        Args:
-            **kwargs: Input parameters
+        # Assign mass properties
+        if self.mesh.n_points > 0:
+            mass_per_length = self.element.get_mass_per_length()
+            if mass_per_length is None:
+                mass_per_length = 0.0 # Default if not defined in element
             
-        Returns:
-            Dict[str, Union[int, float, str]]: Validated parameters
+            total_length_per_line_segment = length / number_of_lines
+            m_translational_lumped_per_node = mass_per_length * total_length_per_line_segment / 2.0
             
-        Raises:
-            ValueError: If parameters are invalid
-        """
-        validated_params = {}
-        
-        # Validate base point coordinates
-        for coord in ['base_point_x', 'base_point_y', 'base_point_z']:
-            if coord in kwargs:
-                try:
-                    validated_params[coord] = float(kwargs[coord])
-                except (ValueError, TypeError):
-                    raise ValueError(f"{coord} must be a valid number")
-            else:
-                validated_params[coord] = 0.0
-        
-        # Validate base vectors
-        for vec_num in [1, 2]:
-            for coord in ['x', 'y', 'z']:
-                param_name = f'base_vector_{vec_num}_{coord}'
-                if param_name in kwargs:
-                    try:
-                        validated_params[param_name] = float(kwargs[param_name])
-                    except (ValueError, TypeError):
-                        raise ValueError(f"{param_name} must be a valid number")
-                else:
-                    # Default values: base_vector_1 = [1,0,0], base_vector_2 = [0,1,0]
-                    if vec_num == 1:
-                        validated_params[param_name] = 1.0 if coord == 'x' else 0.0
-                    else:
-                        validated_params[param_name] = 1.0 if coord == 'y' else 0.0
-        
-        # Validate normal vector
-        for coord in ['normal_x', 'normal_y', 'normal_z']:
-            if coord in kwargs:
-                try:
-                    validated_params[coord] = float(kwargs[coord])
-                except (ValueError, TypeError):
-                    raise ValueError(f"{coord} must be a valid number")
-            else:
-                validated_params[coord] = 1.0 if coord == 'normal_z' else 0.0
-        
-        # Validate grid sizes
-        for size_param in ['grid_size_1', 'grid_size_2']:
-            if size_param in kwargs:
-                try:
-                    size = int(kwargs[size_param])
-                    if size < 0:
-                        raise ValueError(f"{size_param} must be non-negative")
-                    validated_params[size_param] = size
-                except (ValueError, TypeError):
-                    raise ValueError(f"{size_param} must be a non-negative integer")
-            else:
-                validated_params[size_param] = 10
-        
-        # Validate spacings
-        for spacing_param in ['spacing_1', 'spacing_2']:
-            if spacing_param in kwargs:
-                try:
-                    spacing = float(kwargs[spacing_param])
-                    if spacing <= 0:
-                        raise ValueError(f"{spacing_param} must be positive")
-                    validated_params[spacing_param] = spacing
-                except (ValueError, TypeError):
-                    raise ValueError(f"{spacing_param} must be a positive number")
-            else:
-                validated_params[spacing_param] = 1.0
-        
-        # Validate length
-        if 'length' in kwargs:
-            try:
-                length = float(kwargs['length'])
-                if length <= 0:
-                    raise ValueError("length must be positive")
-                validated_params['length'] = length
-            except (ValueError, TypeError):
-                raise ValueError("length must be a positive number")
-        else:
-            validated_params['length'] = 1.0
-        
-        # Validate offsets
-        for offset_param in ['offset_1', 'offset_2']:
-            if offset_param in kwargs:
-                try:
-                    offset = float(kwargs[offset_param])
-                    validated_params[offset_param] = offset
-                except (ValueError, TypeError):
-                    raise ValueError(f"{offset_param} must be a valid number")
-            else:
-                validated_params[offset_param] = 0.0
-        
-        # Validate number of lines
-        if 'number_of_lines' in kwargs:
-            try:
-                num_lines = int(kwargs['number_of_lines'])
-                if num_lines < 1:
-                    raise ValueError("number_of_lines must be at least 1")
-                validated_params['number_of_lines'] = num_lines
-            except (ValueError, TypeError):
-                raise ValueError("number_of_lines must be a positive integer")
-        else:
-            validated_params['number_of_lines'] = 1
-        
-        # Validate merge_points
-        if 'merge_points' in kwargs:
-            merge_val = kwargs['merge_points']
-            if isinstance(merge_val, str):
-                merge_val = merge_val.lower()
-                if merge_val in ['true', '1', 'yes', 'on']:
-                    validated_params['merge_points'] = True
-                elif merge_val in ['false', '0', 'no', 'off']:
-                    validated_params['merge_points'] = False
-                else:
-                    raise ValueError("merge_points must be True/False or a valid boolean string")
-            elif isinstance(merge_val, bool):
-                validated_params['merge_points'] = merge_val
-            else:
-                raise ValueError("merge_points must be a boolean value")
-        else:
-            validated_params['merge_points'] = True
-        
-        return validated_params
-
-    def update_parameters(self, **kwargs) -> None:
-        """
-        Update mesh part parameters
-        
-        Args:
-            **kwargs: Keyword arguments to update
-        """
-        validated_params = self.validate_parameters(**kwargs)
-        self.params.update(validated_params)
-        self.generate_mesh()
-
-    @classmethod
-    def get_Notes(cls) -> Dict[str, Union[str, List[str]]]:
-        """
-        Get notes for the line mesh part type.
-        
-        Returns:
-            Dict[str, Union[str, List[str]]]: Notes with description, usage, limitations, and tips
-        """
-        return {
-            "description": "Structured Line Grid creates a regular grid of line elements (beams/columns) with arbitrary normal direction. Each line element extends from a grid point along the specified normal direction.",
-            "usage": [
-                "Use for creating column grids in buildings",
-                "Use for creating beam grids in floor systems", 
-                "Use for creating inclined structural elements",
-                "Ensure the associated element is a beam type with section and transformation",
-                "Specify base vectors to define the grid orientation",
-                "Specify normal vector to define the direction of line elements"
-            ],
-            "limitations": [
-                "Only compatible with beam element types",
-                "Requires element to have both section and geometric transformation",
-                "Grid is limited to rectangular patterns",
-                "All lines have the same length"
-            ],
-            "tips": [
-                "Use base_vector_1 and base_vector_2 to define the grid plane orientation",
-                "Use normal vector to define the direction of the line elements",
-                "Set grid_size_1 and grid_size_2 to control the density of the grid",
-                "Use spacing_1 and spacing_2 to control the distance between lines",
-                "Use offset_1 and offset_2 to shift the entire grid",
-                "Ensure base vectors are perpendicular for best results"
-            ]
-        }
-
-# Register the Structured Line mesh part type
-MeshPartRegistry.register_mesh_part_type('Line mesh', 'Structured Line Grid', StructuredLineMesh)
-
-
-class SingleLineMesh(MeshPart):
-    """
-    Single Line Mesh Part for beam/column elements.
-    Creates a single line element between two points.
-
-    Parameters
-    ----------
-    user_name : str
-        Unique user name for the mesh part.
-    element : Element
-        Associated beam element (must have section and transformation).
-    region : RegionBase, optional
-        Associated region.
-    x0 : float, optional
-        Start point X coordinate. Default: 0.0
-    y0 : float, optional
-        Start point Y coordinate. Default: 0.0
-    z0 : float, optional
-        Start point Z coordinate. Default: 0.0
-    x1 : float, optional
-        End point X coordinate. Default: 1.0
-    y1 : float, optional
-        End point Y coordinate. Default: 0.0
-    z1 : float, optional
-        End point Z coordinate. Default: 0.0
-    number_of_lines : int, optional
-        Number of line elements to create along the path. Default: 1
-    merge_points : bool, optional
-        Whether to merge duplicate points. Default: True
-    """
-    _compatible_elements = ["DispBeamColumn", "ForceBeamColumn", "ElasticBeamColumn", "NonlinearBeamColumn"]
-    
-    def __init__(self, user_name: str, element: Element, region: Optional[RegionBase]=None, **kwargs):
-        """
-        Initialize a Single Line Mesh Part.
-
-        Parameters
-        ----------
-        user_name : str
-            Unique user name for the mesh part.
-        element : Element
-            Associated beam element (must have section and transformation).
-        region : RegionBase, optional
-            Associated region.
-        x0 : float, optional
-            Start point X coordinate. Default: 0.0
-        y0 : float, optional
-            Start point Y coordinate. Default: 0.0
-        z0 : float, optional
-            Start point Z coordinate. Default: 0.0
-        x1 : float, optional
-            End point X coordinate. Default: 1.0
-        y1 : float, optional
-            End point Y coordinate. Default: 0.0
-        z1 : float, optional
-            End point Z coordinate. Default: 0.0
-        number_of_lines : int, optional
-            Number of line elements to create along the path. Default: 1
-        merge_points : bool, optional
-            Whether to merge duplicate points. Default: True
-        """
-        super().__init__(
-            category='line mesh',
-            mesh_type='Single Line',
-            user_name=user_name,
-            element=element,
-            region=region
-        )
-        
-        # Validate element compatibility
-        if not self.is_element_compatible(element):
-            raise ValueError(f"Element type '{element.element_type}' is not compatible with line mesh. "
-                           f"Must be a beam element with section and transformation.")
-        
-        kwargs = self.validate_parameters(**kwargs)
-        self.params = kwargs if kwargs else {}
-        self.generate_mesh()
-
-    def is_element_compatible(self, element: Element) -> bool:
-        """
-        Check if element is compatible with line mesh
-        
-        Args:
-            element (Element): Element to check
+            Mass = np.zeros((self.mesh.n_points, FEMORA_MAX_NDF), dtype=np.float32)
+            Mass[:, :3] = m_translational_lumped_per_node  # Assign mass in translational DOFs
             
-        Returns:
-            bool: True if compatible, False otherwise
-        """
-        # Check element type compatibility using base class method
-        if not self.is_elemnt_compatible(element.element_type):
-            return False
-        
-        # Must have section and transformation
-        if not element.get_section() or not element.get_transformation():
-            return False
-        
-        return True
-
-    def generate_mesh(self) -> pv.PolyData:
-        """
-        Generate a single line mesh
-        
-        Returns:
-            pv.PolyData: Generated line mesh
-        """
-        import numpy as np
-        
-        # Extract parameters
-        x0 = self.params.get('x0', 0.0)
-        y0 = self.params.get('y0', 0.0)
-        z0 = self.params.get('z0', 0.0)
-        x1 = self.params.get('x1', 1.0)
-        y1 = self.params.get('y1', 0.0)
-        z1 = self.params.get('z1', 0.0)
-        number_of_lines = self.params.get('number_of_lines', 1)
-        merge_points = self.params.get('merge_points', True)
-        
-        # Create start and end points
-        start_point = np.array([x0, y0, z0])
-        end_point = np.array([x1, y1, z1])
-        
-        # Calculate the direction vector
-        direction = end_point - start_point
-        
-        # Create points array for multiple lines
-        points = []
-        lines = []
-        point_id = 0
-        
-        for i in range(number_of_lines):
-            # Calculate the start and end points for this line segment
-            # Each line covers 1/number_of_lines of the total distance
-            t_start = i / number_of_lines
-            t_end = (i + 1) / number_of_lines
+            # Rotational mass calculation, if section and transformation exist
+            section = self.element.get_section()
+            transf = self.element.get_transformation()
             
-            line_start = start_point + t_start * direction
-            line_end = start_point + t_end * direction
-            
-            # Add points for this line
-            points.append(line_start)
-            points.append(line_end)
-            
-            # Add line (connect two points)
-            lines.extend([2, point_id, point_id + 1])
-            point_id += 2
-        
-        # Create PyVista PolyData
-        if points:
-            points_array = np.array(points)
-            poly_mesh = pv.PolyData(points_array, lines=lines)
-            
-            # Merge points if requested
-            if merge_points:
-                poly_mesh = poly_mesh.merge_points(tolerance=1e-4,
-                                                 inplace=False,
-                                                 progress_bar=False)
-            
-            # Cast to UnstructuredGrid
-            self.mesh = poly_mesh.cast_to_unstructured_grid()
-        else:
-            # Create empty mesh if no points
-            self.mesh = pv.PolyData().cast_to_unstructured_grid()
+            m_rx, m_ry, m_rz = 0.0, 0.0, 0.0 # Initialize rotational masses
 
-
-        mass_per_length = self.element.get_mass_per_length()
-        # print(f"Mass per length: {mass_per_length}")
-        L = np.linalg.norm(direction)/ number_of_lines
-        m = mass_per_length * L /2
-        Mass = np.zeros((self.mesh.n_points, FEMORA_MAX_NDF), dtype=np.float32)
-        Mass[:, :3] = m  # Assign mass in translational DOFs
-        
-        m_rot = m * (L**2) / 4.0
-        m_rx, m_ry, m_rz = m_rot, m_rot, m_rot
-        
-        section = getattr(self.element, '_section', None)
-        transf = getattr(self.element, '_transformation', None)
-        
-        if section and hasattr(section, 'get_area') and hasattr(section, 'get_Iy') and hasattr(section, 'get_Iz'):
-            A = section.get_area()
-            if A > 0:
-                rho = mass_per_length / A
-                Iy = section.get_Iy()
-                Iz = section.get_Iz()
-                J = section.get_J() if hasattr(section, 'get_J') and section.get_J() is not None else (Iy + Iz)
-                
-                m_rot_torsion = rho * J * L / 2.0
-                m_rot_iy = rho * Iy * L / 2.0
-                m_rot_iz = rho * Iz * L / 2.0
-                
-                dir_norm = direction / np.linalg.norm(direction)
-                
-                if transf and hasattr(transf, 'vecxz_x'):
-                    # Local x axis (normalized direction vector)
-                    x_axis = dir_norm
-                    
-                    # vecxz vector (vector in xz plane)
-                    vecxz = np.array([transf.vecxz_x, transf.vecxz_y, transf.vecxz_z])
-                    vecxz_norm = np.linalg.norm(vecxz)
-                    if vecxz_norm > 1e-12:
-                        vecxz = vecxz / vecxz_norm
-                    else:
-                        vecxz = np.array([0.0, 0.0, 1.0])
-                    
-                    # Local y axis = vecxz cross x_axis
-                    y_axis = np.cross(vecxz, x_axis)
-                    y_axis_norm = np.linalg.norm(y_axis)
-                    if y_axis_norm > 1e-12:
-                        y_axis = y_axis / y_axis_norm
-                    else:
-                        y_axis = np.array([0.0, 1.0, 0.0])
-                        
-                    # Local z axis = x_axis cross y_axis
-                    z_axis = np.cross(x_axis, y_axis)
-                    z_axis_norm = np.linalg.norm(z_axis)
-                    if z_axis_norm > 1e-12:
-                        z_axis = z_axis / z_axis_norm
-                    else:
-                        z_axis = np.array([0.0, 0.0, 1.0]) # fallback
-                        
-                    # Calculate lumped diagonal global rotational mass (R^T M R diagonal)
-                    m_rx = (x_axis[0]**2)*m_rot_torsion + (y_axis[0]**2)*m_rot_iy + (z_axis[0]**2)*m_rot_iz
-                    m_ry = (x_axis[1]**2)*m_rot_torsion + (y_axis[1]**2)*m_rot_iy + (z_axis[1]**2)*m_rot_iz
-                    m_rz = (x_axis[2]**2)*m_rot_torsion + (y_axis[2]**2)*m_rot_iy + (z_axis[2]**2)*m_rot_iz
-                else:
-                    if abs(dir_norm[2]) >= max(abs(dir_norm[0]), abs(dir_norm[1])):
-                        m_rx, m_ry, m_rz = m_rot_iz, m_rot_iy, m_rot_torsion
-                    elif abs(dir_norm[0]) >= max(abs(dir_norm[1]), abs(dir_norm[2])):
-                        m_rx, m_ry, m_rz = m_rot_torsion, m_rot_iy, m_rot_iz
-                    else:
-                        m_rx, m_ry, m_rz = m_rot_iy, m_rot_torsion, m_rot_iz
-
-        Mass[:, 3] = m_rx
-        Mass[:, 4] = m_ry
-        Mass[:, 5] = m_rz
-        if merge_points:
-            start_ind = pv.UnstructuredGrid(self.mesh).find_closest_point(start_point)
-            end_ind = pv.UnstructuredGrid(self.mesh).find_closest_point(end_point)
-            Mass = 2 * Mass
-            Mass[start_ind] /=2.
-            Mass[end_ind] /=2.
-        self.mesh.point_data['Mass'] = Mass
-        return self.mesh
-
-    @classmethod
-    def get_parameters(cls) -> List[Tuple[str, str]]:
-        """
-        Get the list of parameters for this mesh part type.
-        
-        Returns:
-            List[Tuple[str, str]]: List of (parameter_name, description) tuples
-        """
-        return [
-            ('x0', 'Start point X coordinate'),
-            ('y0', 'Start point Y coordinate'),
-            ('z0', 'Start point Z coordinate'),
-            ('x1', 'End point X coordinate'),
-            ('y1', 'End point Y coordinate'),
-            ('z1', 'End point Z coordinate'),
-            ('number_of_lines', 'Number of line elements to create along the path. default is 1'),
-            ('merge_points', 'Whether to merge duplicate points (True/False). default is True')
-        ]
-
-    @classmethod
-    def validate_parameters(cls, **kwargs) -> Dict[str, Union[int, float, str]]:
-        """
-        Validate the input parameters for the single line mesh part.
-        
-        Args:
-            **kwargs: Input parameters
-            
-        Returns:
-            Dict[str, Union[int, float, str]]: Validated parameters
-            
-        Raises:
-            ValueError: If parameters are invalid
-        """
-        validated_params = {}
-        
-        # Validate start point coordinates
-        for coord in ['x0', 'y0', 'z0']:
-            if coord in kwargs:
-                try:
-                    validated_params[coord] = float(kwargs[coord])
-                except (ValueError, TypeError):
-                    raise ValueError(f"{coord} must be a valid number")
-            else:
-                validated_params[coord] = 0.0
-        
-        # Validate end point coordinates
-        for coord in ['x1', 'y1', 'z1']:
-            if coord in kwargs:
-                try:
-                    validated_params[coord] = float(kwargs[coord])
-                except (ValueError, TypeError):
-                    raise ValueError(f"{coord} must be a valid number")
-            else:
-                validated_params[coord] = 1.0 if coord == 'x1' else 0.0
-        
-        # Validate number of lines
-        if 'number_of_lines' in kwargs:
-            try:
-                num_lines = int(kwargs['number_of_lines'])
-                if num_lines < 1:
-                    raise ValueError("Number of lines must be at least 1")
-                validated_params['number_of_lines'] = num_lines
-            except (ValueError, TypeError):
-                raise ValueError("number_of_lines must be a positive integer")
-        else:
-            validated_params['number_of_lines'] = 1
-        
-        # Check that start and end points are different
-        start_point = np.array([validated_params['x0'], validated_params['y0'], validated_params['z0']])
-        end_point = np.array([validated_params['x1'], validated_params['y1'], validated_params['z1']])
-        
-        if np.allclose(start_point, end_point):
-            raise ValueError("Start and end points cannot be the same")
-        
-        # Validate merge_points
-        if 'merge_points' in kwargs:
-            merge_val = kwargs['merge_points']
-            if isinstance(merge_val, str):
-                merge_val = merge_val.lower().strip()
-                if merge_val in ['true', '1', 'yes', 'on']:
-                    validated_params['merge_points'] = True
-                elif merge_val in ['false', '0', 'no', 'off']:
-                    validated_params['merge_points'] = False
-                elif merge_val == '':  # Handle empty string as default True
-                    validated_params['merge_points'] = True
-                else:
-                    raise ValueError("merge_points must be True/False or a valid boolean string")
-            elif isinstance(merge_val, bool):
-                validated_params['merge_points'] = merge_val
-            else:
-                raise ValueError("merge_points must be a boolean value")
-        else:
-            validated_params['merge_points'] = True
-        
-        return validated_params
-
-    @classmethod
-    def is_elemnt_compatible(cls, element: str) -> bool:
-        """
-        Check if element type is compatible with this mesh part
-        
-        Args:
-            element (str): Element type name
-            
-        Returns:
-            bool: True if compatible, False otherwise
-        """
-        return element.lower() in [elem.lower() for elem in cls._compatible_elements]
-
-    def update_parameters(self, **kwargs) -> None:
-        """
-        Update mesh part parameters
-        
-        Args:
-            **kwargs: Keyword arguments to update
-        """
-        validated_params = self.validate_parameters(**kwargs)
-        self.params.update(validated_params)
-        self.generate_mesh()
-
-    @classmethod
-    def get_Notes(cls) -> Dict[str, Union[str, List[str]]]:
-        """
-        Get notes for the mesh part type
-        
-        Returns:
-            Dict[str, Union[str, List[str]]]: Dictionary containing notes about the mesh part
-        """
-        return {
-            "description": "Creates a single line element between two specified points. Ideal for individual beam or column elements.",
-            "usage": [
-                "Use for creating individual beam or column elements",
-                "Specify start and end points to define the line direction and length",
-                "Compatible with beam elements that have section and transformation properties",
-                "Suitable for structural analysis requiring individual line elements"
-            ],
-            "limitations": [
-                "Creates only one line element per mesh part",
-                "Requires beam element with section and transformation",
-                "Cannot create multiple lines or complex geometries"
-            ],
-            "tips": [
-                "Ensure start and end points are different",
-                "Use appropriate beam element type for your analysis",
-                "Consider the coordinate system when specifying points",
-                "Check that the element has proper section and transformation properties"
-            ]
-        }
-
-# Register the Single Line mesh part type
-MeshPartRegistry.register_mesh_part_type('Line mesh', 'Single Line', SingleLineMesh)
-
-
-
-# Manager classes for organizing mesh types
-class LineMeshManager:
-    """Manager class for line mesh types"""
-    single_line = SingleLineMesh
-    structured_lines = StructuredLineMesh
-
-
-class VolumeMeshManager:
-    """Manager class for volume mesh types"""
-    uniform_rectangular_grid = StructuredRectangular3D
-    geometric_rectangular_grid = GeometricStructuredRectangular3D
-    external_mesh = ExternalMesh
-
-
-class CircularOGrid2D(MeshPart):
-    """Circular O-Grid 2D quad mesh.
-
-    Generates a structured quad mesh of a circular domain using an O-grid
-    topology (central square surrounded by 4 ring blocks). All cells are
-    VTK quads (cell type 9) lying on the Z=0 plane.
-
-    Parameters
-    ----------
-    user_name : str
-        Unique user name for the mesh part.
-    element : Element
-        Associated 2D shell/quad element.
-    region : RegionBase, optional
-        Associated region.
-    R : float
-        Outer radius of the circle (must be > 0).
-    r0_ratio : float, optional
-        Ratio of inner square radius relative to R (default 0.4; typically 0.3–0.5).
-    nt : int, optional
-        Number of elements per side of inner square and per outer arc (default 24).
-    nr : int, optional
-        Number of radial elements in each outer ring block (default 12).
-    merge_tolerance : float, optional
-        Tolerance used when merging duplicate nodes along shared edges (default 1e-12).
-    """
-    _compatible_elements = [
-        "sspquad", "stdquad"
-    ]
-
-    def __init__(self, user_name: str, element: Element, region: Optional[RegionBase] = None, **kwargs):
-        super().__init__(
-            category='surface mesh',
-            mesh_type='Circular O-Grid',
-            user_name=user_name,
-            element=element,
-            region=region
-        )
-        kwargs = self.validate_parameters(**kwargs)
-        self.params = kwargs if kwargs else {}
-        # Basic element compatibility check
-        if not self.is_elemnt_compatible(element.element_type):
-            raise ValueError(f"Element type '{element.element_type}' is not compatible with Circular O-Grid 2D mesh")
-        self.generate_mesh()
-
-    @staticmethod
-    def _merge_nodes(nodes: np.ndarray, quads: np.ndarray, tol: float) -> Tuple[np.ndarray, np.ndarray]:
-        """Merge duplicate 2D nodes (same coordinates within tolerance).
-
-        Parameters
-        ----------
-        nodes : np.ndarray
-            Array of shape (N, 2) containing x,y coordinates.
-        quads : np.ndarray
-            Quad connectivity (E,4) referencing indices into nodes.
-        tol : float
-            Tolerance for merging.
-
-        Returns
-        -------
-        (merged_nodes, remapped_quads)
-        """
-        node_map = {}
-        new_nodes = []
-        index_map = {}
-        for i, (x, y) in enumerate(nodes):
-            key = (round(x / tol) * tol, round(y / tol) * tol)
-            if key not in node_map:
-                node_map[key] = len(new_nodes)
-                new_nodes.append([x, y, 0.0])  # elevate to 3D
-            index_map[i] = node_map[key]
-        merged_nodes = np.array(new_nodes, dtype=float)
-        remapped_quads = np.zeros_like(quads)
-        for e, q in enumerate(quads):
-            remapped_quads[e] = [index_map[idx] for idx in q]
-        return merged_nodes, remapped_quads
-
-    def generate_mesh(self) -> pv.UnstructuredGrid:
-        """Generate the circular O-grid quad mesh and store as unstructured grid."""
-        R = self.params['R']
-        r0_ratio = self.params['r0_ratio']
-        nt = self.params['nt']
-        nr = self.params['nr']
-        tol = self.params.get('merge_tolerance', 1e-12)
-
-        r0 = r0_ratio * R
-        a = r0 / np.sqrt(2.0)  # half side of inner square
-
-        # Central block (square -a..a)
-        xs = np.linspace(-a, a, nt + 1)
-        ys = np.linspace(-a, a, nt + 1)
-        nodes_c = np.array([[xs[i], ys[j]] for j in range(nt + 1) for i in range(nt + 1)])
-        quads_c = []
-        for j in range(nt):
-            for i in range(nt):
-                n0 = j * (nt + 1) + i
-                n1 = n0 + 1
-                n2 = n0 + (nt + 1) + 1
-                n3 = n0 + (nt + 1)
-                quads_c.append([n0, n1, n2, n3])
-        quads_c = np.array(quads_c)
-
-        def ring_block(x_in, y_in, x_out, y_out):
-            nodes = []
-            for i in range(nt + 1):
-                xin = x_in[i]; yin = y_in[i]
-                xout = x_out[i]; yout = y_out[i]
-                for j in range(nr + 1):
-                    u = j / nr
-                    x = (1 - u) * xin + u * xout
-                    y = (1 - u) * yin + u * yout
-                    nodes.append([x, y])
-            nodes = np.array(nodes)
-            quads = []
-            for i in range(nt):
-                for j in range(nr):
-                    n0 = i * (nr + 1) + j
-                    n1 = (i + 1) * (nr + 1) + j
-                    n2 = (i + 1) * (nr + 1) + (j + 1)
-                    n3 = i * (nr + 1) + (j + 1)
-                    quads.append([n0, n1, n2, n3])
-            return nodes, np.array(quads)
-
-        # Build 4 ring blocks around central square
-        theta_top = np.linspace(3 * np.pi / 4, np.pi / 4, nt + 1)
-        x_in = np.linspace(-a, a, nt + 1); y_in = np.full(nt + 1, a)
-        x_out = R * np.cos(theta_top); y_out = R * np.sin(theta_top)
-        nodes_t, quads_t = ring_block(x_in, y_in, x_out, y_out)
-
-        theta_r = np.linspace(np.pi / 4, -np.pi / 4, nt + 1)
-        x_in = np.full(nt + 1, a); y_in = np.linspace(a, -a, nt + 1)
-        x_out = R * np.cos(theta_r); y_out = R * np.sin(theta_r)
-        nodes_r, quads_r = ring_block(x_in, y_in, x_out, y_out)
-
-        theta_b = np.linspace(-3 * np.pi / 4, -np.pi / 4, nt + 1)
-        x_in = np.linspace(-a, a, nt + 1); y_in = np.full(nt + 1, -a)
-        x_out = R * np.cos(theta_b); y_out = R * np.sin(theta_b)
-        nodes_b, quads_b = ring_block(x_in, y_in, x_out, y_out)
-
-        theta_l = np.linspace(5 * np.pi / 4, 3 * np.pi / 4, nt + 1)
-        x_in = np.full(nt + 1, -a); y_in = np.linspace(-a, a, nt + 1)
-        x_out = R * np.cos(theta_l); y_out = R * np.sin(theta_l)
-        nodes_l, quads_l = ring_block(x_in, y_in, x_out, y_out)
-
-        # Combine all blocks
-        nodes_all = np.vstack([nodes_c, nodes_t, nodes_r, nodes_b, nodes_l])
-        quads_all = []
-        offset = 0
-        for nodes_block, quads_block in [
-            (nodes_c, quads_c), (nodes_t, quads_t), (nodes_r, quads_r), (nodes_b, quads_b), (nodes_l, quads_l)
-        ]:
-            quads_all.append(quads_block + offset)
-            offset += len(nodes_block)
-        quads_all = np.vstack(quads_all)
-
-        # Merge shared edge nodes
-        merged_nodes, merged_quads = self._merge_nodes(nodes_all, quads_all, tol=tol)
-
-        # Build VTK unstructured grid (quad cell type = 9)
-        ncells = merged_quads.shape[0]
-        cells = np.hstack([np.column_stack([np.full(ncells, 4), merged_quads])]).flatten()
-        celltypes = np.full(ncells, 9, dtype=np.uint8)
-        self.mesh = pv.UnstructuredGrid(cells, celltypes, merged_nodes)
-        return self.mesh
-
-    @classmethod
-    def get_parameters(cls) -> List[Tuple[str, str]]:
-        return [
-            ("R", "Outer radius of the circle (float > 0)"),
-            ("r0_ratio", "Ratio of inner square radius (0.2–0.8 typical, float)"),
-            ("nt", "Elements per side / arc (int >= 1)"),
-            ("nr", "Radial elements in each ring block (int >= 1)"),
-            ("merge_tolerance", "Tolerance for node merging (float, optional)"),
-        ]
-
-    @classmethod
-    def validate_parameters(cls, **kwargs) -> Dict[str, Union[int, float]]:
-        required = ['R', 'r0_ratio', 'nt', 'nr']
-        params: Dict[str, Union[int, float]] = {}
-        for name in required:
-            if name not in kwargs:
-                raise ValueError(f"Parameter '{name}' is required for CircularOGrid2D")
-        try:
-            params['R'] = float(kwargs['R'])
-            if params['R'] <= 0:
-                raise ValueError("R must be > 0")
-            params['r0_ratio'] = float(kwargs.get('r0_ratio', 0.4))
-            if not (0.1 < params['r0_ratio'] < 0.9):
-                raise ValueError("r0_ratio must be between 0.1 and 0.9")
-            params['nt'] = int(kwargs.get('nt', 24))
-            params['nr'] = int(kwargs.get('nr', 12))
-            if params['nt'] < 1 or params['nr'] < 1:
-                raise ValueError("nt and nr must be >= 1")
-            params['merge_tolerance'] = float(kwargs.get('merge_tolerance', 1e-12))
-        except (TypeError, ValueError) as e:
-            raise ValueError(f"Invalid CircularOGrid2D parameter: {e}")
-        return params
-
-    @classmethod
-    def is_elemnt_compatible(cls, element: str) -> bool:
-        return element in cls._compatible_elements
-
-    def update_parameters(self, **kwargs) -> None:
-        updated = {**self.params, **kwargs}
-        self.params = self.validate_parameters(**updated)
-        self.generate_mesh()
-
-    @staticmethod
-    def get_Notes() -> Dict[str, Union[str, List[str]]]:
-        return {
-            "description": "Generates a 2D circular O-grid quad mesh (central square + ring blocks) for shell/quad elements.",
-            "usage": [
-                "Ideal for circular domains requiring structured quads",
-                "Use 'R' for domain size and 'r0_ratio' to adjust central square size",
-                "Increase 'nt' for finer tangential resolution and 'nr' for radial refinement",
-                "Merge tolerance controls edge node unification"
-            ],
-            "limitations": [
-                "Mesh lies on Z=0 plane (pure 2D)",
-                "Produces quads only (no triangles)",
-                "Not suitable for highly eccentric shapes"
-            ],
-            "tips": [
-                "Choose r0_ratio ~0.3–0.5 for good element quality",
-                "Keep nt ≈ 2*nr for balanced aspect ratios",
-                "Refine gradually to avoid very small inner elements",
-                "Verify element type supports quad topology"
-            ]
-        }
-
-# Register the Circular O-Grid surface mesh part type
-MeshPartRegistry.register_mesh_part_type('Surface mesh', 'Circular O-Grid', CircularOGrid2D)
-
-
-class SurfaceMeshManager:
-    """Manager class for surface mesh types"""
-    circular_o_grid = CircularOGrid2D
-
-
-class CompositeMesh(MeshPart):
-    """
-    A mesh part that can contain multiple types of elements (sections).
-    The mesh's cell_data['ElementTag'] determines which Element instance handles each cell.
-    
-    Parameters
-    ----------
-    user_name : str
-        Unique user name for the mesh part.
-    mesh : pv.UnstructuredGrid
-        The pre-constructed pyvista mesh containing all geometry. 
-        Must have 'ElementTag' cell data populated.
-    region : RegionBase, optional
-        Associated region.
-    """
-    _compatible_elements = ["variable"] 
-
-    def __init__(self, user_name: str, mesh: pv.UnstructuredGrid, region: RegionBase=None, ndof: int = 6, 
-                 element_tag: int = 0, material_tag: int = 0, section_tag: int = 0, **kwargs):
-        """
-        Initialize a Composite Mesh Part.
-        """
-        # Pass None for element as this mesh part manages multiple elements internally via tags
-        super().__init__(
-            category='structure',
-            mesh_type='Composite Mesh',
-            user_name=user_name,
-            element=None, 
-            region=region
-        )
-        self.mesh = mesh
-        self.params = kwargs
-        self.ndof = ndof
-        self.element_tag = element_tag
-        self.material_tag = material_tag
-        self.section_tag = section_tag
-        
-        # Ensure mass array exists
-        self._ensure_mass_array()
-
-    def generate_mesh(self) -> pv.UnstructuredGrid:
-        """
-        Return the pre-existing mesh.
-        """
-        return self.mesh
-
-    def assign_material(self, material: Material) -> None:
-        """
-        Override to prevent overwriting individual element materials.
-        """
-        # No-op or warning
-        pass
-
-    @classmethod
-    def get_parameters(cls) -> List[Tuple[str, str]]:
-        return []
-
-    @classmethod
-    def validate_parameters(cls, **kwargs) -> Dict[str, Union[int, float, str]]:
-        return kwargs
-
-    def update_parameters(self, **kwargs) -> None:
-        pass
-    
-    @classmethod
-    def is_elemnt_compatible(cls, element: str) -> bool:
-        return True
-
-    @staticmethod
-    def get_Notes() -> Dict[str, Union[str, list]]:
-        return {
-            "description": "A composite mesh part capable of holding multiple element types.",
-            "usage": ["Complex structures with various sections."],
-            "limitations": ["ElementTag cell data must be manually managed."]
-        }
-
-# Register the Composite Mesh part type
-MeshPartRegistry.register_mesh_part_type('General mesh', 'Composite Mesh', CompositeMesh)
+            if
