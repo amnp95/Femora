@@ -14,6 +14,7 @@ from qtpy.QtWidgets import (
 from femora.components.Mesh.meshPartBase import MeshPart
 from femora.components.Assemble.Assembler import Assembler
 from femora.gui.plotter import PlotterManager
+from femora.components.partitioner.partitioner import PartitionerRegistry
 
 class AssemblyManagerTab(QWidget):
     def __init__(self, parent=None):
@@ -708,11 +709,7 @@ class AssemblySectionCreationDialog(QDialog):
         partition_algo_layout = QHBoxLayout()
         partition_algo_label = QLabel("Partition Algorithm:")
         self.partition_algo_combobox = QComboBox()
-        self.partition_algo_combobox.addItems([
-            "kd-tree", 
-            # "metis", 
-            # "scotch"  # Add more algorithms if available
-        ])
+        self.partition_algo_combobox.addItems(PartitionerRegistry.get_available_types())
         
         partition_algo_layout.addWidget(partition_algo_label)
         partition_algo_layout.addWidget(self.partition_algo_combobox)
@@ -828,7 +825,7 @@ if __name__ == "__main__":
 
     # Preliminary setup of mesh parts for testing
     from femora.components.Material.materialsOpenSees import ElasticIsotropicMaterial
-    from femora.components.Element.elementsOpenSees import stdBrickElement
+    from femora.components.element.std_brick import stdBrickElement
     from femora.components.Mesh.meshPartInstance import StructuredRectangular3D
 
     # Create the Qt Application
