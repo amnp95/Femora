@@ -244,17 +244,22 @@ Now we define the seismic loading by creating a time series and excitation patte
 
 .. code-block:: python
 
+   from femora.utils.paths import motions_dir
+
+   MOTIONS = motions_dir()
+
    # Create a TimeSeries for excitation using the Kobe earthquake record
    timeseries = fm.timeSeries.create_time_series(series_type="path",
-                                               filePath="kobe.acc",  # Acceleration file
-                                               fileTime="kobe.time") # Time steps file
+                                               filePath=str(MOTIONS / "kobe.acc"),  # Acceleration file
+                                               fileTime=str(MOTIONS / "kobe.time")) # Time steps file
 
    # Create a pattern for the uniform excitation (base shaking)
    kobe = fm.pattern.create_pattern(pattern_type="uniformexcitation",
                                   dof=1,  # X-direction excitation
                                   time_series=timeseries)
 
-**Note**: This applies the Kobe earthquake record as a uniform base excitation in the X-direction (dof=1). The acceleration data is read from "kobe.acc" and the corresponding time values from "kobe.time". This simulates the propagation of seismic waves from the bottom of the model upward through the different soil layers.
+**Note**: Femora example inputs (motions) are stored once under ``examples/inputs/motions``.
+If you run examples outside a repo checkout, set `FEMORA_MOTIONS_DIR` to that folder.
 
 Step 7: Apply Boundary Conditions
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -535,8 +540,8 @@ Here's the complete code for this quick start example:
 
    # Create a TimeSeries for excitation using the Kobe earthquake record
    timeseries = fm.timeSeries.create_time_series(series_type="path",
-                                               filePath="kobe.acc",  # Acceleration file
-                                               fileTime="kobe.time") # Time steps file
+                                               filePath=str(MOTIONS / "kobe.acc"),  # Acceleration file
+                                               fileTime=str(MOTIONS / "kobe.time")) # Time steps file
 
    # Create a pattern for the uniform excitation (base shaking)
    kobe = fm.pattern.create_pattern(pattern_type="uniformexcitation",

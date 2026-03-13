@@ -50,10 +50,12 @@ First, we load the recorded surface motion using the ``TimeHistory`` class:
 .. code-block:: python
 
     from femora.tools.transferFunction import TransferFunction, TimeHistory
+    from femora.utils.paths import motions_dir
     
     # Load the surface motion (Ricker wavelet)
-    record = TimeHistory.load(acc_file="ricker_surface.acc",
-                              time_file="ricker_surface.time",
+    MOTIONS = motions_dir()
+    record = TimeHistory.load(acc_file=str(MOTIONS / "ricker_surface.acc"),
+                              time_file=str(MOTIONS / "ricker_surface.time"),
                               unit_in_g=True,
                               gravity=9.81)
 
