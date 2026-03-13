@@ -7,6 +7,7 @@ from qtpy.QtCore import Qt
 from femora.gui.plotter import PlotterManager
 from femora.components.MeshMaker import MeshMaker
 from qtpy.QtWidgets import QSizePolicy
+from femora.components.partitioner.partitioner import PartitionerRegistry
 
 class AbsorbingMeshViewOptionsDialog(QDialog):
     """
@@ -178,7 +179,11 @@ class AbsorbingGUI(QWidget):
         
         absorbingLayerLayout.addWidget(QLabel("Partition Algorithm"), 2, 0)
         self.absorbingLayerPartitionCombox = QComboBox()
-        self.absorbingLayerPartitionCombox.addItem("kd-tree")
+        # DRM absorbing-layer partitioning is currently implemented only for kd-tree.
+        # Keep the UI aligned with supported backends to avoid runtime errors.
+        self.absorbingLayerPartitionCombox.addItems(
+            [p for p in ["kd-tree"] if p in PartitionerRegistry.get_available_types(include_unavailable=True)]
+        )
         absorbingLayerLayout.addWidget(self.absorbingLayerPartitionCombox, 2, 1)
         
         absorbingLayerLayout.addWidget(QLabel("Number of Partitions"), 3, 0)
