@@ -190,10 +190,14 @@ Instead of using an earthquake record, we use a frequency sweep signal that tran
 
 .. code-block:: python
 
+    from femora.utils.paths import motions_dir
+
+    MOTIONS = motions_dir()
+
     # Create a TimeSeries for the uniform excitation
     timeseries = fm.timeSeries.create_time_series(series_type="path",
-                                                filePath="FrequencySweep.acc",
-                                                fileTime="FrequencySweep.time",
+                                                filePath=str(MOTIONS / "FrequencySweep.acc"),
+                                                fileTime=str(MOTIONS / "FrequencySweep.time"),
                                                 factor= 9.81)
     
     # Create a pattern for the uniform excitation

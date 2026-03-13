@@ -284,10 +284,14 @@
 <section id="frequency-sweep-input-motion">
 <h3>Frequency Sweep Input Motion<a class="headerlink" href="#frequency-sweep-input-motion" title="Link to this heading"></a></h3>
 <p>Instead of using an earthquake record, we use a frequency sweep signal that transitions from 0.5Hz to 30Hz over 50 seconds. This provides a comprehensive evaluation of the site response across a wide frequency range:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create a TimeSeries for the uniform excitation</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">femora.utils.paths</span><span class="w"> </span><span class="kn">import</span> <span class="n">motions_dir</span>
+
+<span class="n">MOTIONS</span> <span class="o">=</span> <span class="n">motions_dir</span><span class="p">()</span>
+
+<span class="c1"># Create a TimeSeries for the uniform excitation</span>
 <span class="n">timeseries</span> <span class="o">=</span> <span class="n">fm</span><span class="o">.</span><span class="n">timeSeries</span><span class="o">.</span><span class="n">create_time_series</span><span class="p">(</span><span class="n">series_type</span><span class="o">=</span><span class="s2">&quot;path&quot;</span><span class="p">,</span>
-                                            <span class="n">filePath</span><span class="o">=</span><span class="s2">&quot;FrequencySweep.acc&quot;</span><span class="p">,</span>
-                                            <span class="n">fileTime</span><span class="o">=</span><span class="s2">&quot;FrequencySweep.time&quot;</span><span class="p">,</span>
+                                            <span class="n">filePath</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">MOTIONS</span> <span class="o">/</span> <span class="s2">&quot;FrequencySweep.acc&quot;</span><span class="p">),</span>
+                                            <span class="n">fileTime</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">MOTIONS</span> <span class="o">/</span> <span class="s2">&quot;FrequencySweep.time&quot;</span><span class="p">),</span>
                                             <span class="n">factor</span><span class="o">=</span> <span class="mf">9.81</span><span class="p">)</span>
 
 <span class="c1"># Create a pattern for the uniform excitation</span>
@@ -439,7 +443,10 @@
 <div class="literal-block-wrapper docutils container" id="example1-code">
 <div class="code-block-caption"><span class="caption-text">Example 1 - Single-Column Site Response Analysis</span><a class="headerlink" href="#example1-code" title="Link to this code"></a></div>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+
 <span class="kn">import</span><span class="w"> </span><span class="nn">femora</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">fm</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">femora.utils.paths</span><span class="w"> </span><span class="kn">import</span> <span class="n">motions_dir</span>
+
 <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">))</span>
 
 <span class="c1"># Create a new model</span>
@@ -513,8 +520,8 @@
 
 <span class="c1"># Create a TimeSeries for the uniform excitation</span>
 <span class="n">timeseries</span> <span class="o">=</span> <span class="n">fm</span><span class="o">.</span><span class="n">timeSeries</span><span class="o">.</span><span class="n">create_time_series</span><span class="p">(</span><span class="n">series_type</span><span class="o">=</span><span class="s2">&quot;path&quot;</span><span class="p">,</span>
-                                              <span class="n">filePath</span><span class="o">=</span><span class="s2">&quot;FrequencySweep.acc&quot;</span><span class="p">,</span>
-                                              <span class="n">fileTime</span><span class="o">=</span><span class="s2">&quot;FrequencySweep.time&quot;</span><span class="p">,</span>
+                                              <span class="n">filePath</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">motions_dir</span><span class="p">()</span> <span class="o">/</span> <span class="s2">&quot;FrequencySweep.acc&quot;</span><span class="p">),</span>
+                                              <span class="n">fileTime</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">motions_dir</span><span class="p">()</span> <span class="o">/</span> <span class="s2">&quot;FrequencySweep.time&quot;</span><span class="p">),</span>
                                               <span class="n">factor</span><span class="o">=</span> <span class="mf">9.81</span><span class="p">)</span>
 
 <span class="c1"># Create a pattern for the uniform excitation</span>
