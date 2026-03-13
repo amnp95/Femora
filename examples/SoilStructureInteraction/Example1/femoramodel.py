@@ -214,6 +214,7 @@ soil = [
 rock = {"vs": 8000, "rho": 2000.0, "damping": 0.00}
 
 from femora.tools.transferFunction import TransferFunction, TimeHistory
+from femora.utils.paths import motions_dir
 
 
 
@@ -221,8 +222,9 @@ from femora.tools.transferFunction import TransferFunction, TimeHistory
 # for the DRM pattern we need to provide a time history of the ground motion
 # in this case we use a Ricker wavelet based ground motion that we calculate using deconvolution of ricker wavelet
 # at the surface of the soil layers to compute the time history of the base motion
-surface = TimeHistory.load(acc_file="ricker_surface.acc",
-                            time_file="ricker_surface.time",
+_MOTIONS = motions_dir()
+surface = TimeHistory.load(acc_file=str(_MOTIONS / "ricker_surface.acc"),
+                            time_file=str(_MOTIONS / "ricker_surface.time"),
                             unit_in_g=True,
                             gravity=9.81)
 
@@ -270,7 +272,7 @@ if ABSORBING_LAYER in ["PML", "Rayleigh"]:
                         partitionAlgo="kd-tree",
                         geometry="Rectangular",
                         rayleighDamping=0.95,
-                        matchDamping=True,
+                        matchDamping=False,
                         type=ABSORBING_LAYER,
                         )
 
