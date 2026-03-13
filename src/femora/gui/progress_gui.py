@@ -3,16 +3,15 @@ from __future__ import annotations
 """Singleton class providing a Qt-based progress bar that mirrors the
 :pyclass:`femora.utils.progress.Progress` console helper.
 
-Usage example
--------------
->>> from femora.gui.progress_gui import get_progress_callback_gui
->>> cb = get_progress_callback_gui("Exporting")
->>> cb(10, "initialising")
->>> cb(100, "done")
-
-The first time the callback is invoked the progress bar widget is lazily
+The first time the callback is invoked, the progress bar widget is lazily
 created and inserted *below the interactive console* in the right-hand panel
 of the main application window.
+
+Example:
+    >>> from femora.gui.progress_gui import get_progress_callback_gui
+    >>> cb = get_progress_callback_gui("Exporting")
+    >>> cb(10, "initialising")
+    >>> cb(100, "done")
 """
 
 from typing import Callable, Optional
@@ -24,9 +23,19 @@ __all__ = ["ProgressGUI", "get_progress_callback_gui"]
 
 
 class _ProgressWidget(QWidget):
-    """Lightweight container bundling a label and a :class:`QProgressBar`."""
+    """Lightweight container bundling a label and a :class:`QProgressBar`.
+
+    Attributes:
+        _bar (QProgressBar): The Qt progress bar widget.
+        _label (QLabel): The Qt label displaying messages.
+    """
 
     def __init__(self, desc: str):
+        """Initializes the _ProgressWidget.
+
+        Args:
+            desc: The initial description string for the progress bar format.
+        """
         super().__init__()
         self._bar = QProgressBar(self)
         self._bar.setRange(0, 100)
@@ -43,17 +52,46 @@ class _ProgressWidget(QWidget):
 
     # Expose convenient passthroughs ---------------------------------
     def set_value(self, value: int):  # noqa: D401
+        """Sets the current value of the progress bar.
+
+        Args:
+            value: The integer value to set (0-100).
+        """
         self._bar.setValue(value)
 
     def set_message(self, message: str):  # noqa: D401
+        """Sets the current message displayed below the progress bar.
+
+        Args:
+            message: The string message to display.
+        """
         self._label.setText(message)
 
     def close(self):  # noqa: D401  (keep interface parity)
+        """Closes the progress widget."""
         super().close()
 
 
 class ProgressGUI:
-    """Singleton that manages a GUI progress bar and provides a callback."""
+    """Singleton that manages a GUI progress bar and provides a callback.
+
+    This class ensures that only one GUI progress bar instance is active at a
+    time, facilitating a consistent visual feedback mechanism across the
+    application.
+
+    Attributes:
+        _widget (Optional[_ProgressWidget]): The singleton progress widget instance.
+            None if the GUI has not been launched or the widget has been closed.
+        _last_value (int): The last value set on the progress bar, used for
+            internal state management.
+
+    Example:
+        >>> from femora.gui.progress_gui import ProgressGUI
+        >>> ProgressGUI.show("Loading Data")
+        >>> ProgressGUI.callback(50, "Processing step 1")
+        >>> ProgressGUI.callback(100, "Done")
+        >>> ProgressGUI.close()
+    """
 
     _widget: Optional[_ProgressWidget] = None
     _last_value: int = 0
@@ -61,7 +99,16 @@ class ProgressGUI:
     # --------------------------------------------------------------
     @classmethod
     def _ensure_widget(cls, desc: str) -> None:
-        """Lazy-initialise the underlying widget and attach it to the UI."""
+        """Lazy-initializes the underlying widget and attaches it to the UI.
+
+        Args:
+            desc: The initial description for the progress bar's format.
+
+        Raises:
+            RuntimeError: If `MainWindow` instance cannot be retrieved, indicating
+                the GUI has not been launched. In this case, the widget
+                initialization is silently ignored.
+        """
         if cls._widget is not None:
             return
 
@@ -87,7 +134,27 @@ class ProgressGUI:
     # --------------------------------------------------------------
     @classmethod
     def callback(cls, value: float, message: str = "", *, desc: str = "Processing") -> None:
-        """Qt-aware progress callback mirroring :meth:`Progress.callback`."""
+        """Qt-aware progress callback mirroring :meth:`Progress.callback`.
+
+        This method updates the GUI progress bar with the given value and message.
+        It handles lazy initialization of the widget and ensures thread-safe
+        updates by dispatching GUI manipulations to the main thread.
+
+        Args:
+            value: The current progress value, expected to be between 0 and 100.
+            message: An optional message string to display below the progress bar.
+            desc: An optional description for the progress bar title. This allows
+                the progress bar to adapt its title if different tasks use the
+                same callback.
+
+        Example:
+            >>> from femora.gui.progress_gui import ProgressGUI
+            >>> ProgressGUI.show("Heavy Computation")
+            >>> for i in range(10):
+            ...     ProgressGUI.callback(i * 10, f"Step {i+1} of 10")
+            >>> ProgressGUI.callback(100, "Computation Complete")
+            >>> ProgressGUI.close()
+        """
         value_int = int(value)
 
         # All GUI manipulations must happen in the main thread.  We wrap the
@@ -130,7 +197,14 @@ class ProgressGUI:
     # --------------------------------------------------------------
     @classmethod
     def close(cls):
-        """Remove the widget and reset the singleton state."""
+        """Removes the widget from the UI and resets the singleton state.
+
+        Example:
+            >>> from femora.gui.progress_gui import ProgressGUI
+            >>> ProgressGUI.show("Starting task")
+            >>> # ... do some work ...
+            >>> ProgressGUI.close()
+        """
         if cls._widget is not None:
             cls._widget.close()
             cls._widget.setParent(None)
@@ -140,7 +214,21 @@ class ProgressGUI:
     # --------------------------------------------------------------
     @classmethod
     def show(cls, desc: str = "Progress") -> None:  # noqa: D401
-        """Ensure the progress widget exists and display an *Idle* state."""
+        """Ensures the progress widget exists and displays an *Idle* state.
+
+        This method will create the progress bar widget if it doesn't already
+        exist and set its state to 0% with an "Idle" message, ready for
+        updates.
+
+        Args:
+            desc: The initial description to set for the progress bar's title.
+
+        Example:
+            >>> from femora.gui.progress_gui import ProgressGUI
+            >>> ProgressGUI.show("Preparing files")
+            >>> # The progress bar is now visible with "Preparing files - 0%" and "Idle" message.
+            >>> ProgressGUI.close()
+        """
         cls._ensure_widget(desc)
         if cls._widget is not None:
             cls._widget.set_message("Idle")
@@ -151,9 +239,29 @@ class ProgressGUI:
 
 
 def get_progress_callback_gui(desc: str = "Processing") -> Callable[[float, str], None]:
-    """Return a partially-applied :pyattr:`ProgressGUI.callback` with *desc* preset."""
+    """Returns a partially-applied :pyattr:`ProgressGUI.callback` with *desc* preset.
+
+    This convenience helper allows easily creating a progress callback function
+    that always uses a specific description for the progress bar.
+
+    Args:
+        desc: The default description string to use for the progress bar title
+            when the callback is invoked.
+
+    Returns:
+        A callable function `(value: float, message: str) -> None` that
+        internally calls `ProgressGUI.callback` with the provided `desc`.
+
+    Example:
+        >>> from femora.gui.progress_gui import get_progress_callback_gui
+        >>> my_callback = get_progress_callback_gui("Batch Processing")
+        >>> my_callback(10, "Initializing batch")
+        >>> my_callback(50, "Processing item 5")
+        >>> my_callback(100, "Batch complete")
+        >>> ProgressGUI.close() # Assuming ProgressGUI is imported from the same module
+    """
 
     def _cb(value: float, message: str = "") -> None:  # noqa: D401
         ProgressGUI.callback(value, message, desc=desc)
 
-    return _cb 
+    return _cb
