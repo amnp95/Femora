@@ -1,62 +1,99 @@
 import os
+
 import femora as fm
+
 os.chdir(os.path.dirname(__file__))
 
 
+# -------------------------------------------------------------------
+# IMPORTANT:
+# This example's soil layering + domain bounds now match DRM/Example2.
+# -------------------------------------------------------------------
 
-# create one damping for all the meshParts
-uniformDamp = fm.damping.frequencyRayleigh(f1 = 2.76, f2 = 13.84, dampingFactor=0.03)
-region = fm.region.elementRegion(damping=uniformDamp)
-
-# defining the mesh parts
-Xmin = -5.0 ;Xmax = 5.0
-Ymin = -5.0 ;Ymax = 5.0
-Zmin = -18.;Zmax = 0.0
-dx   = 1.0; dy   = 1.0
-Nx = int((Xmax - Xmin)/dx)
-Ny = int((Ymax - Ymin)/dy)
-
-
-layers_properties = [
-    {"user_name": "Dense Ottawa1",  "G": 145.0e6, "gamma": 19.9,  "nu": 0.3, "thickness": 2.6, "dz": 1.3}, 
-    {"user_name": "Dense Ottawa2",  "G": 145.0e6, "gamma": 19.9,  "nu": 0.3, "thickness": 2.4, "dz": 1.2},
-    {"user_name": "Dense Ottawa3",  "G": 145.0e6, "gamma": 19.9,  "nu": 0.3, "thickness": 5.0, "dz": 1.0},
-    {"user_name": "Loose Ottawa",   "G": 75.0e6,  "gamma": 19.1,  "nu": 0.3, "thickness": 6.0, "dz": 0.5}, 
-    {"user_name": "Dense Montrey",  "G": 42.0e6,  "gamma": 19.8,  "nu": 0.3, "thickness": 2.0, "dz": 0.5} 
+# Layer properties (same as examples/DRM/Example2)
+layers = [
+    {"layer": 1, "rho": 2142.0500, "vp": 669.0500, "vs": 353.1000, "xi_s": 0.0296, "xi_p": 0.0148, "thickness": 8},
+    {"layer": 2, "rho": 2146.2000, "vp": 785.2500, "vs": 414.4000, "xi_s": 0.0269, "xi_p": 0.0134, "thickness": 8},
+    {"layer": 3, "rho": 2150.3500, "vp": 886.0500, "vs": 467.6000, "xi_s": 0.0249, "xi_p": 0.0125, "thickness": 8},
+    {"layer": 4, "rho": 2154.4500, "vp": 976.4000, "vs": 515.3000, "xi_s": 0.0234, "xi_p": 0.0117, "thickness": 8},
+    {"layer": 5, "rho": 2158.6000, "vp": 1059.0500, "vs": 558.9500, "xi_s": 0.0221, "xi_p": 0.0111, "thickness": 8},
+    {"layer": 6, "rho": 2162.7500, "vp": 1135.6500, "vs": 599.4000, "xi_s": 0.0211, "xi_p": 0.0105, "thickness": 8},
 ]
 
+# Domain bounds + mesh size (same as DRM/Example2)
+x_min, x_max = -64.0, 64.0
+y_min, y_max = -64.0, 64.0
+z_base = -48.0
+dx = 4.0
+dy = 4.0
+dz = 4.0
 
-for layer in layers_properties:
-    name = layer["user_name"]
-    nu   = layer["nu"]
-    rho  = layer["gamma"] * 1000 / 9.81        # Density in kg/m^3
-    Vs   = (layer["G"] / rho) ** 0.5           # Shear wave velocity in m/s
-    E    = 2 * layer["G"] * (1 + layer["nu"])  # Young's modulus in Pa
-    E    = E / 1000.                           # Convert to kPa
-    rho  = rho / 1000.                         # Convert to kg/m^3
+nx = int((x_max - x_min) / dx)
+ny = int((y_max - y_min) / dy)
 
-    print(f"Layer: {name}, Vs: {Vs}")
+index = 0
+for layer in layers[::-1]:
+    rho = layer["rho"]
+    vp = layer["vp"]
+    vs = layer["vs"]
+    xi_s = layer["xi_s"]
+    thickness = layer["thickness"]
+
+    vp_vs_ratio = (vp / vs) ** 2
+    nu = (vp_vs_ratio - 2) / (2 * (vp_vs_ratio - 1))
+    E = 2 * rho * (vs**2) * (1 + nu)
+
+    # Keep same units conversion used in DRM/Example2
+    E = E / 1000.0
+    rho = rho / 1000.0
+
+    mat = fm.material.create_material(
+        "nDMaterial",
+        "ElasticIsotropic",
+        user_name=f"Layer{layer['layer']}",
+        E=E,
+        nu=nu,
+        rho=rho,
+    )
+    ele = fm.element.create_element(
+        element_type="stdBrick",
+        ndof=3,
+        material=mat,
+        b1=0,
+        b2=0,
+        b3=0,
+    )
+
+    damp = fm.damping.create_damping("frequency rayleigh", dampingFactor=xi_s, f1=3, f2=15)
+    reg = fm.region.create_region("elementRegion", damping=damp)
+
+    z_min = z_base + index * thickness
+    z_max = z_min + thickness
+    nz = int(thickness / dz)
+
+    fm.meshPart.create_mesh_part(
+        "Volume mesh",
+        "Uniform Rectangular Grid",
+        user_name=f"Layer{layer['layer']}",
+        element=ele,
+        region=reg,
+        **{
+            "X Min": x_min,
+            "X Max": x_max,
+            "Y Min": y_min,
+            "Y Max": y_max,
+            "Z Min": z_min,
+            "Z Max": z_max,
+            "Nx Cells": nx,
+            "Ny Cells": ny,
+            "Nz Cells": nz,
+        },
+    )
+    index += 1
 
 
-    # Define the material
-    fm.material.create_material(material_category="nDMaterial", material_type="ElasticIsotropic", user_name=name, E=E, nu=nu, rho=rho)
-
-    # Define the element
-    ele = fm.element.create_element(element_type="stdBrick", ndof=3, material=name, b1=0.0, b2=0.0, b3=0.0)
-
-    fm.meshPart.create_mesh_part(category="Volume mesh", mesh_part_type="Uniform Rectangular Grid", 
-                                 user_name=name, element=ele, region=region,
-                                **{
-                                    'X Min': Xmin, 'X Max': Xmax,
-                                    'Y Min': Ymin, 'Y Max': Ymax,
-                                    'Z Min': Zmin, 'Z Max': Zmin + layer["thickness"],
-                                    'Nx Cells': Nx, 'Ny Cells': Ny, 'Nz Cells': int(layer["thickness"] / layer["dz"])
-                                })
-    Zmin += layer["thickness"]
-
-
-#  Create assembly Sections
-fm.assembler.create_section(meshparts=[layer["user_name"] for layer in layers_properties], num_partitions=4)
+# Create assembly Sections
+fm.assembler.create_section(meshparts=[f"Layer{layer['layer']}" for layer in layers], num_partitions=4)
 
 
 # Assemble the mesh parts
@@ -66,12 +103,15 @@ fm.assembler.Assemble()
 # creating the DRM pattern
 # ===================================================================
 
-# the soil layers is equivalent to the mesh parts defined above
-# this is baisc format that the transfer function will use
+# The soil profile used for DRM load generation should match the mesh layering above.
+# TransferFunction expects a layered profile with thickness (h), Vs, rho, and damping definition.
 soil = [
-    {"h": 2,  "vs": 144.2535646321813, "rho": 19.8*1000/9.81, "damping": 0.03, "damping_type":"rayleigh", "f1": 2.76, "f2": 13.84},
-    {"h": 6,  "vs": 196.2675276462639, "rho": 19.1*1000/9.81, "damping": 0.03, "damping_type":"rayleigh", "f1": 2.76, "f2": 13.84},
-    {"h": 10, "vs": 262.5199305117452, "rho": 19.9*1000/9.81, "damping": 0.03, "damping_type":"rayleigh", "f1": 2.76, "f2": 13.84},
+    {"h": 8, "vs": 353.1000, "rho": 2142.0500, "damping": 0.0296, "damping_type": "rayleigh", "f1": 3, "f2": 15},
+    {"h": 8, "vs": 414.4000, "rho": 2146.2000, "damping": 0.0269, "damping_type": "rayleigh", "f1": 3, "f2": 15},
+    {"h": 8, "vs": 467.6000, "rho": 2150.3500, "damping": 0.0249, "damping_type": "rayleigh", "f1": 3, "f2": 15},
+    {"h": 8, "vs": 515.3000, "rho": 2154.4500, "damping": 0.0234, "damping_type": "rayleigh", "f1": 3, "f2": 15},
+    {"h": 8, "vs": 558.9500, "rho": 2158.6000, "damping": 0.0221, "damping_type": "rayleigh", "f1": 3, "f2": 15},
+    {"h": 8, "vs": 599.4000, "rho": 2162.7500, "damping": 0.0211, "damping_type": "rayleigh", "f1": 3, "f2": 15},
 ]
 
 # the rock layer is defined as a single layer with the properties below
@@ -79,23 +119,23 @@ soil = [
 # to represent the rigid base condition to create a high impedance contrast
 rock = {"vs": 8000, "rho": 2000.0, "damping": 0.00}
 
+import numpy as np
 from femora.tools.transferFunction import TransferFunction, TimeHistory
+from femora.utils.paths import motions_dir
 
-
-# Create TimeHistory instance
-# for the DRM pattern we need to provide a time history of the ground motion
-# in this case we use a Ricker wavelet based ground motion that we calculate using deconvolution of ricker wavelet
-# at the surface of the soil layers to compute the time history of the base motion
-record = TimeHistory.load(acc_file="ricker_base.acc",
-                            time_file="ricker_base.time",
-                            unit_in_g=True,
-                            gravity=9.81)
-
-
-# Create transfer function instance
-# initialize the transfer function with the soil layers and rock properties
-# the f_max is the maximum frequency of the transfer function
+# Create transfer function instance (soil profile matches the mesh above)
 tf = TransferFunction(soil, rock, f_max=50.0)
+
+# Load a surface Ricker wavelet and deconvolve to obtain consistent bedrock motion
+_MOTIONS = motions_dir()
+surface = TimeHistory.load(
+    acc_file=str(_MOTIONS / "ricker_surface.acc"),
+    time_file=str(_MOTIONS / "ricker_surface.time"),
+    unit_in_g=True,
+    gravity=9.81,
+)
+
+record = tf._deconvolve(time_history=surface)
 
 
 # Create DRM pattern
