@@ -6,6 +6,7 @@ import sys
 from scipy.spatial import KDTree
 
 from femora.components.Mesh.meshPartBase import MeshPart
+from femora.components.partitioner.partitioner import PartitionerRegistry
 from femora.core.element_base import Element
 from femora.components.Material.materialBase import Material
 from femora.components.event.event_bus import EventBus, FemoraEvent
@@ -69,6 +70,7 @@ class Assembler:
         meshparts: List[str], 
         num_partitions: int = 1, 
         partition_algorithm: str = "kd-tree", 
+        partitioner: Optional[str] = None,
         merging_points: bool = True,
         mass_merging: str = "sum",
         tolerance: float = 1e-5,
@@ -87,9 +89,12 @@ class Assembler:
             num_partitions (int, optional): Number of partitions for parallel processing.
                                           For kd-tree, will be rounded to next power of 2.
                                           Defaults to 1 (no partitioning).
-            partition_algorithm (str, optional): Algorithm used for partitioning the mesh.
-                                               Currently supports "kd-tree".
+            partition_algorithm (str, optional): Backward-compatible name for the mesh partitioner.
+                                               Prefer using ``partitioner``.
                                                Defaults to "kd-tree".
+            partitioner (str, optional): Mesh partitioner name (Femora terminology), e.g. "kd-tree",
+                                         "morton", "geometric".
+                                         If provided, it overrides ``partition_algorithm``.
             merging_points (bool, optional): Whether to merge points that are within a 
                                            tolerance distance when assembling mesh parts.
                                            Defaults to True.
@@ -107,6 +112,9 @@ class Assembler:
                       partition algorithm is invalid
         """
         
+        if partitioner is not None:
+            partition_algorithm = partitioner
+
         # Create the AssemblySection 
         assembly_section = AssemblySection(
             meshparts=meshparts,
@@ -955,6 +963,7 @@ class AssemblySection:
         meshparts: List[str], 
         num_partitions: int = 1, 
         partition_algorithm: str = "kd-tree", 
+        partitioner: Optional[str] = None,
         merging_points: bool = True,
         progress_callback=None,
         mass_merging: str = "sum",
@@ -976,9 +985,12 @@ class AssemblySection:
             num_partitions (int, optional): Number of partitions for parallel processing.
                                           For kd-tree, will be rounded to next power of 2.
                                           Defaults to 1 (no partitioning).
-            partition_algorithm (str, optional): Algorithm used for partitioning the mesh.
-                                               Currently supports "kd-tree".
+            partition_algorithm (str, optional): Backward-compatible name for the mesh partitioner.
+                                               Prefer using ``partitioner``.
                                                Defaults to "kd-tree".
+            partitioner (str, optional): Mesh partitioner name (Femora terminology), e.g. "kd-tree",
+                                         "morton", "geometric".
+                                         If provided, it overrides ``partition_algorithm``.
             mass_merging (str, optional): Method for merging mass properties of mesh parts.
                                           Options are "sum" or "average". Defaults to "sum".
             merging_points (bool, optional): Whether to merge points that are within a
@@ -995,10 +1007,11 @@ class AssemblySection:
         
         # Configuration parameters
         self.num_partitions = num_partitions
+        if partitioner is not None:
+            partition_algorithm = partitioner
         self.partition_algorithm = partition_algorithm
-        # check if the partition algorithm is valid
-        if self.partition_algorithm not in ["kd-tree"]:
-            raise ValueError(f"Invalid partition algorithm: {self.partition_algorithm}")
+        # Validate partitioner (Femora terminology: partitioner, not OpenSees algorithm)
+        PartitionerRegistry.validate(self.partition_algorithm)
 
         if self.partition_algorithm == "kd-tree" :
             # If a non-power of two value is specified for 
@@ -1306,14 +1319,12 @@ class AssemblySection:
         # partition the mesh
         self.mesh.cell_data["Core"] = np.zeros(self.mesh.n_cells, dtype=int)
         if self.num_partitions > 1:
-            partitiones = self.mesh.partition(self.num_partitions,
-                                              generate_global_id=True, 
-                                              as_composite=True)
-            for i, partition in enumerate(partitiones):
-                ids = partition.cell_data["vtkGlobalCellIds"]
-                self.mesh.cell_data["Core"][ids] = i
-            
-            del partitiones
+            core_ids = PartitionerRegistry.partition(
+                self.mesh,
+                self.num_partitions,
+                partitioner=self.partition_algorithm,
+            )
+            self.mesh.cell_data["Core"] = core_ids.astype(int)
 
     @property
     def meshparts(self) -> List[str]:
