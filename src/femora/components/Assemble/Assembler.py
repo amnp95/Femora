@@ -3,7 +3,7 @@ import numpy as np
 import pyvista as pv
 import logging
 import sys
-from scipy.spatial import KDTree
+from scipy.spatial import cKDTree
 
 from femora.components.Mesh.meshPartBase import MeshPart
 from femora.components.partitioner.partitioner import PartitionerRegistry
@@ -290,7 +290,8 @@ class Assembler:
         Snap points within tolerance to the first representative point
         using KDTree.
         """
-        tree = KDTree(points)
+        points = np.ascontiguousarray(points)
+        tree = cKDTree(points)
         groups = tree.query_ball_tree(tree, tol)
 
         visited = np.zeros(len(points), dtype=bool)
@@ -299,11 +300,10 @@ class Assembler:
         for i in range(len(points)):
             if visited[i]:
                 continue
-            cluster = groups[i]
+            cluster = np.asarray(groups[i], dtype=np.intp)
             rep = points[i]  # pick the first point
-            for j in cluster:
-                snapped[j] = rep
-                visited[j] = True
+            snapped[cluster] = rep
+            visited[cluster] = True
 
         return snapped
     
@@ -1100,7 +1100,8 @@ class AssemblySection:
         Snap points within tolerance to the first representative point
         using KDTree.
         """
-        tree = KDTree(points)
+        points = np.ascontiguousarray(points)
+        tree = cKDTree(points)
         groups = tree.query_ball_tree(tree, tol)
 
         visited = np.zeros(len(points), dtype=bool)
@@ -1109,11 +1110,10 @@ class AssemblySection:
         for i in range(len(points)):
             if visited[i]:
                 continue
-            cluster = groups[i]
+            cluster = np.asarray(groups[i], dtype=np.intp)
             rep = points[i]  # pick the first point
-            for j in cluster:
-                snapped[j] = rep
-                visited[j] = True
+            snapped[cluster] = rep
+            visited[cluster] = True
 
         return snapped
     
@@ -1232,7 +1232,6 @@ class AssemblySection:
         self.mesh = pv.MultiBlock([first_mesh])  # Start with the first mesh as a MultiBlock
         for idx, meshpart in enumerate(self.meshparts_list[1:], start=2):
             second_mesh = meshpart.mesh.copy()
-            second_mesh = meshpart.mesh.copy()
             
             ndf = 0
             if meshpart.element:
@@ -1283,8 +1282,10 @@ class AssemblySection:
             tolerance = 1e-5,
         )
         if self.merge_points:
-            mass = self.mesh.point_data["Mass"]
-            number_of_points_before_cleaning = self.mesh.number_of_points
+            mass = None
+            if self.mass_merging == "sum":
+                # Avoid averaging Mass in clean(); rebuild it explicitly from PointMergeMap.
+                mass = np.asarray(self.mesh.point_data.pop("Mass"), dtype=np.float32)
 
             # fist we snap points within tolerance to the first representative point
             points = self._snap_points(self.mesh.points, tol=self.tolerance)
@@ -1299,19 +1300,21 @@ class AssemblySection:
                 progress_bar=False,
             )
 
-            number_of_points_after_cleaning = self.mesh.number_of_points
             # make the ndf array uint16
-            self.mesh.point_data["ndf"] = self.mesh.point_data["ndf"].astype(np.uint16)
+            self.mesh.point_data["ndf"] = self.mesh.point_data["ndf"].astype(np.uint16, copy=False)
             # make the MeshPartTag_pointdata array uint16
-            self.mesh.point_data["MeshPartTag_pointdata"] = self.mesh.point_data["MeshPartTag_pointdata"].astype(np.uint16)
+            self.mesh.point_data["MeshPartTag_pointdata"] = self.mesh.point_data["MeshPartTag_pointdata"].astype(np.uint16, copy=False)
 
             if self.mass_merging == "sum":
-                if number_of_points_before_cleaning != number_of_points_after_cleaning:
-                    Mass = np.zeros((self.mesh.number_of_points, FEMORA_MAX_NDF), dtype=np.float32)
-                    for i in range(self.mesh.field_data["PointMergeMap"].shape[0]):
-                        Mass[self.mesh.field_data["PointMergeMap"][i],:] += mass[i,:]
-            
-                    self.mesh.point_data["Mass"] = Mass
+                merge_map = np.asarray(self.mesh.field_data["PointMergeMap"]).reshape(-1)
+                Mass = np.zeros((self.mesh.number_of_points, FEMORA_MAX_NDF), dtype=np.float32)
+
+                if mass is not None:
+                    nonzero_rows = np.any(mass != 0.0, axis=1)
+                    if np.any(nonzero_rows):
+                        np.add.at(Mass, merge_map[nonzero_rows], mass[nonzero_rows])
+
+                self.mesh.point_data["Mass"] = Mass
 
             del self.mesh.field_data["PointMergeMap"]
 
