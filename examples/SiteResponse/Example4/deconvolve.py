@@ -4,10 +4,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 import os
 from femora.tools.transferFunction import TransferFunction, TimeHistory
+from femora.utils.paths import motions_dir
 
 os.chdir(os.path.dirname(__file__))
-record = TimeHistory.load(acc_file="ricker_surface.acc",
-                            time_file="ricker_surface.time",
+
+_MOTIONS = motions_dir()
+record = TimeHistory.load(acc_file=str(_MOTIONS / "ricker_surface.acc"),
+                            time_file=str(_MOTIONS / "ricker_surface.time"),
                             unit_in_g=True,
                             gravity=9.81)
 

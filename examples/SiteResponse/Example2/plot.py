@@ -5,8 +5,10 @@ import h5py
 import os
 import matplotlib.pyplot as plt
 from femora.tools.transferFunction import TransferFunction
+from femora.utils.paths import motions_dir
 
 os.chdir(os.path.dirname(__file__))
+_MOTIONS = motions_dir()
 
 # Maximum time to plot (seconds)
 MAX_TIME = 40.0
@@ -88,8 +90,8 @@ def plot_transfer_function(f, TF_num, f_analytical, TF_analytical):
 
 # Main execution
 surface_time, surface_acc = read_vtk_data("./Results/result*.vtkhdf", MAX_TIME)
-bedrock_time = np.loadtxt("FrequencySweep.time")
-bedrock_acc = np.loadtxt("FrequencySweep.acc")
+bedrock_time = np.loadtxt(_MOTIONS / "FrequencySweep.time")
+bedrock_acc = np.loadtxt(_MOTIONS / "FrequencySweep.acc")
 
 if surface_time is not None and surface_acc is not None:
     plot_acceleration(surface_time, surface_acc, bedrock_time, bedrock_acc)

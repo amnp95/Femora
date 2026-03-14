@@ -107,8 +107,8 @@ class DispBeamColumnElement(Element):
         cmd_parts.extend([str(self._section.tag), str(self._transformation.tag)])
         
         # Add optional mass density
-        if self.massDens != 0.0:
-            cmd_parts.extend(["-mass", str(self.massDens)])
+        # if self.massDens != 0.0:
+        #     cmd_parts.extend(["-mass", str(self.massDens)])
             
         return " ".join(cmd_parts)
     

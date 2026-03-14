@@ -37,6 +37,10 @@ dependencies = [
 [project.optional-dependencies]
 jupyter = ["pyvista[all]"]
 
+metis = [
+    "pymetis",
+]
+
 gui = [
     "pyvistaqt>=0.11.2", 
     "PySide6>=6.9.0",

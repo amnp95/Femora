@@ -238,6 +238,19 @@ class Section(ABC):
         return (f"Section '{self.user_name}' (Tag: {self.tag}, Type: {self.section_name}"
                 f"{material_info})")
 
+    def get_area(self) -> float:
+        return 0.0
+    
+    def get_Iy(self) -> float:
+        return 0.0
+
+    def get_Iz(self) -> float:
+        return 0.0
+    
+    def get_J(self) -> float:
+        return 0.0
+        
+
 
 class SectionRegistry:
     """Registry to manage section types and their creation"""
