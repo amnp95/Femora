@@ -305,11 +305,11 @@ fm.mesh_part.volume.uniform_rectangular_grid(user_name="left_bottom_pml_meshpart
 # %%
 # assembling the mesh
 fm.assembler.clear_assembly_sections()
-fm.assembler.create_section(meshparts=["inner_meshpart"], num_partitions=inner_num_partitions, merging_points=False)
+fm.assembler.create_section(meshparts=["inner_meshpart"], num_partitions=inner_num_partitions, merge_points=False)
 if boundaryConditionType == "PML":
-    fm.assembler.create_section(meshparts=["right_pml_meshpart", "right_bottom_pml_meshpart"], num_partitions= 2, merging_points=True)
-    fm.assembler.create_section(meshparts=["bottom_pml_meshpart"], num_partitions= 2, merging_points=True)
-    fm.assembler.create_section(meshparts=["left_pml_meshpart", "left_bottom_pml_meshpart"], num_partitions= 2, merging_points=True)
+    fm.assembler.create_section(meshparts=["right_pml_meshpart", "right_bottom_pml_meshpart"], num_partitions= 2, merge_points=True)
+    fm.assembler.create_section(meshparts=["bottom_pml_meshpart"], num_partitions= 2, merge_points=True)
+    fm.assembler.create_section(meshparts=["left_pml_meshpart", "left_bottom_pml_meshpart"], num_partitions= 2, merge_points=True)
     
 fm.assembler.Assemble(merge_points=True)
 # %%

@@ -782,7 +782,7 @@ class AssemblySectionCreationDialog(QDialog):
                 meshparts=self.get_selected_mesh_parts(),
                 num_partitions=self.num_partitions_spinbox.value(),
                 partition_algorithm=self.partition_algo_combobox.currentText(),
-                merging_points=self.merge_points_checkbox.isChecked()
+                merge_points=self.merge_points_checkbox.isChecked()
             )
             self.update_plotter()
             self.accept()

@@ -194,7 +194,7 @@ fm.assembler.create_section(
     meshparts=mesh,
     num_partitions=0,
     partition_algorithm="kd-tree",
-    merging_points=False,
+    merge_points=False,
 )
 fm.assembler.Assemble()
 

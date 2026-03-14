@@ -298,19 +298,19 @@ fm.interface.beam_solid_interface(
 #     meshparts=["soil_grid_1", "soil_grid_2", "pile1", "pile2", "bent_grid"],
 #     num_partitions=8,
 #     partition_algorithm="kd-tree",
-#     merging_points=True
+#     merge_points=True
 # )
 fm.assembler.create_section(
     meshparts=["pile1", "pile2", "bent_grid"],
     num_partitions=2,
     partition_algorithm="kd-tree",
-    merging_points=True)
+    merge_points=True)
 
 fm.assembler.create_section(
     meshparts=["soil_grid_1", "soil_grid_2", "soil_crust"],
     num_partitions=4,
     partition_algorithm="kd-tree",
-    merging_points=True)
+    merge_points=True)
 fm.assembler.Assemble(merge_points=True)
 
 # Create a TimeSeries for the uniform excitation
