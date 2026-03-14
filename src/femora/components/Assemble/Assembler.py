@@ -1,12 +1,12 @@
 from typing import List, Optional, Dict, Any
 import numpy as np
 import pyvista as pv
-import warnings
 import logging
 import sys
 from scipy.spatial import KDTree
 
 from femora.components.Mesh.meshPartBase import MeshPart
+from femora.components.partitioner.partitioner import PartitionerRegistry
 from femora.core.element_base import Element
 from femora.components.Material.materialBase import Material
 from femora.components.event.event_bus import EventBus, FemoraEvent
@@ -70,6 +70,7 @@ class Assembler:
         meshparts: List[str], 
         num_partitions: int = 1, 
         partition_algorithm: str = "kd-tree", 
+        partitioner: Optional[str] = None,
         merging_points: bool = True,
         mass_merging: str = "sum",
         tolerance: float = 1e-5,
@@ -88,9 +89,12 @@ class Assembler:
             num_partitions (int, optional): Number of partitions for parallel processing.
                                           For kd-tree, will be rounded to next power of 2.
                                           Defaults to 1 (no partitioning).
-            partition_algorithm (str, optional): Algorithm used for partitioning the mesh.
-                                               Currently supports "kd-tree".
+            partition_algorithm (str, optional): Backward-compatible name for the mesh partitioner.
+                                               Prefer using ``partitioner``.
                                                Defaults to "kd-tree".
+            partitioner (str, optional): Mesh partitioner name (Femora terminology), e.g. "kd-tree",
+                                         "morton", "geometric".
+                                         If provided, it overrides ``partition_algorithm``.
             merging_points (bool, optional): Whether to merge points that are within a 
                                            tolerance distance when assembling mesh parts.
                                            Defaults to True.
@@ -108,6 +112,9 @@ class Assembler:
                       partition algorithm is invalid
         """
         
+        if partitioner is not None:
+            partition_algorithm = partitioner
+
         # Create the AssemblySection 
         assembly_section = AssemblySection(
             meshparts=meshparts,
@@ -956,6 +963,7 @@ class AssemblySection:
         meshparts: List[str], 
         num_partitions: int = 1, 
         partition_algorithm: str = "kd-tree", 
+        partitioner: Optional[str] = None,
         merging_points: bool = True,
         progress_callback=None,
         mass_merging: str = "sum",
@@ -977,9 +985,12 @@ class AssemblySection:
             num_partitions (int, optional): Number of partitions for parallel processing.
                                           For kd-tree, will be rounded to next power of 2.
                                           Defaults to 1 (no partitioning).
-            partition_algorithm (str, optional): Algorithm used for partitioning the mesh.
-                                               Currently supports "kd-tree".
+            partition_algorithm (str, optional): Backward-compatible name for the mesh partitioner.
+                                               Prefer using ``partitioner``.
                                                Defaults to "kd-tree".
+            partitioner (str, optional): Mesh partitioner name (Femora terminology), e.g. "kd-tree",
+                                         "morton", "geometric".
+                                         If provided, it overrides ``partition_algorithm``.
             mass_merging (str, optional): Method for merging mass properties of mesh parts.
                                           Options are "sum" or "average". Defaults to "sum".
             merging_points (bool, optional): Whether to merge points that are within a
@@ -996,10 +1007,11 @@ class AssemblySection:
         
         # Configuration parameters
         self.num_partitions = num_partitions
+        if partitioner is not None:
+            partition_algorithm = partitioner
         self.partition_algorithm = partition_algorithm
-        # check if the partition algorithm is valid
-        if self.partition_algorithm not in ["kd-tree"]:
-            raise ValueError(f"Invalid partition algorithm: {self.partition_algorithm}")
+        # Validate partitioner (Femora terminology: partitioner, not OpenSees algorithm)
+        PartitionerRegistry.validate(self.partition_algorithm)
 
         if self.partition_algorithm == "kd-tree" :
             # If a non-power of two value is specified for 
@@ -1080,32 +1092,7 @@ class AssemblySection:
         
         return validated_meshparts
     
-    def _validate_degrees_of_freedom(self) -> bool:
-        """
-        Check if all mesh parts have the same number of degrees of freedom.
-        
-        This internal method verifies that all mesh parts in the section have
-        consistent degrees of freedom, which is important for proper mesh assembly
-        when merging points. If merging_points is False, this check is skipped.
-        
-        If inconsistent degrees of freedom are detected, a warning is issued but
-        the method returns False rather than raising an exception.
 
-        Returns:
-            bool: True if all mesh parts have the same number of degrees of freedom,
-                 or if merging_points is False. False if inconsistencies are detected.
-        """
-        if not self.merging_points:
-            return True
-        
-        ndof_list = [meshpart.element._ndof for meshpart in self.meshparts_list]
-        unique_ndof = set(ndof_list)
-        
-        if len(unique_ndof) > 1:
-            warnings.warn("Mesh parts have different numbers of degrees of freedom", UserWarning)
-            return False
-        
-        return True
 
     @staticmethod
     def _snap_points(points, tol=1e-6):
@@ -1130,6 +1117,43 @@ class AssemblySection:
 
         return snapped
     
+    def _ensure_ndf_array(self, mesh: pv.UnstructuredGrid, default_ndf: int):
+        """
+        Ensures the mesh has an 'ndf' point data array.
+        If missing, it attempts to derive it from 'ElementTag' cell data to respect
+        unique sentinels (e.g., for GhostNodeElements).
+        """
+        if "ndf" in mesh.point_data:
+            return
+            
+        n_points = mesh.n_points
+        
+        # If no ElementTag, we must use the default for all points
+        if "ElementTag" not in mesh.cell_data:
+            if "ndf" not in mesh.point_data:
+                mesh.point_data["ndf"] = np.full(n_points, default_ndf, dtype=np.uint16)
+            return
+
+        # Start with default
+        ndf_values = np.full(n_points, default_ndf, dtype=np.uint16)
+        element_tags = mesh.cell_data["ElementTag"]
+        unique_tags = np.unique(element_tags)
+        
+        for tag in unique_tags:
+            element = Element.get_element_by_tag(tag)
+            if element:
+                ele_ndof = element.get_ndof()
+                if ele_ndof != default_ndf:
+                    # Update points belonging to these cells
+                    cell_indices = np.where(element_tags == tag)[0]
+                    for cell_idx in cell_indices:
+                        start = mesh.offset[cell_idx]
+                        end = mesh.offset[cell_idx + 1]
+                        pids = mesh.cell_connectivity[start:end]
+                        ndf_values[pids] = ele_ndof
+        
+        mesh.point_data["ndf"] = ndf_values
+
     def _assemble_mesh(self, progress_callback=None):
         """
         Assemble mesh parts into a single mesh.
@@ -1153,19 +1177,31 @@ class AssemblySection:
             def progress_callback(v, msg=""):
                 Progress.callback(v, msg, desc=f"Assembly Section: {len(Assembler._assembly_sections) + 1}")
 
-        # Validate degrees of freedom
-        self._validate_degrees_of_freedom()
+
             
         # Start with the first mesh
         first_meshpart = self.meshparts_list[0]
         first_mesh = first_meshpart.mesh.copy()
         
         # Collect elements and materials
-        ndf = first_meshpart.element._ndof
-        matTag = first_meshpart.element.get_material_tag()
-        EleTag = first_meshpart.element.tag
+        ndf = 0
+        if first_meshpart.element:
+            ndf = first_meshpart.element._ndof
+            matTag = first_meshpart.element.get_material_tag()
+            EleTag = first_meshpart.element.tag
+            sectionTag = first_meshpart.element.get_section_tag()
+        elif hasattr(first_meshpart, 'ndof'): # Handling CompositeMesh
+            ndf = first_meshpart.ndof
+            matTag = getattr(first_meshpart, 'material_tag', 0)
+            EleTag = getattr(first_meshpart, 'element_tag', 0)
+            sectionTag = getattr(first_meshpart, 'section_tag', 0)
+        else:
+             ndf = FEMORA_MAX_NDF # Default fallback
+             matTag = getattr(first_meshpart, 'material_tag', 0)
+             EleTag = getattr(first_meshpart, 'element_tag', 0)
+             sectionTag = getattr(first_meshpart, 'section_tag', 0)
+
         regionTag = first_meshpart.region.tag
-        sectionTag = first_meshpart.element.get_section_tag()
         meshTag  = first_meshpart.tag
         
         # Add initial metadata to the first mesh
@@ -1176,11 +1212,16 @@ class AssemblySection:
         if "Mass" not in first_mesh.point_data:
             first_mesh.point_data["Mass"] = np.zeros((n_points, FEMORA_MAX_NDF), dtype=np.float32)
 
-        # add cell and point data
-        first_mesh.cell_data["ElementTag"]  = np.full(n_cells, EleTag, dtype=np.uint16)
-        first_mesh.cell_data["MaterialTag"] = np.full(n_cells, matTag, dtype=np.uint16)
-        first_mesh.cell_data["SectionTag"]  = np.full(n_cells, sectionTag, dtype=np.uint16)
-        first_mesh.point_data["ndf"]        = np.full(n_points, ndf, dtype=np.uint16)
+        # add cell and point data - ONLY IF NOT EXISTS
+        if "ElementTag" not in first_mesh.cell_data:
+             first_mesh.cell_data["ElementTag"]  = np.full(n_cells, EleTag, dtype=np.uint16)
+        if "MaterialTag" not in first_mesh.cell_data:
+             first_mesh.cell_data["MaterialTag"] = np.full(n_cells, matTag, dtype=np.uint16)
+        if "SectionTag" not in first_mesh.cell_data:
+             first_mesh.cell_data["SectionTag"]  = np.full(n_cells, sectionTag, dtype=np.uint16)
+        
+        self._ensure_ndf_array(first_mesh, ndf)
+
         first_mesh.cell_data["Region"]      = np.full(n_cells, regionTag, dtype=np.uint16)
         first_mesh.cell_data["MeshPartTag_celldata"]   = np.full(n_cells, meshTag, dtype=np.uint16)
         first_mesh.point_data["MeshPartTag_pointdata"] = np.full(n_points, meshTag, dtype=np.uint16)
@@ -1191,22 +1232,44 @@ class AssemblySection:
         self.mesh = pv.MultiBlock([first_mesh])  # Start with the first mesh as a MultiBlock
         for idx, meshpart in enumerate(self.meshparts_list[1:], start=2):
             second_mesh = meshpart.mesh.copy()
-            ndf = meshpart.element._ndof
-            matTag = meshpart.element.get_material_tag()
-            EleTag = meshpart.element.tag
+            second_mesh = meshpart.mesh.copy()
+            
+            ndf = 0
+            if meshpart.element:
+                ndf = meshpart.element._ndof
+                matTag = meshpart.element.get_material_tag()
+                EleTag = meshpart.element.tag
+                sectionTag = meshpart.element.get_section_tag()
+            elif hasattr(meshpart, 'ndof'):
+                 ndf = meshpart.ndof
+                 matTag = getattr(meshpart, 'material_tag', 0)
+                 EleTag = getattr(meshpart, 'element_tag', 0)
+                 sectionTag = getattr(meshpart, 'section_tag', 0)
+            else:
+                 ndf = FEMORA_MAX_NDF
+                 matTag = getattr(meshpart, 'material_tag', 0)
+                 EleTag = getattr(meshpart, 'element_tag', 0)
+                 sectionTag = getattr(meshpart, 'section_tag', 0)
+
             regionTag = meshpart.region.tag
-            sectionTag = meshpart.element.get_section_tag()
             meshTag  = meshpart.tag
             n_cells_second  = second_mesh.n_cells
             n_points_second = second_mesh.n_points
             if "Mass" not in second_mesh.point_data:
                 second_mesh.point_data["Mass"] = np.zeros((n_points_second, FEMORA_MAX_NDF), dtype=np.float32)
             # add cell and point data to the second mesh
-            second_mesh.cell_data["ElementTag"]  = np.full(n_cells_second, EleTag, dtype=np.uint16)
-            second_mesh.cell_data["MaterialTag"] = np.full(n_cells_second, matTag, dtype=np.uint16)
-            second_mesh.point_data["ndf"]        = np.full(n_points_second, ndf, dtype=np.uint16)
+            if "ElementTag" not in second_mesh.cell_data:
+                second_mesh.cell_data["ElementTag"]  = np.full(n_cells_second, EleTag, dtype=np.uint16)
+            if "MaterialTag" not in second_mesh.cell_data:
+                second_mesh.cell_data["MaterialTag"] = np.full(n_cells_second, matTag, dtype=np.uint16)
+            
+            if "SectionTag" not in second_mesh.cell_data:
+                second_mesh.cell_data["SectionTag"]  = np.full(n_cells_second, sectionTag, dtype=np.uint16)
+            
+            self._ensure_ndf_array(second_mesh, ndf)
+
             second_mesh.cell_data["Region"]      = np.full(n_cells_second, regionTag, dtype=np.uint16)
-            second_mesh.cell_data["SectionTag"]  = np.full(n_cells_second, sectionTag, dtype=np.uint16)
+            
             second_mesh.cell_data["MeshPartTag_celldata"]   = np.full(n_cells_second, meshTag, dtype=np.uint16)
             second_mesh.point_data["MeshPartTag_pointdata"] = np.full(n_points_second, meshTag, dtype=np.uint16)
             # Merge with tolerance and optional point merging
@@ -1256,14 +1319,12 @@ class AssemblySection:
         # partition the mesh
         self.mesh.cell_data["Core"] = np.zeros(self.mesh.n_cells, dtype=int)
         if self.num_partitions > 1:
-            partitiones = self.mesh.partition(self.num_partitions,
-                                              generate_global_id=True, 
-                                              as_composite=True)
-            for i, partition in enumerate(partitiones):
-                ids = partition.cell_data["vtkGlobalCellIds"]
-                self.mesh.cell_data["Core"][ids] = i
-            
-            del partitiones
+            core_ids = PartitionerRegistry.partition(
+                self.mesh,
+                self.num_partitions,
+                partitioner=self.partition_algorithm,
+            )
+            self.mesh.cell_data["Core"] = core_ids.astype(int)
 
     @property
     def meshparts(self) -> List[str]:

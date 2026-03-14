@@ -131,14 +131,19 @@ class EmbeddedNodeInterface(InterfaceBase, GeneratesMeshMixin):
             normal_filter = self._normal_filter
             filter_tolerance = self._filter_tolerance
             if normal_filter is None:
-                mesh_with_normals = original_mesh.compute_normals(
-                                                cell_normals=False, 
-                                                point_normals=True, 
-                                                inplace=False,
-                                                split_vertices= False,
+                try:
+                    mesh_with_normals = original_mesh.compute_normals(
+                                                    cell_normals=False, 
+                                                    point_normals=True, 
+                                                    inplace=False,
+                                                    split_vertices= False,
                                             )
+                    normals = mesh_with_normals.point_data['Normals']
+                except Exception as e:
+                    print("warning: could not compute the normals assuming zero normals")
+                    normals = np.zeros((original_mesh.n_points, 3))
                 mask = np.ones(original_mesh.n_points, dtype=bool)
-                original_mesh.point_data['Normals'] = mesh_with_normals.point_data['Normals']
+                original_mesh.point_data['Normals'] = normals
             else:
                 mesh_with_normals = original_mesh.compute_normals(
                                                 cell_normals=False, 
@@ -266,6 +271,14 @@ class EmbeddedNodeInterface(InterfaceBase, GeneratesMeshMixin):
         selected_points = offset_points[mask]
         selected_normals = normals[mask]
         point_ids = point_ids[mask]
+
+        if point_ids.size == 0:
+            msg = f"Interface '{self.name}': No intersection found between constrained node '{self.constrained_node.user_name}' and retained nodes.\n"
+            msg += "Possible reasons:\n"
+            msg += "1. The constrained mesh part is not inside the retained mesh parts.\n"
+            msg += f"2. The normal_filter {self._normal_filter} (tol={self._filter_tolerance}) might be too restrictive or in a wrong direction."
+            raise ValueError(msg)
+
         original_cells = tetrahedra_mesh_filtered.cell_data['CellIndex'][selected_cells]
 
 

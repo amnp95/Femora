@@ -1,5 +1,8 @@
 import os
+
 import femora as fm
+from femora.utils.paths import motions_dir
+
 os.chdir(os.path.dirname(__file__))
 
 # Create a new model
@@ -73,8 +76,8 @@ fm.assembler.Assemble()
 
 # Create a TimeSeries for the uniform excitation
 timeseries = fm.timeSeries.create_time_series(series_type="path",
-                                              filePath="FrequencySweep.acc",
-                                              fileTime="FrequencySweep.time",
+                                              filePath=str(motions_dir() / "FrequencySweep.acc"),
+                                              fileTime=str(motions_dir() / "FrequencySweep.time"),
                                               factor= 9.81)
 
 # Create a pattern for the uniform excitation

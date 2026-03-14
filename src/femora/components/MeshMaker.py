@@ -6,6 +6,7 @@ from femora.components.Region.regionBase import RegionManager
 from femora.components.Constraint.constraint import Constraint
 from femora.components.Mesh.meshPartBase import MeshPartManager
 from femora.components.Mesh.meshPartInstance import *
+from femora.components.element.ghost_node import GhostNodeElement
 from femora.components.TimeSeries.timeSeriesBase import TimeSeriesManager
 from femora.components.Analysis.analysis import AnalysisManager
 from femora.components.Pattern.patternBase import PatternManager
@@ -18,6 +19,7 @@ from femora.components.section.section_base import SectionManager
 from femora.components.mass.mass_manager import MassManager
 from femora.components.geometry_ops.spatial_transform_manager import SpatialTransformManager
 from femora.components.mask.mask_manager import MaskManager
+from femora.components.Actions.action import ActionManager
 import os
 from numpy import unique, zeros, arange, array, abs, concatenate, meshgrid, ones, full, uint16, repeat, where, isin
 from pyvista import Cube, MultiBlock, StructuredGrid
@@ -79,6 +81,7 @@ class MeshMaker:
         self.transformation = GeometricTransformationManager()
         self.section = SectionManager()
         self.spatial_transform = SpatialTransformManager()
+        self.actions = ActionManager()
         
         # Tag start controls for node and element IDs written to TCL
         # These control only exported OpenSees node/element tags (not Material/Element class tags)
@@ -261,7 +264,7 @@ class MeshMaker:
             print("Please ensure qtpy, pyvista, and other GUI dependencies are installed.")
             return None
 
-    def export_to_tcl(self, filename=None, progress_callback=None):
+    def export_to_tcl(self, filename=None, progress_callback=None, decimals=5):
         """
         Export the model to a TCL file
         
@@ -398,9 +401,13 @@ class MeshMaker:
                     # writing nodes
                     for pid in pids:
                         if not wroted[pid][core]:
-                            f.write(f"\tnode {nodeTags[pid]} {nodes[pid][0]} {nodes[pid][1]} {nodes[pid][2]} -ndf {ndfs[pid]}\n")
+                            # Resolve potential ghost node sentinels back to real DOFs
+                            raw_ndf = ndfs[pid]
+                            real_ndf = GhostNodeElement.resolve_ndf(raw_ndf) if raw_ndf >= 1000 else raw_ndf
+                            f.write(f"\tnode {nodeTags[pid]} {round(nodes[pid][0], decimals)} {round(nodes[pid][1], decimals)} {round(nodes[pid][2], decimals)} -ndf {real_ndf}\n")
+                            
                             mass_vec = mass[pid]
-                            mass_vec = mass_vec[:ndfs[pid]] 
+                            mass_vec = mass_vec[:real_ndf] 
                             # if any of the mass vector is not zero then write it
                             if abs(mass_vec).sum() > 1e-6:
                                 f.write(f"\tmass {nodeTags[pid]} {' '.join(map(str, mass_vec))}\n")
@@ -525,7 +532,10 @@ class MeshMaker:
                         f.write("\t# Master nodes not defined in this core\n")
                         for master_id in valid_masters:
                             node = nodes[master_id]
-                            f.write(f"\tnode {master_id+1} {node[0]} {node[1]} {node[2]} -ndf {ndfs[master_id]}\n")
+                            raw_ndf = ndfs[master_id]
+                            real_ndf = GhostNodeElement.resolve_ndf(raw_ndf) if raw_ndf >= 1000 else raw_ndf
+                            f.write(f"\tnode {nodeTags[master_id]} {round(node[0], decimals)} {round(node[1], decimals)} {round(node[2], decimals)} -ndf {real_ndf}\n")
+
 
                     # Process all slave nodes that are not in the current core
                     # Collect all unique slave nodes from active master nodes' constraints
@@ -541,7 +551,9 @@ class MeshMaker:
                         f.write("\t# Slave nodes not defined in this core\n")
                         for slave_id in unique(valid_slaves):
                             node = nodes[slave_id]
-                            f.write(f"\tnode {slave_id+1} {node[0]} {node[1]} {node[2]} -ndf {ndfs[slave_id]}\n")
+                            raw_ndf = ndfs[slave_id]
+                            real_ndf = GhostNodeElement.resolve_ndf(raw_ndf) if raw_ndf >= 1000 else raw_ndf
+                            f.write(f"\tnode {nodeTags[slave_id]} {round(node[0], decimals)} {round(node[1], decimals)} {round(node[2], decimals)} -ndf {real_ndf}\n")
 
                     # Write constraints after nodes
                     f.write("\t# Constraints\n")

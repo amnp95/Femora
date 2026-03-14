@@ -530,6 +530,16 @@ class ElementRegistry:
         from femora.core.element_manager import _QuadElements
         return _QuadElements
 
+    @property
+    def special(self):
+        """Provides access to special element types (e.g. ghost nodes).
+
+        Returns:
+            SpecialElements accessor for creating special elements.
+        """
+        from femora.core.element_manager import _SpecialElements
+        return _SpecialElements
+
     @classmethod
     def register_element_type(cls, name: str, element_class: Type[Element]):
         """Registers a new element type for easy creation.
@@ -761,3 +771,4 @@ from femora.components.element import zero_length_contact
 from femora.components.element import disp_beam_column
 from femora.components.element import force_beam_column
 from femora.components.element import elastic_beam_column
+from femora.components.element import ghost_node
