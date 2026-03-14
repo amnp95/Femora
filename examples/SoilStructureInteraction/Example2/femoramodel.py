@@ -209,7 +209,7 @@ fm.assembler.create_section(
     meshparts=["soil_grid", "pile1", "pile2", "beam1", "beam2"],
     num_partitions=4,
     partition_algorithm="kd-tree",
-    merging_points=True,
+    merge_points=True,
 )
 fm.assembler.Assemble()
 

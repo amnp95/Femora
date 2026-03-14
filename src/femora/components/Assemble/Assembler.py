@@ -71,7 +71,7 @@ class Assembler:
         num_partitions: int = 1, 
         partition_algorithm: str = "kd-tree", 
         partitioner: Optional[str] = None,
-        merging_points: bool = True,
+        merge_points: bool = True,
         mass_merging: str = "sum",
         tolerance: float = 1e-5,
         **kwargs: Any
@@ -95,7 +95,7 @@ class Assembler:
             partitioner (str, optional): Mesh partitioner name (Femora terminology), e.g. "kd-tree",
                                          "morton", "geometric".
                                          If provided, it overrides ``partition_algorithm``.
-            merging_points (bool, optional): Whether to merge points that are within a 
+            merge_points (bool, optional): Whether to merge points that are within a 
                                            tolerance distance when assembling mesh parts.
                                            Defaults to True.
             mass_merging (str, optional): Method for merging mass properties of mesh parts.
@@ -120,7 +120,7 @@ class Assembler:
             meshparts=meshparts,
             num_partitions=num_partitions,
             partition_algorithm=partition_algorithm,
-            merging_points=merging_points,
+            merge_points=merge_points,
             mass_merging=mass_merging,
             **kwargs
         )
@@ -951,7 +951,7 @@ class AssemblySection:
         meshparts_list (List[MeshPart]): List of MeshPart objects in this section
         num_partitions (int): Number of partitions for parallel processing
         partition_algorithm (str): Algorithm used for partitioning the mesh
-        merging_points (bool): Whether points are merged during assembly
+        merge_points (bool): Whether points are merged during assembly
         mesh (pyvista.UnstructuredGrid): The assembled mesh
         elements (List[Element]): Elements used in this assembly section
         materials (List[Material]): Materials used in this assembly section
@@ -964,7 +964,7 @@ class AssemblySection:
         num_partitions: int = 1, 
         partition_algorithm: str = "kd-tree", 
         partitioner: Optional[str] = None,
-        merging_points: bool = True,
+        merge_points: bool = True,
         progress_callback=None,
         mass_merging: str = "sum",
         tolerance: float = 1e-5,
@@ -993,7 +993,7 @@ class AssemblySection:
                                          If provided, it overrides ``partition_algorithm``.
             mass_merging (str, optional): Method for merging mass properties of mesh parts.
                                           Options are "sum" or "average". Defaults to "sum".
-            merging_points (bool, optional): Whether to merge points that are within a
+            merge_points (bool, optional): Whether to merge points that are within a
                                            tolerance distance when assembling mesh parts.
                                            Defaults to True.
                                            
@@ -1022,7 +1022,7 @@ class AssemblySection:
 
         # Initialize tag to None
         self._tag = None
-        self.merging_points = merging_points
+        self.merge_points = merge_points
         if mass_merging not in ["sum", "average"]:
             raise ValueError(f"Invalid mass merging method: {mass_merging}. Must be 'sum' or 'average'.")
         self.mass_merging = mass_merging
@@ -1282,7 +1282,7 @@ class AssemblySection:
             merge_points = False,
             tolerance = 1e-5,
         )
-        if self.merging_points:
+        if self.merge_points:
             mass = self.mesh.point_data["Mass"]
             number_of_points_before_cleaning = self.mesh.number_of_points
 
