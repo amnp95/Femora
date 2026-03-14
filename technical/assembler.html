@@ -192,7 +192,7 @@
     <span class="n">meshparts</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;cube1&quot;</span><span class="p">,</span> <span class="s2">&quot;cube2&quot;</span><span class="p">],</span>
     <span class="n">num_partitions</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
     <span class="n">partition_algorithm</span><span class="o">=</span><span class="s2">&quot;kd-tree&quot;</span><span class="p">,</span>
-    <span class="n">merging_points</span><span class="o">=</span><span class="kc">True</span>
+    <span class="n">merge_points</span><span class="o">=</span><span class="kc">True</span>
 <span class="p">)</span>
 </pre></div>
 </div>
@@ -205,7 +205,7 @@
     <span class="n">meshparts</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;cube1&quot;</span><span class="p">,</span> <span class="s2">&quot;cube2&quot;</span><span class="p">],</span>
     <span class="n">num_partitions</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
     <span class="n">partition_algorithm</span><span class="o">=</span><span class="s2">&quot;kd-tree&quot;</span><span class="p">,</span>
-    <span class="n">merging_points</span><span class="o">=</span><span class="kc">True</span>
+    <span class="n">merge_points</span><span class="o">=</span><span class="kc">True</span>
 <span class="p">)</span>
 </pre></div>
 </div>
@@ -215,10 +215,10 @@
 </section>
 <section id="merging-points-in-assembly-sections">
 <h3>Merging Points in Assembly Sections<a class="headerlink" href="#merging-points-in-assembly-sections" title="Link to this heading"></a></h3>
-<p>When combining mesh parts, the <code class="docutils literal notranslate"><span class="pre">merging_points</span></code> parameter controls whether overlapping or close points should be merged:</p>
+<p>When combining mesh parts, the <code class="docutils literal notranslate"><span class="pre">merge_points</span></code> parameter controls whether overlapping or close points should be merged:</p>
 <ul class="simple">
-<li><p><strong>merging_points=True</strong>: Points that are within a tolerance distance are merged into a single point, creating a continuous mesh. This is useful when mesh parts share boundaries.</p></li>
-<li><p><strong>merging_points=False</strong>: All points are preserved, even if they overlap. This can be useful when mesh parts should remain distinct or when degrees of freedom differ.</p></li>
+<li><p><strong>merge_points=True</strong>: Points that are within a tolerance distance are merged into a single point, creating a continuous mesh. This is useful when mesh parts share boundaries.</p></li>
+<li><p><strong>merge_points=False</strong>: All points are preserved, even if they overlap. This can be useful when mesh parts should remain distinct or when degrees of freedom differ.</p></li>
 </ul>
 </section>
 <section id="partitioning-strategies">

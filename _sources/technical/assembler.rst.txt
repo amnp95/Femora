@@ -82,7 +82,7 @@ There are two ways to create an AssemblySection:
           meshparts=["cube1", "cube2"],
           num_partitions=4,
           partition_algorithm="kd-tree",
-          merging_points=True
+          merge_points=True
       )
 
 2. **Creating an AssemblySection instance**:
@@ -96,7 +96,7 @@ There are two ways to create an AssemblySection:
           meshparts=["cube1", "cube2"],
           num_partitions=4,
           partition_algorithm="kd-tree",
-          merging_points=True
+          merge_points=True
       )
 
 The first approach is recommended as it ensures proper registration with the Assembler.
@@ -104,11 +104,11 @@ The first approach is recommended as it ensures proper registration with the Ass
 Merging Points in Assembly Sections
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-When combining mesh parts, the ``merging_points`` parameter controls whether overlapping or close points should be merged:
+When combining mesh parts, the ``merge_points`` parameter controls whether overlapping or close points should be merged:
 
-- **merging_points=True**: Points that are within a tolerance distance are merged into a single point, creating a continuous mesh. This is useful when mesh parts share boundaries.
+- **merge_points=True**: Points that are within a tolerance distance are merged into a single point, creating a continuous mesh. This is useful when mesh parts share boundaries.
   
-- **merging_points=False**: All points are preserved, even if they overlap. This can be useful when mesh parts should remain distinct or when degrees of freedom differ.
+- **merge_points=False**: All points are preserved, even if they overlap. This can be useful when mesh parts should remain distinct or when degrees of freedom differ.
 
 Partitioning Strategies
 ~~~~~~~~~~~~~~~~~~~~~~~
