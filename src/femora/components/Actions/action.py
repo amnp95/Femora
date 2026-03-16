@@ -125,6 +125,45 @@ class loadConst(Action):
 
     def to_tcl(self) -> str:
         return "loadConst"
+
+
+class removeLoadPatterns(Action):
+    """Action to remove all load patterns."""
+
+    _instance = None
+
+    def __new__(cls, *args, **kwargs):
+        if cls._instance is None:
+            cls._instance = super(removeLoadPatterns, cls).__new__(cls, *args, **kwargs)
+        return cls._instance
+
+    def to_tcl(self) -> str:
+        # Emit OpenSees commands to remove every currently-defined pattern.
+        # Doing this via a stage action keeps staged workflows consistent
+        # between TCL export and the solver backend.
+        try:
+            from femora.components.Pattern.patternBase import Pattern
+        except Exception:
+            return ""
+
+        tags = sorted(int(tag) for tag in Pattern.get_all_patterns().keys())
+        if not tags:
+            return ""
+        return "\n".join(f"remove loadPattern {tag}" for tag in tags)
+
+
+class removeRecorders(Action):
+    """Action to remove all recorders."""
+
+    _instance = None
+
+    def __new__(cls, *args, **kwargs):
+        if cls._instance is None:
+            cls._instance = super(removeRecorders, cls).__new__(cls, *args, **kwargs)
+        return cls._instance
+
+    def to_tcl(self) -> str:
+        return "remove recorders"
     
 
 class seTime(Action):
@@ -206,6 +245,8 @@ class ActionManager:
         self.updateMaterialStageToPlastic = updateMaterialStageToPlastic
         self.reset = reset
         self.loadConst = loadConst
+        self.removeLoadPatterns = removeLoadPatterns
+        self.removeRecorders = removeRecorders
         self.exit = exit
         self.seTime = seTime
         self.tcl = tcl
