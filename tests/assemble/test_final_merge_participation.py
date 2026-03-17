@@ -101,13 +101,13 @@ def test_final_merge_participation_controls_cross_section_merging(
         meshparts=[part_a],
         num_partitions=1,
         merge_points=False,
-        participate_in_final_merge=True,
+        merge_in_final=True,
     )
     assembler.create_section(
         meshparts=[part_b],
         num_partitions=1,
         merge_points=False,
-        participate_in_final_merge=participate_b,
+        merge_in_final=participate_b,
     )
 
     assembler.Assemble(merge_points=True)
