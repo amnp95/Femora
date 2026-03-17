@@ -3,7 +3,7 @@
 <div align="center">
   <img src="docs/images/logo.png" alt="FEMORA Logo"
        width="750"
-       height="200"
+       height="400"
        style="object-fit: cover; object-position: center;">
 </div>
   <!-- <h1>FEMORA</h1> -->
