@@ -101,7 +101,7 @@ for layer in layers[::-1]:
 mesh_parts = [f"Layer{layer['layer']}" for layer in layers]
 
 # Use single-partition assembly by default so it runs out-of-the-box
-fm.assembler.create_section(mesh_parts, num_partitions=4, merge_points=True)
+fm.assembler.create_section(mesh_parts, num_partitions=32, merge_points=True)
 fm.assembler.Assemble()
 
 
@@ -144,7 +144,8 @@ dynamic = fm.actions.tcl(
 f"""
 constraints Plain
 numberer    ParallelPlain
-system      Diagonal
+system      MPIDiagonal
+algorithm   Linear
 integrator  Explicitdifference
 analysis    Transient
 initialize
