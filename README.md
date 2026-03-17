@@ -44,16 +44,16 @@ Whether you are a researcher performing large-scale parametric studies or an eng
 
 | Feature | Description |
 |---------|-------------|
-| 🏗️ **Powerful Mesh Generation** | Create complex 3D (and 2D) soil and structural models with minimal code using an intuitive, high-level Python API |
-| ⚡ **HPC-Ready Domain Decomposition** | Parallel computing support with METIS-based domain decomposition for large-scale simulations |
-| 🌊 **Domain Reduction Method (DRM)** | Advanced seismic wave propagation technique for realistic regional-to-local scale analysis |
-| 🛡️ **Perfectly Matched Layers (PML)** | Absorbing boundary elements to eliminate spurious wave reflections at model boundaries |
-| 🧱 **Comprehensive Material Library** | 50+ material models including elastic, elastoplastic, pressure-dependent, and user-defined materials |
-| 🔩 **Full OpenSees Coverage** | Access all elements, materials, constraints, recorders, analysis types, and algorithms available in OpenSees |
-| 👁️ **Built-in Visualization** | Interactive 3D visualization powered by PyVista for model inspection and result analysis |
-| 📄 **OpenSees TCL Export** | Seamless export to OpenSees TCL scripts for direct simulation |
-| 🖥️ **Dual Interface** | Both a scriptable **headless mode** (pure Python API) and an interactive **GUI mode** (Qt-based) |
-| 🔗 **Interfaces & Constraints** | Advanced interface elements for soil-structure interaction, contact, and coupling |
+| **Powerful Mesh Generation** | Create complex 3D (and 2D) soil and structural models with minimal code using an intuitive, high-level Python API |
+| **HPC-Ready Domain Decomposition** | Parallel computing support with METIS-based domain decomposition for large-scale simulations |
+| **Domain Reduction Method (DRM)** | Advanced seismic wave propagation technique for realistic regional-to-local scale analysis |
+| **Perfectly Matched Layers (PML)** | Absorbing boundary elements to eliminate spurious wave reflections at model boundaries |
+| **Comprehensive Material Library** | 50+ material models including elastic, elastoplastic, pressure-dependent, and user-defined materials |
+| **Full OpenSees Coverage** | Access all elements, materials, constraints, recorders, analysis types, and algorithms available in OpenSees |
+| **Built-in Visualization** | Interactive 3D visualization powered by PyVista for model inspection and result analysis |
+| **OpenSees TCL Export** | Seamless export to OpenSees TCL scripts for direct simulation |
+| **Dual Interface** | Both a scriptable **headless mode** (pure Python API) and an interactive **GUI mode** (Qt-based) |
+| **Interfaces & Constraints** | Advanced interface elements for soil-structure interaction, contact, and coupling |
 
 ---
 
@@ -234,7 +234,7 @@ For a complete walkthrough including seismic loading, boundary conditions, and a
 
 FEMORA supports two complementary working modes:
 
-### 🖥️ Headless Mode (Pure Python API)
+### Headless Mode (Pure Python API)
 
 Use the full Python API for programmatic model creation — ideal for automation, batch processing, parametric studies, and integration into larger workflows or CI/CD pipelines.
 
@@ -249,7 +249,7 @@ fm.assembler.Assemble()
 fm.export_to_tcl("model.tcl")
 ```
 
-### 🖱️ GUI Mode (Qt Interface)
+### GUI Mode (Qt Interface)
 
 Launch the interactive graphical interface for visual model construction, real-time 3D preview, and exploratory analysis. Ideal for rapid prototyping, teaching, and debugging.
 
@@ -272,26 +272,26 @@ pip install femora[gui]
 
 The `examples/` directory contains ready-to-run scripts covering a wide range of applications:
 
-### 🌍 Site Response Analysis
+### Site Response Analysis
 Simulate seismic wave propagation through layered soil profiles.
 - **Example 1**: 3D layered soil column under Kobe earthquake excitation
 - **Example 2**: Multi-layer soil model with absorbing boundaries (PML)
 - **Example 3**: Nonlinear soil response with pressure-dependent materials
 - **Example 4**: Parametric study of soil column response
 
-### 🌊 Domain Reduction Method (DRM)
+### Domain Reduction Method (DRM)
 Couple regional seismic simulations with local site-scale models.
 - **Example 1–5**: DRM application with varying source-to-site configurations
 
-### 🏗️ Soil-Structure Interaction (SSI)
+### Soil-Structure Interaction (SSI)
 Model the coupled behavior of structures founded on soil.
 - **Example 0–4**: Embedded foundations, pile groups, and frame structures on layered soil
 
-### 🛡️ PML Verification
+### PML Verification
 Validate Perfectly Matched Layer absorbing boundaries.
 - Wave absorption tests in 3D media
 
-### 🔗 EE-UQ Integration
+### EE-UQ Integration
 Connect with SimCenter's EE-UQ workflow for uncertainty quantification.
 
 Browse all examples: [`examples/`](examples/) | [Online Tutorials](https://amnp95.github.io/Femora/introduction/examples.html)
@@ -373,7 +373,7 @@ If you use FEMORA in your research or projects, please cite it as:
 **Amin Pakzad** — [amnp95@uw.edu](mailto:amnp95@uw.edu) — University of Washington  
 **Pedro Arduino** — [parduino@uw.edu](mailto:parduino@uw.edu) — University of Washington
 
-- 🐛 **Bug reports & feature requests**: [GitHub Issues](https://github.com/amnp95/Femora/issues)
-- 💬 **Discussions & questions**: [GitHub Discussions](https://github.com/amnp95/Femora/discussions)
-- 📖 **Documentation**: [amnp95.github.io/Femora](https://amnp95.github.io/Femora)
-- 💻 **Source code**: [github.com/amnp95/Femora](https://github.com/amnp95/Femora)
+- **Bug reports & feature requests**: [GitHub Issues](https://github.com/amnp95/Femora/issues)
+- **Discussions & questions**: [GitHub Discussions](https://github.com/amnp95/Femora/discussions)
+- **Documentation**: [amnp95.github.io/Femora](https://amnp95.github.io/Femora)
+- **Source code**: [github.com/amnp95/Femora](https://github.com/amnp95/Femora)
