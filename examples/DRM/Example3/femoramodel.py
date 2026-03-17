@@ -320,14 +320,14 @@ layers = ["Layer1", "Layer2",
               "Layer3", "Layer4", 
               "Layer5", "Layer6"]
 
-fm.assembler.create_section(layers, num_partitions=8)
+fm.assembler.create_section(layers, num_partitions=32)
 
 basins = ["basin1", "basin2"]
-fm.assembler.create_section(basins, num_partitions=2)
+fm.assembler.create_section(basins, num_partitions=16)
 
 fm.assembler.Assemble()
 fm.drm.addAbsorbingLayer(numLayers=8,
-                        numPartitions=8,
+                        numPartitions=64,
                         partitionAlgo="kd-tree",
                         geometry="Rectangular",
                         rayleighDamping=0.95,
