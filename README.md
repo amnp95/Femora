@@ -1,6 +1,6 @@
 <div align="center">
   <img src="docs/images/logo.png" alt="FEMORA Logo" width="750"/>
-  <h1>FEMORA</h1>
+  <!-- <h1>FEMORA</h1> -->
   <!-- <p><strong>Fast Efficient Meshing for OpenSees-based Resilience Analysis</strong></p> -->
   <p><em>A powerful Python framework for finite element meshing and seismic analysis</em></p>
 
