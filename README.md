@@ -1,6 +1,6 @@
 <!-- <div align="center">
   <img src="docs/images/logo.png" alt="FEMORA Logo" width="750"/> -->
-<div align="center" style="height:220px; overflow:hidden;">
+<div align="center" style="height:130px; overflow:hidden;">
   <img src="docs/images/logo.png" alt="FEMORA Logo" width="750">
 </div>
   <!-- <h1>FEMORA</h1> -->
