@@ -72,6 +72,7 @@ class Assembler:
         partition_algorithm: str = "kd-tree", 
         partitioner: Optional[str] = None,
         merge_points: bool = True,
+        participate_in_final_merge: bool = True,
         mass_merging: str = "sum",
         tolerance: float = 1e-5,
         **kwargs: Any
@@ -98,10 +99,17 @@ class Assembler:
             merge_points (bool, optional): Whether to merge points that are within a 
                                            tolerance distance when assembling mesh parts.
                                            Defaults to True.
+            participate_in_final_merge (bool, optional): If True, this section's points may be
+                                           merged during the *final* Assembler.Assemble(...)
+                                           merge pass (when merge_points=True). If False, this
+                                           section is excluded from final point merging.
+                                           Defaults to True.
             mass_merging (str, optional): Method for merging mass properties of mesh parts.
                                            Defaults to "sum". Options are "sum" or "average".
                                            if "sum", the mass is summed across all merged points.
                                            if "average", the mass is averaged across merged points.
+            tolerance (float, optional): Spatial tolerance used when merging points within this
+                                           assembly section. Defaults to 1e-5.
             **kwargs: Additional keyword arguments to pass to AssemblySection constructor
         
         Returns:
@@ -121,7 +129,9 @@ class Assembler:
             num_partitions=num_partitions,
             partition_algorithm=partition_algorithm,
             merge_points=merge_points,
+            participate_in_final_merge=participate_in_final_merge,
             mass_merging=mass_merging,
+            tolerance=tolerance,
             **kwargs
         )
         
@@ -381,21 +391,33 @@ class Assembler:
         
         sorted_sections = sorted(self._assembly_sections.items(), key=lambda x: x[0])
         
-        first_mesh = sorted_sections[0][1].mesh
+        first_section = sorted_sections[0][1]
+        first_mesh = first_section.mesh
         # assert first_mesh is not None, "AssemblySection mesh is None"
         if first_mesh is None:
             raise ValueError("There is no mesh to assemble. Please create an AssemblySection first.")
         
         self.AssembeledMesh = pv.MultiBlock();
-        self.AssembeledMesh.append(first_mesh.copy())
+        first_block = first_mesh.copy()
+        first_block.point_data["ParticipateInFinalMerge"] = np.full(
+            first_block.n_points,
+            1 if getattr(first_section, "participate_in_final_merge", True) else 0,
+            dtype=np.uint8,
+        )
+        self.AssembeledMesh.append(first_block)
         progress_callback(1 / len(sorted_sections) * 70, f"merged section 1/{len(sorted_sections)}")
-        num_partitions = sorted_sections[0][1].num_partitions
+        num_partitions = first_section.num_partitions
 
         try :
             for idx, (tag, section) in enumerate(sorted_sections[1:], start=2):
                 second_mesh = section.mesh.copy()  # type: ignore[attr-defined]
                 second_mesh.cell_data["Core"] = second_mesh.cell_data["Core"] + num_partitions
                 num_partitions = num_partitions + section.num_partitions
+                second_mesh.point_data["ParticipateInFinalMerge"] = np.full(
+                    second_mesh.n_points,
+                    1 if getattr(section, "participate_in_final_merge", True) else 0,
+                    dtype=np.uint8,
+                )
                 self.AssembeledMesh.append(second_mesh)
                 perc = idx / len(sorted_sections) * 70
                 progress_callback(perc, f"merged section {idx}/{len(sorted_sections)}")
@@ -409,13 +431,31 @@ class Assembler:
                 # snap points within tolerance
                 self.AssembeledMesh.points = self._snap_points(self.AssembeledMesh.points, tolerance)
 
+                # Build a per-point merge key so some sections can be excluded from
+                # the final merge pass.
+                if "ParticipateInFinalMerge" in self.AssembeledMesh.point_data:
+                    participate = np.asarray(
+                        self.AssembeledMesh.point_data["ParticipateInFinalMerge"],
+                        dtype=np.uint8,
+                    )
+                else:
+                    participate = np.ones(self.AssembeledMesh.n_points, dtype=np.uint8)
+
+                ndf = np.asarray(self.AssembeledMesh.point_data["ndf"], dtype=np.int64)
+                merge_key = ndf.copy()
+                excluded = participate == 0
+                if np.any(excluded):
+                    excluded_idx = np.nonzero(excluded)[0].astype(np.int64, copy=False)
+                    merge_key[excluded] = -(excluded_idx + 1)
+                self.AssembeledMesh.point_data["FinalMergeKey"] = merge_key
+
                 mass = self.AssembeledMesh.point_data["Mass"]
                 self.AssembeledMesh = self.AssembeledMesh.clean(
-                    tolerance=1e-5,
+                    tolerance=tolerance,
                     remove_unused_points=False,
                     produce_merge_map=True,
                     average_point_data=True,
-                    merging_array_name="ndf",
+                    merging_array_name="FinalMergeKey",
                     progress_bar=False,
                 )
                 # make the ndf array uint16
@@ -965,6 +1005,7 @@ class AssemblySection:
         partition_algorithm: str = "kd-tree", 
         partitioner: Optional[str] = None,
         merge_points: bool = True,
+        participate_in_final_merge: bool = True,
         progress_callback=None,
         mass_merging: str = "sum",
         tolerance: float = 1e-5,
@@ -1023,6 +1064,7 @@ class AssemblySection:
         # Initialize tag to None
         self._tag = None
         self.merge_points = merge_points
+        self.participate_in_final_merge = bool(participate_in_final_merge)
         if mass_merging not in ["sum", "average"]:
             raise ValueError(f"Invalid mass merging method: {mass_merging}. Must be 'sum' or 'average'.")
         self.mass_merging = mass_merging
