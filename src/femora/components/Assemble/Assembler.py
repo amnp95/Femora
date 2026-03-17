@@ -72,7 +72,7 @@ class Assembler:
         partition_algorithm: str = "kd-tree", 
         partitioner: Optional[str] = None,
         merge_points: bool = True,
-        participate_in_final_merge: bool = True,
+        merge_in_final: bool = True,
         mass_merging: str = "sum",
         tolerance: float = 1e-5,
         **kwargs: Any
@@ -99,8 +99,8 @@ class Assembler:
             merge_points (bool, optional): Whether to merge points that are within a 
                                            tolerance distance when assembling mesh parts.
                                            Defaults to True.
-            participate_in_final_merge (bool, optional): If True, this section's points may be
-                                           merged during the *final* Assembler.Assemble(...)
+            merge_in_final (bool, optional): If True, this section's points may be merged during
+                                           the *final* Assembler.Assemble(...)
                                            merge pass (when merge_points=True). If False, this
                                            section is excluded from final point merging.
                                            Defaults to True.
@@ -129,7 +129,7 @@ class Assembler:
             num_partitions=num_partitions,
             partition_algorithm=partition_algorithm,
             merge_points=merge_points,
-            participate_in_final_merge=participate_in_final_merge,
+            merge_in_final=merge_in_final,
             mass_merging=mass_merging,
             tolerance=tolerance,
             **kwargs
@@ -399,9 +399,9 @@ class Assembler:
         
         self.AssembeledMesh = pv.MultiBlock();
         first_block = first_mesh.copy()
-        first_block.point_data["ParticipateInFinalMerge"] = np.full(
+        first_block.point_data["MergeInFinal"] = np.full(
             first_block.n_points,
-            1 if getattr(first_section, "participate_in_final_merge", True) else 0,
+            1 if getattr(first_section, "merge_in_final", True) else 0,
             dtype=np.uint8,
         )
         self.AssembeledMesh.append(first_block)
@@ -413,9 +413,9 @@ class Assembler:
                 second_mesh = section.mesh.copy()  # type: ignore[attr-defined]
                 second_mesh.cell_data["Core"] = second_mesh.cell_data["Core"] + num_partitions
                 num_partitions = num_partitions + section.num_partitions
-                second_mesh.point_data["ParticipateInFinalMerge"] = np.full(
+                second_mesh.point_data["MergeInFinal"] = np.full(
                     second_mesh.n_points,
-                    1 if getattr(section, "participate_in_final_merge", True) else 0,
+                    1 if getattr(section, "merge_in_final", True) else 0,
                     dtype=np.uint8,
                 )
                 self.AssembeledMesh.append(second_mesh)
@@ -433,9 +433,9 @@ class Assembler:
 
                 # Build a per-point merge key so some sections can be excluded from
                 # the final merge pass.
-                if "ParticipateInFinalMerge" in self.AssembeledMesh.point_data:
+                if "MergeInFinal" in self.AssembeledMesh.point_data:
                     participate = np.asarray(
-                        self.AssembeledMesh.point_data["ParticipateInFinalMerge"],
+                        self.AssembeledMesh.point_data["MergeInFinal"],
                         dtype=np.uint8,
                     )
                 else:
@@ -1005,7 +1005,7 @@ class AssemblySection:
         partition_algorithm: str = "kd-tree", 
         partitioner: Optional[str] = None,
         merge_points: bool = True,
-        participate_in_final_merge: bool = True,
+        merge_in_final: bool = True,
         progress_callback=None,
         mass_merging: str = "sum",
         tolerance: float = 1e-5,
@@ -1064,7 +1064,7 @@ class AssemblySection:
         # Initialize tag to None
         self._tag = None
         self.merge_points = merge_points
-        self.participate_in_final_merge = bool(participate_in_final_merge)
+        self.merge_in_final = bool(merge_in_final)
         if mass_merging not in ["sum", "average"]:
             raise ValueError(f"Invalid mass merging method: {mass_merging}. Must be 'sum' or 'average'.")
         self.mass_merging = mass_merging
