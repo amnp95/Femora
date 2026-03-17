@@ -3,7 +3,7 @@ import os
 import femora as fm
 
 os.chdir(os.path.dirname(__file__))
-
+fm.set_results_folder("Results")
 
 # -------------------------------------------------------------------
 # IMPORTANT:
@@ -93,7 +93,7 @@ for layer in layers[::-1]:
 
 
 # Create assembly Sections
-fm.assembler.create_section(meshparts=[f"Layer{layer['layer']}" for layer in layers], num_partitions=4)
+fm.assembler.create_section(meshparts=[f"Layer{layer['layer']}" for layer in layers], num_partitions=32)
 
 
 # Assemble the mesh parts
@@ -161,7 +161,7 @@ h5pattern = fm.pattern.create_pattern( 'h5drm',
 # ===================================================================
 # ===================================================================
 fm.drm.addAbsorbingLayer(numLayers=2,
-                        numPartitions=1,
+                        numPartitions=32,
                         partitionAlgo="kd-tree",
                         geometry="Rectangular",
                         rayleighDamping=0.95,
