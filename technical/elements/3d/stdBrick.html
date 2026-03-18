@@ -139,6 +139,10 @@
 <td><p>Constant body forces in global z direction</p></td>
 <td><p>float</p></td>
 </tr>
+<tr class="row-odd"><td><p><strong>lumped</strong></p></td>
+<td><p>Use lumped mass matrix (optional flag)</p></td>
+<td><p>bool</p></td>
+</tr>
 </tbody>
 </table>
 <p><strong>Material Compatibility:</strong>
@@ -147,45 +151,47 @@
 - 3 DOFs per node</p>
 <div class="note admonition">
 <p class="admonition-title">Example</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Direct creation</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">femora.components.Element.elementsOpenSees</span><span class="w"> </span><span class="kn">import</span> <span class="n">stdBrickElement</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">femora.components.Material.materialsOpenSees</span><span class="w"> </span><span class="kn">import</span> <span class="n">ElasticIsotropicMaterial</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span>  <span class="c1"># Direct creation</span>
+  <span class="kn">from</span><span class="w"> </span><span class="nn">femora.components.Element.elementsOpenSees</span><span class="w"> </span><span class="kn">import</span> <span class="n">stdBrickElement</span>
+  <span class="kn">from</span><span class="w"> </span><span class="nn">femora.components.Material.materialsOpenSees</span><span class="w"> </span><span class="kn">import</span> <span class="n">ElasticIsotropicMaterial</span>
 
-<span class="c1"># Create a material first</span>
-<span class="n">material</span> <span class="o">=</span> <span class="n">ElasticIsotropicMaterial</span><span class="p">(</span><span class="n">user_name</span><span class="o">=</span><span class="s2">&quot;Concrete&quot;</span><span class="p">,</span> <span class="n">E</span><span class="o">=</span><span class="mf">30e9</span><span class="p">,</span> <span class="n">nu</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">rho</span><span class="o">=</span><span class="mi">2400</span><span class="p">)</span>
+  <span class="c1"># Create a material first</span>
+  <span class="n">material</span> <span class="o">=</span> <span class="n">ElasticIsotropicMaterial</span><span class="p">(</span><span class="n">user_name</span><span class="o">=</span><span class="s2">&quot;Concrete&quot;</span><span class="p">,</span> <span class="n">E</span><span class="o">=</span><span class="mf">30e9</span><span class="p">,</span> <span class="n">nu</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">rho</span><span class="o">=</span><span class="mi">2400</span><span class="p">)</span>
 
-<span class="c1"># Create the element</span>
-<span class="n">brick_element</span> <span class="o">=</span> <span class="n">stdBrickElement</span><span class="p">(</span>
-    <span class="n">ndof</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
-    <span class="n">material</span><span class="o">=</span><span class="n">material</span><span class="p">,</span>
-    <span class="n">b1</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
-    <span class="n">b2</span><span class="o">=-</span><span class="mf">9.81</span><span class="p">,</span>  <span class="c1"># Gravity in y-direction</span>
-    <span class="n">b3</span><span class="o">=</span><span class="mf">0.0</span>
-<span class="p">)</span>
+  <span class="c1"># Create the element</span>
+  <span class="n">brick_element</span> <span class="o">=</span> <span class="n">stdBrickElement</span><span class="p">(</span>
+      <span class="n">ndof</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+      <span class="n">material</span><span class="o">=</span><span class="n">material</span><span class="p">,</span>
+      <span class="n">b1</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+      <span class="n">b2</span><span class="o">=-</span><span class="mf">9.81</span><span class="p">,</span>  <span class="c1"># Gravity in y-direction</span>
+<span class="n">b3</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+<span class="n">lumped</span><span class="o">=</span><span class="kc">True</span>  <span class="c1"># enable &#39;-lumped&#39; in generated TCL</span>
+  <span class="p">)</span>
 
-<span class="c1"># Via Femora</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">femora</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">fm</span>
+  <span class="c1"># Via Femora</span>
+  <span class="kn">import</span><span class="w"> </span><span class="nn">femora</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">fm</span>
 
 
-<span class="c1"># Create material</span>
-<span class="n">concrete</span> <span class="o">=</span> <span class="n">fm</span><span class="o">.</span><span class="n">material</span><span class="o">.</span><span class="n">create_material</span><span class="p">(</span>
-    <span class="n">material_category</span><span class="o">=</span><span class="s2">&quot;nDMaterial&quot;</span><span class="p">,</span>
-    <span class="n">material_type</span><span class="o">=</span><span class="s2">&quot;ElasticIsotropic&quot;</span><span class="p">,</span>
-    <span class="n">user_name</span><span class="o">=</span><span class="s2">&quot;Concrete&quot;</span><span class="p">,</span>
-    <span class="n">E</span><span class="o">=</span><span class="mf">30e9</span><span class="p">,</span>
-    <span class="n">nu</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span>
-    <span class="n">rho</span><span class="o">=</span><span class="mi">2400</span>
-<span class="p">)</span>
+  <span class="c1"># Create material</span>
+  <span class="n">concrete</span> <span class="o">=</span> <span class="n">fm</span><span class="o">.</span><span class="n">material</span><span class="o">.</span><span class="n">create_material</span><span class="p">(</span>
+      <span class="n">material_category</span><span class="o">=</span><span class="s2">&quot;nDMaterial&quot;</span><span class="p">,</span>
+      <span class="n">material_type</span><span class="o">=</span><span class="s2">&quot;ElasticIsotropic&quot;</span><span class="p">,</span>
+      <span class="n">user_name</span><span class="o">=</span><span class="s2">&quot;Concrete&quot;</span><span class="p">,</span>
+      <span class="n">E</span><span class="o">=</span><span class="mf">30e9</span><span class="p">,</span>
+      <span class="n">nu</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span>
+      <span class="n">rho</span><span class="o">=</span><span class="mi">2400</span>
+  <span class="p">)</span>
 
-<span class="c1"># Create element</span>
-<span class="n">brick</span> <span class="o">=</span> <span class="n">fm</span><span class="o">.</span><span class="n">element</span><span class="o">.</span><span class="n">create_element</span><span class="p">(</span>
-    <span class="n">element_type</span><span class="o">=</span><span class="s2">&quot;stdBrick&quot;</span><span class="p">,</span>
-    <span class="n">ndof</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
-    <span class="n">material</span><span class="o">=</span><span class="s2">&quot;Concrete&quot;</span><span class="p">,</span>
-    <span class="n">b1</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
-    <span class="n">b2</span><span class="o">=-</span><span class="mf">9.81</span><span class="p">,</span>
-    <span class="n">b3</span><span class="o">=</span><span class="mf">0.0</span>
-<span class="p">)</span>
+  <span class="c1"># Create element</span>
+  <span class="n">brick</span> <span class="o">=</span> <span class="n">fm</span><span class="o">.</span><span class="n">element</span><span class="o">.</span><span class="n">create_element</span><span class="p">(</span>
+      <span class="n">element_type</span><span class="o">=</span><span class="s2">&quot;stdBrick&quot;</span><span class="p">,</span>
+      <span class="n">ndof</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+      <span class="n">material</span><span class="o">=</span><span class="s2">&quot;Concrete&quot;</span><span class="p">,</span>
+      <span class="n">b1</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+      <span class="n">b2</span><span class="o">=-</span><span class="mf">9.81</span><span class="p">,</span>
+<span class="n">b3</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+<span class="n">lumped</span><span class="o">=</span><span class="kc">True</span>
+  <span class="p">)</span>
 </pre></div>
 </div>
 </div>

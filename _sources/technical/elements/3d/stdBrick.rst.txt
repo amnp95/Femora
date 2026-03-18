@@ -20,6 +20,9 @@ Parameters:
     * - **b3**
       - Constant body forces in global z direction
       - float
+    * - **lumped**
+      - Use lumped mass matrix (optional flag)
+      - bool
 
 **Material Compatibility:**
 - Compatible with 3D (nDMaterial) type materials
@@ -45,7 +48,8 @@ Parameters:
             material=material,
             b1=0.0,
             b2=-9.81,  # Gravity in y-direction
-            b3=0.0
+      b3=0.0,
+      lumped=True  # enable '-lumped' in generated TCL
         )
 
         # Via Femora
@@ -69,5 +73,6 @@ Parameters:
             material="Concrete",
             b1=0.0,
             b2=-9.81,
-            b3=0.0
+      b3=0.0,
+      lumped=True
         )
