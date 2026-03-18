@@ -1019,14 +1019,14 @@ By programmatically constructing the workflow, we can adapt to different simulat
               <span class="s2">&quot;Layer3&quot;</span><span class="p">,</span> <span class="s2">&quot;Layer4&quot;</span><span class="p">,</span> 
               <span class="s2">&quot;Layer5&quot;</span><span class="p">,</span> <span class="s2">&quot;Layer6&quot;</span><span class="p">]</span>
 
-<span class="n">fm</span><span class="o">.</span><span class="n">assembler</span><span class="o">.</span><span class="n">create_section</span><span class="p">(</span><span class="n">layers</span><span class="p">,</span> <span class="n">num_partitions</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
+<span class="n">fm</span><span class="o">.</span><span class="n">assembler</span><span class="o">.</span><span class="n">create_section</span><span class="p">(</span><span class="n">layers</span><span class="p">,</span> <span class="n">num_partitions</span><span class="o">=</span><span class="mi">32</span><span class="p">)</span>
 
 <span class="n">basins</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;basin1&quot;</span><span class="p">,</span> <span class="s2">&quot;basin2&quot;</span><span class="p">]</span>
-<span class="n">fm</span><span class="o">.</span><span class="n">assembler</span><span class="o">.</span><span class="n">create_section</span><span class="p">(</span><span class="n">basins</span><span class="p">,</span> <span class="n">num_partitions</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">fm</span><span class="o">.</span><span class="n">assembler</span><span class="o">.</span><span class="n">create_section</span><span class="p">(</span><span class="n">basins</span><span class="p">,</span> <span class="n">num_partitions</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
 
 <span class="n">fm</span><span class="o">.</span><span class="n">assembler</span><span class="o">.</span><span class="n">Assemble</span><span class="p">()</span>
 <span class="n">fm</span><span class="o">.</span><span class="n">drm</span><span class="o">.</span><span class="n">addAbsorbingLayer</span><span class="p">(</span><span class="n">numLayers</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span>
-                        <span class="n">numPartitions</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span>
+                        <span class="n">numPartitions</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span>
                         <span class="n">partitionAlgo</span><span class="o">=</span><span class="s2">&quot;kd-tree&quot;</span><span class="p">,</span>
                         <span class="n">geometry</span><span class="o">=</span><span class="s2">&quot;Rectangular&quot;</span><span class="p">,</span>
                         <span class="n">rayleighDamping</span><span class="o">=</span><span class="mf">0.95</span><span class="p">,</span>

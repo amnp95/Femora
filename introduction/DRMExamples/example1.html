@@ -380,7 +380,7 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">femora</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">fm</span>
 
 <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">))</span>
-
+<span class="n">fm</span><span class="o">.</span><span class="n">set_results_folder</span><span class="p">(</span><span class="s2">&quot;Results&quot;</span><span class="p">)</span>
 
 <span class="c1"># -------------------------------------------------------------------</span>
 <span class="c1"># IMPORTANT:</span>
@@ -470,7 +470,7 @@
 
 
 <span class="c1"># Create assembly Sections</span>
-<span class="n">fm</span><span class="o">.</span><span class="n">assembler</span><span class="o">.</span><span class="n">create_section</span><span class="p">(</span><span class="n">meshparts</span><span class="o">=</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;Layer</span><span class="si">{</span><span class="n">layer</span><span class="p">[</span><span class="s1">&#39;layer&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">layer</span> <span class="ow">in</span> <span class="n">layers</span><span class="p">],</span> <span class="n">num_partitions</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+<span class="n">fm</span><span class="o">.</span><span class="n">assembler</span><span class="o">.</span><span class="n">create_section</span><span class="p">(</span><span class="n">meshparts</span><span class="o">=</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;Layer</span><span class="si">{</span><span class="n">layer</span><span class="p">[</span><span class="s1">&#39;layer&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">layer</span> <span class="ow">in</span> <span class="n">layers</span><span class="p">],</span> <span class="n">num_partitions</span><span class="o">=</span><span class="mi">32</span><span class="p">)</span>
 
 
 <span class="c1"># Assemble the mesh parts</span>
@@ -538,7 +538,7 @@
 <span class="c1"># ===================================================================</span>
 <span class="c1"># ===================================================================</span>
 <span class="n">fm</span><span class="o">.</span><span class="n">drm</span><span class="o">.</span><span class="n">addAbsorbingLayer</span><span class="p">(</span><span class="n">numLayers</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
-                        <span class="n">numPartitions</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                        <span class="n">numPartitions</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span>
                         <span class="n">partitionAlgo</span><span class="o">=</span><span class="s2">&quot;kd-tree&quot;</span><span class="p">,</span>
                         <span class="n">geometry</span><span class="o">=</span><span class="s2">&quot;Rectangular&quot;</span><span class="p">,</span>
                         <span class="n">rayleighDamping</span><span class="o">=</span><span class="mf">0.95</span><span class="p">,</span>

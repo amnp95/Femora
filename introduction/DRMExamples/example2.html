@@ -570,7 +570,7 @@
 
 <span class="c1"># change the direcotto the current file</span>
 <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)))</span>
-
+<span class="n">fm</span><span class="o">.</span><span class="n">set_results_folder</span><span class="p">(</span><span class="s2">&quot;Results&quot;</span><span class="p">)</span>
 
 <span class="c1"># Layer properties as a dictionary</span>
 <span class="n">layers</span> <span class="o">=</span> <span class="p">[</span>
@@ -641,7 +641,7 @@
 <span class="k">for</span> <span class="n">layer</span> <span class="ow">in</span> <span class="n">layers</span><span class="p">:</span>
     <span class="n">mesh_parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Layer</span><span class="si">{</span><span class="n">layer</span><span class="p">[</span><span class="s1">&#39;layer&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
-<span class="n">fm</span><span class="o">.</span><span class="n">assembler</span><span class="o">.</span><span class="n">create_section</span><span class="p">(</span><span class="n">mesh_parts</span><span class="p">,</span> <span class="n">num_partitions</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+<span class="n">fm</span><span class="o">.</span><span class="n">assembler</span><span class="o">.</span><span class="n">create_section</span><span class="p">(</span><span class="n">mesh_parts</span><span class="p">,</span> <span class="n">num_partitions</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span> <span class="n">partition_algorithm</span> <span class="o">=</span> <span class="s2">&quot;metis&quot;</span><span class="p">)</span>
 
 <span class="n">fm</span><span class="o">.</span><span class="n">assembler</span><span class="o">.</span><span class="n">Assemble</span><span class="p">()</span>
 <span class="c1"># fm.addAbsorbingLayer(numLayers=10,</span>
@@ -653,7 +653,7 @@
 <span class="c1">#                         type=&quot;Rayleigh&quot;,</span>
 <span class="c1">#                         )</span>
 <span class="n">fm</span><span class="o">.</span><span class="n">drm</span><span class="o">.</span><span class="n">addAbsorbingLayer</span><span class="p">(</span><span class="n">numLayers</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
-                        <span class="n">numPartitions</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span>
+                        <span class="n">numPartitions</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span>
                         <span class="n">partitionAlgo</span><span class="o">=</span><span class="s2">&quot;kd-tree&quot;</span><span class="p">,</span>
                         <span class="n">geometry</span><span class="o">=</span><span class="s2">&quot;Rectangular&quot;</span><span class="p">,</span>
                         <span class="n">rayleighDamping</span><span class="o">=</span><span class="mf">0.95</span><span class="p">,</span>
@@ -669,11 +669,11 @@
                                         <span class="n">transform_matrix</span><span class="o">=</span><span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">],</span>
                                         <span class="n">origin</span><span class="o">=</span><span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">])</span>
 <span class="n">fm</span><span class="o">.</span><span class="n">drm</span><span class="o">.</span><span class="n">set_pattern</span><span class="p">(</span><span class="n">h5pattern</span><span class="p">)</span>
-<span class="n">fm</span><span class="o">.</span><span class="n">drm</span><span class="o">.</span><span class="n">createDefaultProcess</span><span class="p">(</span><span class="n">finalTime</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span> <span class="n">dT</span><span class="o">=</span><span class="mf">0.01</span><span class="p">)</span>
+<span class="n">fm</span><span class="o">.</span><span class="n">drm</span><span class="o">.</span><span class="n">createDefaultProcess</span><span class="p">(</span><span class="n">finalTime</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">dT</span><span class="o">=</span><span class="mf">0.01</span><span class="p">)</span>
 <span class="n">fm</span><span class="o">.</span><span class="n">export_to_tcl</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="s2">&quot;model.tcl&quot;</span><span class="p">)</span>
 
 <span class="c1"># fm.export_to_vtk(&quot;mesh.vtk&quot;)</span>
-<span class="n">fm</span><span class="o">.</span><span class="n">gui</span><span class="p">()</span>
+<span class="c1"># fm.gui()</span>
 </pre></div>
 </div>
 </div>
