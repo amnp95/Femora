@@ -1,5 +1,7 @@
 from abc import ABC, abstractmethod
-from femora.components.Material.materialBase import MaterialManager
+from femora.components.Material.materialBase import MaterialManager, Material
+from femora.components.Assemble.Assembler import Assembler 
+
 
 class Action(ABC):
     """
@@ -58,6 +60,60 @@ class wipeAnalysis(Action):
 
     def to_tcl(self) -> str:
         return "wipeAnalysis"
+
+
+
+class SetMaterialParameter(Action):
+    """Action to set or update a material parameter.
+    This action allows updating a specific parameter of a material.
+
+    Args:
+        material (int|str|Material): The material to update, specified by its tag, name, or Material instance.
+        parameter_name (str): The name of the parameter to update.
+        parameter_value (float): The new value for the parameter.
+        element_tags (list[int]|None, optional): List of element tags to which the material is assigned. If None, the parameter is updated for all elements using the material.
+
+    Raises:
+        ValueError: If the specified material is not found in the MaterialManager.
+        ValueError: If the specified parameter name is not valid for the material.
+
+    Returns:
+        Action: An action that updates the specified material parameter.
+    """
+
+    def __init__(self, material: int|str|Material, 
+                parameter_name: str, 
+                parameter_value: float|int|str|None = None,
+                element_tags: list[int]|None = None): 
+
+        from femora.components.MeshMaker import MeshMaker
+        import numpy as np
+    
+        try:
+            self.mat = MaterialManager().get_material(material)
+        except ValueError:
+            raise ValueError(f"Material '{material}' not found in MaterialManager.")
+
+        # create list of element tags if not provided
+        if element_tags is None:
+            # print(Assembler().AssembeledMesh.cell_data )
+            mask = Assembler().AssembeledMesh.cell_data["MaterialTag"] == self.mat.tag
+            elements = np.arange(Assembler().AssembeledMesh.n_cells)[mask]
+            elements = elements + MeshMaker()._start_ele_tag
+            self.element_tags = elements.tolist()
+            # self.element_tags = Assembler().AssembeledMesh.point_data 
+        self.parameter_name = parameter_name
+        self.parameter_value = parameter_value
+
+
+    def to_tcl(self) -> str:
+        return self.mat.set_parameter(
+            parameter_name=self.parameter_name,
+            new_value=self.parameter_value,
+            element_tags=self.element_tags)
+    
+
+    
     
 
 class updateMaterialStageToElastic(Action):
@@ -250,6 +306,7 @@ class ActionManager:
         self.exit = exit
         self.seTime = seTime
         self.tcl = tcl
+        self.set_material_parameter = SetMaterialParameter
 
     
     

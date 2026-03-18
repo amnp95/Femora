@@ -941,6 +941,92 @@ class PressureIndependMultiYieldMaterial(Material):
             'Pairs of (gamma, Gs) for custom backbone'
         ]
 
+    def updateMaterialStage(self, state: str) -> str:
+        """
+        Build an OpenSees updateMaterialStage command for this material.
+
+        Parameters:
+        - state: 'elastic' -> stage 0; 'plastic' -> stage 1. Any other value
+          returns an empty string.
+
+        Returns:
+        - str: Command or empty string if state is unrecognized
+        """
+        if state.lower() == 'elastic':
+            return f"updateMaterialStage -material {self.tag} -stage 0 ;# {self.user_name}"
+        elif state.lower() == 'plastic':
+            return f"updateMaterialStage -material {self.tag} -stage 1 ;# {self.user_name}"
+        else:
+            return ""
+
+
+    def set_parameter(self, parameter_name: str, new_value: float|int|str|None = None, element_tags:[int] = []) -> str:
+        """Generate the OpenSees command to set a material parameter for specific elements.
+
+        Parameters:
+        - parameter_name: Name of the material parameter to set.
+            could be one of "shearModulus", "bulkModulus", "cohesion", "frictionAngle", "stressCorrection"
+            shearModulus: update the reference shear modulus (Gr)
+            bulkModulus: update the reference bulk modulus (Br)
+            cohesion: update the apparent cohesion (c)
+            frictionAngle: update the friction angle (Φ)
+            stressCorrection: update shear modulus and bulk modulus  according to initial vertical effective stress
+        - new_value: New value for the specified parameter.
+        - element_tags: List of element tags to which the parameter update applies.
+
+
+        Raises:
+        - ValueError: If the parameter_name is not valid for the material.
+
+        Returns:
+        - str: OpenSees command string to set the material parameter.
+        """
+        if parameter_name not in ["shearModulus", 
+                                    "bulkModulus", 
+                                    "cohesion", 
+                                    "frictionAngle", 
+                                    "stressCorrection"]:
+                raise ValueError(f"Parameter '{parameter_name}' is not valid for PressureIndependMultiYieldMaterial.")  
+
+        element_tags_str = "{"
+        element_tags_str += " ".join(str(tag) for tag in element_tags)
+        element_tags_str += "}"
+
+
+
+        tcl = " set domainEleTags [getEleTags]\n"
+        tcl += f"foreach eleTag {element_tags_str} {{\n"
+        tcl += f"    # if eleTag is not in domainEleTags, skip\n"
+        tcl += f"    if {{![lsearch -exact $domainEleTags $eleTag]}} {{\n"
+        tcl += f"        continue\n"
+        tcl += f"    }}\n"
+        tcl += f"    set matTag [eleMaterial $eleTag]\n"
+        if parameter_name == "shearModulus":
+            tcl += f"    setParameter -val {new_value} -ele $eleTag material {self.tag} shearModulus\n"
+        elif parameter_name == "bulkModulus":
+            tcl += f"    setParameter -val {new_value} -ele $eleTag material {self.tag} bulkModulus\n"
+        elif parameter_name == "cohesion":
+            tcl += f"    setParameter -val {new_value} -ele $eleTag material {self.tag} cohesion\n"
+        elif parameter_name == "frictionAngle":
+            tcl += f"    setParameter -val {new_value} -ele $eleTag material {self.tag} frictionAngle\n"
+        elif parameter_name == "stressCorrection":
+            # claclulate the stress first
+            tcl += f"    set sigmaV0 [eleResponse $eleTag stress3D6]\n"
+            tcl += f"    set sigmaV0 [lindex $sigmaV0 2]\n"  # get the vertical stress component
+            tcl += f"    setParameter -val $sigmaV0 -ele $eleTag material {self.tag} shearModulus\n"
+            tcl += f"    setParameter -val $sigmaV0 -ele $eleTag material {self.tag} bulkModulus\n"
+        tcl += f"}}\n"
+
+        return tcl
+    
+
+
+
+
+
+
+
+        
 MaterialRegistry.register_material_type('nDMaterial', 'PressureIndependMultiYield', PressureIndependMultiYieldMaterial)
 
 

@@ -334,6 +334,27 @@ class Material(ABC):
         """
         return ""
 
+    def set_parameter(self, parameter_name: str, new_value: float|int|str|None = None, element_tags:[int] = []) -> str:
+        """Sets a specific parameter to a new value.
+
+        This method returns the tcl string to update material parameter in OpenSees.
+        if element_tag is provided, it will return the tcl string to update the
+        parameter for that specific element.
+
+        Args:
+            parameter_name: The name of the parameter to update.
+            new_value: The new value for the parameter.
+            element_tag: Optional element tag to update the parameter for a specific element.
+        
+        Raises:
+            ValueError: If the parameter_name is not valid for the material.
+
+
+        Returns:
+            TCL command string to update the parameter.
+        """
+        return ""
+
 
 class MaterialRegistry:
     """A registry to manage material types and their creation.
