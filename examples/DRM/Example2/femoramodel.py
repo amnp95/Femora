@@ -3,7 +3,7 @@ import os
 
 # change the direcotto the current file
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
-
+fm.set_results_folder("Results")
 
 # Layer properties as a dictionary
 layers = [
@@ -74,7 +74,7 @@ mesh_parts = []
 for layer in layers:
     mesh_parts.append(f"Layer{layer['layer']}")
 
-fm.assembler.create_section(mesh_parts, num_partitions=4)
+fm.assembler.create_section(mesh_parts, num_partitions=32, partition_algorithm = "metis")
 
 fm.assembler.Assemble()
 # fm.addAbsorbingLayer(numLayers=10,
@@ -86,7 +86,7 @@ fm.assembler.Assemble()
 #                         type="Rayleigh",
 #                         )
 fm.drm.addAbsorbingLayer(numLayers=4,
-                        numPartitions=8,
+                        numPartitions=64,
                         partitionAlgo="kd-tree",
                         geometry="Rectangular",
                         rayleighDamping=0.95,
@@ -102,8 +102,8 @@ h5pattern = fm.pattern.create_pattern( 'h5drm',
                                         transform_matrix=[1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0],
                                         origin=[0.0, 0.0, 0.0])
 fm.drm.set_pattern(h5pattern)
-fm.drm.createDefaultProcess(finalTime=30, dT=0.01)
+fm.drm.createDefaultProcess(finalTime=20, dT=0.01)
 fm.export_to_tcl(filename="model.tcl")
 
 # fm.export_to_vtk("mesh.vtk")
-fm.gui()
+# fm.gui()

@@ -761,13 +761,13 @@ if __name__ == "__main__":
     # ------------------------------------------------------------------
     # 3. Make assembly & interface
     # ------------------------------------------------------------------
-    fm.assembler.create_section(["soil"], num_partitions=8, merging_points=False)
+    fm.assembler.create_section(["soil"], num_partitions=8, merge_points=False)
     # "cap", "beam1", "beam2", "beam3", "beam4", "beam5"
-    fm.assembler.create_section(["cap", "piles"], num_partitions=4, merging_points=False)
-    # fm.assembler.create_section(["piles"], num_partitions=1, merging_points=False)
-    # fm.assembler.create_section(["beam1", "beam2"], num_partitions=4, merging_points=False)
-    # fm.assembler.create_section(["beam3", "beam4", "beam5"], num_partitions=4, merging_points=False)
-    # fm.assembler.create_section(["beam1", "beam2", "beam3", "beam4", "beam5"], num_partitions=8, merging_points=False)
+    fm.assembler.create_section(["cap", "piles"], num_partitions=4, merge_points=False)
+    # fm.assembler.create_section(["piles"], num_partitions=1, merge_points=False)
+    # fm.assembler.create_section(["beam1", "beam2"], num_partitions=4, merge_points=False)
+    # fm.assembler.create_section(["beam3", "beam4", "beam5"], num_partitions=4, merge_points=False)
+    # fm.assembler.create_section(["beam1", "beam2", "beam3", "beam4", "beam5"], num_partitions=8, merge_points=False)
     interface_radius = 0.25  # Radius for the embedded beam-solid interface
     EmbeddedBeamSolidInterface(
         name="EmbedTest",

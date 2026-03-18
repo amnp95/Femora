@@ -493,6 +493,168 @@ class NodeRecorder(Recorder):
         }
 
 
+class DriftRecorder(Recorder):
+    """Recorder for inter-story drift ratios.
+
+    This wraps the OpenSees `recorder Drift` command.
+
+    Notes:
+        - In MPI runs, multiple processes must not write to the same file.
+          This recorder automatically injects `$pid` into the output filename
+          (before the extension if present).
+        - Optionally, a `core` can be provided to emit the recorder inside an
+          `if {$pid == core}` guard.
+
+    Example:
+        >>> import femora as fm
+        >>> from femora.components.MeshMaker import MeshMaker
+        >>> model = MeshMaker()
+        >>> rec = model.recorder.drift(
+        ...     file_name="StoryDrift_Story01_X.out",
+        ...     i_nodes=1,
+        ...     j_nodes=101,
+        ...     dof=1,
+        ...     perp_dirn=3,
+        ...     time=True,
+        ... )
+        >>> print(rec.to_tcl())
+    """
+
+    def __init__(self, **kwargs):
+        super().__init__("Drift")
+
+        self.file_name: str = str(kwargs.get("file_name", ""))
+
+        i_nodes = kwargs.get("i_nodes", None)
+        j_nodes = kwargs.get("j_nodes", None)
+
+        self.i_nodes: List[int] = self._normalize_nodes(i_nodes, "i_nodes")
+        self.j_nodes: List[int] = self._normalize_nodes(j_nodes, "j_nodes")
+
+        self.dof: int = int(kwargs.get("dof", 0))
+        self.perp_dirn: int = int(kwargs.get("perp_dirn", 3))
+        self.time: bool = bool(kwargs.get("time", False))
+        self.delta_t: Optional[float] = kwargs.get("delta_t", None)
+        self.precision: Optional[int] = kwargs.get("precision", None)
+        core = kwargs.get("core", None)
+        self.core: Optional[int] = int(core) if core is not None else None
+
+        self.validate()
+
+    @staticmethod
+    def _normalize_nodes(value, name: str) -> List[int]:
+        if value is None:
+            return []
+        if isinstance(value, int):
+            return [int(value)]
+        if isinstance(value, (list, tuple)):
+            return [int(v) for v in value]
+
+        # Allow numpy arrays without importing numpy at module import time.
+        try:
+            import numpy as _np  # local import
+
+            if isinstance(value, _np.ndarray):
+                return [int(v) for v in value.tolist()]
+        except Exception:
+            pass
+        raise TypeError(f"{name} must be an int or a list/tuple of ints")
+
+    def validate(self) -> None:
+        if not self.file_name:
+            raise ValueError("file_name must be specified for DriftRecorder")
+
+        if not self.i_nodes or not self.j_nodes:
+            raise ValueError("Both i_nodes and j_nodes must be specified")
+
+        if len(self.i_nodes) != len(self.j_nodes):
+            raise ValueError("i_nodes and j_nodes must have the same length")
+
+        for n in self.i_nodes + self.j_nodes:
+            if not isinstance(n, int) or n <= 0:
+                raise ValueError("All node tags must be positive integers")
+
+        if self.dof not in (1, 2, 3, 4, 5, 6):
+            raise ValueError("dof must be an integer in [1..6]")
+
+        if self.perp_dirn not in (1, 2, 3):
+            raise ValueError("perp_dirn must be an integer in [1..3]")
+
+        if self.delta_t is not None:
+            self.delta_t = float(self.delta_t)
+            if self.delta_t <= 0:
+                raise ValueError("delta_t must be > 0 when provided")
+
+        if self.precision is not None:
+            self.precision = int(self.precision)
+            if self.precision <= 0:
+                raise ValueError("precision must be > 0 when provided")
+
+        if self.core is not None and self.core < 0:
+            raise ValueError("core must be >= 0 when provided")
+
+    @staticmethod
+    def get_parameters() -> List[tuple]:
+        return [
+            ("file_name", "Output filename (required)"),
+            ("i_nodes", "Lower nodes (int or list[int])"),
+            ("j_nodes", "Upper nodes (int or list[int])"),
+            ("dof", "Drift direction DOF (1..6)"),
+            ("perp_dirn", "Perpendicular direction for drift normalization (1..3)"),
+            ("time", "Include -time flag"),
+            ("delta_t", "Recording interval (-dT), optional"),
+            ("precision", "Significant digits (-precision), optional"),
+            ("core", "Optional MPI core id to guard recorder creation"),
+        ]
+
+    def get_values(self) -> Dict[str, Union[str, int, float, list, bool]]:
+        return {
+            "file_name": self.file_name,
+            "i_nodes": self.i_nodes,
+            "j_nodes": self.j_nodes,
+            "dof": self.dof,
+            "perp_dirn": self.perp_dirn,
+            "time": self.time,
+            "delta_t": self.delta_t,
+            "precision": self.precision,
+            "core": self.core,
+        }
+
+    @staticmethod
+    def _inject_pid_in_filename(file_name: str) -> str:
+        parts = file_name.split(".")
+        if len(parts) > 1:
+            ext = parts[-1]
+            return file_name[: -(len(ext) + 1)] + f"$pid.{ext}"
+        return file_name + "$pid"
+
+    def to_tcl(self) -> str:
+        from femora import MeshMaker
+
+        results_folder = MeshMaker.get_results_folder()
+        file_path = DriftRecorder._inject_pid_in_filename(self.file_name)
+        if results_folder:
+            file_path = results_folder + "/" + file_path
+
+        cmd = f"recorder Drift -file {file_path}"
+        if self.precision is not None:
+            cmd += f" -precision {int(self.precision)}"
+
+        cmd += " -iNode " + " ".join(str(n) for n in self.i_nodes)
+        cmd += " -jNode " + " ".join(str(n) for n in self.j_nodes)
+        cmd += f" -dof {int(self.dof)} -perpDirn {int(self.perp_dirn)}"
+
+        if self.time:
+            cmd += " -time"
+        if self.delta_t is not None:
+            cmd += f" -dT {float(self.delta_t)}"
+
+        if self.core is not None:
+            return f"if {{$pid == {int(self.core)}}} {{\n\t{cmd}\n}}"
+
+        return cmd
+
+
 class VTKHDFRecorder(Recorder):
     """
     The VTKHDF recorder type is a whole model recorder designed to record 
@@ -626,7 +788,7 @@ class VTKHDFRecorder(Recorder):
 
 class MPCORecorder(Recorder):
     """
-    MPCO recorder writes model responses into an HDF5 database readable by STKO (\*.mpco).
+    MPCO recorder writes model responses into an HDF5 database readable by STKO (*.mpco).
 
     Command form (see official docs):
         recorder mpco $fileName \
@@ -1117,6 +1279,7 @@ class RecorderRegistry:
     """
     _recorder_types = {
         'node': NodeRecorder,
+        'drift': DriftRecorder,
         'vtkhdf': VTKHDFRecorder,
         'mpco': MPCORecorder,
         'beam_force': BeamForceRecorder,
@@ -1190,6 +1353,7 @@ class RecorderManager:
 
     vtkhdf = VTKHDFRecorder
     node = NodeRecorder
+    drift = DriftRecorder
     mpco = MPCORecorder
     beam_force = BeamForceRecorder
     embedded_beam_solid_interface = EmbeddedBeamSolidInterfaceRecorder

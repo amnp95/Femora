@@ -3,7 +3,7 @@ import numpy as np
 import pyvista as pv
 import logging
 import sys
-from scipy.spatial import KDTree
+from scipy.spatial import cKDTree
 
 from femora.components.Mesh.meshPartBase import MeshPart
 from femora.components.partitioner.partitioner import PartitionerRegistry
@@ -71,7 +71,8 @@ class Assembler:
         num_partitions: int = 1, 
         partition_algorithm: str = "kd-tree", 
         partitioner: Optional[str] = None,
-        merging_points: bool = True,
+        merge_points: bool = True,
+        merge_in_final: bool = True,
         mass_merging: str = "sum",
         tolerance: float = 1e-5,
         **kwargs: Any
@@ -95,13 +96,20 @@ class Assembler:
             partitioner (str, optional): Mesh partitioner name (Femora terminology), e.g. "kd-tree",
                                          "morton", "geometric".
                                          If provided, it overrides ``partition_algorithm``.
-            merging_points (bool, optional): Whether to merge points that are within a 
+            merge_points (bool, optional): Whether to merge points that are within a 
                                            tolerance distance when assembling mesh parts.
+                                           Defaults to True.
+            merge_in_final (bool, optional): If True, this section's points may be merged during
+                                           the *final* Assembler.Assemble(...)
+                                           merge pass (when merge_points=True). If False, this
+                                           section is excluded from final point merging.
                                            Defaults to True.
             mass_merging (str, optional): Method for merging mass properties of mesh parts.
                                            Defaults to "sum". Options are "sum" or "average".
                                            if "sum", the mass is summed across all merged points.
                                            if "average", the mass is averaged across merged points.
+            tolerance (float, optional): Spatial tolerance used when merging points within this
+                                           assembly section. Defaults to 1e-5.
             **kwargs: Additional keyword arguments to pass to AssemblySection constructor
         
         Returns:
@@ -120,8 +128,10 @@ class Assembler:
             meshparts=meshparts,
             num_partitions=num_partitions,
             partition_algorithm=partition_algorithm,
-            merging_points=merging_points,
+            merge_points=merge_points,
+            merge_in_final=merge_in_final,
             mass_merging=mass_merging,
+            tolerance=tolerance,
             **kwargs
         )
         
@@ -290,7 +300,8 @@ class Assembler:
         Snap points within tolerance to the first representative point
         using KDTree.
         """
-        tree = KDTree(points)
+        points = np.ascontiguousarray(points)
+        tree = cKDTree(points)
         groups = tree.query_ball_tree(tree, tol)
 
         visited = np.zeros(len(points), dtype=bool)
@@ -299,11 +310,10 @@ class Assembler:
         for i in range(len(points)):
             if visited[i]:
                 continue
-            cluster = groups[i]
+            cluster = np.asarray(groups[i], dtype=np.intp)
             rep = points[i]  # pick the first point
-            for j in cluster:
-                snapped[j] = rep
-                visited[j] = True
+            snapped[cluster] = rep
+            visited[cluster] = True
 
         return snapped
     
@@ -381,21 +391,33 @@ class Assembler:
         
         sorted_sections = sorted(self._assembly_sections.items(), key=lambda x: x[0])
         
-        first_mesh = sorted_sections[0][1].mesh
+        first_section = sorted_sections[0][1]
+        first_mesh = first_section.mesh
         # assert first_mesh is not None, "AssemblySection mesh is None"
         if first_mesh is None:
             raise ValueError("There is no mesh to assemble. Please create an AssemblySection first.")
         
         self.AssembeledMesh = pv.MultiBlock();
-        self.AssembeledMesh.append(first_mesh.copy())
+        first_block = first_mesh.copy()
+        first_block.point_data["MergeInFinal"] = np.full(
+            first_block.n_points,
+            1 if getattr(first_section, "merge_in_final", True) else 0,
+            dtype=np.uint8,
+        )
+        self.AssembeledMesh.append(first_block)
         progress_callback(1 / len(sorted_sections) * 70, f"merged section 1/{len(sorted_sections)}")
-        num_partitions = sorted_sections[0][1].num_partitions
+        num_partitions = first_section.num_partitions
 
         try :
             for idx, (tag, section) in enumerate(sorted_sections[1:], start=2):
                 second_mesh = section.mesh.copy()  # type: ignore[attr-defined]
                 second_mesh.cell_data["Core"] = second_mesh.cell_data["Core"] + num_partitions
                 num_partitions = num_partitions + section.num_partitions
+                second_mesh.point_data["MergeInFinal"] = np.full(
+                    second_mesh.n_points,
+                    1 if getattr(section, "merge_in_final", True) else 0,
+                    dtype=np.uint8,
+                )
                 self.AssembeledMesh.append(second_mesh)
                 perc = idx / len(sorted_sections) * 70
                 progress_callback(perc, f"merged section {idx}/{len(sorted_sections)}")
@@ -409,13 +431,31 @@ class Assembler:
                 # snap points within tolerance
                 self.AssembeledMesh.points = self._snap_points(self.AssembeledMesh.points, tolerance)
 
+                # Build a per-point merge key so some sections can be excluded from
+                # the final merge pass.
+                if "MergeInFinal" in self.AssembeledMesh.point_data:
+                    participate = np.asarray(
+                        self.AssembeledMesh.point_data["MergeInFinal"],
+                        dtype=np.uint8,
+                    )
+                else:
+                    participate = np.ones(self.AssembeledMesh.n_points, dtype=np.uint8)
+
+                ndf = np.asarray(self.AssembeledMesh.point_data["ndf"], dtype=np.int64)
+                merge_key = ndf.copy()
+                excluded = participate == 0
+                if np.any(excluded):
+                    excluded_idx = np.nonzero(excluded)[0].astype(np.int64, copy=False)
+                    merge_key[excluded] = -(excluded_idx + 1)
+                self.AssembeledMesh.point_data["FinalMergeKey"] = merge_key
+
                 mass = self.AssembeledMesh.point_data["Mass"]
                 self.AssembeledMesh = self.AssembeledMesh.clean(
-                    tolerance=1e-5,
+                    tolerance=tolerance,
                     remove_unused_points=False,
                     produce_merge_map=True,
                     average_point_data=True,
-                    merging_array_name="ndf",
+                    merging_array_name="FinalMergeKey",
                     progress_bar=False,
                 )
                 # make the ndf array uint16
@@ -951,7 +991,7 @@ class AssemblySection:
         meshparts_list (List[MeshPart]): List of MeshPart objects in this section
         num_partitions (int): Number of partitions for parallel processing
         partition_algorithm (str): Algorithm used for partitioning the mesh
-        merging_points (bool): Whether points are merged during assembly
+        merge_points (bool): Whether points are merged during assembly
         mesh (pyvista.UnstructuredGrid): The assembled mesh
         elements (List[Element]): Elements used in this assembly section
         materials (List[Material]): Materials used in this assembly section
@@ -964,7 +1004,8 @@ class AssemblySection:
         num_partitions: int = 1, 
         partition_algorithm: str = "kd-tree", 
         partitioner: Optional[str] = None,
-        merging_points: bool = True,
+        merge_points: bool = True,
+        merge_in_final: bool = True,
         progress_callback=None,
         mass_merging: str = "sum",
         tolerance: float = 1e-5,
@@ -993,7 +1034,7 @@ class AssemblySection:
                                          If provided, it overrides ``partition_algorithm``.
             mass_merging (str, optional): Method for merging mass properties of mesh parts.
                                           Options are "sum" or "average". Defaults to "sum".
-            merging_points (bool, optional): Whether to merge points that are within a
+            merge_points (bool, optional): Whether to merge points that are within a
                                            tolerance distance when assembling mesh parts.
                                            Defaults to True.
                                            
@@ -1022,7 +1063,8 @@ class AssemblySection:
 
         # Initialize tag to None
         self._tag = None
-        self.merging_points = merging_points
+        self.merge_points = merge_points
+        self.merge_in_final = bool(merge_in_final)
         if mass_merging not in ["sum", "average"]:
             raise ValueError(f"Invalid mass merging method: {mass_merging}. Must be 'sum' or 'average'.")
         self.mass_merging = mass_merging
@@ -1100,7 +1142,8 @@ class AssemblySection:
         Snap points within tolerance to the first representative point
         using KDTree.
         """
-        tree = KDTree(points)
+        points = np.ascontiguousarray(points)
+        tree = cKDTree(points)
         groups = tree.query_ball_tree(tree, tol)
 
         visited = np.zeros(len(points), dtype=bool)
@@ -1109,11 +1152,10 @@ class AssemblySection:
         for i in range(len(points)):
             if visited[i]:
                 continue
-            cluster = groups[i]
+            cluster = np.asarray(groups[i], dtype=np.intp)
             rep = points[i]  # pick the first point
-            for j in cluster:
-                snapped[j] = rep
-                visited[j] = True
+            snapped[cluster] = rep
+            visited[cluster] = True
 
         return snapped
     
@@ -1232,7 +1274,6 @@ class AssemblySection:
         self.mesh = pv.MultiBlock([first_mesh])  # Start with the first mesh as a MultiBlock
         for idx, meshpart in enumerate(self.meshparts_list[1:], start=2):
             second_mesh = meshpart.mesh.copy()
-            second_mesh = meshpart.mesh.copy()
             
             ndf = 0
             if meshpart.element:
@@ -1282,9 +1323,11 @@ class AssemblySection:
             merge_points = False,
             tolerance = 1e-5,
         )
-        if self.merging_points:
-            mass = self.mesh.point_data["Mass"]
-            number_of_points_before_cleaning = self.mesh.number_of_points
+        if self.merge_points:
+            mass = None
+            if self.mass_merging == "sum":
+                # Avoid averaging Mass in clean(); rebuild it explicitly from PointMergeMap.
+                mass = np.asarray(self.mesh.point_data.pop("Mass"), dtype=np.float32)
 
             # fist we snap points within tolerance to the first representative point
             points = self._snap_points(self.mesh.points, tol=self.tolerance)
@@ -1299,19 +1342,21 @@ class AssemblySection:
                 progress_bar=False,
             )
 
-            number_of_points_after_cleaning = self.mesh.number_of_points
             # make the ndf array uint16
-            self.mesh.point_data["ndf"] = self.mesh.point_data["ndf"].astype(np.uint16)
+            self.mesh.point_data["ndf"] = self.mesh.point_data["ndf"].astype(np.uint16, copy=False)
             # make the MeshPartTag_pointdata array uint16
-            self.mesh.point_data["MeshPartTag_pointdata"] = self.mesh.point_data["MeshPartTag_pointdata"].astype(np.uint16)
+            self.mesh.point_data["MeshPartTag_pointdata"] = self.mesh.point_data["MeshPartTag_pointdata"].astype(np.uint16, copy=False)
 
             if self.mass_merging == "sum":
-                if number_of_points_before_cleaning != number_of_points_after_cleaning:
-                    Mass = np.zeros((self.mesh.number_of_points, FEMORA_MAX_NDF), dtype=np.float32)
-                    for i in range(self.mesh.field_data["PointMergeMap"].shape[0]):
-                        Mass[self.mesh.field_data["PointMergeMap"][i],:] += mass[i,:]
-            
-                    self.mesh.point_data["Mass"] = Mass
+                merge_map = np.asarray(self.mesh.field_data["PointMergeMap"]).reshape(-1)
+                Mass = np.zeros((self.mesh.number_of_points, FEMORA_MAX_NDF), dtype=np.float32)
+
+                if mass is not None:
+                    nonzero_rows = np.any(mass != 0.0, axis=1)
+                    if np.any(nonzero_rows):
+                        np.add.at(Mass, merge_map[nonzero_rows], mass[nonzero_rows])
+
+                self.mesh.point_data["Mass"] = Mass
 
             del self.mesh.field_data["PointMergeMap"]
 

@@ -33,8 +33,8 @@ structure_info = {
         {"tag":116, "x":13.71600,  "y":13.71600,   "z":0.00000 },
     ],  
     "column_embedment_depth":0.3, # embedment depth of the columns in the foundation
-    "model_file":r"C:\Users\aminp\OneDrive\Desktop\DRMGUI\examples\EEUQ\Example2\steel_frame.tcl", 
-    "mesh_file" :r"C:\Users\aminp\OneDrive\Desktop\DRMGUI\examples\EEUQ\Example2\building.vtkhdf",
+    "model_file":r".\steel_frame.tcl", 
+    "mesh_file" :r".\building.vtkhdf",
     "column_section_props":{
         "E": 30e6,    # Elastic Modulus
         "A": 0.282,     # Area

@@ -5,7 +5,7 @@ import os
 from femora.tools.buildings.steel_frame import FEMA_SAC_SteelFrame
 # change the direcotto the current file
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
-fm.set_results_folder("Results")
+
 
 model = fm.MeshMaker()
 # # =========================================================
@@ -66,8 +66,7 @@ nz_foundation = int((z_max_foundation-z_min_foundation)/foundation_ele_size)
 
 
 
-
-fondation_ele = model.element.brick.std(ndof=3, material=concrete_mat, material_density=concrete_density, b1=0, b2=0, b3=0, lumped=False)
+fondation_ele = model.element.brick.std(ndof=3, material=concrete_mat, material_density=concrete_density, b1=0, b2=0, b3=0, lumped=True)
 
 model.meshPart.volume.uniform_rectangular_grid(
     user_name="foundation",
@@ -226,15 +225,6 @@ foundation_parts.extend(piles_part)
 # =================================================================
 # interface between building and foundation
 # =================================================================
-# model.interface.node_interface(name="building_foundation_interface",
-#                                constrained_node="nine_story_building",
-#                                retained_nodes=["foundation"],
-#                                K=1e6,
-#                                rot=True,
-#                                friction_interface=False)
-
-
-
 # this example is the extension of the example2 which we have semihemispherical basin at the center in this model we are going to use External mesh as a part of the model
 # Parameters for the semihemispherical hole
 center_x, center_y, center_z = 0, 0, 70  # Center at the top surface
@@ -305,9 +295,16 @@ softMat_G = softMat_E / (2 * (1 + softMat_nu))
 softMat_K = softMat_E / (3 * (1 - 2 * softMat_nu))
 softMat_Cohesion = 8.0
 softMat_peakStrain = 0.1
-sofmat = fm.material.create_material("nDMaterial", "ElasticIsotropic",
-                                user_name=f"softMaterial",
-                                E=softMat_E, nu=softMat_nu, rho=softMat_rho)
+sofmat = model.material.nd.pressure_independ_multi_yield(
+    user_name="softMaterial",
+    nd=3,
+    rho=softMat_rho,
+    refShearModul=softMat_G,
+    refBulkModul=softMat_K,
+    cohesi=softMat_Cohesion,
+    peakShearStra=softMat_peakStrain,
+    updatewithsigmav0 = True
+)
 
 softele = model.element.create_element(element_type="stdBrick",
                                 ndof=3,
@@ -315,7 +312,7 @@ softele = model.element.create_element(element_type="stdBrick",
                                 b1=0,
                                 b2=0,
                                 b3=0,
-                                lumped=False)
+                                lumped=True)
 softMat_damp = model.damping.create_damping("frequency rayleigh", dampingFactor=softMat_xi_s, f1=3, f2=15)
 softMat_reg = model.region.create_region("elementRegion", damping=None)
 
@@ -336,7 +333,7 @@ def helperfunction(layer, rho, vp, vs, xi_s, xi_p, thickness):
                                     b1=0,
                                     b2=0,
                                     b3=0,
-                                    lumped=False)
+                                    lumped=True)
 
     damp = model.damping.create_damping("frequency rayleigh", dampingFactor=xi_s, f1=3, f2=15)
     reg = model.region.create_region("elementRegion", damping=None)
@@ -568,7 +565,7 @@ model.drm.addAbsorbingLayer(numLayers=5,
                         geometry="Rectangular",
                         rayleighDamping=0.95,
                         matchDamping=False,
-                        type="PML",
+                        type="Rayleigh",
                         )
 
 model.constraint.sp.fixMacroZmin(dofs=[1,1,1,1,1,1,1,1,1], tol = 0.01)      
@@ -577,7 +574,13 @@ building.create_rigid_diaphragms(model)
 
 
 
-h5pattern = fm.pattern.h5drm(filepath='drmload.h5drm',
+
+
+
+
+elasitc_state = model.actions.updateMaterialStageToElastic()
+plastic_state = model.actions.updateMaterialStageToPlastic()
+h5pattern = model.pattern.h5drm(filepath='drmload.h5drm',
                              factor=1.0,
                              crd_scale=1.0,
                              distance_tolerance=0.01,
@@ -585,61 +588,44 @@ h5pattern = fm.pattern.h5drm(filepath='drmload.h5drm',
                              transform_matrix=[1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0],
                              origin=[0.0, 0.0, 0.0])
 
+model.set_results_folder("Results")
+stuff = model.actions.tcl("""
+setTime 0.0
+#timeSeries Path 1 -filePath ricker_surface.acc -fileTime ricker_surface.time -factor 9.81
 
+#pattern UniformExcitation 1 1 -accel 1
 
+# VTK-HDF recorder ======================================
 
-recorder = fm.recorder.vtkhdf(file_base_name="result",
-                              resp_types=["disp", "vel", "accel"],
-                              delta_t=0.01)
-
-gravity_analysis = fm.actions.tcl("""
-if {$pid == 0} {puts [string repeat "=" 120] }
-if {$pid == 0} {puts "Starting analysis : Gravity-Elastic"}
-if {$pid == 0} {puts [string repeat "=" 120] }
-constraints Transformation
-numberer ParallelRCM
-system Mumps -ICNTL14 200 -ICNTL7 7
-algorithm ModifiedNewton -factoronce
-test EnergyIncr 0.0001 10 5
-integrator Newmark 0.5 0.25
-analysis Transient
-set AnalysisStep 0
-while { $AnalysisStep < 10} {
-        if {$pid==0} {puts "$AnalysisStep/10"}
-        set Ok [analyze 1 0.01]
-        incr AnalysisStep 1
-}
-wipeAnalysis
+recorder vtkhdf Results/result$pid.vtkhdf -dT 0.01 disp vel accel
+recorder Node -file Results/ASCI$pid.txt -time  -nodeRange 1 186  -dof 1 2 3 4 5 6 disp
 """)
 
-reset = fm.actions.seTime(pseudo_time=0.0)
-
-dynamic_analysis = fm.actions.tcl("""
-if {$pid == 0} {puts [string repeat "=" 120] }
-if {$pid == 0} {puts "Starting analysis : DynamicAnalysis"}
-if {$pid == 0} {puts [string repeat "=" 120] }
+dynamic_analysis = model.actions.tcl("""
 constraints Transformation
-numberer ParallelRCM
-system Mumps -ICNTL14 200 -ICNTL7 7
-algorithm ModifiedNewton -factoronce
-test EnergyIncr 0.0001 10 5
-integrator Newmark 0.5 0.25
+numberer ParallelPlain
+system MPIDiagonal
+algorithm Linear
+integrator Explicitdifference
 analysis Transient
-while {[getTime] < 25.000000} {
-        if {$pid == 0} {puts "Time : [getTime]"}
+initialize
+#set dt [getCriticalTimeStep -safetyFactor 1.0]
+#puts "Critical Time Step: $dt"
+#exit
+while {[getTime] < 20.000000} {
+        if {$pid == 0} {puts "Time : [getTime]/20.000000"}
 
-        set Ok [analyze 1 0.01]
+        set Ok [analyze 1 2e-5]
 
 }
 wipeAnalysis
 """)
 
-fm.process.add_step(gravity_analysis,  description="Gravity Analysis Step (Elastic)")
-fm.process.add_step(h5pattern, description="DRM load pattern")
-fm.process.add_step(recorder, description="VTK-HDF recorder")
-fm.process.add_step(reset, description="Reset time to zero")
-fm.process.add_step(dynamic_analysis, description="Transient analysis")
+model.process.add_step(stuff, description="Reset time to zero")
+model.process.add_step(plastic_state, description="Plastic stage")
+model.process.add_step(h5pattern, description="Apply DRM pattern") 
+model.process.add_step(dynamic_analysis, description="Transient analysis")                    
 
 
-fm.export_to_tcl("model.tcl")
+model.export_to_tcl("model.tcl")
 #model.assembler.plot(show_edges=True, scalars="Core")

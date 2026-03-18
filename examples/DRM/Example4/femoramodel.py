@@ -3,9 +3,10 @@ import pyvista as pv
 import numpy as np
 import os
 
+from femora.tools.buildings.steel_frame import FEMA_SAC_SteelFrame
+
 # change the direcotto the current file
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
-
 
 # this example is the extension of the example2 which we have semihemispherical basin at the center in this model we are going to use External mesh as a part of the model
 # Parameters for the semihemispherical hole
@@ -22,7 +23,97 @@ radius = 85.0  # Radius of the semihemisphere
 #       zmax = center_z + radius = 40.0
 # so according to the below values only the layer 1 and layer 2 are intersecting with the semihemisphere
 
+fm.set_results_folder("Results")
 
+
+
+model = fm.MeshMaker()
+# # =========================================================
+# # Define building
+# # =========================================================
+kip = 4.44822; # kip in kN
+inch = 0.0254; # inch in m
+lb = 0.453592; # lb in kg
+ft = inch*12.0; # ft in m
+
+# Define Building Material ============================
+# Create a standard steel material (A992 Gr. 50)
+# E = 29000 ksi, nu = 0.3, rho = included in section mass
+E = 29000.0*kip/(inch*inch)
+steel_density = 490.0*lb/(ft*ft*ft)
+steel_density = steel_density / 1000.0
+steel_mat = model.material.nd.elastic_isotropic("Steel_A992", E=E, nu=0.3, rho=steel_density)
+
+# Define building floor masses ============================
+floor_masses = [24.8544, 24.8544, 24.4296, 24.4296, 24.4296, 24.4296, 24.4296, 24.4296, 24.4296, 26.315999999999995] # in kips
+for i in range(len(floor_masses)):
+    floor_masses[i] = floor_masses[i] * kip / (ft)
+
+# Define building ============================
+building = FEMA_SAC_SteelFrame(
+    name_prefix="nine_story_building",
+    length_unit_system='m',
+    origin=(-13.716, -13.716, -1.0),
+    floor_masses=floor_masses
+)
+
+# Build the mesh_part =========================
+building_mesh_part = building.build(model=model, material=steel_mat, material_density=steel_density)
+
+
+
+# =================================================================
+# Define foundation
+# =================================================================
+# Define foundation material ============================
+# Create a standard concrete material (A992 Gr. 50)
+E = 3000.0*kip/(inch*inch)
+concrete_density = 150.0*lb/(ft*ft*ft)
+concrete_density = concrete_density / 1000.0
+concrete_mat = model.material.nd.elastic_isotropic("Concrete_A992", E=E, nu=0.3, rho=concrete_density)
+
+x_min_foundation = -16
+x_max_foundation = 16
+y_min_foundation = -16
+y_max_foundation = 16
+z_min_foundation = -4
+z_max_foundation = -1.0
+
+foundation_ele_size = 3.0
+nx_foundation = int((x_max_foundation-x_min_foundation)/foundation_ele_size)
+ny_foundation = int((y_max_foundation-y_min_foundation)/foundation_ele_size)
+nz_foundation = int((z_max_foundation-z_min_foundation)/foundation_ele_size)
+
+fondation_ele = model.element.brick.std(ndof=3, material=concrete_mat, material_density=concrete_density, b1=0, b2=0, b3=0, lumped=False)
+
+model.meshPart.volume.uniform_rectangular_grid(
+    user_name="foundation",
+    x_min=x_min_foundation,
+    x_max=x_max_foundation,
+    y_min=y_min_foundation,
+    y_max=y_max_foundation,
+    z_min=z_min_foundation,
+    z_max=z_max_foundation,
+    element=fondation_ele,
+    nx=nx_foundation,
+    ny=ny_foundation,
+    nz=nz_foundation
+)
+
+# this example is the extension of the example2 which we have semihemispherical basin at the center in this model we are going to use External mesh as a part of the model
+# Parameters for the semihemispherical hole
+center_x, center_y, center_z = 0, 0, 70  # Center at the top surface
+radius = 85.0  # Radius of the semihemisphere
+
+# according to the center of the semihemisphere and it raduis the bounds
+# of the mesh is as follows:
+#       xmin = center_x - radius = - 85.0
+#       xmax = center_x + radius = 85.0
+#       ymin = center_y - radius = - 85.0
+#       ymax = center_y + radius = 85.0
+#       zmin = center_z - radius = - 15.0
+#       zmax = center_z + radius = 40.0
+# so according to the below values only the layer 1 and layer 2 are intersecting with the semihemisphere
 
 # =========================================================
 # Layering and initial information
@@ -77,22 +168,9 @@ softMat_G = softMat_E / (2 * (1 + softMat_nu))
 softMat_K = softMat_E / (3 * (1 - 2 * softMat_nu))
 softMat_Cohesion = 8.0
 softMat_peakStrain = 0.1
-# softMat_E = softMat_E / 1000.
-# softMat_rho = softMat_rho / 1000.
-# sofmat = fm.material.create_material("nDMaterial", "ElasticIsotropic",
-#                                 user_name=f"softMaterial",
-#                                 E=softMat_E, nu=softMat_nu, rho=softMat_rho)
-
-sofmat = fm.material.nd.pressure_independ_multi_yield(
-    user_name="softMaterial",
-    nd=3,
-    rho=softMat_rho,
-    refShearModul=softMat_G,
-    refBulkModul=softMat_K,
-    cohesi=softMat_Cohesion,
-    peakShearStra=softMat_peakStrain,
-    updatewithsigmav0 = True
-)
+sofmat = fm.material.create_material("nDMaterial", "ElasticIsotropic",
+                                user_name=f"softMaterial",
+                                E=softMat_E, nu=softMat_nu, rho=softMat_rho)
 
 softele = fm.element.create_element(element_type="stdBrick",
                                 ndof=3,
@@ -100,10 +178,9 @@ softele = fm.element.create_element(element_type="stdBrick",
                                 b1=0,
                                 b2=0,
                                 b3=0,
-                                lumped=True)
+                                lumped=False)
 softMat_damp = fm.damping.create_damping("frequency rayleigh", dampingFactor=softMat_xi_s, f1=3, f2=15)
 softMat_reg = fm.region.create_region("elementRegion", damping=None)
-
 
 # =========================================================
 # Defining a helpher function
@@ -123,7 +200,7 @@ def helperfunction(layer, rho, vp, vs, xi_s, xi_p, thickness):
                                     b1=0,
                                     b2=0,
                                     b3=0,
-                                    lumped=True)
+                                    lumped=False)
 
     damp = fm.damping.create_damping("frequency rayleigh", dampingFactor=xi_s, f1=3, f2=15)
     reg = fm.region.create_region("elementRegion", damping=None)
@@ -219,27 +296,45 @@ distances = np.sqrt((cellcenters.points[:, 0] - center_x)**2 +
                     (cellcenters.points[:, 1] - center_y)**2 +
                     (cellcenters.points[:, 2] - center_z)**2)
 
-mask = (distances <= radius) 
+mask = (distances <= radius)
 
 semihemisphere = mesh.extract_cells(mask)
 boxwithhole = mesh.extract_cells(~mask)
 
-# now adding the semihemisphere part and the box part to the femora as 
+# now adding the semihemisphere part and the box part to the femora as
 # external mesh part
-fm.meshPart.create_mesh_part("General mesh", "External mesh",
+model.meshPart.create_mesh_part("General mesh", "External mesh",
                         user_name=f"Layer{layer}",
                         element=ele,
                         region=reg,
                         mesh=boxwithhole)
 
+# now extracting the foundation part from the boxwithhole
+foundation_bounds = [x_min_foundation, x_max_foundation,
+                    y_min_foundation, y_max_foundation,
+                    z_min_foundation, z_max_foundation]
+
+centers = semihemisphere.cell_centers()
+
+mask = (centers.points[:, 0] >= foundation_bounds[0]) & \
+    (centers.points[:, 0] <= foundation_bounds[1]) & \
+    (centers.points[:, 1] >= foundation_bounds[2]) & \
+    (centers.points[:, 1] <= foundation_bounds[3]) & \
+    (centers.points[:, 2] >= foundation_bounds[4]) & \
+    (centers.points[:, 2] <= foundation_bounds[5])
+
+semihemisphere = semihemisphere.extract_cells(~mask)
+
+
 if BASIN:
-    fm.meshPart.create_mesh_part("General mesh", "External mesh",
+    model.meshPart.create_mesh_part("General mesh", "External mesh",
                                         user_name=f"basin{layer}",
                                         element=softele,
                                         region=softMat_reg,
-                                        mesh=semihemisphere)
+                                    mesh=semihemisphere)
+
 else:
-    fm.meshPart.create_mesh_part("General mesh", "External mesh",
+    model.meshPart.create_mesh_part("General mesh", "External mesh",
                                         user_name=f"basin{layer}",
                                         element=ele,
                                         region=reg,
@@ -265,84 +360,89 @@ distances = np.sqrt((cellcenters.points[:, 0] - center_x)**2 +
                     (cellcenters.points[:, 1] - center_y)**2 +
                     (cellcenters.points[:, 2] - center_z)**2)
 
-mask = (distances <= radius) 
+mask = (distances <= radius)
 
 semihemisphere = mesh.extract_cells(mask)
 boxwithhole = mesh.extract_cells(~mask)
 
-# now adding the semihemisphere part and the box part to the femora as 
+# now adding the semihemisphere part and the box part to the femora as
 # external mesh part
-fm.meshPart.create_mesh_part("General mesh", "External mesh",
+model.meshPart.create_mesh_part("General mesh", "External mesh",
                         user_name=f"Layer{layer}",
                         element=ele,
                         region=reg,
                         mesh=boxwithhole)
 
 
+# now extracting the foundation part from the semihemisphere
+foundation_bounds = [x_min_foundation, x_max_foundation,
+                    y_min_foundation, y_max_foundation,
+                    z_min_foundation, 0.0]
+
+centers = semihemisphere.cell_centers()
+
+mask = (centers.points[:, 0] >= foundation_bounds[0]) & \
+    (centers.points[:, 0] <= foundation_bounds[1]) & \
+    (centers.points[:, 1] >= foundation_bounds[2]) & \
+    (centers.points[:, 1] <= foundation_bounds[3]) & \
+    (centers.points[:, 2] >= foundation_bounds[4]) & \
+    (centers.points[:, 2] <= foundation_bounds[5])
+
+semihemisphere = semihemisphere.extract_cells(~mask)
+
+
 if BASIN:
-    fm.meshPart.create_mesh_part("General mesh", "External mesh",
+    model.meshPart.create_mesh_part("General mesh", "External mesh",
                                             user_name=f"basin{layer}",
                                             element=softele,
                                             region=softMat_reg,
                                             mesh=semihemisphere)
 else:
-    fm.meshPart.create_mesh_part("General mesh", "External mesh",
+    model.meshPart.create_mesh_part("General mesh", "External mesh",
                                             user_name=f"basin{layer}",
                                             element=ele,
                                             region=reg,
                                             mesh=semihemisphere)
+
+# ========================================================================
+# Interfaces
+# ========================================================================
+model.interface.node_interface(name="building_foundation_interface",
+                               constrained_node="nine_story_building",
+                               retained_nodes=["foundation"],
+                               K=1e6,
+                               rot=True,
+                               friction_interface=False)
+
+model.interface.node_interface(name="foundation_soil_interface",
+                               constrained_node="foundation",
+                               K=1e8,
+                               friction_interface=False),
+
 # =========================================================
-# plotting if you want to see the mesh
+# Assembly
 # =========================================================
-PLOTTING = False
-if PLOTTING:
-    pl = pv.Plotter()
-    pl.add_mesh(fm.meshPart.get_mesh_part("basin1").mesh, show_edges=True, color="red", opacity=1.0)
-    pl.add_mesh(fm.meshPart.get_mesh_part("basin2").mesh, show_edges=True, color="blue", opacity=1.0)
-    pl.show_axes_all()
-    pl.show_grid()
-    # pl.export_html("basin.html")
-    pl.show()
-
-    pl = pv.Plotter()
-    pl.add_mesh(fm.meshPart.get_mesh_part("Layer1").mesh, show_edges=True, color="red", opacity=1.0)
-    pl.add_mesh(fm.meshPart.get_mesh_part("Layer2").mesh, show_edges=True, color="blue", opacity=1.0)
-    pl.add_mesh(fm.meshPart.get_mesh_part("Layer3").mesh, show_edges=True, color="green", opacity=1.0)
-    pl.add_mesh(fm.meshPart.get_mesh_part("Layer4").mesh, show_edges=True, color="yellow", opacity=1.0)
-    pl.add_mesh(fm.meshPart.get_mesh_part("Layer5").mesh, show_edges=True, color="orange", opacity=1.0)
-    pl.add_mesh(fm.meshPart.get_mesh_part("Layer6").mesh, show_edges=True, color="purple", opacity=1.0)
-    pl.show_axes_all()
-    pl.show_grid()
-    # pl.export_html("layers.html")
-    pl.show()
-
-    pl = pv.Plotter()
-    pl.add_mesh(fm.meshPart.get_mesh_part("Layer1").mesh, show_edges=True, color="royalblue", opacity=1.0)
-    pl.add_mesh(fm.meshPart.get_mesh_part("Layer2").mesh, show_edges=True, color="royalblue", opacity=1.0)
-    pl.add_mesh(fm.meshPart.get_mesh_part("Layer3").mesh, show_edges=True, color="royalblue", opacity=1.0)
-    pl.add_mesh(fm.meshPart.get_mesh_part("Layer4").mesh, show_edges=True, color="royalblue", opacity=1.0)
-    pl.add_mesh(fm.meshPart.get_mesh_part("Layer5").mesh, show_edges=True, color="royalblue", opacity=1.0)      
-    pl.add_mesh(fm.meshPart.get_mesh_part("Layer6").mesh, show_edges=True, color="royalblue", opacity=1.0)
-    pl.add_mesh(fm.meshPart.get_mesh_part("basin1").mesh, show_edges=True, color="red", opacity=1.0)
-    pl.add_mesh(fm.meshPart.get_mesh_part("basin2").mesh, show_edges=True, color="red", opacity=1.0)
-    pl.show_axes_all()
-    pl.show_grid()
-    # pl.export_html("layers_basin.html")
-    pl.show()
-
-
-
 # create a list of mesh parts
-layers = ["Layer1", "Layer2", 
-              "Layer3", "Layer4", 
-              "Layer5", "Layer6", "basin1", "basin2"]
+soil_layers = ["Layer1", "Layer2",
+              "Layer3", "Layer4",
+              "Layer5", "Layer6",
+              "basin1", "basin2"]
 
-fm.assembler.create_section(layers, num_partitions=4)
+
+foundation_parts = ["foundation"]
+building_parts = ["nine_story_building"]
 
 
-fm.assembler.Assemble()
+
+model.assembler.create_section(foundation_parts, num_partitions=1, merge_points=True, partition_algorithm="metis")
+model.assembler.create_section(building_parts, num_partitions=4, merge_points=True, partition_algorithm="metis")
+model.assembler.create_section(soil_layers, num_partitions=32, merge_points=True, partition_algorithm="metis")
+
+
+
+model.assembler.Assemble(merge_points=False)
 fm.drm.addAbsorbingLayer(numLayers=5,
-                        numPartitions=4,
+                        numPartitions=64,
                         partitionAlgo="kd-tree",
                         geometry="Rectangular",
                         rayleighDamping=0.95,
@@ -355,12 +455,12 @@ fm.constraint.sp.fixMacroXmax(dofs=[1,1,1,1,1,1,1,1,1], tol = 0.01)
 fm.constraint.sp.fixMacroXmin(dofs=[1,1,1,1,1,1,1,1,1], tol = 0.01)
 fm.constraint.sp.fixMacroYmax(dofs=[1,1,1,1,1,1,1,1,1], tol = 0.01)
 fm.constraint.sp.fixMacroYmin(dofs=[1,1,1,1,1,1,1,1,1], tol = 0.01)
-fm.constraint.sp.fixMacroZmin(dofs=[1,1,1,1,1,1,1,1,1], tol = 0.01)                             
+fm.constraint.sp.fixMacroZmin(dofs=[1,1,1,1,1,1,1,1,1], tol = 0.01)             
+building.create_rigid_diaphragms(model)
 
 
 
-
-h5pattern = fm.pattern.h5drm(filepath='HaywardFault_SW4_DRM_Site1.h5drm',
+h5pattern = fm.pattern.h5drm(filepath='drmload.h5drm',
                              factor=1.0,
                              crd_scale=1.0,
                              distance_tolerance=0.01,
@@ -371,60 +471,53 @@ h5pattern = fm.pattern.h5drm(filepath='HaywardFault_SW4_DRM_Site1.h5drm',
 
 
 
-fm.set_results_folder("Results")
 recorder = fm.recorder.vtkhdf(file_base_name="result",
                               resp_types=["disp", "vel", "accel"],
                               delta_t=0.01)
 
-
-
-
-
 gravity_analysis = fm.actions.tcl("""
+if {$pid == 0} {puts [string repeat "=" 120] }
+if {$pid == 0} {puts "Starting analysis : Gravity-Elastic"}
+if {$pid == 0} {puts [string repeat "=" 120] }
 constraints Transformation
 numberer ParallelRCM
-system Mumps -ICNTL14 400 -ICNTL7 7
+system Mumps -ICNTL14 200 -ICNTL7 7
 algorithm ModifiedNewton -factoronce
-test EnergyIncr 0.001 20 2
-integrator Newmark 0.6 0.30250000000000005
+test EnergyIncr 0.0001 10 5
+integrator Newmark 0.5 0.25
 analysis Transient
 set AnalysisStep 0
-while { $AnalysisStep < 30} {
-	if {$pid==0} {puts "$AnalysisStep/30"}
-	set Ok [analyze 1 1.0]
-	incr AnalysisStep 1
+while { $AnalysisStep < 10} {
+        if {$pid==0} {puts "$AnalysisStep/10"}
+        set Ok [analyze 1 0.01]
+        incr AnalysisStep 1
 }
 wipeAnalysis
 """)
-
-
-elasitc_state = fm.actions.updateMaterialStageToElastic()
-plastic_state = fm.actions.updateMaterialStageToPlastic()
 
 reset = fm.actions.seTime(pseudo_time=0.0)
 
 dynamic_analysis = fm.actions.tcl("""
-constraints Plain
-numberer ParallelPlain
-system MPIDiagonal
-algorithm Linear -factorOnce
-integrator Explicitdifference
+if {$pid == 0} {puts [string repeat "=" 120] }
+if {$pid == 0} {puts "Starting analysis : DynamicAnalysis"}
+if {$pid == 0} {puts [string repeat "=" 120] }
+constraints Transformation
+numberer ParallelRCM
+system Mumps -ICNTL14 200 -ICNTL7 7
+algorithm ModifiedNewton -factoronce
+test EnergyIncr 0.0001 10 5
+integrator Newmark 0.5 0.25
 analysis Transient
-initialize
-set dt [getCriticalTimeStep -safetyFactor 0.8]
-while {[getTime] < 20.000000} {
-	if {$pid == 0} {puts "Time : [getTime]/20.000000"}
+while {[getTime] < 25.000000} {
+        if {$pid == 0} {puts "Time : [getTime]"}
 
-	set Ok [analyze 1 0.0002]
+        set Ok [analyze 1 0.01]
 
 }
 wipeAnalysis
 """)
 
-fm.process.add_step(elasitc_state, description="Update material state to elastic")
 fm.process.add_step(gravity_analysis,  description="Gravity Analysis Step (Elastic)")
-fm.process.add_step(plastic_state, description="Update material state to plastic")
-fm.process.add_step(gravity_analysis,  description="Gravity Analysis Step (Plastic)")
 fm.process.add_step(h5pattern, description="DRM load pattern")
 fm.process.add_step(recorder, description="VTK-HDF recorder")
 fm.process.add_step(reset, description="Reset time to zero")
@@ -432,9 +525,4 @@ fm.process.add_step(dynamic_analysis, description="Transient analysis")
 
 
 fm.export_to_tcl("model.tcl")
-
-
-
-# fm.export_to_vtk("mesh.vtk")
 fm.assembler.plot(show_edges=True, scalars="Core")
-# fm.gui()

@@ -132,14 +132,14 @@ fm.assembler.create_section(
     meshparts=[f"soil_grid_{i}" for i in range(len(dimesions))],
     num_partitions=0,
     partition_algorithm="kd-tree",
-    merging_points=True,
+    merge_points=True,
     tolerance=5e-2
 )
 fm.assembler.create_section(
     meshparts=["pile"],
     num_partitions=0,
     partition_algorithm="kd-tree",
-    merging_points=False,
+    merge_points=False,
 )
 fm.assembler.Assemble(merge_points=True)
 # fm.assembler.plot(show_edges=True, 

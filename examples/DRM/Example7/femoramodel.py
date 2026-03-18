@@ -5,7 +5,7 @@ import os
 from femora.tools.buildings.steel_frame import FEMA_SAC_SteelFrame
 # change the direcotto the current file
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
-fm.set_results_folder("Results")
+
 
 model = fm.MeshMaker()
 # # =========================================================
@@ -34,13 +34,13 @@ building = FEMA_SAC_SteelFrame(
     name_prefix="nine_story_building",
     length_unit_system='m',
     origin=(-13.716, -13.716, -1.0),
-    floor_masses=floor_masses,
-    n_ele_col=1,
-    n_ele_beam=1,
+    floor_masses=floor_masses
 )
 
 # Build the mesh_part =========================
 building_mesh_part = building.build(model=model, material=steel_mat, material_density=steel_density)
+
+
 
 # =================================================================
 # Define foundation
@@ -59,15 +59,12 @@ y_max_foundation = 16
 z_min_foundation = -4
 z_max_foundation = -1.0
 
-foundation_ele_size = 1.5
+foundation_ele_size = 3.0
 nx_foundation = int((x_max_foundation-x_min_foundation)/foundation_ele_size)
 ny_foundation = int((y_max_foundation-y_min_foundation)/foundation_ele_size)
 nz_foundation = int((z_max_foundation-z_min_foundation)/foundation_ele_size)
 
-
-
-
-fondation_ele = model.element.brick.std(ndof=3, material=concrete_mat, material_density=concrete_density, b1=0, b2=0, b3=0, lumped=False)
+fondation_ele = model.element.brick.std(ndof=3, material=concrete_mat, material_density=concrete_density, b1=0, b2=0, b3=0, lumped=True)
 
 model.meshPart.volume.uniform_rectangular_grid(
     user_name="foundation",
@@ -82,156 +79,7 @@ model.meshPart.volume.uniform_rectangular_grid(
     ny=ny_foundation,
     nz=nz_foundation
 )
-foundation_parts = ["foundation"] 
-# # =================================================================
-# # Define anchor dowels
-# # =================================================================
-# Create anchor dowels for the building columns
-dowel_diameter = 4.0 * inch  # 4-inch equivalent diameter for anchor bolts group
-dowel_radius = dowel_diameter / 2.0
-dowel_E = 29000.0 * kip / (inch * inch)
-dowel_nu = 0.3
-dowel_rho = 490.0*lb/(ft*ft*ft)
-dowel_rho = dowel_rho / 1000.0
-dowel_G = dowel_E / (2 * (1 + dowel_nu))
-dowel_I = (np.pi * dowel_diameter**4) / 64.0
-dowel_A = (np.pi * dowel_diameter**2) / 4.0
-dowel_J = (np.pi * dowel_diameter**4) / 32.0
 
-
-dowel_section = model.section.elastic(user_name="dowel_section", 
-                                     E=dowel_E,   A=dowel_A, 
-                                     Iz=dowel_I, Iy=dowel_I,
-                                     G=dowel_G,  J=dowel_J)
-
-dowel_transf = model.transformation.transformation3d(
-    transf_type="Linear",
-    vecxz_x=1,
-    vecxz_y=0,
-    vecxz_z=0,
-    description="dowel elements transformation"
-)
-
-dowel_ele = model.element.beam.disp(ndof=6, 
-                                   section=dowel_section, 
-                                   transformation=dowel_transf,
-                                   numIntgrPts=5,
-                                   massDens=dowel_rho*dowel_A,
-                                   )
-
-x_coords, y_coords, z_coords = building.get_coordinates()
-dowel_parts = []
-dowel_z_top = -1.0   # Base of the steel frame (z = -1.0)
-embed_depth = 0.5
-dowel_z_bot = dowel_z_top - embed_depth
-
-for (s, i, j), section in building.col_sections.items():
-    if s == 1:  # Only for ground-floor columns
-        x = x_coords[i]
-        y = y_coords[j]
-        dowel_name = f"dowel_{i}_{j}"
-        model.meshPart.line.single_line(
-            user_name=dowel_name,
-            element=dowel_ele, # Use the specific dowel element
-            region=None,
-            x0=x, y0=y, z0=dowel_z_bot,
-            x1=x, y1=y, z1=dowel_z_top,
-            number_of_lines=1,
-            merge_points=True,
-        )
-        dowel_parts.append(dowel_name)
-
-foundation_parts.extend(dowel_parts)
-for dowel_part in dowel_parts:
-    model.interface.beam_solid_interface(name=f"building_foundation_interface_{dowel_part}",
-                                        beam_part=dowel_part,
-                                        # solid_parts=["foundation"],
-                                        radius=dowel_radius,
-                                        penalty_param=1e6,
-                                        n_long=2,
-                                        n_peri=4)
-
-# =================================================================
-# Define piles
-# =================================================================
-x_pile = np.linspace(-14,14,3)
-y_pile = np.linspace(-14,14,3)
-z_pile = [-10, -3]
-dz_pile = 1.3
-nz_pile = int((z_pile[1]-z_pile[0])/dz_pile)
-
-pile_diameter = 0.8
-pile_radius = pile_diameter / 2.0
-pil_E = 29000.0*kip/(inch*inch)
-pile_nu = 0.3
-pile_rho = 490.0*lb/(ft*ft*ft)
-pile_rho = pile_rho / 1000.0
-pile_G = pil_E / (2 * (1 + pile_nu))
-
-pile_I = (np.pi * pile_diameter**4) / 64.0
-pile_A = (np.pi * pile_diameter**2) / 4.0
-pile_J = (np.pi * pile_diameter**4) / 32.0
-
-pile_section = model.section.elastic(user_name="pile_section", 
-                                     E=pil_E,   A=pile_A, 
-                                     Iz=pile_I, Iy=pile_I,
-                                     G=pile_G,  J=pile_J)
-
-
-pile_transf = model.transformation.transformation3d(
-    transf_type="Linear",
-    vecxz_x=1,
-    vecxz_y=0,
-    vecxz_z=0,
-    description="pile elements transformation"
-)
-
-pile_ele = model.element.beam.disp(ndof=6, 
-                                   section=pile_section, 
-                                   transformation=pile_transf,
-                                   numIntgrPts=5,
-                                   massDens=pile_rho*pile_A,
-                                   )
-piles_part = []
-for i in range(x_pile.shape[0]):
-    for j in range(y_pile.shape[0]):
-        model.meshPart.line.single_line(
-            user_name=f"pile_{i}_{j}",
-            element=pile_ele,
-            region=None,
-            x0 = x_pile[i],
-            y0 = y_pile[j],
-            z0 = z_pile[0],
-            x1 = x_pile[i],
-            y1 = y_pile[j],
-            z1 = z_pile[1],
-            number_of_lines = nz_pile,
-            merge_points = True,
-        )
-        piles_part.append(f"pile_{i}_{j}")
-
-
-# pile foundation interface
-for pile_part in piles_part:
-    model.interface.beam_solid_interface(name=f"building_foundation_interface_{pile_part}",
-                                        beam_part=pile_part,
-                                        # solid_parts=["foundation"],
-                                        radius=pile_radius,
-                                        penalty_param=1e6,
-                                        n_long=4,
-                                        n_peri=8)
-
-foundation_parts.extend(piles_part)
-
-# =================================================================
-# interface between building and foundation
-# =================================================================
-# model.interface.node_interface(name="building_foundation_interface",
-#                                constrained_node="nine_story_building",
-#                                retained_nodes=["foundation"],
-#                                K=1e6,
-#                                rot=True,
-#                                friction_interface=False)
 
 
 
@@ -305,9 +153,16 @@ softMat_G = softMat_E / (2 * (1 + softMat_nu))
 softMat_K = softMat_E / (3 * (1 - 2 * softMat_nu))
 softMat_Cohesion = 8.0
 softMat_peakStrain = 0.1
-sofmat = fm.material.create_material("nDMaterial", "ElasticIsotropic",
-                                user_name=f"softMaterial",
-                                E=softMat_E, nu=softMat_nu, rho=softMat_rho)
+sofmat = model.material.nd.pressure_independ_multi_yield(
+    user_name="softMaterial",
+    nd=3,
+    rho=softMat_rho,
+    refShearModul=softMat_G,
+    refBulkModul=softMat_K,
+    cohesi=softMat_Cohesion,
+    peakShearStra=softMat_peakStrain,
+    updatewithsigmav0 = True
+)
 
 softele = model.element.create_element(element_type="stdBrick",
                                 ndof=3,
@@ -315,7 +170,7 @@ softele = model.element.create_element(element_type="stdBrick",
                                 b1=0,
                                 b2=0,
                                 b3=0,
-                                lumped=False)
+                                lumped=True)
 softMat_damp = model.damping.create_damping("frequency rayleigh", dampingFactor=softMat_xi_s, f1=3, f2=15)
 softMat_reg = model.region.create_region("elementRegion", damping=None)
 
@@ -336,7 +191,7 @@ def helperfunction(layer, rho, vp, vs, xi_s, xi_p, thickness):
                                     b1=0,
                                     b2=0,
                                     b3=0,
-                                    lumped=False)
+                                    lumped=True)
 
     damp = model.damping.create_damping("frequency rayleigh", dampingFactor=xi_s, f1=3, f2=15)
     reg = model.region.create_region("elementRegion", damping=None)
@@ -544,40 +399,110 @@ else:
                                             element=ele,
                                             region=reg,
                                             mesh=semihemisphere)
+# =========================================================
+# plotting if you want to see the mesh
+# =========================================================
+PLOTTING = False
+if PLOTTING:
+    pl = pv.Plotter()
+    pl.add_mesh(model.meshPart.get_mesh_part("basin1").mesh, show_edges=True, color="red", opacity=1.0)
+    pl.add_mesh(model.meshPart.get_mesh_part("basin2").mesh, show_edges=True, color="blue", opacity=1.0)
+    pl.show_axes_all()
+    pl.show_grid()
+    # pl.export_html("basin.html")
+    pl.show()
+
+    pl = pv.Plotter()
+    pl.add_mesh(model.meshPart.get_mesh_part("Layer1").mesh, show_edges=True, color="red", opacity=1.0)
+    pl.add_mesh(model.meshPart.get_mesh_part("Layer2").mesh, show_edges=True, color="blue", opacity=1.0)
+    pl.add_mesh(model.meshPart.get_mesh_part("Layer3").mesh, show_edges=True, color="green", opacity=1.0)
+    pl.add_mesh(model.meshPart.get_mesh_part("Layer4").mesh, show_edges=True, color="yellow", opacity=1.0)
+    pl.add_mesh(model.meshPart.get_mesh_part("Layer5").mesh, show_edges=True, color="orange", opacity=1.0)
+    pl.add_mesh(model.meshPart.get_mesh_part("Layer6").mesh, show_edges=True, color="purple", opacity=1.0)
+    pl.show_axes_all()
+    pl.show_grid()
+    # pl.export_html("layers.html")
+    pl.show()
+
+    pl = pv.Plotter()
+    pl.add_mesh(model.meshPart.get_mesh_part("Layer1").mesh, show_edges=True, color="royalblue", opacity=1.0)
+    pl.add_mesh(model.meshPart.get_mesh_part("Layer2").mesh, show_edges=True, color="royalblue", opacity=1.0)
+    pl.add_mesh(model.meshPart.get_mesh_part("Layer3").mesh, show_edges=True, color="royalblue", opacity=1.0)
+    pl.add_mesh(model.meshPart.get_mesh_part("Layer4").mesh, show_edges=True, color="royalblue", opacity=1.0)
+    pl.add_mesh(model.meshPart.get_mesh_part("Layer5").mesh, show_edges=True, color="royalblue", opacity=1.0)      
+    pl.add_mesh(model.meshPart.get_mesh_part("Layer6").mesh, show_edges=True, color="royalblue", opacity=1.0)
+    pl.add_mesh(model.meshPart.get_mesh_part("basin1").mesh, show_edges=True, color="red", opacity=1.0)
+    pl.add_mesh(model.meshPart.get_mesh_part("basin2").mesh, show_edges=True, color="red", opacity=1.0)
+    pl.add_mesh(model.meshPart.get_mesh_part("nine_story_building").mesh, show_edges=True, color="black", opacity=1.0, line_width=2)
+    pl.add_mesh(model.meshPart.get_mesh_part("foundation").mesh, show_edges=True, color="gray", opacity=1.0, line_width=2)
+    pl.show_axes_all()
+    pl.show_grid()
+    # pl.export_html("layers_basin.html")
+    pl.show()
 
 
 
-
-
-
+# create a list of mesh parts
 soil_layers = ["Layer1", "Layer2", 
               "Layer3", "Layer4", 
               "Layer5", "Layer6", 
               "basin1", "basin2"]
+
+
+foundation_parts = ["foundation"]
 building_parts = ["nine_story_building"]
+# foundation_parts.extend(piles_part)
+# foundation_parts.extend(dowel_parts)
+# print(foundation_parts)
+
+# ========================================================================
+# Interfaces
+# ========================================================================
+model.interface.node_interface(name="building_foundation_interface",
+                               constrained_node="nine_story_building",
+                               retained_nodes=["foundation"],
+                               K=1e6,
+                               rot=True,
+                               friction_interface=False)
+
+model.interface.node_interface(name="foundation_soil_interface",
+                               constrained_node="foundation",
+                               K=1e8,
+                               friction_interface=False),
+
+
+
+
+
+model.assembler.create_section(foundation_parts, num_partitions=1, merge_points=True)
 model.assembler.create_section(building_parts, num_partitions=1, merge_points=True)
-model.assembler.create_section(foundation_parts, num_partitions=4, merge_points=True)
-model.assembler.create_section(soil_layers, num_partitions=32, merge_points=True, merge_in_final=False)
+model.assembler.create_section(soil_layers, num_partitions=32, merge_points=True)
 
-model.assembler.Assemble(merge_points=True)
 
- 
+
+model.assembler.Assemble(merge_points=False)
+
 model.drm.addAbsorbingLayer(numLayers=5,
                         numPartitions=64,
                         partitionAlgo="kd-tree",
                         geometry="Rectangular",
                         rayleighDamping=0.95,
                         matchDamping=False,
-                        type="PML",
+                        type="Rayleigh",
                         )
 
+model.constraint.sp.fixMacroXmax(dofs=[1,1,1,1,1,1,1,1,1], tol = 0.01)
+model.constraint.sp.fixMacroXmin(dofs=[1,1,1,1,1,1,1,1,1], tol = 0.01)
+model.constraint.sp.fixMacroYmax(dofs=[1,1,1,1,1,1,1,1,1], tol = 0.01)
+model.constraint.sp.fixMacroYmin(dofs=[1,1,1,1,1,1,1,1,1], tol = 0.01)
 model.constraint.sp.fixMacroZmin(dofs=[1,1,1,1,1,1,1,1,1], tol = 0.01)      
 
 building.create_rigid_diaphragms(model)
 
 
 
-h5pattern = fm.pattern.h5drm(filepath='drmload.h5drm',
+
+h5pattern = model.pattern.h5drm(filepath='drmload.h5drm',
                              factor=1.0,
                              crd_scale=1.0,
                              distance_tolerance=0.01,
@@ -588,58 +513,69 @@ h5pattern = fm.pattern.h5drm(filepath='drmload.h5drm',
 
 
 
-recorder = fm.recorder.vtkhdf(file_base_name="result",
+model.set_results_folder("Results")
+recorder = model.recorder.vtkhdf(file_base_name="result",
                               resp_types=["disp", "vel", "accel"],
                               delta_t=0.01)
 
-gravity_analysis = fm.actions.tcl("""
-if {$pid == 0} {puts [string repeat "=" 120] }
-if {$pid == 0} {puts "Starting analysis : Gravity-Elastic"}
-if {$pid == 0} {puts [string repeat "=" 120] }
+
+checkpoint_recorder = model.actions.tcl("""
+recorder Node -file Results/checkpoint$pid.txt -time -dT 0.0001 -nodeRange 1 186 -dof 1 2 3 disp""")
+
+
+gravity_analysis = model.actions.tcl("""
 constraints Transformation
 numberer ParallelRCM
-system Mumps -ICNTL14 200 -ICNTL7 7
+system Mumps -ICNTL14 400 -ICNTL7 7
 algorithm ModifiedNewton -factoronce
-test EnergyIncr 0.0001 10 5
-integrator Newmark 0.5 0.25
+test EnergyIncr 0.001 20 2
+integrator Newmark 0.6 0.30250000000000005
 analysis Transient
 set AnalysisStep 0
-while { $AnalysisStep < 10} {
-        if {$pid==0} {puts "$AnalysisStep/10"}
-        set Ok [analyze 1 0.01]
+while { $AnalysisStep < 0} {
+        if {$pid==0} {puts "$AnalysisStep/30"}
+        set Ok [analyze 1 1.0]
         incr AnalysisStep 1
 }
 wipeAnalysis
 """)
 
-reset = fm.actions.seTime(pseudo_time=0.0)
 
-dynamic_analysis = fm.actions.tcl("""
-if {$pid == 0} {puts [string repeat "=" 120] }
-if {$pid == 0} {puts "Starting analysis : DynamicAnalysis"}
-if {$pid == 0} {puts [string repeat "=" 120] }
+elasitc_state = model.actions.updateMaterialStageToElastic()
+plastic_state = model.actions.updateMaterialStageToPlastic()
+
+reset = model.actions.seTime(pseudo_time=1.8)
+
+dynamic_analysis = model.actions.tcl("""
 constraints Transformation
-numberer ParallelRCM
-system Mumps -ICNTL14 200 -ICNTL7 7
-algorithm ModifiedNewton -factoronce
-test EnergyIncr 0.0001 10 5
-integrator Newmark 0.5 0.25
+numberer ParallelPlain
+system MPIDiagonal
+algorithm Linear
+integrator Explicitdifference
 analysis Transient
-while {[getTime] < 25.000000} {
-        if {$pid == 0} {puts "Time : [getTime]"}
+initialize
+#set dt [getCriticalTimeStep -safetyFactor 0.8]
+#puts "Critical Time Step: $dt"
+#exit
+while {[getTime] < 20.000000} {
+        if {$pid == 0} {puts "Time : [getTime]/20.000000"}
 
-        set Ok [analyze 1 0.01]
+        set Ok [analyze 1 1e-4]
 
 }
 wipeAnalysis
 """)
 
-fm.process.add_step(gravity_analysis,  description="Gravity Analysis Step (Elastic)")
-fm.process.add_step(h5pattern, description="DRM load pattern")
-fm.process.add_step(recorder, description="VTK-HDF recorder")
-fm.process.add_step(reset, description="Reset time to zero")
-fm.process.add_step(dynamic_analysis, description="Transient analysis")
+model.process.add_step(elasitc_state, description="Update material state to elastic")
+model.process.add_step(gravity_analysis,  description="Gravity Analysis Step (Elastic)")
+model.process.add_step(plastic_state, description="Update material state to plastic")
+model.process.add_step(gravity_analysis,  description="Gravity Analysis Step (Plastic)")
+model.process.add_step(reset, description="Reset time to zero")
+model.process.add_step(h5pattern, description="DRM load pattern")
+model.process.add_step(recorder, description="VTK-HDF recorder")
+model.process.add_step(checkpoint_recorder, description="Checkpoint recorder")
+model.process.add_step(dynamic_analysis, description="Transient analysis")                    
 
 
-fm.export_to_tcl("model.tcl")
+model.export_to_tcl("model.tcl")
 #model.assembler.plot(show_edges=True, scalars="Core")

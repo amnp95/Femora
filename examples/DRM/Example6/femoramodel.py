@@ -5,7 +5,7 @@ import os
 
 # change the direcotto the current file
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
-
+fm.set_results_folder("Results")
 
 # this example is the extension of the example2 which we have semihemispherical basin at the center in this model we are going to use External mesh as a part of the model
 # Parameters for the semihemispherical hole
@@ -69,24 +69,40 @@ softMat_vs = 150
 softMat_vp = 300
 softMat_xi_s = 0.03
 softMat_xi_p = 0.01
-softMat_rho  = 1.8
+softMat_rho  = 1.3
 softMat_vs_vp_ratio   = (softMat_vp / softMat_vs) ** 2
 softMat_nu            = (softMat_vs_vp_ratio - 2) / (2 * (softMat_vs_vp_ratio - 1))
 softMat_E = 2 * softMat_rho * (softMat_vs ** 2) * (1 + softMat_nu)
+softMat_G = softMat_E / (2 * (1 + softMat_nu))
+softMat_K = softMat_E / (3 * (1 - 2 * softMat_nu))
+softMat_Cohesion = 8.0
+softMat_peakStrain = 0.1
 # softMat_E = softMat_E / 1000.
 # softMat_rho = softMat_rho / 1000.
-sofmat = fm.material.create_material("nDMaterial", "ElasticIsotropic",
-                                user_name=f"softMaterial",
-                                E=softMat_E, nu=softMat_nu, rho=softMat_rho)
+# sofmat = fm.material.create_material("nDMaterial", "ElasticIsotropic",
+#                                 user_name=f"softMaterial",
+#                                 E=softMat_E, nu=softMat_nu, rho=softMat_rho)
+
+sofmat = fm.material.nd.pressure_independ_multi_yield(
+    user_name="softMaterial",
+    nd=3,
+    rho=softMat_rho,
+    refShearModul=softMat_G,
+    refBulkModul=softMat_K,
+    cohesi=softMat_Cohesion,
+    peakShearStra=softMat_peakStrain,
+    updatewithsigmav0 = True
+)
 
 softele = fm.element.create_element(element_type="stdBrick",
                                 ndof=3,
                                 material=sofmat,
                                 b1=0,
                                 b2=0,
-                                b3=0)
+                                b3=0,
+                                lumped=True)
 softMat_damp = fm.damping.create_damping("frequency rayleigh", dampingFactor=softMat_xi_s, f1=3, f2=15)
-softMat_reg = fm.region.create_region("elementRegion", damping=softMat_damp)
+softMat_reg = fm.region.create_region("elementRegion", damping=None)
 
 
 # =========================================================
@@ -106,10 +122,11 @@ def helperfunction(layer, rho, vp, vs, xi_s, xi_p, thickness):
                                     material=mat,
                                     b1=0,
                                     b2=0,
-                                    b3=0)
+                                    b3=0,
+                                    lumped=True)
 
     damp = fm.damping.create_damping("frequency rayleigh", dampingFactor=xi_s, f1=3, f2=15)
-    reg = fm.region.create_region("elementRegion", damping=damp)
+    reg = fm.region.create_region("elementRegion", damping=None)
     return ele, reg
 
 
@@ -318,15 +335,13 @@ if PLOTTING:
 # create a list of mesh parts
 layers = ["Layer1", "Layer2", 
               "Layer3", "Layer4", 
-              "Layer5", "Layer6"]
+              "Layer5", "Layer6", "basin1", "basin2"]
 
 fm.assembler.create_section(layers, num_partitions=32)
 
-basins = ["basin1", "basin2"]
-fm.assembler.create_section(basins, num_partitions=16)
 
 fm.assembler.Assemble()
-fm.drm.addAbsorbingLayer(numLayers=8,
+fm.drm.addAbsorbingLayer(numLayers=5,
                         numPartitions=64,
                         partitionAlgo="kd-tree",
                         geometry="Rectangular",
@@ -335,40 +350,88 @@ fm.drm.addAbsorbingLayer(numLayers=8,
                         type="Rayleigh",
                         )
 
-h5pattern = fm.pattern.create_pattern( 'h5drm',
-                                        filepath='drmload.h5drm',
-                                        factor=1.0,
-                                        crd_scale=1.0,
-                                        distance_tolerance=0.01,
-                                        do_coordinate_transformation=1,
-                                        transform_matrix=[1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0],
-                                        origin=[0.0, 0.0, 0.0])
-fm.drm.set_pattern(h5pattern)
+
+fm.constraint.sp.fixMacroXmax(dofs=[1,1,1,1,1,1,1,1,1], tol = 0.01)
+fm.constraint.sp.fixMacroXmin(dofs=[1,1,1,1,1,1,1,1,1], tol = 0.01)
+fm.constraint.sp.fixMacroYmax(dofs=[1,1,1,1,1,1,1,1,1], tol = 0.01)
+fm.constraint.sp.fixMacroYmin(dofs=[1,1,1,1,1,1,1,1,1], tol = 0.01)
+fm.constraint.sp.fixMacroZmin(dofs=[1,1,1,1,1,1,1,1,1], tol = 0.01)                             
 
 
 
 
-# =========================================================
-# Defining default process
-# =========================================================
-if not BASIN:
-    resultdirectoryname = "Regular"
-else:
-    resultdirectoryname = f"Vs{int(softMat_vs)}"
+h5pattern = fm.pattern.h5drm(filepath='drmload.h5drm',
+                             factor=1.0,
+                             crd_scale=1.0,
+                             distance_tolerance=0.01,
+                             do_coordinate_transformation=1,
+                             transform_matrix=[1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0],
+                             origin=[0.0, 0.0, 0.0])
 
 
-fm.drm.createDefaultProcess(finalTime=25, dT=0.01,
-                            vtkhdfrecorder_file=f"{resultdirectoryname}/result",
-                            GravityElasticOptions={"num_steps":10},
-                            GravityPlasticOptions={"num_steps":1})
 
 
-# =========================================================
-# add a explicit tcl command to make the result directory
-# =========================================================
-
-fm.process.insert_step(index=0, component=fm.actions.tcl(f"file mkdir {resultdirectoryname}"), description="making result directory")
+recorder = fm.recorder.vtkhdf(file_base_name="result",
+                              resp_types=["disp", "vel", "accel"],
+                              delta_t=0.01)
 
 
-fm.export_to_tcl(filename="model.tcl")
-# fm.gui()
+
+
+
+
+gravity_analysis = fm.actions.tcl("""
+constraints Transformation
+numberer ParallelRCM
+system Mumps -ICNTL14 400 -ICNTL7 7
+algorithm ModifiedNewton -factoronce
+test EnergyIncr 0.001 20 2
+integrator Newmark 0.6 0.30250000000000005
+analysis Transient
+set AnalysisStep 0
+while { $AnalysisStep < 30} {
+	if {$pid==0} {puts "$AnalysisStep/30"}
+	set Ok [analyze 1 1.0]
+	incr AnalysisStep 1
+}
+wipeAnalysis
+""")
+
+
+elasitc_state = fm.actions.updateMaterialStageToElastic()
+plastic_state = fm.actions.updateMaterialStageToPlastic()
+
+reset = fm.actions.seTime(pseudo_time=0.0)
+
+dynamic_analysis = fm.actions.tcl("""
+constraints Transformation
+numberer ParallelPlain
+system MPIDiagonal
+algorithm Linear -factorOnce
+integrator Explicitdifference
+analysis Transient
+initialize
+while {[getTime] < 20.000000} {
+	if {$pid == 0} {puts "Time : [getTime]/20.000000"}
+
+	set Ok [analyze 1 0.0002]
+
+}
+wipeAnalysis
+""")
+
+fm.process.add_step(elasitc_state, description="Update material state to elastic")
+fm.process.add_step(gravity_analysis,  description="Gravity Analysis Step (Elastic)")
+fm.process.add_step(plastic_state, description="Update material state to plastic")
+fm.process.add_step(gravity_analysis,  description="Gravity Analysis Step (Plastic)")
+fm.process.add_step(h5pattern, description="DRM load pattern")
+fm.process.add_step(recorder, description="VTK-HDF recorder")
+fm.process.add_step(reset, description="Reset time to zero")
+fm.process.add_step(dynamic_analysis, description="Transient analysis")                    
+
+
+fm.export_to_tcl("model.tcl")
+
+
+
+fm.assembler.plot(show_edges=True, scalars="Core")

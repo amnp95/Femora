@@ -1078,14 +1078,14 @@ def custom_building(structure_info, soil_info, foundation_info, pile_info):
     fm.assembler.create_section(foundation_pile_sections, 
                                 num_partitions=foundation_info["num_partitions"],
                                 partition_algorithm="kd-tree",
-                                merging_points=True,
+                                merge_points=True,
                                 tolerance=1e-3,
                                 mass_merging="sum")
 
     fm.assembler.create_section(soil_sections, 
                                 num_partitions=soil_info["num_partitions"],
                                 partition_algorithm="kd-tree",
-                                merging_points=True,
+                                merge_points=True,
                                 tolerance=1e-3,
                                 mass_merging="sum")
 
