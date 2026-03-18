@@ -960,7 +960,7 @@ class PressureIndependMultiYieldMaterial(Material):
             return ""
 
 
-    def set_parameter(self, parameter_name: str, new_value: float|int|str|None = None, element_tags:[int] = []) -> str:
+    def set_parameter(self, parameter_name: str, new_value: Union[float, int, str, None] = None, element_tags:[int] = []) -> str:
         """Generate the OpenSees command to set a material parameter for specific elements.
 
         Parameters:

@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from femora.components.Material.materialBase import MaterialManager, Material
 from femora.components.Assemble.Assembler import Assembler 
-
+from typing import Union
 
 class Action(ABC):
     """
@@ -81,10 +81,10 @@ class SetMaterialParameter(Action):
         Action: An action that updates the specified material parameter.
     """
 
-    def __init__(self, material: int|str|Material, 
+    def __init__(self, material: Union[int,str,Material], 
                 parameter_name: str, 
-                parameter_value: float|int|str|None = None,
-                element_tags: list[int]|None = None): 
+                parameter_value: Union[float,int,str,None] = None,
+                element_tags: Union[list[int],None] = None): 
 
         from femora.components.MeshMaker import MeshMaker
         import numpy as np

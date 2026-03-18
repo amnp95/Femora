@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import List, Dict, Type, Optional, Any
+from typing import List, Dict, Type, Optional, Any, Union
 
 
 class Material(ABC):
@@ -334,7 +334,7 @@ class Material(ABC):
         """
         return ""
 
-    def set_parameter(self, parameter_name: str, new_value: float|int|str|None = None, element_tags:[int] = []) -> str:
+    def set_parameter(self, parameter_name: str, new_value: Union[float, int, str, None] = None, element_tags:[int] = []) -> str:
         """Sets a specific parameter to a new value.
 
         This method returns the tcl string to update material parameter in OpenSees.
