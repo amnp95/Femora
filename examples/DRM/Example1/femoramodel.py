@@ -169,7 +169,7 @@ fm.drm.addAbsorbingLayer(numLayers=2,
                         type="Rayleigh",
                         )
 fm.drm.set_pattern(h5pattern)
-fm.drm.createDefaultProcess(finalTime=30, dT=0.01)
+fm.drm.createDefaultProcess(finalTime=5, dT=0.01)
 
 resultdirectoryname = "Results"
 fm.process.insert_step(index=0, component=fm.actions.tcl(f"file mkdir {resultdirectoryname}"), description="making result directory")
