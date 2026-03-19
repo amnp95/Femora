@@ -9,7 +9,41 @@ from qtpy.QtCore import Qt
 from femora.components.Damping.dampingBase import DampingBase, DampingRegistry
 
 class DampingManagerTab(QDialog):
-    def __init__(self, parent=None):
+    """Manages the creation, editing, and deletion of damping objects in a GUI tab.
+
+    This dialog provides an interface to view existing damping definitions,
+    create new ones of various types, and modify or remove them. It interacts
+    with the `DampingRegistry` and `DampingBase` to manage the global damping
+    definitions.
+
+    Attributes:
+        damping_type_combo (QComboBox): Dropdown menu to select the type of damping
+            to create.
+        dampings_table (QTableWidget): Table displaying all currently defined
+            damping objects, including their tag, type, name, and action buttons.
+        refresh_btn (QPushButton): Button to refresh the list of dampings in the table.
+
+    Example:
+        >>> import sys
+        >>> from qtpy.QtWidgets import QApplication
+        >>> from femora.components.Damping.dampingBase import RayleighDamping, ModalDamping
+        >>> # Pre-populate some damping for demonstration
+        >>> _ = RayleighDamping(alphaM=0.1, betaK=0.2)
+        >>> _ = ModalDamping(numberofModes=2, dampingFactors="0.1,0.2")
+        >>> app = QApplication(sys.argv)
+        >>> manager_tab = DampingManagerTab()
+        >>> manager_tab.show()
+        >>> # app.exec_() # Uncomment to run the application event loop
+    """
+    def __init__(self, parent: QWidget = None):
+        """Initializes the DampingManagerTab.
+
+        Sets up the UI elements including the damping type selection, the table
+        to display dampings, and buttons for creation and refreshing.
+
+        Args:
+            parent: The parent widget for this dialog. Defaults to None.
+        """
         super().__init__(parent)
         
         # Main layout
@@ -48,14 +82,52 @@ class DampingManagerTab(QDialog):
         self.refresh_dampings_list()
 
     def open_damping_creation_dialog(self):
-        """Open dialog to create a new damping of selected type"""
+        """Opens a dialog to create a new damping object.
+
+        The type of damping to be created is determined by the currently
+        selected item in the `damping_type_combo` QComboBox. If a new damping
+        is successfully created, the dampings list is refreshed.
+
+        Example:
+            >>> import sys
+            >>> from qtpy.QtWidgets import QApplication
+            >>> from femora.components.Damping.dampingBase import RayleighDamping
+            >>> app = QApplication(sys.argv)
+            >>> manager_tab = DampingManagerTab()
+            >>> manager_tab.damping_type_combo.setCurrentText("RayleighDamping")
+            >>> # manager_tab.open_damping_creation_dialog() # This would open a modal dialog
+            >>> # If you programmatically want to create one without the dialog,
+            >>> # you'd use DampingRegistry.create_damping directly.
+        """
         damping_type = self.damping_type_combo.currentText()
         dialog = DampingCreationDialog(damping_type, self)
         if dialog.exec() == QDialog.Accepted:
             self.refresh_dampings_list()
 
     def refresh_dampings_list(self):
-        """Update the dampings table with current dampings"""
+        """Updates the dampings table with the current list of registered damping objects.
+
+        This method clears the existing table content and repopulates it with
+        all damping objects currently managed by `DampingBase._dampings`.
+        It creates a row for each damping, including its tag, type, name,
+        and "Edit" and "Delete" action buttons.
+
+        Example:
+            >>> import sys
+            >>> from qtpy.QtWidgets import QApplication
+            >>> from femora.components.Damping.dampingBase import RayleighDamping
+            >>> app = QApplication(sys.argv)
+            >>> manager_tab = DampingManagerTab()
+            >>> # Initially, the table might be empty or have pre-existing ones
+            >>> manager_tab.refresh_dampings_list()
+            >>> # Create a new damping programmatically
+            >>> _ = RayleighDamping(alphaM=0.1, betaK=0.2, name="test_damping")
+            >>> manager_tab.refresh_dampings_list() # Table will now show the new damping
+            >>> # The following would only work in an interactive session or by checking
+            >>> # the table widget directly.
+            >>> # manager_tab.dampings_table.rowCount()
+            # 1
+        """
         self.dampings_table.setRowCount(0)
         dampings = DampingBase._dampings
         
@@ -87,14 +159,58 @@ class DampingManagerTab(QDialog):
             delete_btn.clicked.connect(lambda checked, t=tag: self.delete_damping(t))
             self.dampings_table.setCellWidget(row, 4, delete_btn)
 
-    def open_damping_edit_dialog(self, damping):
-        """Open dialog to edit an existing damping"""
+    def open_damping_edit_dialog(self, damping: DampingBase):
+        """Opens a dialog to edit an existing damping object's properties.
+
+        If the damping's properties are successfully updated via the dialog,
+        the dampings list is refreshed to reflect the changes.
+
+        Args:
+            damping: The `DampingBase` object whose properties are to be edited.
+
+        Example:
+            >>> import sys
+            >>> from qtpy.QtWidgets import QApplication
+            >>> from femora.components.Damping.dampingBase import RayleighDamping
+            >>> app = QApplication(sys.argv)
+            >>> manager_tab = DampingManagerTab()
+            >>> existing_damping = RayleighDamping(alphaM=0.1, betaK=0.2, name="MyDamping")
+            >>> # manager_tab.open_damping_edit_dialog(existing_damping) # This would open a modal dialog
+            >>> # To observe the effect, you'd typically interact with the GUI.
+            >>> # If you programmatically want to edit, use existing_damping.update_values.
+        """
         dialog = DampingEditDialog(damping, self)
         if dialog.exec() == QDialog.Accepted:
             self.refresh_dampings_list()
 
-    def delete_damping(self, tag):
-        """Delete a damping from the system"""
+    def delete_damping(self, tag: int):
+        """Deletes a damping object from the system after user confirmation.
+
+        A confirmation dialog is presented to the user. If confirmed, the damping
+        object corresponding to the given tag is removed using `DampingBase.remove_damping()`,
+        and the dampings list in the UI is refreshed.
+
+        Args:
+            tag: The unique integer tag of the damping object to be deleted.
+
+        Example:
+            >>> import sys
+            >>> from qtpy.QtWidgets import QApplication
+            >>> from femora.components.Damping.dampingBase import RayleighDamping
+            >>> app = QApplication(sys.argv)
+            >>> manager_tab = DampingManagerTab()
+            >>> damping_to_delete = RayleighDamping(alphaM=0.1, betaK=0.2)
+            >>> # Get the tag of the newly created damping
+            >>> tag = damping_to_delete.tag
+            >>> manager_tab.refresh_dampings_list()
+            >>> # The following would only work in an interactive session or by mocking
+            >>> # QMessageBox.question is a blocking call, so for testing,
+            >>> # one might mock it or interact manually.
+            >>> # manager_tab.delete_damping(tag)
+            >>> # Assuming confirmation, the table row count would decrease.
+            >>> # manager_tab.dampings_table.rowCount()
+            # 0
+        """
         reply = QMessageBox.question(
             self, 'Delete Damping',
             f"Are you sure you want to delete damping with tag {tag}?",
@@ -106,7 +222,28 @@ class DampingManagerTab(QDialog):
             self.refresh_dampings_list()
 
 class DampingCreationDialog(QDialog):
-    def __init__(self, damping_type, parent=None):
+    """A dialog for creating a new damping object of a specific type.
+
+    This dialog presents input fields for the parameters required by the selected
+    damping type, along with notes and references for guidance. Users can input
+    values and create a new damping object, which is then registered in the system.
+
+    Attributes:
+        damping_type (str): The string identifier for the type of damping
+            being created (e.g., 'rayleigh', 'modal').
+        param_inputs (dict[str, QLineEdit]): A dictionary mapping parameter
+            names (str) to their corresponding QLineEdit input widgets.
+    """
+    def __init__(self, damping_type: str, parent: QWidget = None):
+        """Initializes the DampingCreationDialog.
+
+        Sets up the UI, including parameter input fields dynamically generated
+        based on the `damping_type`, and displays relevant notes and references.
+
+        Args:
+            damping_type: The string identifier for the type of damping to create.
+            parent: The parent widget for this dialog. Defaults to None.
+        """
         super().__init__(parent)
         self.setWindowTitle(f"Create {damping_type} Damping")
         self.damping_type = damping_type.lower()
@@ -211,6 +348,30 @@ class DampingCreationDialog(QDialog):
         main_layout.setStretch(2, 2)  # Right side takes 2/5 of the width
 
     def create_damping(self):
+        """Collects input parameters and attempts to create a new damping object.
+
+        This method reads values from the parameter input fields, validates them,
+        and uses `DampingRegistry.create_damping()` to instantiate and register
+        a new damping object. On success, the dialog is accepted.
+        On failure (e.g., invalid input), a warning message is displayed.
+
+        Raises:
+            ValueError: If any input parameter has an invalid format or value.
+            Exception: For any other unexpected errors during damping creation.
+
+        Example:
+            >>> import sys
+            >>> from qtpy.QtWidgets import QApplication
+            >>> from femora.components.Damping.dampingBase import DampingRegistry
+            >>> app = QApplication(sys.argv)
+            >>> dialog = DampingCreationDialog(damping_type="RayleighDamping")
+            >>> # Simulate inputting values
+            >>> dialog.param_inputs["alphaM"].setText("0.1")
+            >>> dialog.param_inputs["betaK"].setText("0.2")
+            >>> # dialog.create_damping() # This would attempt to create and close the dialog
+            >>> # Check if a damping was created (requires DampingRegistry._dampings access)
+            >>> # len(DampingRegistry._dampings) == initial_count + 1 if successful
+        """
         try:
             # Collect parameters
             params = {}
@@ -231,7 +392,27 @@ class DampingCreationDialog(QDialog):
             QMessageBox.critical(self, "Error", str(e))
 
 class DampingEditDialog(QDialog):
-    def __init__(self, damping, parent=None):
+    """A dialog for editing the properties of an existing damping object.
+
+    This dialog pre-fills input fields with the current values of the damping
+    object's parameters and allows the user to modify them. It also displays
+    relevant notes and references for the damping type.
+
+    Attributes:
+        damping (DampingBase): The `DampingBase` object whose properties are being edited.
+        param_inputs (dict[str, QLineEdit]): A dictionary mapping parameter
+            names (str) to their corresponding QLineEdit input widgets.
+    """
+    def __init__(self, damping: DampingBase, parent: QWidget = None):
+        """Initializes the DampingEditDialog.
+
+        Sets up the UI with pre-filled parameter input fields based on the
+        provided `damping` object, and displays its type-specific notes and references.
+
+        Args:
+            damping: The `DampingBase` object to be edited.
+            parent: The parent widget for this dialog. Defaults to None.
+        """
         super().__init__(parent)
         self.damping = damping
         self.setWindowTitle(f"Edit {damping.__class__.__name__} (Tag: {damping.tag})")
@@ -341,6 +522,30 @@ class DampingEditDialog(QDialog):
 
 
     def save_changes(self):
+        """Collects updated parameters and attempts to save changes to the damping object.
+
+        This method reads values from the input fields, validates them, and
+        uses the `damping.update_values()` method to apply the changes to the
+        associated damping object. On success, the dialog is accepted.
+        On failure (e.g., invalid input), a warning message is displayed.
+
+        Raises:
+            ValueError: If any input parameter has an invalid format or value.
+            Exception: For any other unexpected errors during damping update.
+
+        Example:
+            >>> import sys
+            >>> from qtpy.QtWidgets import QApplication
+            >>> from femora.components.Damping.dampingBase import RayleighDamping
+            >>> app = QApplication(sys.argv)
+            >>> existing_damping = RayleighDamping(alphaM=0.1, betaK=0.2)
+            >>> dialog = DampingEditDialog(existing_damping)
+            >>> # Simulate changing a value
+            >>> dialog.param_inputs["alphaM"].setText("0.15")
+            >>> # dialog.save_changes() # This would attempt to save and close the dialog
+            >>> # Check if value was updated
+            >>> # existing_damping.alphaM == 0.15 if successful
+        """
         try:
             # Collect parameters
             params = {}
