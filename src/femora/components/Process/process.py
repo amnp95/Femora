@@ -75,38 +75,40 @@ class ProcessManager:
         """
         return len(self.steps)
 
-    def add_step(self, component: ProcessComponent, description: str = "") -> int:
-        """Adds a step to the end of the process.
+    def add_step(self, component: Union[ProcessComponent, List[ProcessComponent]], description: str = "") -> int:
+        """Adds a step (or multiple steps if a list is provided) to the end of the process.
 
-        This method appends a new step to the process. Components are stored
+        This method appends new step(s) to the process. Components are stored
         as weak references (except Action objects which use strong references)
         to prevent circular dependencies.
 
         Args:
-            component: The component object to use in this step. Must be one
-                of the allowed component types (SPConstraint, mpConstraint,
+            component: The component object (or list of components) to use in this step.
+                Must be one of the allowed component types (SPConstraint, mpConstraint,
                 Pattern, Recorder, Analysis, or Action).
             description: Optional description of the step. Defaults to empty string.
 
         Returns:
-            Index of the newly added step.
+            Index of the last added step.
 
         Raises:
             TypeError: If component is not one of the allowed types.
         """
+        if isinstance(component, list):
+            last_index = -1
+            for comp in component:
+                last_index = self.add_step(comp, description)
+            return last_index
+
         # Store a weak reference to the component
         if not isinstance(component, Action):
             # If the component is not an Action, store a weak reference
             component_ref = weakref.ref(component)
         elif isinstance(component, Action):
             # If the component is an Action, store a strong reference
-            # This is because Actions are not expected to be weakly referenced
-            # and should be kept alive for the duration of the process
             component_ref = component
         else:
-            raise TypeError("Invalid component type. Must be one of the allowed types.")
-
-
+            raise TypeError(f"Invalid component type: {type(component)}. Must be one of the allowed types.")
 
         step = {
             "component": component_ref,
@@ -116,18 +118,16 @@ class ProcessManager:
         self.steps.append(step)
         return len(self.steps) - 1
 
-    def insert_step(self, index: int, component: ProcessComponent, description: str = "") -> bool:
-        """Inserts a step at a specific position in the process.
+    def insert_step(self, index: int, component: Union[ProcessComponent, List[ProcessComponent]], description: str = "") -> bool:
+        """Inserts a step (or multiple steps) at a specific position in the process.
 
         This method allows insertion at any position, including negative indexing
         (where -1 refers to the last position). The current step index is
         automatically adjusted if necessary.
 
         Args:
-            index: Position to insert the step. Negative indices are supported
-                (e.g., -1 inserts before the last step).
-            component: The component object to use in this step. Must be one
-                of the allowed component types.
+            index: Position to insert the step. Negative indices are supported.
+            component: The component object (or list) to use in this step.
             description: Optional description of the step. Defaults to empty string.
 
         Returns:
@@ -136,23 +136,26 @@ class ProcessManager:
         Raises:
             TypeError: If component is not one of the allowed types.
         """
+        if isinstance(component, list):
+            success = True
+            # Insert in reverse order to maintain original list order at the target index
+            for comp in reversed(component):
+                success = success and self.insert_step(index, comp, description)
+            return success
+
         # Adjust negative index to positive index
         if index < 0:
             index += len(self.steps) + 1
 
         if 0 <= index <= len(self.steps):
-
             if not isinstance(component, Action):
                 # If the component is not an Action, store a weak reference
                 component_ref = weakref.ref(component)
             elif isinstance(component, Action):
                 # If the component is an Action, store a strong reference
-                # This is because Actions are not expected to be weakly referenced
-                # and should be kept alive for the duration of the process
                 component_ref = component
             else:
-                raise TypeError("Invalid component type. Must be one of the allowed types.")
-
+                raise TypeError(f"Invalid component type: {type(component)}. Must be one of the allowed types.")
 
             step = {
                 "component": component_ref,
