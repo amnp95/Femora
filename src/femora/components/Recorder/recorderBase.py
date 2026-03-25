@@ -123,6 +123,42 @@ class Recorder(ABC):
         """
         pass
 
+    def _resolve_regions(self, regions_input: Union[int, str, RegionBase, List[Union[int, str, RegionBase]]]) -> List[int]:
+        """
+        Normalize provided regions to a list of integer tags.
+
+        Accepts:
+            - int tag
+            - str name (matched against existing RegionBase.name)
+            - RegionBase instance
+            - list/tuple of the above
+        """
+        if regions_input is None:
+            return []
+
+        def resolve_one(item) -> int:
+            if isinstance(item, int):
+                return item
+            if isinstance(item, RegionBase):
+                return item.tag
+            if isinstance(item, str):
+                # Find by name
+                for tag, region in RegionBase.get_all_regions().items():
+                    if getattr(region, "name", None) == item:
+                        return tag
+                raise ValueError(f"Region with name '{item}' not found")
+            raise TypeError("regions must contain ints, names, or RegionBase instances")
+
+        tags: List[int] = []
+        if isinstance(regions_input, (list, tuple)):
+            for it in regions_input:
+                tag = resolve_one(it)
+                if tag not in tags:
+                    tags.append(tag)
+        else:
+            tags = [resolve_one(regions_input)]
+        return tags
+
 
 
 
@@ -1221,41 +1257,6 @@ class BeamForceRecorder(Recorder):
 
         return "\n".join(lines)
 
-    def _resolve_regions(self, regions_input: Union[int, str, RegionBase, List[Union[int, str, RegionBase]]]) -> List[int]:
-        """
-        Normalize provided regions to a list of integer tags.
-
-        Accepts:
-            - int tag
-            - str name (matched against existing RegionBase.name)
-            - RegionBase instance
-            - list/tuple of the above
-        """
-        if regions_input is None:
-            return []
-
-        def resolve_one(item) -> int:
-            if isinstance(item, int):
-                return item
-            if isinstance(item, RegionBase):
-                return item.tag
-            if isinstance(item, str):
-                # Find by name
-                for tag, region in RegionBase.get_all_regions().items():
-                    if getattr(region, "name", None) == item:
-                        return tag
-                raise ValueError(f"Region with name '{item}' not found")
-            raise TypeError("regions must contain ints, names, or RegionBase instances")
-
-        tags: List[int] = []
-        if isinstance(regions_input, (list, tuple)):
-            for it in regions_input:
-                tag = resolve_one(it)
-                if tag not in tags:
-                    tags.append(tag)
-        else:
-            tags = [resolve_one(regions_input)]
-        return tags
 
 class RecorderRegistry:
     """Registry for managing recorder types and their creation.
