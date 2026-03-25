@@ -109,6 +109,7 @@ class FEMA_SAC_SteelFrame:
         self.col_sections: Dict[Tuple[int, int, int], str] = {}
         self.beam_x_sections: Dict[Tuple[int, int, int], str] = {}
         self.beam_y_sections: Dict[Tuple[int, int, int], str] = {}
+        self.building_region: Optional[RegionBase] = None
         
         # Use provided map or None
         self.section_map = section_map
@@ -837,7 +838,8 @@ class FEMA_SAC_SteelFrame:
                   f"(x={x_center:.1f}, y={y_center:.1f}, "
                   f"z={z_coords[1]:.1f}..{z_coords[-1]:.1f})")
 
-        composite_mesh = CompositeMesh(f"{self.name_prefix}", grid)
+        self.building_region = model.region.create_region("ElementRegion")
+        composite_mesh = CompositeMesh(user_name=f"{self.name_prefix}", mesh=grid, region=self.building_region)
         return composite_mesh
 
     def create_rigid_diaphragms(self, model):
@@ -932,190 +934,41 @@ class FEMA_SAC_SteelFrame:
             model.constraint.sp.fix(master_tag, [0, 0, 1, 1, 1, 0])
 
 
-    def get_story_drift_recorders(
+    def get_recorders(
         self,
         model,
         *,
-        file_prefix: str = "StoryDrift",
-        dofs: Tuple[int, ...] = (1, 2),
-        perp_dirn: int = 3,
+        file_name: Optional[str] = None,
         delta_t: Optional[float] = None,
-        include_time: bool = True,
-        precision: Optional[int] = None,
-        coord_decimals: int = 4,
+        responses: List[str] = ["force"]
     ):
-        """Create inter-story drift recorders for this steel frame.
+        """Returns an MPCO recorder for the building's elements.
 
-        This method must be called **after** `model.assembler.Assemble()`. It
-        inspects the assembled mesh, finds a valid pair of column nodes for each
-        story (bottom and top), and assigns each story's recorder to an MPI
-        core/partition where **both** nodes exist.
-
-        Drift nodes are chosen from the building's column grid intersections,
-        preferring the intersection closest to the floor-plan center.
+        This method must be called **after** `build()` has been called to ensure 
+        the building region is created.
 
         Args:
             model: Active Femora model (MeshMaker instance).
-            file_prefix: Prefix for output drift files.
-            dofs: DOF directions to record (default: (1,2) → X and Y).
-            perp_dirn: Perpendicular direction for drift normalization (default: 3 → Z).
-            delta_t: Optional recorder time interval (`-dT`).
-            include_time: Include `-time` in recorder output.
-            precision: Optional significant digits (`-precision`).
-            coord_decimals: Decimal rounding used to match nodes by coordinates.
+            file_name: Output file name with .mpco extension. Defaults to {name_prefix}.mpco.
+            delta_t: Optional recorder time interval (-T dt).
+            responses: List of element responses to record (-E). Defaults to ["force"].
 
         Returns:
-            List of DriftRecorder instances (one per story per requested DOF).
-
-        Raises:
-            ValueError: If the mesh is not assembled or required mesh metadata is missing.
-
-        Example:
-            >>> import femora as fm
-            >>> from femora.components.MeshMaker import MeshMaker
-            >>> from femora.components.Material.materialsOpenSees import ElasticIsotropicMaterial
-            >>> from femora.tools.buildings.steel_frame import FEMA_SAC_SteelFrame
-            >>> model = MeshMaker()
-            >>> steel = ElasticIsotropicMaterial("Steel", E=29000.0, nu=0.3)
-            >>> building = FEMA_SAC_SteelFrame(name_prefix="Bldg")
-            >>> part = building.build(model, steel)
-            >>> model.assembler.create_section(meshparts=[part.user_name], num_partitions=2)
-            >>> model.assembler.Assemble()
-            >>> drifts = building.get_story_drift_recorders(model)
-            >>> for r in drifts:
-            ...     model.process.add_step(r, description="Story drift")
+            List containing the MPCORecorder instance.
         """
+        if self.building_region is None:
+            raise ValueError("Building region not found. Call build() first.")
 
-        mesh = model.assembler.AssembeledMesh
-        if mesh is None:
-            raise ValueError("Mesh must be assembled before creating drift recorders.")
+        if file_name is None:
+            file_name = f"{self.name_prefix}.mpco"
 
-        # Resolve this building's mesh-part tag in the global mesh-part registry.
-        part = MeshPart.get_mesh_parts().get(self.name_prefix)
-        if part is None:
-            raise ValueError(
-                f"MeshPart '{self.name_prefix}' not found. Build and register the building mesh part before calling this method."
-            )
-        building_mesh_tag = int(part.tag)
-
-        cell_mesh_tags = mesh.cell_data.get("MeshPartTag_celldata")
-        cores = mesh.cell_data.get("Core")
-        ndfs = mesh.point_data.get("ndf")
-        if cell_mesh_tags is None or cores is None or ndfs is None:
-            raise ValueError(
-                "Assembled mesh missing required arrays ('MeshPartTag_celldata', 'Core', or point_data['ndf'])."
-            )
-
-        building_cell_ids = np.where(cell_mesh_tags == building_mesh_tag)[0]
-        if building_cell_ids.size == 0:
-            raise ValueError(
-                f"No cells found for MeshPartTag_celldata={building_mesh_tag}. Is '{self.name_prefix}' included in the assembled section(s)?"
-            )
-
-        points = np.asarray(mesh.points)
-        start_node_tag = int(getattr(model, "_start_nodetag", 1))
-
-        # Build: point -> set(cores) for points used by this building.
-        point_cores = [set() for _ in range(int(mesh.n_points))]
-        building_point_mask = np.zeros(int(mesh.n_points), dtype=bool)
-        cells = mesh.cell_connectivity
-        offsets = mesh.offset
-        for cid in building_cell_ids.tolist():
-            core = int(cores[cid])
-            start = int(offsets[cid])
-            end = int(offsets[cid + 1])
-            pids = cells[start:end]
-            building_point_mask[pids] = True
-            for pid in pids:
-                point_cores[int(pid)].add(core)
-
-        building_point_ids = np.where(building_point_mask)[0]
-        if building_point_ids.size == 0:
-            raise ValueError("No building points found in assembled mesh.")
-
-        # Coordinate map for fast (x,y,z) → point lookup (within rounding).
-        def r(v: float) -> float:
-            return round(float(v), int(coord_decimals))
-
-        coord_map: Dict[Tuple[float, float, float], List[int]] = {}
-        for pid in building_point_ids.tolist():
-            x, y, z = points[pid]
-            key = (r(x), r(y), r(z))
-            coord_map.setdefault(key, []).append(int(pid))
-
-        def find_structural_pid(x: float, y: float, z: float) -> Optional[int]:
-            key = (r(x), r(y), r(z))
-            candidates = coord_map.get(key)
-            if not candidates:
-                return None
-            # Prefer non-ghost nodes (ghost sentinel ndf >= 1000)
-            for pid in candidates:
-                if int(ndfs[pid]) < 1000:
-                    return int(pid)
-            return int(candidates[0])
-
-        x_coords, y_coords, z_coords = self.get_coordinates()
-        x_center = float((x_coords[0] + x_coords[-1]) / 2.0)
-        y_center = float((y_coords[0] + y_coords[-1]) / 2.0)
-
-        # Select one valid drift pair per story (closest-to-center grid intersection).
-        story_pairs: List[Tuple[int, int, int]] = []  # (story, pid_bot, pid_top)
-        story_core: Dict[int, int] = {}               # story -> core
-
-        for story in range(1, self.num_stories + 1):
-            z_bot = float(z_coords[story - 1])
-            z_top = float(z_coords[story])
-
-            best = None  # (dist2, core, pid_bot, pid_top)
-            for x in x_coords:
-                for y in y_coords:
-                    pid_bot = find_structural_pid(float(x), float(y), z_bot)
-                    pid_top = find_structural_pid(float(x), float(y), z_top)
-                    if pid_bot is None or pid_top is None:
-                        continue
-                    common = point_cores[pid_bot].intersection(point_cores[pid_top])
-                    if not common:
-                        continue
-                    core = int(min(common))
-                    dist2 = (float(x) - x_center) ** 2 + (float(y) - y_center) ** 2
-                    cand = (dist2, core, int(pid_bot), int(pid_top))
-                    if best is None or cand < best:
-                        best = cand
-
-            if best is None:
-                print(f"[Story {story}] Warning: Could not find a drift node pair with a common core. Skipping.")
-                continue
-
-            _, core, pid_bot, pid_top = best
-            story_pairs.append((int(story), int(pid_bot), int(pid_top)))
-            story_core[int(story)] = int(core)
-
-        # Build recorders (one per story per dof), guarded per core.
-        dof_names = {1: "X", 2: "Y", 3: "Z", 4: "RX", 5: "RY", 6: "RZ"}
-        recorders = []
-        for story, pid_bot, pid_top in story_pairs:
-            i_node = int(pid_bot + start_node_tag)
-            j_node = int(pid_top + start_node_tag)
-            core = int(story_core[story])
-
-            for dof in dofs:
-                dof = int(dof)
-                suffix = dof_names.get(dof, f"DOF{dof}")
-                file_name = f"{file_prefix}_Story{story:02d}_{suffix}.out"
-                rec = model.recorder.drift(
-                    file_name=file_name,
-                    i_nodes=i_node,
-                    j_nodes=j_node,
-                    dof=dof,
-                    perp_dirn=int(perp_dirn),
-                    time=bool(include_time),
-                    delta_t=delta_t,
-                    precision=precision,
-                    core=core,
-                )
-                recorders.append(rec)
-
-        return recorders
+        rec = model.recorder.mpco(
+            file_name=file_name,
+            element_responses=responses,
+            regions=[self.building_region],
+            delta_t=delta_t
+        )
+        return [rec]
              
 
 
