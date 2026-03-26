@@ -975,12 +975,32 @@ class FEMA_SAC_SteelFrame:
 
 
 
+        # Compute which MPI cores hold elements for this building (region+meshpart)
+        cores_arg = None
+        try:
+            cores_arr = mesh.cell_data.get("Core")
+            region_arr = mesh.cell_data.get("Region")
+            meshpart_arr = mesh.cell_data.get("MeshPartTag_celldata")
+            import numpy as _np
+
+            if cores_arr is not None and region_arr is not None:
+                mask = (region_arr == int(self.building_region.tag))
+                if meshpart_arr is not None:
+                    mask = mask & (meshpart_arr != 0)
+                selected = _np.unique(cores_arr[mask])
+                selected = [int(c) for c in selected if (isinstance(c, (int, _np.integer)) and int(c) >= 0)]
+                if selected:
+                    cores_arg = selected[0] if len(selected) == 1 else selected
+        except Exception:
+            raise RuntimeError("Error determining MPI cores for MPCO recorder. Ensure mesh has 'Core' and 'Region' cell data.")
+
         rec = model.recorder.mpco(
             file_name=file_name,
             element_responses=element_responses,
             node_responses=node_responses,
             regions=[self.building_region],
-            delta_t=delta_t
+            delta_t=delta_t,
+            cores=cores_arg,
         )
         return [rec]
              
