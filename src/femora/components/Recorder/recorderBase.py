@@ -226,6 +226,7 @@ class EmbeddedBeamSolidInterfaceRecorder(Recorder):
                             "tangentialDisp", "globalForce", "localForce", "axialForce",
                             "radialForce", "tangentialForce", "solidForce", "beamForce","beamLocalForce"],
                  dt : Union[float, None] = None,
+                 cores: Optional[Union[int, List[int]]] = None,
                  ):
         """
         Initialize an EmbeddedBeamSolidInterfaceRecorder
@@ -236,7 +237,7 @@ class EmbeddedBeamSolidInterfaceRecorder(Recorder):
 
     
         """
-        super().__init__("EmbeddedBeamSolidInterface")
+        super().__init__("EmbeddedBeamSolidInterface", cores=cores)
         interfaces = []
         interface_manager = InterfaceManager()
         if isinstance(interface, list):
@@ -387,7 +388,7 @@ class NodeRecorder(Recorder):
             dofs (List[int]): List of DOF at nodes whose response is requested
             resp_type (str): String indicating response required
         """
-        super().__init__("Node")
+        super().__init__("Node", cores=kwargs.get("cores", None))
         self.file_name = kwargs.get("file_name", None)
         self.xml_file = kwargs.get("xml_file", None)
         self.binary_file = kwargs.get("binary_file", None)
@@ -558,12 +559,12 @@ class DriftRecorder(Recorder):
 
     This wraps the OpenSees `recorder Drift` command.
 
-    Notes:
-        - In MPI runs, multiple processes must not write to the same file.
-          This recorder automatically injects `$pid` into the output filename
-          (before the extension if present).
-        - Optionally, a `core` can be provided to emit the recorder inside an
-          `if {$pid == core}` guard.
+        Notes:
+                - In MPI runs, multiple processes must not write to the same file.
+                    This recorder automatically injects `$pid` into the output filename
+                    (before the extension if present).
+                - Optionally, `cores` can be provided to emit the recorder only on
+                    the specified MPI process ids.
 
     Example:
         >>> import femora as fm
@@ -581,7 +582,13 @@ class DriftRecorder(Recorder):
     """
 
     def __init__(self, **kwargs):
-        super().__init__("Drift")
+        # Accept both legacy `core` and new `cores` arguments.
+        cores = kwargs.get("cores", None)
+        core = kwargs.get("core", None)
+        if cores is None and core is not None:
+            cores = int(core)
+
+        super().__init__("Drift", cores=cores)
 
         self.file_name: str = str(kwargs.get("file_name", ""))
 
@@ -596,9 +603,6 @@ class DriftRecorder(Recorder):
         self.time: bool = bool(kwargs.get("time", False))
         self.delta_t: Optional[float] = kwargs.get("delta_t", None)
         self.precision: Optional[int] = kwargs.get("precision", None)
-        core = kwargs.get("core", None)
-        self.core: Optional[int] = int(core) if core is not None else None
-
         self.validate()
 
     @staticmethod
@@ -650,8 +654,17 @@ class DriftRecorder(Recorder):
             if self.precision <= 0:
                 raise ValueError("precision must be > 0 when provided")
 
-        if self.core is not None and self.core < 0:
-            raise ValueError("core must be >= 0 when provided")
+        # Validate provided cores (int or list[int])
+        if self.cores is not None:
+            if isinstance(self.cores, int):
+                if self.cores < 0:
+                    raise ValueError("cores must be >= 0 when provided")
+            elif isinstance(self.cores, (list, tuple)):
+                for c in self.cores:
+                    if not isinstance(c, int) or c < 0:
+                        raise ValueError("each entry in cores must be a non-negative integer")
+            else:
+                raise TypeError("cores must be an int or list/tuple of ints")
 
     @staticmethod
     def get_parameters() -> List[tuple]:
@@ -664,7 +677,7 @@ class DriftRecorder(Recorder):
             ("time", "Include -time flag"),
             ("delta_t", "Recording interval (-dT), optional"),
             ("precision", "Significant digits (-precision), optional"),
-            ("core", "Optional MPI core id to guard recorder creation"),
+            ("cores", "Optional MPI core id or list of ids to guard recorder creation"),
         ]
 
     def get_values(self) -> Dict[str, Union[str, int, float, list, bool]]:
@@ -677,7 +690,7 @@ class DriftRecorder(Recorder):
             "time": self.time,
             "delta_t": self.delta_t,
             "precision": self.precision,
-            "core": self.core,
+            "cores": self.cores,
         }
 
     @staticmethod
@@ -709,9 +722,7 @@ class DriftRecorder(Recorder):
         if self.delta_t is not None:
             cmd += f" -dT {float(self.delta_t)}"
 
-        if self.core is not None:
-            return f"if {{$pid == {int(self.core)}}} {{\n\t{cmd}\n}}"
-
+        # Do not wrap here; `Recorder.to_tcl` will apply any core-guarding
         return cmd
 
 
@@ -744,7 +755,7 @@ class VTKHDFRecorder(Recorder):
             delta_t (float, optional): Time interval for recording
             r_tol_dt (float, optional): Relative tolerance for time step matching
         """
-        super().__init__("VTKHDF")
+        super().__init__("VTKHDF", cores=kwargs.get("cores", None))
         self.file_base_name = kwargs.get("file_base_name", "")
         self.resp_types = kwargs.get("resp_types", [])
         self.delta_t = kwargs.get("delta_t", None)
@@ -873,7 +884,7 @@ class MPCORecorder(Recorder):
             delta_t (float, optional): Recording time interval (mutually exclusive with num_steps)
             num_steps (int, optional): Recording step interval (mutually exclusive with delta_t)
         """
-        super().__init__("MPCO")
+        super().__init__("MPCO", cores=kwargs.get("cores", None))
         self.file_name = kwargs.get("file_name", "")
         self.node_responses = kwargs.get("node_responses", [])
         self.element_responses = kwargs.get("element_responses", [])
@@ -1092,7 +1103,7 @@ class BeamForceRecorder(Recorder):
     '''
     """
     def __init__(self, **kwargs):
-        super().__init__("BeamForce")
+        super().__init__("BeamForce", cores=kwargs.get("cores", None))
         self.meshparts = kwargs.get("meshparts", [])
         self.force_type = kwargs.get("force_type", "globalForce")
         self.file_prefix = kwargs.get("file_prefix", "Beam")
