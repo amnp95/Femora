@@ -567,6 +567,8 @@ class Assembler:
         tube_radius=0.05,
         show_cells_by_type = False,
         cells_to_show: Optional[List[int]] = None,
+        off_screen: bool = False,
+        screenshot: Optional[str] = None,
         **kwargs
     ) -> None:
         """
@@ -694,6 +696,10 @@ class Assembler:
             Opacity of beams when sperate_beams_solid=True.
         opacity_solids : float, optional
             Opacity of solids when sperate_beams_solid=True.
+        off_screen : bool, optional
+            Render off-screen. Useful for servers without displays.
+        screenshot : str, optional
+            File path to save the screenshot.
         **kwargs : dict, optional
             Additional keyword arguments for PyVista add_mesh.
 
@@ -720,6 +726,8 @@ class Assembler:
         del options["add_axes"]
         del options["add_bounding_box"]
         del options["show_grid"]
+        del options["off_screen"]
+        del options["screenshot"]
 
         if show_cells_by_type:
             if cells_to_show is None:
@@ -727,7 +735,7 @@ class Assembler:
             mesh = self.AssembeledMesh.copy()
             mesh = pv.UnstructuredGrid(mesh)
             mesh = mesh.extract_cells_by_type(cells_to_show)
-            pl = pv.Plotter()
+            pl = pv.Plotter(off_screen=off_screen)
             pl.add_mesh(mesh, **options)
             if add_axes:
                 pl.add_axes()
@@ -735,7 +743,7 @@ class Assembler:
                 pl.add_bounding_box()
             if show_grid:
                 pl.show_grid()
-            pl.show()
+            pl.show(screenshot=screenshot)
             return
         
         # create a dict from all the inputs
@@ -751,7 +759,7 @@ class Assembler:
                                                       pv.CellType.VOXEL, 
                                                       pv.CellType.PIXEL])
 
-            pl = pv.Plotter()
+            pl = pv.Plotter(off_screen=off_screen)
             del options["opacity"]
             if beams.n_cells > 0:
                 op = options.copy()
@@ -768,7 +776,7 @@ class Assembler:
                 pl.add_bounding_box()
             if show_grid:
                 pl.show_grid()
-            pl.show()
+            pl.show(screenshot=screenshot)
             return
 
         
@@ -786,7 +794,7 @@ class Assembler:
                 core_mesh = Mesh.extract_cells(cores==core)
                 mesh.append(core_mesh)
 
-            pl = pv.Plotter()
+            pl = pv.Plotter(off_screen=off_screen)
             pl.add_mesh(mesh,
                 color=color,
                 style=style,
@@ -848,11 +856,11 @@ class Assembler:
                 pl.add_bounding_box()
             if show_grid:
                 pl.show_grid()
-            pl.show()
+            pl.show(screenshot=screenshot)
             pl.close()
 
         else:
-            pl = pv.Plotter()
+            pl = pv.Plotter(off_screen=off_screen)
             mesh = self.AssembeledMesh.copy()
             if explode:
                 mesh = mesh.explode(factor=explode_factor)
@@ -920,7 +928,7 @@ class Assembler:
                 pl.add_bounding_box()
             if show_grid:
                 pl.show_grid()
-            pl.show()
+            pl.show(screenshot=screenshot)
             pl.close()
     
 
@@ -1397,7 +1405,7 @@ class AssemblySection:
         """
         self.actor = actor
 
-    def plot(self,**kwargs) -> None:
+    def plot(self, off_screen: bool = False, screenshot: Optional[str] = None, **kwargs) -> None:
 
         """
         Plot the assembled mesh using PyVista.
@@ -1407,13 +1415,15 @@ class AssemblySection:
         optional parameters for customization.
 
         Args:
+            off_screen (bool): Render off-screen.
+            screenshot (str): File path to save the screenshot.
             **kwargs: Additional keyword arguments to customize the plot (e.g., color, opacity)
         
         """
         if self.mesh is None:
             raise ValueError("Mesh has not been assembled yet")
         else:
-            self.mesh.plot(**kwargs)
+            self.mesh.plot(off_screen=off_screen, screenshot=screenshot, **kwargs)
         
         
 
