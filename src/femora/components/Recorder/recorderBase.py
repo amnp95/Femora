@@ -25,16 +25,18 @@ class Recorder(ABC):
     _recorders = {}  # Class-level dictionary to track all recorders
     _next_tag = 1   # Class variable to track the next tag to assign
 
-    def __init__(self, recorder_type: str):
+    def __init__(self, recorder_type: str, cores: Optional[Union[int, List[int]]] = None):
         """Initializes the Recorder with a sequential tag.
 
         Args:
             recorder_type: The type of recorder (e.g., 'Node', 'Element', 'VTKHDF').
+            cores: List of CPU cores (PIDs) that should execute this recorder.
         """
         self.tag = Recorder._next_tag
         Recorder._next_tag += 1
         
         self.recorder_type = recorder_type
+        self.cores = cores
         
         # Register this recorder in the class-level tracking dictionary
         Recorder._recorders[self.tag] = self
@@ -90,16 +92,38 @@ class Recorder(ABC):
         cls._next_tag = 1
 
     @abstractmethod
+    def _to_tcl_impl(self) -> str:
+        """Internal method to generate the TCL command string.
+        Subclasses should implement this instead of to_tcl.
+        """
+        pass
+
     def to_tcl(self) -> str:
         """Converts the recorder to a TCL command string for OpenSees.
 
-        Subclasses must implement this method to generate the appropriate
-        TCL command for use with OpenSees.
+        Wraps the command in a core-specific conditional if 'cores' is specified.
 
         Returns:
             TCL command string representation of the recorder.
         """
-        pass
+        cmd = self._to_tcl_impl()
+        
+        if self.cores is not None:
+            if isinstance(self.cores, int):
+                core_list = [self.cores]
+            else:
+                core_list = self.cores
+            
+            if len(core_list) == 1:
+                condition = f"$pid == {core_list[0]}"
+            else:
+                condition = f"$pid in {{{' '.join(map(str, core_list))}}}"
+            
+            # Indent the command lines
+            indented_cmd = "\n".join(["\t" + line for line in cmd.split("\n")])
+            return f"if {{{condition}}} {{\n{indented_cmd}\n}}"
+        
+        return cmd
 
     @staticmethod
     def get_parameters() -> List[tuple]:
@@ -282,7 +306,7 @@ class EmbeddedBeamSolidInterfaceRecorder(Recorder):
         }
     
     
-    def to_tcl(self) -> str:
+    def _to_tcl_impl(self) -> str:
         """
         Convert the EmbeddedBeamSolidInterfaceRecorder to a TCL command string for OpenSees
         
@@ -429,7 +453,7 @@ class NodeRecorder(Recorder):
             raise ValueError(f"Invalid response type: {self.resp_type}. " 
                            f"Valid types are: {', '.join(valid_resp_types)}, or 'eigen $mode'")
 
-    def to_tcl(self) -> str:
+    def _to_tcl_impl(self) -> str:
         """
         Convert the Node recorder to a TCL command string for OpenSees
         
@@ -664,7 +688,7 @@ class DriftRecorder(Recorder):
             return file_name[: -(len(ext) + 1)] + f"$pid.{ext}"
         return file_name + "$pid"
 
-    def to_tcl(self) -> str:
+    def _to_tcl_impl(self) -> str:
         from femora import MeshMaker
 
         results_folder = MeshMaker.get_results_folder()
@@ -753,7 +777,7 @@ class VTKHDFRecorder(Recorder):
                 raise ValueError(f"Invalid response type: {resp_type}. "
                                f"Valid types are: {', '.join(valid_resp_types)}")
 
-    def to_tcl(self) -> str:
+    def _to_tcl_impl(self) -> str:
         """
         Convert the VTKHDF recorder to a TCL command string for OpenSees
         
@@ -942,7 +966,7 @@ class MPCORecorder(Recorder):
         if self.delta_t is not None and self.num_steps is not None:
             raise ValueError("Only one of delta_t or num_steps may be specified")
 
-    def to_tcl(self) -> str:
+    def _to_tcl_impl(self) -> str:
         """
         Convert the MPCO recorder to a TCL command string for OpenSees
 
@@ -1147,7 +1171,7 @@ class BeamForceRecorder(Recorder):
             ranges.append((start, prev))
         return ranges
 
-    def to_tcl(self) -> str:
+    def _to_tcl_impl(self) -> str:
         from femora import MeshMaker
         import numpy as np
         try:
