@@ -207,11 +207,13 @@ class MeshPart(ABC):
             n_pts = self.mesh.n_points
             self.mesh.point_data["Mass"] = np.zeros((n_pts, FEMORA_MAX_NDF), dtype=np.float32)
 
-    def plot(self, **kwargs) -> None:
+    def plot(self, off_screen: bool = False, screenshot: Optional[str] = None, **kwargs) -> None:
         """
         Plot the mesh part using pyvista
         
         Args:
+            off_screen (bool): Render off-screen.
+            screenshot (str): File path to save the screenshot.
             **kwargs: Additional keyword arguments for pyvista plotter
         """
         if self.mesh is None:
@@ -219,9 +221,9 @@ class MeshPart(ABC):
         
         self._ensure_mass_array()
         
-        plotter = pv.Plotter()
+        plotter = pv.Plotter(off_screen=off_screen)
         plotter.add_mesh(self.mesh, **kwargs)
-        plotter.show()
+        plotter.show(screenshot=screenshot)
 
 # Optional: Add to registry if needed
 class MeshPartRegistry:
