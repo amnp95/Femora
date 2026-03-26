@@ -940,7 +940,8 @@ class FEMA_SAC_SteelFrame:
         *,
         file_name: Optional[str] = None,
         delta_t: Optional[float] = None,
-        responses: List[str] = ["force"]
+        element_responses: List[str] = ["force"],
+        node_responses: List[str] = ["displacement", "acceleration"]
     ):
         """Returns an MPCO recorder for the building's elements.
 
@@ -951,7 +952,8 @@ class FEMA_SAC_SteelFrame:
             model: Active Femora model (MeshMaker instance).
             file_name: Output file name with .mpco extension. Defaults to {name_prefix}.mpco.
             delta_t: Optional recorder time interval (-T dt).
-            responses: List of element responses to record (-E). Defaults to ["force"].
+            element_responses: List of element responses to record (-E). Defaults to ["force"].
+            node_responses: List of element responses to record (-N). Defaults to ["displacement", "acceleration"].
 
         Returns:
             List containing the MPCORecorder instance.
@@ -959,12 +961,24 @@ class FEMA_SAC_SteelFrame:
         if self.building_region is None:
             raise ValueError("Building region not found. Call build() first.")
 
+        mesh = model.assembler.AssembeledMesh
+        if mesh is None:
+            raise ValueError("Mesh must be assembled before creating recorders")
+
+
         if file_name is None:
             file_name = f"{self.name_prefix}.mpco"
+        
+       
+
+
+
+
 
         rec = model.recorder.mpco(
             file_name=file_name,
-            element_responses=responses,
+            element_responses=element_responses,
+            node_responses=node_responses,
             regions=[self.building_region],
             delta_t=delta_t
         )
