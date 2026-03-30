@@ -13,6 +13,7 @@ from femora.components.section.section_layer import LayerBase
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 from matplotlib.patches import Circle
+import numpy as np
 
 
 
@@ -950,6 +951,9 @@ class RCSection(Section):
         return materials
 
 
+        
+
+
 class ParallelSection(Section):
     """
     Combines several existing sections in parallel to sum their force-deformation behaviors.
@@ -1441,6 +1445,159 @@ class FiberSection(Section):
                 materials.append(layer.material)
         
         return materials
+
+    def _discretize_to_fibers(self) -> List[tuple]:
+        """Return list of (area, y, z) representing all contributions.
+
+        This discretizes patches and layers into small fiber-like cells to
+        compute area and second moments consistently.
+        """
+        fibers = []
+
+        # Existing explicit fibers
+        for f in self.fibers:
+            fibers.append((f.area, f.y_loc, f.z_loc))
+
+        # Layers -> treated as discrete fibers along the line
+        for layer in self.layers:
+            from femora.components.section.section_layer import StraightLayer, CircularLayer
+            if isinstance(layer, StraightLayer):
+                if layer.num_fibers <= 0:
+                    continue
+                ys = [layer.y1 + (i + 0.5) * (layer.y2 - layer.y1) / layer.num_fibers for i in range(layer.num_fibers)]
+                zs = [layer.z1 + (i + 0.5) * (layer.z2 - layer.z1) / layer.num_fibers for i in range(layer.num_fibers)]
+                for y, z in zip(ys, zs):
+                    fibers.append((layer.area_per_fiber, y, z))
+            elif isinstance(layer, CircularLayer):
+                if layer.num_fibers <= 0:
+                    continue
+                if layer.num_fibers == 1:
+                    angles = [math.radians(layer.start_ang)]
+                else:
+                    angles = list(np.linspace(math.radians(layer.start_ang), math.radians(layer.end_ang), layer.num_fibers))
+                for ang in angles:
+                    y = layer.y_center + layer.radius * math.cos(ang)
+                    z = layer.z_center + layer.radius * math.sin(ang)
+                    fibers.append((layer.area_per_fiber, y, z))
+
+        # Patches -> discretize into subcells matching subdivision counts
+        for patch in self.patches:
+            # Local imports
+            from femora.components.section.section_patch import RectangularPatch, QuadrilateralPatch, CircularPatch
+
+            if isinstance(patch, RectangularPatch):
+                ny = patch.num_subdiv_y
+                nz = patch.num_subdiv_z
+                dy = (patch.y2 - patch.y1) / ny
+                dz = (patch.z2 - patch.z1) / nz
+                for i in range(ny):
+                    y = patch.y1 + (i + 0.5) * dy
+                    for j in range(nz):
+                        z = patch.z1 + (j + 0.5) * dz
+                        fibers.append((dy * dz, y, z))
+
+            elif isinstance(patch, QuadrilateralPatch):
+                ni = patch.num_subdiv_ij
+                nj = patch.num_subdiv_jk
+                # vertices: v0,v1,v2,v3
+                v = patch.vertices
+                for i in range(ni):
+                    s0 = i / ni
+                    s1 = (i + 1) / ni
+                    for j in range(nj):
+                        t0 = j / nj
+                        t1 = (j + 1) / nj
+                        # compute four corners via bilinear mapping
+                        def bilinear(s, t):
+                            x = (1 - s) * (1 - t) * v[0][0] + s * (1 - t) * v[1][0] + s * t * v[2][0] + (1 - s) * t * v[3][0]
+                            y = (1 - s) * (1 - t) * v[0][1] + s * (1 - t) * v[1][1] + s * t * v[2][1] + (1 - s) * t * v[3][1]
+                            return x, y
+                        c00 = bilinear(s0, t0)
+                        c10 = bilinear(s1, t0)
+                        c11 = bilinear(s1, t1)
+                        c01 = bilinear(s0, t1)
+                        # cell area via polygon area of 4 corners
+                        xs = [c00[0], c10[0], c11[0], c01[0]]
+                        ys = [c00[1], c10[1], c11[1], c01[1]]
+                        area = 0.0
+                        for k in range(4):
+                            k1 = (k + 1) % 4
+                            area += xs[k] * ys[k1] - xs[k1] * ys[k]
+                        area = 0.5 * abs(area)
+                        # centroid approx as average of corners
+                        yc = sum(xs) / 4.0
+                        zc = sum(ys) / 4.0
+                        fibers.append((area, yc, zc))
+
+            elif isinstance(patch, CircularPatch):
+                nr = patch.num_subdiv_rad
+                nc = patch.num_subdiv_circ
+                theta0 = math.radians(patch.start_ang)
+                theta1 = math.radians(patch.end_ang)
+                # normalize wrap
+                if theta1 <= theta0:
+                    theta1 += 2 * math.pi
+                dtheta = (theta1 - theta0) / nc
+                for ir in range(nr):
+                    r_in = patch.int_rad + (ir) * (patch.ext_rad - patch.int_rad) / nr
+                    r_out = patch.int_rad + (ir + 1) * (patch.ext_rad - patch.int_rad) / nr
+                    for ic in range(nc):
+                        th0 = theta0 + ic * dtheta
+                        th1 = theta0 + (ic + 1) * dtheta
+                        # area of sector segment
+                        area = 0.5 * (th1 - th0) * (r_out * r_out - r_in * r_in)
+                        # radial centroid for ring segment
+                        if abs(r_out - r_in) < 1e-12:
+                            r_cent = 0.5 * (r_in + r_out)
+                        else:
+                            r_cent = (2.0 / 3.0) * (r_out**3 - r_in**3) / (r_out**2 - r_in**2)
+                        th_cent = 0.5 * (th0 + th1)
+                        y = patch.y_center + r_cent * math.cos(th_cent)
+                        z = patch.z_center + r_cent * math.sin(th_cent)
+                        fibers.append((area, y, z))
+
+        return fibers
+
+    def get_area(self) -> float:
+        """Compute total area of the fiber section by summing discretized contributions."""
+        comps = self._discretize_to_fibers()
+        total_area = sum(a for a, _, _ in comps)
+        return float(total_area)
+
+    def get_Iy(self) -> float:
+        """Second moment about the local y-axis (Iy = integral z^2 dA) about centroid."""
+        comps = self._discretize_to_fibers()
+        if not comps:
+            return 0.0
+        A = sum(a for a, _, _ in comps)
+        if A <= 0:
+            return 0.0
+        y_bar = sum(a * y for a, y, z in comps) / A
+        z_bar = sum(a * z for a, y, z in comps) / A
+        # Iy = sum(a * (z - z_bar)^2)
+        Iy = 0.0
+        for a, y, z in comps:
+            Iy += a * (z - z_bar) ** 2
+        return float(Iy)
+
+    def get_Iz(self) -> float:
+        """Second moment about the local z-axis (Iz = integral y^2 dA) about centroid."""
+        comps = self._discretize_to_fibers()
+        if not comps:
+            return 0.0
+        A = sum(a for a, _, _ in comps)
+        if A <= 0:
+            return 0.0
+        y_bar = sum(a * y for a, y, z in comps) / A
+        z_bar = sum(a * z for a, y, z in comps) / A
+        Iz = 0.0
+        for a, y, z in comps:
+            Iz += a * (y - y_bar) ** 2
+        return float(Iz)
+
+    def get_J(self) -> float:
+        """Polar moment (approx) J = Iy + Iz about section centroid."""
+        return float(self.get_Iy() + self.get_Iz())
 
     @classmethod
     def get_parameters(cls) -> List[str]:
