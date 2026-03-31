@@ -138,7 +138,7 @@ class GhostNodeElement(Element):
         Returns:
             A TCL comment string.
         """
-        return "# GhostNode (no element command)"
+        return f"# GhostNode Element number {tag} nodes({', '.join(str(n) for n in nodes)}) with {self.real_ndof} DOFs — no structural element generated"
 
     # ------------------------------------------------------------------
     # Abstract-method implementations
