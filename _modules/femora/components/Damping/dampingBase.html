@@ -1452,6 +1452,18 @@
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">start_tag</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="ow">or</span> <span class="n">start_tag</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;start_tag must be a positive integer&quot;</span><span class="p">)</span>
         <span class="n">DampingBase</span><span class="o">.</span><span class="n">set_tag_start</span><span class="p">(</span><span class="n">start_tag</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="DampingManager.clear">
+<a class="viewcode-back" href="../../../../technical/damping.html#femora.components.Damping.dampingBase.DampingManager.clear">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">clear</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Clear all damping instances from the manager.</span>
+<span class="sd">        </span>
+<span class="sd">        This method is a convenient way to reset the damping system by removing</span>
+<span class="sd">        all existing damping instances and clearing the internal storage.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">clear_all_dampings</span><span class="p">()</span></div>
 </div>
 
 
