@@ -86,3 +86,11 @@ class InterfaceManager:
 
     def all(self) -> Dict[str, InterfaceBase]:
         return InterfaceBase.all()
+
+    def clear(self):
+        """Clears all registered interfaces.
+
+        This method removes all registered interface objects from the registry,
+        effectively resetting the state of the interface management system.
+        """
+        InterfaceBase._registry.clear()

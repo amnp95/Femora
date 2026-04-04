@@ -457,3 +457,20 @@ class mpConstraintManager:
         for constraint in mpConstraint._constraints.values():
             tcl_str += constraint.to_tcl()
         return tcl_str
+
+
+    def clear(self):
+        """
+        Clear all constraints from the manager.
+
+        This method removes all constraints stored in the class variable `_constraints`
+        of `mpConstraint` and resets the tag counter. It provides a convenient way
+        to reset the constraint system by clearing all existing constraints.
+        """
+        # Remove all registered constraints. Tag generation is computed
+        # dynamically by `_next_tag()` (based on the current number of
+        # registered constraints), so clearing the registry is sufficient
+        # to reset tagging to start from 1 on the next creation.
+        mpConstraint._constraints.clear()
+
+    

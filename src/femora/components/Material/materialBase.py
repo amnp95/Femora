@@ -645,7 +645,11 @@ class MaterialManager:
         if cls._instance is None:
             cls._instance = cls(**kwargs)
         return cls._instance
+    
 
+    def clear(self):
+        """Clears all materials and resets the manager."""
+        self.clear_all_materials()
 
 
 

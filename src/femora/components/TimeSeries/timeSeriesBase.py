@@ -1541,4 +1541,12 @@ class TimeSeriesManager:
         resetting the state of the time series management system.
         """
         TimeSeries._time_series.clear()
+    
+    def clear(self):
+        """Clears all time series from the registry.
+
+        This method clears all registered time series objects, effectively
+        resetting the state of the time series management system.
+        """
+        TimeSeries._time_series.clear()
 

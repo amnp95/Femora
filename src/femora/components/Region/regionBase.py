@@ -1025,6 +1025,15 @@ class RegionManager:
         """
         return RegionBase.get_region(0)
     
+    def clear(self):
+        """
+        Clear all regions and reinitialize the GlobalRegion.
+        
+        This method is an alias for clear_regions() to provide a more intuitive
+        interface for clearing all regions.
+        """
+        self.clear_regions()
+    
     
 if __name__ == "__main__":
     from femora.components.Damping.dampingBase import RayleighDamping, ModalDamping

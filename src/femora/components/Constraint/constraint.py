@@ -70,3 +70,12 @@ class Constraint:
             # Initialize your singleton class here
             self.mp = mpConstraintManager()
             self.sp = SPConstraintManager()
+    
+    def clear(self):
+        """Clears all constraints from both MP and SP managers.
+
+        This method provides a convenient way to reset the constraint system by removing
+        all existing constraints from both the multi-point and single-point managers.
+        """
+        self.mp.clear()
+        self.sp.clear()

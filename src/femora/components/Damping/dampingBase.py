@@ -1340,6 +1340,15 @@ class DampingManager:
             raise ValueError("start_tag must be a positive integer")
         DampingBase.set_tag_start(start_tag)
 
+    def clear(self) -> None:
+        """
+        Clear all damping instances from the manager.
+        
+        This method is a convenient way to reset the damping system by removing
+        all existing damping instances and clearing the internal storage.
+        """
+        self.clear_all_dampings()
+
 
 class DampingRegistry:
     """

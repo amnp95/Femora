@@ -317,7 +317,7 @@ class EmbeddedBeamSolidInterfaceRecorder(Recorder):
         # This recorder does not generate a TCL command, it writes directly to a file
         cmd = "# recorder EmbeddedBeamSolidInterface\n"
         from femora import MeshMaker
-        results_folder = MeshMaker.get_results_folder()
+        results_folder = MeshMaker().get_results_folder()
         if results_folder == "":
             results_folder = "./"
         else:
@@ -704,7 +704,7 @@ class DriftRecorder(Recorder):
     def _to_tcl_impl(self) -> str:
         from femora import MeshMaker
 
-        results_folder = MeshMaker.get_results_folder()
+        results_folder = MeshMaker().get_results_folder()
         file_path = DriftRecorder._inject_pid_in_filename(self.file_name)
         if results_folder:
             file_path = results_folder + "/" + file_path
@@ -805,7 +805,7 @@ class VTKHDFRecorder(Recorder):
         name = name[0]
         name = name + "$pid"
         from femora import MeshMaker
-        results_folder = MeshMaker.get_results_folder()
+        results_folder = MeshMaker().get_results_folder()
         if results_folder != "":
             name = results_folder + "/" + name
         file_base_name = name + "." + fileformat
@@ -985,7 +985,7 @@ class MPCORecorder(Recorder):
             str: The TCL command string
         """
         from femora import MeshMaker
-        results_folder = MeshMaker.get_results_folder()
+        results_folder = MeshMaker().get_results_folder()
         file_path = self.file_name
         
         file_ext = self.file_name.split(".")[-1]
@@ -1195,7 +1195,7 @@ class BeamForceRecorder(Recorder):
         if assembled is None:
             raise ValueError("No assembled mesh found. Assemble the model before creating BeamForceRecorder.")
 
-        results_folder = MeshMaker.get_results_folder()
+        results_folder = MeshMaker().get_results_folder()
         if results_folder != "":
             results_folder = results_folder + "/"
 
@@ -1460,6 +1460,10 @@ class RecorderManager:
         This method removes all registered recorders and resets the tag counter.
         """
         Recorder.clear_all()
+
+    def clear(self):
+        """Clears all recorders (alias for clear_all)."""
+        self.clear_all()
 
 
 # Example usage

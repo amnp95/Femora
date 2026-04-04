@@ -1054,3 +1054,10 @@ class PatternManager:
         This method removes all registered patterns and resets the tag counter.
         """
         Pattern.clear_all()
+
+    def clear(self) -> None:
+        """Alias for clear_all to reset patterns.
+
+        This method is provided for convenience and clarity when resetting patterns.
+        """
+        self.clear_all()

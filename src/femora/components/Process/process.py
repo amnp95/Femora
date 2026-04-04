@@ -246,3 +246,11 @@ class ProcessManager:
             tcl_script += f"# {description} ======================================\n\n"
             tcl_script += f"{component.to_tcl()}\n\n\n"
         return tcl_script
+
+    def clear(self):
+        """Clears all steps from the process.
+
+        This method is an alias for clear_steps() to provide a more intuitive
+        interface for clearing the process.
+        """
+        self.clear_steps()

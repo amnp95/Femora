@@ -613,3 +613,11 @@ class SPConstraintManager:
         Clear all constraints.
         """
         SPConstraint._constraints.clear()
+
+    def clear(self):
+        """Clears all constraints from the manager.
+        
+        This method provides a convenient way to reset the constraint system by removing
+        all existing constraints and clearing the internal storage.
+        """
+        self.clear_all()

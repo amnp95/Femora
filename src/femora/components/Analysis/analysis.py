@@ -723,3 +723,10 @@ class AnalysisManager:
             raise ValueError(f"Transient analysis requires a transient integrator. {integrator.integrator_type} is not compatible.")
 
         analysis.integrator = integrator
+
+    def clear(self) -> None:
+        """Clears all analyses from the manager.
+
+        This method removes all registered analyses and resets the tag counter.
+        """
+        self.clear_all()

@@ -759,6 +759,10 @@ class ElementRegistry:
         tag counter.
         """
         Element.clear_all_elements()
+    
+    def clear(self):
+        """Clears all elements and resets the registry."""
+        self.clear_all_elements()
 
 
 # Import existing element implementations

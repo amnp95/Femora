@@ -304,6 +304,14 @@ class GeometricTransformationManager:
                 filtered.append(instance)
         return filtered
     
+    def clear(self):        
+        """
+        Clears all geometric transformations from the manager.
+         This method is an alias for clear_all_transformations to provide a more intuitive
+         interface for clearing transformations.
+         """
+        self.clear_all_transformations()
+    
 # Example usage of the GeometricTransformation classes
 
 if __name__ == "__main__":

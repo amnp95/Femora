@@ -553,8 +553,8 @@ class EmbeddedBeamSolidInterface(InterfaceBase, HandlesDecompositionMixin):
                 solids_str = " -solidEle ".join(str(s + ele_start_tag) for s in solids)
                 connect_file = f"EmbeddedBeamSolidConnect_{self.name}_beam{ii}_part{jj}.dat"
                 interface_file = f"EmbeddedBeamSolidInterface_{self.name}_beam{ii}_part{jj}.dat"
-                connect_file = MeshMaker.get_results_folder() + "/" + connect_file
-                interface_file = MeshMaker.get_results_folder() + "/" + interface_file
+                connect_file = MeshMaker().get_results_folder() + "/" + connect_file
+                interface_file = MeshMaker().get_results_folder() + "/" + interface_file
                 if self.write_connectivity:
                     file_handle.write("\tif {[file exists %s] == 1} {file delete %s}\n" % (connect_file, connect_file))
                 if self.write_interface:

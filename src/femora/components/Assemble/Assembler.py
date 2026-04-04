@@ -976,6 +976,17 @@ class Assembler:
         
 
         print(full_message)
+
+    def clear(self):
+        """
+        Clear the assembled mesh and reset the assembler state.
+        
+        This method deletes the currently assembled mesh and clears all assembly sections
+        from the Assembler. It effectively resets the Assembler to its initial state, allowing
+        for a fresh start without any previously created sections or meshes.
+        """
+        self.delete_assembled_mesh()
+        self.clear_assembly_sections()
         
             
 

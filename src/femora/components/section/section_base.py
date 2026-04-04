@@ -353,3 +353,7 @@ class SectionManager:
             start_number (int): The tag number to start from.
         """
         Section.set_start_tag(start_number)
+
+    def clear(self):
+        """Clears all sections from the manager and registry."""
+        self.clear_all_sections()

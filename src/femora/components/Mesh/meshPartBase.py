@@ -495,5 +495,9 @@ class MeshPartManager:
             "message": f"Cleared {count} mesh parts"
         }
 
+    def clear(self):
+        """Clears all mesh parts from the manager and registry."""
+        self.clear_all_mesh_parts()
+
 
 

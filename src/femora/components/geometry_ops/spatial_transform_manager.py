@@ -398,6 +398,18 @@ class SpatialTransformManager:
 
     def _is_assembly_section(self, obj: Any) -> bool:
         return hasattr(obj, "mesh") and hasattr(obj, "meshparts_list")
+    
+
+
+    def clear(self):
+        """Clears all spatial transformations from the manager.
+
+        This method is an alias for clear_all_transformations to provide a more intuitive
+        interface for clearing transformations.
+        """
+        # since transformations are applied in-place to datasets, there is no internal state to clear.
+        # This method is provided for API consistency and future extensibility.
+        pass
 
 
 __all__ = ["SpatialTransformManager"]

@@ -77,6 +77,33 @@ class MassManager:
         """Clear caches before a fresh assembly."""
         self._region_point_cache.clear()
 
+    def clear(self):
+        """
+        Clear mass manager state.
+
+        - Clear internal caches used for region lookups.
+        - Remove any 'Mass' point_data arrays from mesh parts and the assembled mesh.
+        """
+        # clear internal caches
+        self._region_point_cache.clear()
+
+        # remove Mass arrays from all mesh parts
+        try:
+            for mp in MeshPartManager().get_all_mesh_parts().values():
+                if "Mass" in mp.mesh.point_data:
+                    del mp.mesh.point_data["Mass"]
+        except Exception:
+            # be defensive: if mesh parts are not available, ignore
+            pass
+
+        # remove Mass array from assembled mesh if present
+        try:
+            asm = Assembler().AssembeledMesh
+            if asm is not None and "Mass" in asm.point_data:
+                del asm.point_data["Mass"]
+        except Exception:
+            pass
+
     # ------------------------------------------------------------------
     # Low-level getters exposed for export and tests
     # ------------------------------------------------------------------
