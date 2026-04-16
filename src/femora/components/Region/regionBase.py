@@ -369,7 +369,8 @@ class GlobalRegion(RegionBase):
         Returns:
             str: TCL command string for the global region
         """
-        return "region 0"
+        #return "#region 0"
+        return ""
 
     def validate(self):
         """No validation required for global region."""
