@@ -1372,6 +1372,7 @@ class RecorderManager:
         mpco: Reference to MPCORecorder class.
         beam_force: Reference to BeamForceRecorder class.
         embedded_beam_solid_interface: Reference to EmbeddedBeamSolidInterfaceRecorder class.
+        pile_mpco: Helper that builds an MPCO recorder for line-mesh piles after assembly.
 
     Example:
         >>> from femora.components.Recorder.recorderBase import RecorderManager
@@ -1464,6 +1465,141 @@ class RecorderManager:
     def clear(self):
         """Clears all recorders (alias for clear_all)."""
         self.clear_all()
+
+    def pile_mpco(
+        self,
+        meshparts,
+        file_name: str,
+        *,
+        delta_t: Optional[float] = None,
+        num_steps: Optional[int] = None,
+        node_responses: Optional[List[str]] = None,
+        element_responses: Optional[List[str]] = None,
+        node_sensitivities: Optional[List] = None,
+        line_cells_only: bool = True,
+        region_name: str = "pile_mpco_region",
+    ) -> MPCORecorder:
+        """Create an MPCO recorder for beam pile / line mesh parts (after assembly).
+
+        OpenSees ``recorder mpco`` scopes output with ``-R`` region tags. Export builds
+        each ``ElementRegion`` from ``AssembeledMesh.cell_data[\"Region\"]``, so this
+        method assigns a dedicated region tag to the selected pile cells before you
+        export TCL.
+
+        Args:
+            meshparts: Mesh part identifiers: ``user_name`` strings, :class:`~femora.components.Mesh.meshPartBase.MeshPart`
+                instances, or a mix (same as :class:`BeamForceRecorder`).
+            file_name: Output ``*.mpco`` path (``$pid`` is inserted before the extension on export).
+            delta_t: Optional ``-T dt`` interval (mutually exclusive with ``num_steps``).
+            num_steps: Optional ``-T nsteps`` interval (mutually exclusive with ``delta_t``).
+            node_responses: Passed to :class:`MPCORecorder` (default: displacement, velocity, acceleration).
+            element_responses: Passed to :class:`MPCORecorder` (default: ``[\"force\"]``).
+            node_sensitivities: Optional ``-NS`` pairs for :class:`MPCORecorder`.
+            line_cells_only: If True (default), only VTK line-like cells are included so
+                volume parts accidentally sharing a name are ignored.
+            region_name: ``ElementRegion`` display name (must be unique if you create several).
+
+        Returns:
+            Configured :class:`MPCORecorder` instance.
+
+        Note:
+            Call this **after** the assembled mesh is final (e.g. after DRM/PML layers
+            that merge into ``AssembeledMesh``). This updates ``cell_data[\"Region\"]``
+            for the selected cells to the new pile region tag so export emits a matching
+            ``region`` command.
+
+        Raises:
+            ValueError: If the mesh is not assembled, parts are missing, or mesh data is incomplete.
+        """
+        import numpy as np
+
+        from femora import MeshMaker
+        from femora.components.Mesh.meshPartBase import MeshPart
+
+        if node_responses is None:
+            node_responses = ["displacement", "velocity", "acceleration"]
+        if element_responses is None:
+            element_responses = ["force"]
+
+        mm = MeshMaker()
+        mesh = mm.assembler.AssembeledMesh
+        if mesh is None:
+            raise ValueError("pile_mpco requires an assembled mesh (call Assemble first).")
+
+        # Resolve mesh parts (aligned with BeamForceRecorder._resolve_meshparts)
+        resolved: Dict[str, object] = {}
+        if not meshparts:
+            raise ValueError("pile_mpco: meshparts list must not be empty.")
+        for mp in meshparts:
+            if isinstance(mp, str):
+                part = MeshPart.get_mesh_parts().get(mp)
+                if part is None:
+                    raise ValueError(f"MeshPart '{mp}' not found")
+                resolved[mp] = part
+            elif isinstance(mp, MeshPart):
+                resolved[mp.user_name] = mp
+            else:
+                raise TypeError("meshparts entries must be MeshPart instances or user_name strings")
+
+        tags = np.array([int(p.tag) for p in resolved.values()], dtype=np.int64)
+        mesh_tags = mesh.cell_data.get("MeshPartTag_celldata")
+        cores_arr = mesh.cell_data.get("Core")
+        region_arr = mesh.cell_data.get("Region")
+        if mesh_tags is None or cores_arr is None or region_arr is None:
+            raise ValueError(
+                "Assembled mesh missing MeshPartTag_celldata, Core, or Region cell_data."
+            )
+
+        mask = np.isin(mesh_tags.astype(np.int64, copy=False), tags)
+        if line_cells_only:
+            try:
+                import pyvista as pv
+            except Exception:
+                pv = None
+            if pv is not None:
+                celltypes = getattr(mesh, "celltypes", None)
+                if celltypes is not None:
+                    beam_types = set()
+                    if hasattr(pv, "CellType"):
+                        for name in ("LINE", "POLY_LINE"):
+                            if hasattr(pv.CellType, name):
+                                beam_types.add(getattr(pv.CellType, name))
+                    if beam_types:
+                        beam_mask = np.isin(celltypes, list(beam_types))
+                        mask = mask & beam_mask
+
+        idxs = np.where(mask)[0]
+        if idxs.size == 0:
+            raise ValueError("pile_mpco: no matching line-mesh cells for the given meshparts.")
+
+        pile_region = mm.region.create_region("ElementRegion")
+        pile_region._name = region_name
+
+        rtag = int(pile_region.tag)
+        region_arr = np.asarray(region_arr)
+        region_arr[idxs] = rtag
+        mesh.cell_data["Region"] = region_arr
+
+        selected_cores = np.unique(cores_arr[idxs])
+        selected_cores = [
+            int(c)
+            for c in selected_cores
+            if isinstance(c, (int, np.integer)) and int(c) >= 0
+        ]
+        cores_arg: Optional[Union[int, List[int]]] = None
+        if selected_cores:
+            cores_arg = selected_cores[0] if len(selected_cores) == 1 else selected_cores
+
+        return MPCORecorder(
+            file_name=file_name,
+            node_responses=node_responses,
+            element_responses=element_responses,
+            node_sensitivities=node_sensitivities or [],
+            regions=[pile_region],
+            delta_t=delta_t,
+            num_steps=num_steps,
+            cores=cores_arg,
+        )
 
 
 # Example usage
