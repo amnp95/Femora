@@ -12,6 +12,7 @@ from femora.tools.sections import aisc
 from femora.components.transformation.transformation import GeometricTransformation3D
 from femora.core.element_base import Element
 from femora.constants import FEMORA_MAX_NDF
+from femora.components.Pattern.patternBase import Pattern
 
 class FEMA_SAC_SteelFrame:
     """
@@ -933,6 +934,81 @@ class FEMA_SAC_SteelFrame:
             # So: [0, 0, 1, 1, 1, 0]
             model.constraint.sp.fix(master_tag, [0, 0, 1, 1, 1, 0])
 
+    def gravity_pattern(self, model, g: float) -> Pattern:
+        """Build a plain gravity load pattern for the assembled frame.
+
+        For each elevated floor (``z`` levels from the building grid), the
+        translational mass stored in ``floor_masses`` for that story is multiplied
+        by ``g`` to obtain a total vertical force, which is applied in equal parts
+        at every structural grid node on that level (``num_x_grid * num_y_grid``
+        nodes). Ghost center-of-mass nodes are not loaded.
+
+        Prerequisites: :meth:`build` and mesh assembly on ``model`` must be
+        completed so nodal coordinates and tags are available.
+
+        Args:
+            model: Femora model instance (``MeshMaker``) exposing ``assembler``,
+                ``timeSeries``, ``pattern``, and ``_start_nodetag``.
+            g: Acceleration magnitude; must combine with ``floor_masses`` units so
+                ``mass * g`` is a force in the model's force unit.
+
+        Returns:
+            A ``Pattern`` instance (plain pattern with a constant time series and
+            six-DOF nodal loads in global Z) ready to attach to a process or export.
+        """
+        mesh = model.assembler.AssembeledMesh
+        if mesh is None:
+            raise ValueError("Mesh must be assembled before creating gravity loads.")
+
+        ndfs = mesh.point_data.get("ndf")
+        if ndfs is None:
+            raise ValueError("Assembled mesh must define point_data['ndf'].")
+
+        x_coords, y_coords, z_coords = self.get_coordinates()
+        x_set = {round(float(v), 4) for v in x_coords}
+        y_set = {round(float(v), 4) for v in y_coords}
+
+        points = mesh.points
+        start_node_tag = int(model._start_nodetag)
+        tol = 1e-4
+
+        ts = model.timeSeries.create_time_series("constant", factor=1.0)
+        pattern = model.pattern.create_pattern("plain", time_series=ts, factor=1.0)
+        n_per_floor = self.num_x_grid * self.num_y_grid
+        if n_per_floor == 0:
+            return pattern
+
+        for k in range(1, self.num_stories + 1):
+            z_floor = float(z_coords[k])
+            m = (
+                float(self.floor_masses[k - 1])
+                if (k - 1) < len(self.floor_masses)
+                else 0.0
+            )
+            if m == 0.0:
+                continue
+            fz = (m * g) / float(n_per_floor)
+
+            mask_z = np.abs(points[:, 2] - z_floor) < tol
+            floor_indices = np.where(mask_z)[0]
+            seen_tags: set[int] = set()
+
+            for idx in floor_indices:
+                px = round(float(points[idx, 0]), 4)
+                py = round(float(points[idx, 1]), 4)
+                if px not in x_set or py not in y_set:
+                    continue
+                if int(ndfs[idx]) >= 1000:
+                    continue
+                node_tag = int(idx + start_node_tag)
+                if node_tag in seen_tags:
+                    continue
+                seen_tags.add(node_tag)
+                pattern.add_load.node(
+                    node_tag=node_tag,
+                    values=[0.0, 0.0, fz, 0.0, 0.0, 0.0],
+                )
+        return pattern
 
     def get_recorders(
         self,
