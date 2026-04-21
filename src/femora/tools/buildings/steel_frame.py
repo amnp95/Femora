@@ -969,7 +969,6 @@ class FEMA_SAC_SteelFrame:
         y_set = {round(float(v), 4) for v in y_coords}
 
         points = mesh.points
-        start_node_tag = int(model._start_nodetag)
         tol = 1e-4
 
         ts = model.timeSeries.create_time_series("constant", factor=1.0)
@@ -977,6 +976,12 @@ class FEMA_SAC_SteelFrame:
         n_per_floor = self.num_x_grid * self.num_y_grid
         if n_per_floor == 0:
             return pattern
+
+        # Use the assembled-mesh MaskManager so NodeLoad.to_tcl can derive the
+        # correct per-node MPI core list from mesh.node_core_map. Falling back
+        # to explicit pids would require re-implementing that propagation and
+        # is easy to drift from the assembler's partitioning.
+        mask_manager = model.mask
 
         for k in range(1, self.num_stories + 1):
             z_floor = float(z_coords[k])
@@ -991,8 +996,8 @@ class FEMA_SAC_SteelFrame:
 
             mask_z = np.abs(points[:, 2] - z_floor) < tol
             floor_indices = np.where(mask_z)[0]
-            seen_tags: set[int] = set()
 
+            selected_ids: List[int] = []
             for idx in floor_indices:
                 px = round(float(points[idx, 0]), 4)
                 py = round(float(points[idx, 1]), 4)
@@ -1000,14 +1005,19 @@ class FEMA_SAC_SteelFrame:
                     continue
                 if int(ndfs[idx]) >= 1000:
                     continue
-                node_tag = int(idx + start_node_tag)
-                if node_tag in seen_tags:
-                    continue
-                seen_tags.add(node_tag)
-                pattern.add_load.node(
-                    node_tag=node_tag,
-                    values=[0.0, 0.0, fz, 0.0, 0.0, 0.0],
-                )
+                selected_ids.append(int(idx))
+
+            if not selected_ids:
+                continue
+
+            node_mask = mask_manager.nodes.by_ids(selected_ids)
+            if node_mask.is_empty():
+                continue
+
+            pattern.add_load.node(
+                node_mask=node_mask,
+                values=[0.0, 0.0, fz, 0.0, 0.0, 0.0],
+            )
         return pattern
 
     def get_recorders(
