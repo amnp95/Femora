@@ -18,7 +18,7 @@ def _bootstrap_package(name: str, path: Path) -> None:
     sys.modules[name] = module
 
 
-def _load_module(name: str, path: Path):
+def _load_module(name: str, path: Path) -> types.ModuleType:
     spec = importlib.util.spec_from_file_location(name, path)
     module = importlib.util.module_from_spec(spec)
     sys.modules[name] = module
@@ -100,4 +100,4 @@ def test_element_region_keeps_rayleigh_option():
     tcl = region.to_tcl()
 
     assert "-rayleigh" in tcl
-    assert "-damp " not in tcl
+    assert "-damp" not in tcl

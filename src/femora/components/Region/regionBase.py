@@ -750,7 +750,7 @@ class NodeRegion(RegionBase):
 
         if self.damping:
             if self.damping.get_Type() in ["RayleighDamping", "Frequency Rayleigh"]:
-                cmd += F"-rayleigh {self.damping.alphaM} {self.damping.betaK} {self.damping.betaKInit} {self.damping.betaKComm}"
+                cmd += f"-rayleigh {self.damping.alphaM} {self.damping.betaK} {self.damping.betaKInit} {self.damping.betaKComm}"
             else:
                 cmd += f"-damp {self.damping.tag}"
         return cmd
@@ -1120,4 +1120,3 @@ if __name__ == "__main__":
     print("Damping assignment test passed")
 
     print("\nAll tests passed successfully!")
-
