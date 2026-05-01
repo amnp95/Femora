@@ -7,7 +7,23 @@ from femora.core.ground_motion_base import GroundMotion
 
 
 class PlainGroundMotion(GroundMotion):
-    """OpenSees Plain ground motion."""
+    """OpenSees ``Plain`` ground motion.
+
+    A plain ground motion references one or more Femora ``TimeSeries`` objects
+    for acceleration, velocity, and displacement histories. OpenSees uses the
+    displacement history to prescribe support motion through ``imposedMotion``;
+    if only acceleration is supplied, OpenSees may numerically integrate it to
+    velocity/displacement depending on the Tcl options.
+
+    At least one of ``accel``, ``vel``, or ``disp`` must be provided. Tags are
+    not assigned by this class; create instances through
+    ``GroundMotionManager.plain(...)`` or add them to a manager before calling
+    ``to_tcl()``.
+
+    Tcl form:
+        ``groundMotion <tag> Plain <-accel tsTag> <-vel tsTag> <-disp tsTag>
+        <-int integratorType ...> <-fact cFactor>``
+    """
 
     def __init__(
         self,
@@ -18,6 +34,26 @@ class PlainGroundMotion(GroundMotion):
         integrator_args: Optional[List[Union[int, float, str]]] = None,
         factor: float = 1.0,
     ):
+        """Create a plain ground motion.
+
+        Args:
+            accel: Acceleration time series. Optional if ``vel`` or ``disp`` is
+                provided.
+            vel: Velocity time series. Optional if ``accel`` or ``disp`` is
+                provided.
+            disp: Displacement time series. Optional if ``accel`` or ``vel`` is
+                provided.
+            integrator: Optional OpenSees integration method, such as
+                ``"Trapezoidal"`` or ``"Simpson"``.
+            integrator_args: Optional arguments appended after ``integrator`` in
+                the ``-int`` option.
+            factor: Constant scale factor for the ground motion.
+
+        Raises:
+            ValueError: If no time series is provided, a supplied time series is
+                not a ``TimeSeries`` object, ``integrator_args`` is not a
+                sequence, or ``factor`` is not numeric.
+        """
         super().__init__("Plain")
 
         if accel is None and vel is None and disp is None:
@@ -49,6 +85,15 @@ class PlainGroundMotion(GroundMotion):
         self.factor = factor
 
     def to_tcl(self) -> str:
+        """Render the OpenSees ``groundMotion`` Tcl command.
+
+        Returns:
+            A Tcl command for this plain ground motion.
+
+        Raises:
+            ValueError: If the ground motion has not been added to a manager and
+                therefore has no tag.
+        """
         cmd = f"groundMotion {self._require_tag()} Plain"
         if self.accel is not None:
             cmd += f" -accel {self.accel.tag}"

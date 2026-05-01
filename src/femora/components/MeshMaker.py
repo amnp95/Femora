@@ -94,6 +94,14 @@ class MeshMaker:
         @property
         def mesh_part(self):
             return self.meshPart
+
+        @property
+        def ground_motion(self):
+            return self.groundMotion
+
+        @property
+        def time_series(self):
+            return self.timeSeries
         
         
 
