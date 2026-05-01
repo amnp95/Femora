@@ -68,7 +68,7 @@ class MeshMaker:
         self.assembler = Assembler()
         self.material = MaterialManager()
         self.element = ElementRegistry()
-        self.groundMotion = GroundMotionManager()
+        self.ground_motion = GroundMotionManager()
         self.damping = DampingManager()
         self.mass = MassManager()
         self.region = RegionManager()
@@ -94,10 +94,6 @@ class MeshMaker:
         @property
         def mesh_part(self):
             return self.meshPart
-
-        @property
-        def ground_motion(self):
-            return self.groundMotion
 
         @property
         def time_series(self):
