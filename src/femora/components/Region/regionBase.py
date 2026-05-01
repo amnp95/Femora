@@ -540,7 +540,7 @@ class ElementRegion(RegionBase):
             if self.damping.get_Type() in ["RayleighDamping", "Frequency Rayleigh"]:
                 cmd += f" -rayleigh {self.damping.alphaM} {self.damping.betaK} {self.damping.betaKInit} {self.damping.betaKComm}"
             else:
-                cmd += f" -damping {self.damping.tag}"
+                cmd += f" -damp {self.damping.tag}"
         cmd += "\""
         return cmd
     
@@ -752,7 +752,7 @@ class NodeRegion(RegionBase):
             if self.damping.get_Type() in ["RayleighDamping", "Frequency Rayleigh"]:
                 cmd += F"-rayleigh {self.damping.alphaM} {self.damping.betaK} {self.damping.betaKInit} {self.damping.betaKComm}"
             else:
-                cmd += f"-damping {self.damping.tag}"
+                cmd += f"-damp {self.damping.tag}"
         return cmd
     
     def __str__(self):
