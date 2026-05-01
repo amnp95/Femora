@@ -1,5 +1,6 @@
 from femora.components.Material.materialBase import MaterialManager
 from femora.core.element_base import Element, ElementRegistry
+from femora.core.ground_motion_manager import GroundMotionManager
 from femora.components.Assemble.Assembler import Assembler
 from femora.components.Damping.dampingBase import DampingManager
 from femora.components.Region.regionBase import RegionManager
@@ -67,6 +68,7 @@ class MeshMaker:
         self.assembler = Assembler()
         self.material = MaterialManager()
         self.element = ElementRegistry()
+        self.groundMotion = GroundMotionManager()
         self.damping = DampingManager()
         self.mass = MassManager()
         self.region = RegionManager()

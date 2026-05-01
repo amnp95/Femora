@@ -6,6 +6,7 @@ codebase and in example scripts.
 """
 
 from .paths import motions_dir
+from .signature import forward_signature
 
-__all__ = ["motions_dir"]
+__all__ = ["motions_dir", "forward_signature"]
 

@@ -47,6 +47,7 @@ for attr_name in dir(_instance):
 # Make the instance's properties directly accessible from the module level
 material = _instance.material
 element = _instance.element
+groundMotion = _instance.groundMotion
 meshPart = _instance.meshPart
 assembler = _instance.assembler
 constraint = _instance.constraint
