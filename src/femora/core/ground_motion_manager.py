@@ -1,11 +1,11 @@
 from __future__ import annotations
 
-from typing import Dict, Iterator
+from typing import Dict, Iterator, List, Optional, Union
 
 from femora.components.ground_motion.interpolated_ground_motion import InterpolatedGroundMotion
 from femora.components.ground_motion.plain_ground_motion import PlainGroundMotion
+from femora.components.TimeSeries.timeSeriesBase import TimeSeries
 from femora.core.ground_motion_base import GroundMotion
-from femora.utils.signature import forward_signature
 
 
 class GroundMotionManager:
@@ -73,15 +73,66 @@ class GroundMotionManager:
         self._ground_motions[tag] = ground_motion
         return ground_motion
 
-    @forward_signature(PlainGroundMotion)
-    def plain(self, **kwargs) -> PlainGroundMotion:
-        """Create, tag, and store a ``PlainGroundMotion``."""
-        return self.add(PlainGroundMotion(**kwargs))  # type: ignore[return-value]
+    def plain(
+        self,
+        accel: Optional[TimeSeries] = None,
+        vel: Optional[TimeSeries] = None,
+        disp: Optional[TimeSeries] = None,
+        integrator: Optional[str] = None,
+        integrator_args: Optional[List[Union[int, float, str]]] = None,
+        factor: float = 1.0,
+    ) -> PlainGroundMotion:
+        """Create, tag, and store a ``PlainGroundMotion``.
 
-    @forward_signature(InterpolatedGroundMotion)
-    def interpolated(self, **kwargs) -> InterpolatedGroundMotion:
-        """Create, tag, and store an ``InterpolatedGroundMotion``."""
-        return self.add(InterpolatedGroundMotion(**kwargs))  # type: ignore[return-value]
+        Args:
+            accel: Acceleration time series. Optional if ``vel`` or ``disp`` is
+                provided.
+            vel: Velocity time series. Optional if ``accel`` or ``disp`` is
+                provided.
+            disp: Displacement time series. Optional if ``accel`` or ``vel`` is
+                provided.
+            integrator: Optional OpenSees integration method, such as
+                ``"Trapezoidal"`` or ``"Simpson"``.
+            integrator_args: Optional arguments appended after ``integrator`` in
+                the ``-int`` option.
+            factor: Constant scale factor for the ground motion.
+
+        Returns:
+            The managed ``PlainGroundMotion`` instance.
+        """
+        ground_motion = PlainGroundMotion(
+            accel=accel,
+            vel=vel,
+            disp=disp,
+            integrator=integrator,
+            integrator_args=integrator_args,
+            factor=factor,
+        )
+        self.add(ground_motion)
+        return ground_motion
+
+    def interpolated(
+        self,
+        ground_motions: List[GroundMotion],
+        factors: List[float],
+    ) -> InterpolatedGroundMotion:
+        """Create, tag, and store an ``InterpolatedGroundMotion``.
+
+        Args:
+            ground_motions: Ground motions to combine. Each item must be a
+                ``GroundMotion`` instance.
+            factors: Interpolation factors. Must have the same length as
+                ``ground_motions``.
+
+        Returns:
+            The managed ``InterpolatedGroundMotion`` instance.
+        """
+        ground_motion = InterpolatedGroundMotion(
+            ground_motions=ground_motions,
+            factors=factors,
+        )
+        self.add(ground_motion)
+        return ground_motion
 
     def get(self, tag: int) -> GroundMotion:
         """Return a managed ground motion by tag.

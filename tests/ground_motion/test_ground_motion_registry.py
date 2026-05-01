@@ -128,7 +128,7 @@ def test_manager_instance_convenience_methods():
 
 
 def test_manager_factory_signatures_follow_constructors():
-    plain_signature = inspect.signature(GroundMotionManager.plain)
+    plain_signature = inspect.signature(GroundMotionManager().plain)
     constructor_signature = inspect.signature(PlainGroundMotion.__init__)
 
     assert list(plain_signature.parameters) == list(constructor_signature.parameters)[1:]
@@ -137,7 +137,7 @@ def test_manager_factory_signatures_follow_constructors():
 
 
 def test_interpolated_factory_signature_follows_constructor():
-    interpolated_signature = inspect.signature(GroundMotionManager.interpolated)
+    interpolated_signature = inspect.signature(GroundMotionManager().interpolated)
     constructor_signature = inspect.signature(InterpolatedGroundMotion.__init__)
 
     assert list(interpolated_signature.parameters) == list(constructor_signature.parameters)[1:]
