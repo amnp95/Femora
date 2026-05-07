@@ -188,7 +188,8 @@ class ConventionalSteelBracedFrame:
 
         transf_col_x = GeometricTransformation3D("Linear", 1, 0, 0, description="CBF_Column_Transf_X")
         transf_col_y = GeometricTransformation3D("Linear", 0, 1, 0, description="CBF_Column_Transf_Y")
-        transf_beam = GeometricTransformation3D("Linear", 0, 0, 1, description="CBF_Beam_Transf")
+        transf_beam_x = GeometricTransformation3D("Linear", 0, 0, 1, description="CBF_Beam_Transf_X")
+        transf_beam_y = GeometricTransformation3D("Linear", 0, 0, 1, description="CBF_Beam_Transf_Y")
 
         def get_or_create_beam_element(category: str, section_name: str) -> ElasticBeamColumnElement:
             key = (category, section_name)
@@ -208,11 +209,16 @@ class ConventionalSteelBracedFrame:
             except Exception as exc:
                 raise ValueError(f"Could not create section '{section_name}' for {category}: {exc}") from exc
 
-            transformation = transf_beam
-            if category == "Column_X":
+            if category == "Beam_X":
+                transformation = transf_beam_x
+            elif category == "Beam_Y":
+                transformation = transf_beam_y
+            elif category == "Column_X":
                 transformation = transf_col_x
             elif category == "Column_Y":
                 transformation = transf_col_y
+            else:
+                raise ValueError(f"Unknown frame member category: {category}")
             element = ElasticBeamColumnElement(ndof=6, section=section, transformation=transformation)
             elements_cache[key] = element
             return element
@@ -254,12 +260,11 @@ class ConventionalSteelBracedFrame:
             for j in range(self.num_y_grid):
                 for i in range(len(self.x_bays)):
                     section = self._section_for(self.beam_sections, story, i, j, direction="X", default="W18X35")
-                    element = get_or_create_beam_element("Beam", section)
+                    element = get_or_create_beam_element("Beam_X", section)
                     add_member(element, [x_coords[i], y_coords[j], z], [x_coords[i + 1], y_coords[j], z], self.n_ele_beam)
             for i in range(self.num_x_grid):
                 for j in range(len(self.y_bays)):
-                    section = self._section_for(self.beam_sections, story, i, j, direction="Y", default="W18X35")
-                    element = get_or_create_beam_element("Beam", section)
+                    element = get_or_create_beam_element("Beam_Y", section)
                     add_member(element, [x_coords[i], y_coords[j], z], [x_coords[i], y_coords[j + 1], z], self.n_ele_beam)
 
         # Selected braced bays.
@@ -680,7 +685,43 @@ class ConventionalSteelBracedFrame:
             add_member(brace_element, mid_bottom, tl, 1)
             add_member(brace_element, mid_bottom, tr, 1)
 
+    @staticmethod
+    def _explicit_rot_mass_kind_for_truss(p1: np.ndarray, p2: np.ndarray) -> str:
+        """Map brace axis to the same branches as :class:`FEMA_SAC_SteelFrame` mass logic."""
+        d = np.abs(p2.astype(float) - p1.astype(float))
+        if d[2] >= d[0] and d[2] >= d[1]:
+            return "column"
+        if d[0] >= d[1]:
+            return "beam_x"
+        return "beam_y"
+
+    @staticmethod
+    def _add_half_rotational_explicit_mass(
+        grid: pv.UnstructuredGrid,
+        pid: int,
+        M_rot_torsion: float,
+        M_rot_iy: float,
+        M_rot_iz: float,
+        kind: str,
+    ) -> None:
+        """Distribute half the member rotational mass inertia to ``pid`` (global Rx,Ry,Rz)."""
+        h = 0.5
+        m = grid.point_data["Mass"]
+        if kind == "column":
+            m[pid, 3] += M_rot_iz * h
+            m[pid, 4] += M_rot_iy * h
+            m[pid, 5] += M_rot_torsion * h
+        elif kind == "beam_x":
+            m[pid, 3] += M_rot_torsion * h
+            m[pid, 4] += M_rot_iy * h
+            m[pid, 5] += M_rot_iz * h
+        elif kind == "beam_y":
+            m[pid, 3] += M_rot_iy * h
+            m[pid, 4] += M_rot_torsion * h
+            m[pid, 5] += M_rot_iz * h
+
     def _add_member_self_mass(self, grid: pv.UnstructuredGrid, model, material_density: float) -> None:
+        """Lumped translational + rotational mass per line member (explicit dynamics), matching steel_frame."""
         rho = float(material_density)
         if rho == 0.0:
             return
@@ -692,16 +733,49 @@ class ConventionalSteelBracedFrame:
             pid1, pid2 = grid.cell_connectivity[start:end]
             p1 = grid.points[pid1]
             p2 = grid.points[pid2]
-            length = float(np.linalg.norm(p1 - p2))
             element = model.element.get_element(int(grid.cell_data["ElementTag"][cell_idx]))
-            area = 0.0
-            if element is not None and element.get_section() is not None:
-                area = float(element.get_section().get_area())
-            mass = rho * area * length
+            if element is None:
+                continue
+
+            section = element.get_section()
+            if section is None:
+                continue
+
+            L = float(np.linalg.norm(np.asarray(p1, dtype=float) - np.asarray(p2, dtype=float)))
+            if L <= 0.0:
+                continue
+
+            A = float(section.get_area())
+            Iy = float(section.get_Iy())
+            Iz = float(section.get_Iz())
+
+            M_trans = rho * A * L
+            M_rot_torsion = rho * (Iy + Iz) * L
+            M_rot_iy = rho * Iy * L
+            M_rot_iz = rho * Iz * L
+
+            kind: str
+            if isinstance(element, TrussElement):
+                kind = self._explicit_rot_mass_kind_for_truss(p1, p2)
+            else:
+                transf_name = getattr(element._transformation, "description", "")
+                if "Column" in transf_name:
+                    kind = "column"
+                elif "Beam_X" in transf_name:
+                    kind = "beam_x"
+                elif "Beam_Y" in transf_name:
+                    kind = "beam_y"
+                else:
+                    kind = self._explicit_rot_mass_kind_for_truss(p1, p2)
+
             for pid in (pid1, pid2):
-                grid.point_data["Mass"][pid, 0] += mass / 2.0
-                grid.point_data["Mass"][pid, 1] += mass / 2.0
-                grid.point_data["Mass"][pid, 2] += mass / 2.0
+                m = grid.point_data["Mass"]
+                m[pid, 0] += M_trans / 2.0
+                m[pid, 1] += M_trans / 2.0
+                m[pid, 2] += M_trans / 2.0
+                self._add_half_rotational_explicit_mass(
+                    grid, pid, M_rot_torsion, M_rot_iy, M_rot_iz, kind
+                )
 
     def _add_center_of_mass_nodes(self, grid: pv.UnstructuredGrid) -> pv.UnstructuredGrid:
         x_coords, y_coords, z_coords = self.get_coordinates()
