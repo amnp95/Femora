@@ -8,9 +8,9 @@ from femora.components.Constraint.constraint import Constraint
 from femora.components.Mesh.meshPartBase import MeshPartManager
 from femora.components.Mesh.meshPartInstance import *
 from femora.components.element.ghost_node import GhostNodeElement
-from femora.components.TimeSeries.timeSeriesBase import TimeSeriesManager
+from femora.core.time_series_manager import TimeSeriesManager
 from femora.components.Analysis.analysis import AnalysisManager
-from femora.components.Pattern.patternBase import PatternManager
+from femora.core.pattern_manager import PatternManager
 from femora.components.Recorder.recorderBase import RecorderManager
 from femora.components.Process.process import ProcessManager
 from femora.components.DRM.DRM import DRM
@@ -804,6 +804,7 @@ class MeshMaker:
         self.constraint.clear()
         self.meshPart.clear()
         self.timeSeries.clear()
+        self.ground_motion.clear()
         self.analysis.clear()
         self.pattern.clear()
         self.recorder.clear()
