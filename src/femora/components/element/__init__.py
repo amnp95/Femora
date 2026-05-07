@@ -9,3 +9,4 @@ from .disp_beam_column import DispBeamColumnElement
 from .force_beam_column import ForceBeamColumnElement
 from .elastic_beam_column import ElasticBeamColumnElement
 from .ghost_node import GhostNodeElement
+from .truss import TrussElement
