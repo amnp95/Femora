@@ -4,8 +4,8 @@ from typing import Dict, Iterator, List, Optional, Union
 
 from femora.components.ground_motion.interpolated_ground_motion import InterpolatedGroundMotion
 from femora.components.ground_motion.plain_ground_motion import PlainGroundMotion
-from femora.components.TimeSeries.timeSeriesBase import TimeSeries
 from femora.core.ground_motion_base import GroundMotion
+from femora.core.time_series_base import TimeSeries
 
 
 class GroundMotionManager:

@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from typing import List, Optional, Union
 
-from femora.components.TimeSeries.timeSeriesBase import TimeSeries
 from femora.core.ground_motion_base import GroundMotion
+from femora.core.time_series_base import TimeSeries
 
 
 class PlainGroundMotion(GroundMotion):

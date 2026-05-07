@@ -1,8 +1,4 @@
-﻿"""Compatibility imports for the old TimeSeries module path.
-
-New code should import base/manager classes from ``femora.core`` and concrete
-time series classes from ``femora.components.time_series``.
-"""
+"""Compatibility imports for the old TimeSeries module path."""
 
 from femora.components.time_series import (
     ConstantTimeSeries,

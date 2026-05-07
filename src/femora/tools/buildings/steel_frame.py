@@ -11,8 +11,8 @@ from femora.components.Material.materialBase import Material
 from femora.tools.sections import aisc
 from femora.components.transformation.transformation import GeometricTransformation3D
 from femora.core.element_base import Element
+from femora.core.pattern_base import Pattern
 from femora.constants import FEMORA_MAX_NDF
-from femora.components.Pattern.patternBase import Pattern
 
 class FEMA_SAC_SteelFrame:
     """

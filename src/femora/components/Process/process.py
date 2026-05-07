@@ -4,10 +4,10 @@ import weakref
 # Import your existing component classes
 from femora.components.Constraint.mpConstraint import mpConstraint
 from femora.components.Constraint.spConstraint import SPConstraint
-from femora.components.Pattern.patternBase import Pattern
 from femora.components.Recorder.recorderBase import Recorder
 from femora.components.Analysis.analysis import Analysis
 from femora.components.Actions.action import Action
+from femora.core.pattern_base import Pattern
 
 # Define a union type for all components that can be used in the process
 ProcessComponent = Union[SPConstraint, mpConstraint, Pattern, Recorder, Analysis, Action]

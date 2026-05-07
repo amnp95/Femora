@@ -198,11 +198,14 @@ class removeLoadPatterns(Action):
         # Doing this via a stage action keeps staged workflows consistent
         # between TCL export and the solver backend.
         try:
-            from femora.components.Pattern.patternBase import Pattern
+            from femora.core.pattern_base import Pattern
         except Exception:
             return ""
 
-        tags = sorted(int(tag) for tag in Pattern.get_all_patterns().keys())
+        try:
+            tags = sorted(int(tag) for tag in Pattern.get_all_patterns().keys())
+        except AttributeError:
+            tags = []
         if not tags:
             return ""
         return "\n".join(f"remove loadPattern {tag}" for tag in tags)
