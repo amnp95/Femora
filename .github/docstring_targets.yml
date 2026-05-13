@@ -1,5 +1,3 @@
 targets:
-- path: src/femora/components/time_series/triangular_time_series.py
-  prompt: ''
 - path: src/femora/components/time_series/trig_time_series.py
   prompt: ''
