@@ -28,7 +28,9 @@ class DruckerPragerMaterial(Material):
           and must be managed before :meth:`to_tcl` can be called.
 
     Attributes:
-        - ``params``: All validated Tcl arguments keyed by parameter name.
+        tag: Manager-assigned identifier after the object is added to a Femora
+            manager.
+        params: All validated Tcl arguments keyed by parameter name.
 
     Examples:
         ```python
@@ -66,26 +68,26 @@ class DruckerPragerMaterial(Material):
         atmPressure: float | None = None,
         **_: Any,
     ) -> None:
-        """Populate Drucker-Prager parameters with strict range checks.
+        """Create a Drucker-Prager material with validated inputs.
 
         Args:
-            - user_name: Stored in Tcl suffix comments and enforced unique among
-              managed materials.
-            - k: Bulk modulus analogue in the Tcl command, strictly greater than zero.
-            - G: Shear modulus analogue in the Tcl command, strictly greater than zero.
-            - sigmaY: Initial yield intercept, strictly positive.
-            - rho: Cohesion-like Drucker-Prager strength parameter, strictly positive.
-            - rhoBar: Optional cap on dilatancy evolution. Defaults to ``rho`` and
-              must satisfy ``0 <= rhoBar <= rho``.
-            - Kinf: Optional long-run isotropic strengthening magnitude, ``>= 0``.
-            - Ko: Additional isotropic evolution parameter, ``>= 0``.
-            - delta1: Isotropic modulus expansion coefficient, ``>= 0``.
-            - delta2: Softening or decay coefficient, ``>= 0``.
-            - H: Combined hardening modulus, ``>= 0``.
-            - theta: Blend in ``[0, 1]`` between isotropic and kinematic mechanisms.
-            - density: Optional mass density, ``>= 0``.
-            - atmPressure: Reference pressure for modulus updates, ``>= 0``.
-            - **_: Unused keyword placeholders for forward compatibility.
+            user_name: Stored in Tcl suffix comments and enforced unique among
+                managed materials.
+            k: Bulk modulus analogue in the Tcl command, strictly greater than zero.
+            G: Shear modulus analogue in the Tcl command, strictly greater than zero.
+            sigmaY: Initial yield intercept, strictly positive.
+            rho: Cohesion-like Drucker-Prager strength parameter, strictly positive.
+            rhoBar: Optional cap on dilatancy evolution. Defaults to ``rho`` and
+                must satisfy ``0 <= rhoBar <= rho``.
+            Kinf: Optional long-run isotropic strengthening magnitude, ``>= 0``.
+            Ko: Additional isotropic evolution parameter, ``>= 0``.
+            delta1: Isotropic modulus expansion coefficient, ``>= 0``.
+            delta2: Softening or decay coefficient, ``>= 0``.
+            H: Combined hardening modulus, ``>= 0``.
+            theta: Blend in ``[0, 1]`` between isotropic and kinematic mechanisms.
+            density: Optional mass density, ``>= 0``.
+            atmPressure: Reference pressure for modulus updates, ``>= 0``.
+            **: Unused keyword placeholders for forward compatibility.
 
         Raises:
             ValueError: If a required parameter is missing.
