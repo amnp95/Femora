@@ -1,3 +1,7 @@
+Got it — I’ll review the target file and related material manager/base files first, then update only docstrings in the target file to match the style guide exactly.
+
+I’ve got the context; next I’ll surgically rewrite the target file’s docstrings to match the Femora standard (including reference format and section formatting) without changing code behavior.
+
 """Drucker-Prager plasticity model for OpenSees nD materials."""
 
 from __future__ import annotations
@@ -24,11 +28,13 @@ class DruckerPragerMaterial(Material):
         - Coordinate ``atmPressure`` and ``density`` units with the bulk and
           shear modulus units used in the exported model.
         - Instances are typically created through
-          :meth:`~femora.core.nd_material_manager.NDMaterialManager.drucker_prager`
-          and must be managed before :meth:`to_tcl` can be called.
+          [NDMaterialManager.drucker_prager][femora.core.nd_material_manager.NDMaterialManager.drucker_prager]
+          and must be managed before
+          [DruckerPragerMaterial.to_tcl][femora.components.material.nd.drucker_prager.DruckerPragerMaterial.to_tcl]
+          can be called.
 
     Attributes:
-        - ``params``: All validated Tcl arguments keyed by parameter name.
+        params: All validated Tcl arguments keyed by parameter name.
 
     Example:
         ```python
@@ -66,26 +72,26 @@ class DruckerPragerMaterial(Material):
         atmPressure: float | None = None,
         **_: Any,
     ) -> None:
-        """Populate Drucker-Prager parameters with strict range checks.
+        """Create a Drucker-Prager material with validated parameters.
 
         Args:
-            - user_name: Stored in Tcl suffix comments and enforced unique among
-              managed materials.
-            - k: Bulk modulus analogue in the Tcl command, strictly greater than zero.
-            - G: Shear modulus analogue in the Tcl command, strictly greater than zero.
-            - sigmaY: Initial yield intercept, strictly positive.
-            - rho: Cohesion-like Drucker-Prager strength parameter, strictly positive.
-            - rhoBar: Optional cap on dilatancy evolution. Defaults to ``rho`` and
-              must satisfy ``0 <= rhoBar <= rho``.
-            - Kinf: Optional long-run isotropic strengthening magnitude, ``>= 0``.
-            - Ko: Additional isotropic evolution parameter, ``>= 0``.
-            - delta1: Isotropic modulus expansion coefficient, ``>= 0``.
-            - delta2: Softening or decay coefficient, ``>= 0``.
-            - H: Combined hardening modulus, ``>= 0``.
-            - theta: Blend in ``[0, 1]`` between isotropic and kinematic mechanisms.
-            - density: Optional mass density, ``>= 0``.
-            - atmPressure: Reference pressure for modulus updates, ``>= 0``.
-            - **_: Unused keyword placeholders for forward compatibility.
+            user_name: Label stored on the material and appended in Tcl comments.
+            k: Bulk modulus parameter. Must be a positive numeric value.
+            G: Shear modulus parameter. Must be a positive numeric value.
+            sigmaY: Initial yield intercept. Must be a positive numeric value.
+            rho: Drucker-Prager strength parameter. Must be numeric.
+            rhoBar: Optional dilatancy cap. Defaults to ``rho`` and must satisfy
+                ``0 <= rhoBar <= rho``.
+            Kinf: Optional isotropic hardening magnitude. Must be non-negative.
+            Ko: Optional isotropic evolution parameter. Must be non-negative.
+            delta1: Optional isotropic expansion coefficient. Must be non-negative.
+            delta2: Optional decay coefficient. Must be non-negative.
+            H: Optional combined hardening modulus. Must be non-negative.
+            theta: Optional isotropic/kinematic blend factor in ``[0, 1]``.
+            density: Optional mass density. Must be non-negative.
+            atmPressure: Optional reference pressure. Must be non-negative.
+            **_: Additional keyword arguments accepted and ignored for
+                forward-compatible manager calls.
 
         Raises:
             ValueError: If a required parameter is missing.
@@ -191,11 +197,12 @@ class DruckerPragerMaterial(Material):
         self.params = validated
 
     def to_tcl(self) -> str:
-        """Serialize the Tcl line with deterministic parameter ordering.
+        """Render this material as an OpenSees Tcl command.
 
         Returns:
-            str: A single Tcl command listing ``k G sigmaY rho`` plus the
-            optional hardening tail ending in ``density`` and ``atmPressure``.
+            str: Tcl command with deterministic ordering of ``k``, ``G``,
+                ``sigmaY``, ``rho``, ``rhoBar``, ``Kinf``, ``Ko``, ``delta1``,
+                ``delta2``, ``H``, ``theta``, ``density``, and ``atmPressure``.
 
         Raises:
             ValueError: If the material lacks a manager-assigned tag.
