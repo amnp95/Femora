@@ -1,6 +1,4 @@
 targets:
-- path: src/femora/components/material/nd/drucker_prager.py
-  prompt: ''
 - path: src/femora/components/material/nd/j2_cyclic_bounding_surface.py
   prompt: ''
 - path: src/femora/components/material/nd/linear_elastic_ggmax.py
