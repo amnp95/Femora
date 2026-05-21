@@ -71,7 +71,6 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../region.html">Region</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../meshparts.html">MeshPart</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../assembler.html">Assembler</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../constraint.html">Constraints</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../timeseries.html">TimeSeries</a></li>
@@ -129,8 +128,7 @@
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">femora.components.Damping</span><span class="w"> </span><span class="kn">import</span> <span class="n">DampingManager</span>
 
 <span class="n">damping_manager</span> <span class="o">=</span> <span class="n">DampingManager</span><span class="p">()</span>
-<span class="n">modal_damping</span> <span class="o">=</span> <span class="n">damping_manager</span><span class="o">.</span><span class="n">create_damping</span><span class="p">(</span>
-    <span class="s1">&#39;modal&#39;</span><span class="p">,</span>
+<span class="n">modal_damping</span> <span class="o">=</span> <span class="n">damping_manager</span><span class="o">.</span><span class="n">modal</span><span class="p">(</span>
     <span class="n">numberofModes</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
     <span class="n">dampingFactors</span><span class="o">=</span><span class="s2">&quot;0.02,0.03,0.04&quot;</span>
 <span class="p">)</span>

@@ -20,9 +20,7 @@
       <script src="../../../_static/js/copy-button.js?v=47d38097"></script>
     <script src="../../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
-    <link rel="search" title="Search" href="../../../search.html" />
-    <link rel="next" title="Custom Rectangular Grid" href="CustomRectangularGrid.html" />
-    <link rel="prev" title="Volume Mesh Types" href="index.html" /> 
+    <link rel="search" title="Search" href="../../../search.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -53,34 +51,8 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../introduction/examples.html">Examples and Tutorials</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Technical Guide:</span></p>
-<ul class="current">
-<li class="toctree-l1 current"><a class="reference internal" href="../../index.html">Technical Documentation</a><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="../../materials.html">Material</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../elements.html">Element</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../damping.html">Damping</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../region.html">Region</a></li>
-<li class="toctree-l2 current"><a class="reference internal" href="../../meshparts.html">MeshPart</a><ul class="current">
-<li class="toctree-l3"><a class="reference internal" href="../../meshparts.html#understanding-the-meshpartmanager">Understanding the MeshPartManager</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../meshparts.html#accessing-the-meshpartmanager">Accessing the MeshPartManager</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../meshparts.html#how-meshpartmanager-works">How MeshPartManager Works</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../meshparts.html#meshpart-class-system">MeshPart Class System</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../meshparts.html#meshpartmanager-api-reference">MeshPartManager API Reference</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../meshparts.html#mesh-part-creation">Mesh Part Creation</a></li>
-<li class="toctree-l3 current"><a class="reference internal" href="../../meshparts.html#available-mesh-part-types">Available Mesh Part Types</a><ul class="current">
-<li class="toctree-l4 current"><a class="reference internal" href="index.html">Volume Mesh Types</a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="../../assembler.html">Assembler</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../constraint.html">Constraints</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../timeseries.html">TimeSeries</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../pattern.html">Pattern</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../analysis.html">Analysis</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../process.html">Process</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../drm.html">DRM</a></li>
-</ul>
-</li>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../index.html">Technical Documentation</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Developer Documentation:</span></p>
 <ul>
@@ -101,9 +73,6 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
-          <li class="breadcrumb-item"><a href="../../index.html">Technical Documentation</a></li>
-          <li class="breadcrumb-item"><a href="../../meshparts.html">MeshPart</a></li>
-          <li class="breadcrumb-item"><a href="index.html">Volume Mesh Types</a></li>
       <li class="breadcrumb-item active">Uniform Rectangular Grid</li>
       <li class="wy-breadcrumbs-aside">
             <a href="../../../_sources/technical/meshparts/volume/UniformRectangularGrid.rst.txt" rel="nofollow"> View page source</a>
@@ -200,13 +169,11 @@
 <span class="p">)</span>
 
 <span class="c1"># Create a region with damping</span>
-<span class="n">damping</span> <span class="o">=</span> <span class="n">fm</span><span class="o">.</span><span class="n">damping</span><span class="o">.</span><span class="n">create_damping</span><span class="p">(</span><span class="s2">&quot;frequency rayleigh&quot;</span><span class="p">,</span> <span class="n">dampingFactor</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span> <span class="n">f1</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">f2</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+<span class="n">damping</span> <span class="o">=</span> <span class="n">fm</span><span class="o">.</span><span class="n">damping</span><span class="o">.</span><span class="n">frequency_rayleigh</span><span class="p">(</span><span class="n">dampingFactor</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span> <span class="n">f1</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">f2</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
 <span class="n">region</span> <span class="o">=</span> <span class="n">fm</span><span class="o">.</span><span class="n">region</span><span class="o">.</span><span class="n">create_region</span><span class="p">(</span><span class="s2">&quot;elementRegion&quot;</span><span class="p">,</span> <span class="n">damping</span><span class="o">=</span><span class="n">damping</span><span class="p">)</span>
 
 <span class="c1"># Create the uniform rectangular grid mesh part</span>
-<span class="n">fm</span><span class="o">.</span><span class="n">meshPart</span><span class="o">.</span><span class="n">create_mesh_part</span><span class="p">(</span>
-    <span class="s2">&quot;Volume mesh&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;Uniform Rectangular Grid&quot;</span><span class="p">,</span>
+<span class="n">fm</span><span class="o">.</span><span class="n">meshpart</span><span class="o">.</span><span class="n">volume</span><span class="o">.</span><span class="n">uniform_rectangular_grid</span><span class="p">(</span>
     <span class="n">user_name</span><span class="o">=</span><span class="s2">&quot;SoilBlock&quot;</span><span class="p">,</span>
     <span class="n">element</span><span class="o">=</span><span class="n">element</span><span class="p">,</span>
     <span class="n">region</span><span class="o">=</span><span class="n">region</span><span class="p">,</span>
@@ -235,10 +202,7 @@
 
            </div>
           </div>
-          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="index.html" class="btn btn-neutral float-left" title="Volume Mesh Types" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="CustomRectangularGrid.html" class="btn btn-neutral float-right" title="Custom Rectangular Grid" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
-    </div>
+          <footer>
 
   <hr/>
 

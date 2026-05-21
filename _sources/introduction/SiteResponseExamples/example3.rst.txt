@@ -92,8 +92,7 @@ The layer definitions remain similar to Example 2, but we use a more concise app
                                       material=name, b1=0.0, b2=0.0, b3=-9.81 * rho)
         
         # Create mesh part for the layer
-        fm.meshPart.create_mesh_part(category="Volume mesh", 
-                                   mesh_part_type="Uniform Rectangular Grid", 
+        fm.meshpart.volume.uniform_rectangular_grid( 
                                    user_name=name, element=ele, region=region,
                                    **{
                                       'X Min': Xmin, 'X Max': Xmax,
@@ -243,3 +242,4 @@ Below is the complete code for this example:
    :language: python
    :caption: Example 3 - 3D Multi-Processor Site Response Analysis
    :name: Site_Response_example3-code
+

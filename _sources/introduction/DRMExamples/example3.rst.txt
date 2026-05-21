@@ -169,7 +169,7 @@ Unlike Example 2 which used consistent material properties throughout each layer
                                     b1=0,
                                     b2=0,
                                     b3=0)
-    softMat_damp = fm.damping.create_damping("frequency rayleigh", dampingFactor=softMat_xi_s, f1=3, f2=15)
+    softMat_damp = fm.damping.frequency_rayleigh(dampingFactor=softMat_xi_s, f1=3, f2=15)
     softMat_reg = fm.region.create_region("elementRegion", damping=softMat_damp)
 
 .. note::
@@ -235,7 +235,7 @@ For layers 1 and 2 that intersect with the basin, the implementation requires a 
     boxwithhole = mesh.extract_cells(~mask)    # Regular soil part
 
     # Add regular soil part to Femora
-    fm.meshPart.create_mesh_part("General mesh", "External mesh",
+    fm.meshpart.general.external_mesh(
                             user_name=f"Layer{layer}",
                             element=ele,
                             region=reg,
@@ -243,13 +243,13 @@ For layers 1 and 2 that intersect with the basin, the implementation requires a 
 
     # Add basin part with appropriate material
     if BASIN:
-        fm.meshPart.create_mesh_part("General mesh", "External mesh",
+        fm.meshpart.general.external_mesh(
                                     user_name=f"basin{layer}",
                                     element=softele,
                                     region=softMat_reg,
                                     mesh=semihemisphere)
     else:
-        fm.meshPart.create_mesh_part("General mesh", "External mesh",
+        fm.meshpart.general.external_mesh(
                                     user_name=f"basin{layer}",
                                     element=ele,
                                     region=reg,

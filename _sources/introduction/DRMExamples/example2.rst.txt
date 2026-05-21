@@ -217,7 +217,7 @@ In this example, each soil layer is assigned its own frequency-dependent Rayleig
 
 .. code-block:: python
 
-    damp = fm.damping.create_damping("frequency rayleigh", dampingFactor=xi_s, f1=3, f2=15)
+    damp = fm.damping.frequency_rayleigh(dampingFactor=xi_s, f1=3, f2=15)
 
 Frequency Rayleigh damping is a more intuitive approach to specifying damping than conventional Rayleigh damping. Instead of directly setting the mass and stiffness proportional coefficients (αₘ and βₖ), users can specify:
 
@@ -274,13 +274,13 @@ In this example, each soil layer is assigned to its own region with specific dam
 .. code-block:: python
 
     # Create frequency-dependent damping for this layer
-    damp = fm.damping.create_damping("frequency rayleigh", dampingFactor=xi_s, f1=3, f2=15)
+    damp = fm.damping.frequency_rayleigh(dampingFactor=xi_s, f1=3, f2=15)
     
     # Create region with this layer's specific damping
     reg = fm.region.create_region("elementRegion", damping=damp)
     
     # Assign the region when creating the mesh part for this layer
-    fm.meshPart.create_mesh_part("Volume mesh", "Uniform Rectangular Grid",
+    fm.meshpart.volume.uniform_rectangular_grid(
                             user_name=f"Layer{layer['layer']}",
                             element=ele,
                             region=reg,
@@ -348,7 +348,7 @@ When creating a mesh part without specifying a region:
 .. code-block:: python
 
     # This would implicitly use the global region
-    fm.meshPart.create_mesh_part("Volume mesh", "Uniform Rectangular Grid",
+    fm.meshpart.volume.uniform_rectangular_grid(
                             user_name=f"SomeLayer",
                             element=ele)
 
@@ -357,7 +357,7 @@ In our soil model example, explicit region creation ensures that each soil layer
 .. code-block:: python
 
     # Without explicit region, would use global region
-    fm.meshPart.create_mesh_part("Volume mesh", "Uniform Rectangular Grid",
+    fm.meshpart.volume.uniform_rectangular_grid(
                             user_name=f"Layer{layer['layer']}",
                             element=ele)
 

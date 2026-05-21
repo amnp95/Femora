@@ -17,8 +17,7 @@ Usage
     from femora.components.Damping import DampingManager
     
     damping_manager = DampingManager()
-    modal_damping = damping_manager.create_damping(
-        'modal',
+    modal_damping = damping_manager.modal(
         numberofModes=3,
         dampingFactors="0.02,0.03,0.04"
     )

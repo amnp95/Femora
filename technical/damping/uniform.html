@@ -71,7 +71,6 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../region.html">Region</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../meshparts.html">MeshPart</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../assembler.html">Assembler</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../constraint.html">Constraints</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../timeseries.html">TimeSeries</a></li>
@@ -133,8 +132,7 @@
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">femora.components.Damping</span><span class="w"> </span><span class="kn">import</span> <span class="n">DampingManager</span>
 
 <span class="n">damping_manager</span> <span class="o">=</span> <span class="n">DampingManager</span><span class="p">()</span>
-<span class="n">uniform_damping</span> <span class="o">=</span> <span class="n">damping_manager</span><span class="o">.</span><span class="n">create_damping</span><span class="p">(</span>
-    <span class="s1">&#39;uniform&#39;</span><span class="p">,</span>
+<span class="n">uniform_damping</span> <span class="o">=</span> <span class="n">damping_manager</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span>
     <span class="n">dampingRatio</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span>   <span class="c1"># 5% damping</span>
     <span class="n">freql</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>           <span class="c1"># 1 Hz lower bound</span>
     <span class="n">freq2</span><span class="o">=</span><span class="mf">15.0</span><span class="p">,</span>          <span class="c1"># 15 Hz upper bound</span>
@@ -146,8 +144,7 @@
 <section id="advanced-usage">
 <h2>Advanced Usage<a class="headerlink" href="#advanced-usage" title="Link to this heading"></a></h2>
 <p>Specifying activation and deactivation times allows for time-dependent damping behavior:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">uniform_damping</span> <span class="o">=</span> <span class="n">damping_manager</span><span class="o">.</span><span class="n">create_damping</span><span class="p">(</span>
-    <span class="s1">&#39;uniform&#39;</span><span class="p">,</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">uniform_damping</span> <span class="o">=</span> <span class="n">damping_manager</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span>
     <span class="n">dampingRatio</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span>
     <span class="n">freql</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
     <span class="n">freq2</span><span class="o">=</span><span class="mf">15.0</span><span class="p">,</span>

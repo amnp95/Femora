@@ -4,56 +4,37 @@ Damping
 Understanding the DampingManager
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The ``DampingManager`` is a core component of the Femora library that serves as a centralized system for creating, retrieving, tracking, and managing damping objects. It implements the Singleton pattern to ensure a single, consistent point of damping management across the entire application.
+The ``DampingManager`` is a core component of the Femora library that serves as a centralized, local system for creating, retrieving, tracking, and managing damping objects. Each `MeshMaker` instance owns its local ``DampingManager``, avoiding any global state or singleton registries and keeping the runtime clean and modular.
 
-Damping models defined in Femora are automatically tracked, tagged, and organized by the DampingManager, simplifying the process of creating models with appropriate energy dissipation mechanisms.
+Damping models defined in Femora are automatically tracked, tagged, and organized by the DampingManager.
 
 Accessing the DampingManager
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-There are two ways to access the DampingManager in your code:
+You access the DampingManager via the MeshMaker instance's ``damping`` property:
 
-1. **Direct Access**: Import and use the DampingManager class directly
+.. code-block:: python
    
-   .. code-block:: python
-      
-      from Femora.components.Damping import DampingManager
-      
-      # Get the singleton instance
-      damping_manager = DampingManager()
-      
-      # Use the damping manager directly
-      damping_manager.create_damping(...)
-
-2. **Through Femora** (Recommended): Access via the Femora class's .damping property
+   import Femora as fm
    
-   .. code-block:: python
-      
-      import Femora as fm
-      
-      # Create a Femora instance
-       
-      
-      # Access the DampingManager through the .damping property
-      fm.damping.create_damping(...)
-
-The second approach is recommended as it provides a unified interface to all of Femora's components and ensures proper initialization of all dependencies.
+   # Access the DampingManager and create a Rayleigh damping instance
+   rayleigh_damp = fm.damping.rayleigh(alphaM=0.1, betaK=0.2)
 
 How DampingManager Works
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The DampingManager provides several key capabilities:
 
-1. **Damping Creation**: Creates damping objects of various types with appropriate parameters
-2. **Damping Tracking**: Keeps track of all damping instances by tag
-3. **Damping Tagging**: Automatically assigns sequential tags to damping models
+1. **Damping Creation**: Provides dedicated factory methods for each concrete damping type
+2. **Damping Tracking**: Keeps track of all damping instances locally by tag
+3. **Damping Tagging**: Automatically assigns sequential tags to damping models using a compact retag policy
 4. **Damping Management**: Provides methods to retrieve, update, and delete damping instances
 
 When a damping model is created, the DampingManager:
 
 1. Assigns a unique numeric tag automatically
 2. Validates that all required parameters are present and valid
-3. Registers it for use in dynamic analyses
+3. Registers it for use in the dynamic analysis
 
 Damping Tagging System
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -75,16 +56,13 @@ DampingManager API Reference
 Damping Creation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Creating damping models is one of the primary functions of the DampingManager. When creating a damping model, you need to specify:
+Creating damping models is done using dedicated factory methods on the DampingManager:
 
-1. **damping_type**: Specifies the damping model to create. Available types include:
-   - ``rayleigh``: Classical Rayleigh damping
-   - ``modal``: Modal damping for specific modes
-   - ``frequency rayleigh``: Rayleigh damping specified by target frequencies
-   - ``uniform``: Uniform damping across a frequency range
-   - ``secant stiffness proportional``: Damping proportional to secant stiffness
-
-2. **Damping-specific parameters**: Each damping type requires specific parameters (like alphaM, betaK for Rayleigh damping)
+* ``rayleigh(**kwargs)``: Classical Rayleigh damping
+* ``modal(**kwargs)``: Modal damping for specific modes
+* ``frequency_rayleigh(**kwargs)``: Rayleigh damping specified by target frequencies
+* ``uniform(**kwargs)``: Uniform damping across a frequency range
+* ``secant_stiffness_proportional(**kwargs)``: Damping proportional to secant stiffness
 
 The DampingManager handles all the details of creating the appropriate damping object based on these parameters, ensuring type safety and parameter validation.
 
@@ -93,14 +71,11 @@ Usage Example
 
 .. code-block:: python
 
-   from Femora.components.Damping import DampingManager
-   
-   # Get the damping manager instance
-   damping_manager = DampingManager()
+   # Access the DampingManager instance from your Femora model
+   damping_manager = fm.damping
    
    # Create a Rayleigh damping instance
-   rayleigh_damping = damping_manager.create_damping(
-       'rayleigh', 
+   rayleigh_damping = damping_manager.rayleigh(
        alphaM=0.1, 
        betaK=0.2, 
        betaKInit=0.0, 
@@ -108,21 +83,16 @@ Usage Example
    )
    
    # Create a modal damping instance
-   modal_damping = damping_manager.create_damping(
-       'modal',
+   modal_damping = damping_manager.modal(
        numberofModes=3,
        dampingFactors="0.02,0.03,0.04"
    )
    
    # Access an existing damping instance by tag
-   damping = damping_manager.get_damping(1)
+   damping = damping_manager.get(1)
    
    # Remove a damping instance
-   damping_manager.remove_damping(2)
-   
-   # Get all available damping types
-   available_types = damping_manager.get_available_types()
-   print(available_types)  # ['frequency rayleigh', 'rayleigh', 'modal', ...]
+   damping_manager.remove(2)
 
 Available Damping Types
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

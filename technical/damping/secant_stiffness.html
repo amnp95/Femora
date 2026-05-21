@@ -72,7 +72,6 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../region.html">Region</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../meshparts.html">MeshPart</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../assembler.html">Assembler</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../constraint.html">Constraints</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../timeseries.html">TimeSeries</a></li>
@@ -142,8 +141,7 @@
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">femora.components.Damping</span><span class="w"> </span><span class="kn">import</span> <span class="n">DampingManager</span>
 
 <span class="n">damping_manager</span> <span class="o">=</span> <span class="n">DampingManager</span><span class="p">()</span>
-<span class="n">secstiff_damping</span> <span class="o">=</span> <span class="n">damping_manager</span><span class="o">.</span><span class="n">create_damping</span><span class="p">(</span>
-    <span class="s1">&#39;secant stiffness proportional&#39;</span><span class="p">,</span>
+<span class="n">secstiff_damping</span> <span class="o">=</span> <span class="n">damping_manager</span><span class="o">.</span><span class="n">secant_stiffness_proportional</span><span class="p">(</span>
     <span class="n">dampingFactor</span><span class="o">=</span><span class="mf">0.03</span>    <span class="c1"># 3% damping proportional to secant stiffness</span>
 <span class="p">)</span>
 </pre></div>
@@ -152,8 +150,7 @@
 <section id="advanced-usage">
 <h2>Advanced Usage<a class="headerlink" href="#advanced-usage" title="Link to this heading"></a></h2>
 <p>With time-dependent activation:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">secstiff_damping</span> <span class="o">=</span> <span class="n">damping_manager</span><span class="o">.</span><span class="n">create_damping</span><span class="p">(</span>
-    <span class="s1">&#39;secant stiffness proportional&#39;</span><span class="p">,</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">secstiff_damping</span> <span class="o">=</span> <span class="n">damping_manager</span><span class="o">.</span><span class="n">secant_stiffness_proportional</span><span class="p">(</span>
     <span class="n">dampingFactor</span><span class="o">=</span><span class="mf">0.03</span><span class="p">,</span>
     <span class="n">Ta</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span>               <span class="c1"># Activate at 2 seconds</span>
     <span class="n">Td</span><span class="o">=</span><span class="mf">15.0</span>               <span class="c1"># Deactivate at 15 seconds</span>

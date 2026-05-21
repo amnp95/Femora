@@ -66,13 +66,11 @@ The following example demonstrates how to create a 3D rectangular domain with cu
    )
    
    # Create a region with damping
-   damping = fm.damping.create_damping("frequency rayleigh", dampingFactor=0.03, f1=2, f2=15)
+   damping = fm.damping.frequency_rayleigh(dampingFactor=0.03, f1=2, f2=15)
    region = fm.region.create_region("elementRegion", damping=damping)
    
    # Create the custom rectangular grid mesh part with non-uniform spacing
-   fm.meshPart.create_mesh_part(
-       "Volume mesh", 
-       "Custom Rectangular Grid", 
+   fm.meshpart.volume.custom_rectangular_grid( 
        user_name="RockFormation", 
        element=element, 
        region=region, 

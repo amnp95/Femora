@@ -153,9 +153,7 @@ Note how we systematically create each layer by updating the Z coordinate as we 
     Ny = int((Ymax - Ymin)/dy)
     
     for layer in layers:
-        fm.meshPart.create_mesh_part(
-            category="Volume mesh",
-            mesh_part_type="Uniform Rectangular Grid",
+        fm.meshpart.volume.uniform_rectangular_grid(
             user_name=layer["name"],
             element=layer["element"],
             region=region,

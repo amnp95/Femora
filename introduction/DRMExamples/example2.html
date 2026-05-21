@@ -333,7 +333,7 @@
 <section id="frequency-rayleigh-damping-in-femora">
 <h2>Frequency Rayleigh Damping in Femora<a class="headerlink" href="#frequency-rayleigh-damping-in-femora" title="Link to this heading"></a></h2>
 <p>In this example, each soil layer is assigned its own frequency-dependent Rayleigh damping:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">damp</span> <span class="o">=</span> <span class="n">fm</span><span class="o">.</span><span class="n">damping</span><span class="o">.</span><span class="n">create_damping</span><span class="p">(</span><span class="s2">&quot;frequency rayleigh&quot;</span><span class="p">,</span> <span class="n">dampingFactor</span><span class="o">=</span><span class="n">xi_s</span><span class="p">,</span> <span class="n">f1</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">f2</span><span class="o">=</span><span class="mi">15</span><span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">damp</span> <span class="o">=</span> <span class="n">fm</span><span class="o">.</span><span class="n">damping</span><span class="o">.</span><span class="n">frequency_rayleigh</span><span class="p">(</span><span class="n">dampingFactor</span><span class="o">=</span><span class="n">xi_s</span><span class="p">,</span> <span class="n">f1</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">f2</span><span class="o">=</span><span class="mi">15</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>Frequency Rayleigh damping is a more intuitive approach to specifying damping than conventional Rayleigh damping. Instead of directly setting the mass and stiffness proportional coefficients (αₘ and βₖ), users can specify:</p>
@@ -371,13 +371,13 @@
 <h2>Region Assignment in Layered Soil Model<a class="headerlink" href="#region-assignment-in-layered-soil-model" title="Link to this heading"></a></h2>
 <p>In this example, each soil layer is assigned to its own region with specific damping properties:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create frequency-dependent damping for this layer</span>
-<span class="n">damp</span> <span class="o">=</span> <span class="n">fm</span><span class="o">.</span><span class="n">damping</span><span class="o">.</span><span class="n">create_damping</span><span class="p">(</span><span class="s2">&quot;frequency rayleigh&quot;</span><span class="p">,</span> <span class="n">dampingFactor</span><span class="o">=</span><span class="n">xi_s</span><span class="p">,</span> <span class="n">f1</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">f2</span><span class="o">=</span><span class="mi">15</span><span class="p">)</span>
+<span class="n">damp</span> <span class="o">=</span> <span class="n">fm</span><span class="o">.</span><span class="n">damping</span><span class="o">.</span><span class="n">frequency_rayleigh</span><span class="p">(</span><span class="n">dampingFactor</span><span class="o">=</span><span class="n">xi_s</span><span class="p">,</span> <span class="n">f1</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">f2</span><span class="o">=</span><span class="mi">15</span><span class="p">)</span>
 
 <span class="c1"># Create region with this layer&#39;s specific damping</span>
 <span class="n">reg</span> <span class="o">=</span> <span class="n">fm</span><span class="o">.</span><span class="n">region</span><span class="o">.</span><span class="n">create_region</span><span class="p">(</span><span class="s2">&quot;elementRegion&quot;</span><span class="p">,</span> <span class="n">damping</span><span class="o">=</span><span class="n">damp</span><span class="p">)</span>
 
 <span class="c1"># Assign the region when creating the mesh part for this layer</span>
-<span class="n">fm</span><span class="o">.</span><span class="n">meshPart</span><span class="o">.</span><span class="n">create_mesh_part</span><span class="p">(</span><span class="s2">&quot;Volume mesh&quot;</span><span class="p">,</span> <span class="s2">&quot;Uniform Rectangular Grid&quot;</span><span class="p">,</span>
+<span class="n">fm</span><span class="o">.</span><span class="n">meshpart</span><span class="o">.</span><span class="n">volume</span><span class="o">.</span><span class="n">uniform_rectangular_grid</span><span class="p">(</span>
                         <span class="n">user_name</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Layer</span><span class="si">{</span><span class="n">layer</span><span class="p">[</span><span class="s1">&#39;layer&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
                         <span class="n">element</span><span class="o">=</span><span class="n">ele</span><span class="p">,</span>
                         <span class="n">region</span><span class="o">=</span><span class="n">reg</span><span class="p">,</span>
@@ -444,14 +444,14 @@
 </div>
 <p>When creating a mesh part without specifying a region:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># This would implicitly use the global region</span>
-<span class="n">fm</span><span class="o">.</span><span class="n">meshPart</span><span class="o">.</span><span class="n">create_mesh_part</span><span class="p">(</span><span class="s2">&quot;Volume mesh&quot;</span><span class="p">,</span> <span class="s2">&quot;Uniform Rectangular Grid&quot;</span><span class="p">,</span>
+<span class="n">fm</span><span class="o">.</span><span class="n">meshpart</span><span class="o">.</span><span class="n">volume</span><span class="o">.</span><span class="n">uniform_rectangular_grid</span><span class="p">(</span>
                         <span class="n">user_name</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;SomeLayer&quot;</span><span class="p">,</span>
                         <span class="n">element</span><span class="o">=</span><span class="n">ele</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>In our soil model example, explicit region creation ensures that each soil layer has its own properly configured damping behavior rather than using global defaults. If we had omitted the region assignment:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Without explicit region, would use global region</span>
-<span class="n">fm</span><span class="o">.</span><span class="n">meshPart</span><span class="o">.</span><span class="n">create_mesh_part</span><span class="p">(</span><span class="s2">&quot;Volume mesh&quot;</span><span class="p">,</span> <span class="s2">&quot;Uniform Rectangular Grid&quot;</span><span class="p">,</span>
+<span class="n">fm</span><span class="o">.</span><span class="n">meshpart</span><span class="o">.</span><span class="n">volume</span><span class="o">.</span><span class="n">uniform_rectangular_grid</span><span class="p">(</span>
                         <span class="n">user_name</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Layer</span><span class="si">{</span><span class="n">layer</span><span class="p">[</span><span class="s1">&#39;layer&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
                         <span class="n">element</span><span class="o">=</span><span class="n">ele</span><span class="p">)</span>
 </pre></div>

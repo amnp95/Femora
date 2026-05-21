@@ -78,13 +78,11 @@ The following example demonstrates how to create a simple 3D rectangular domain 
    )
    
    # Create a region with damping
-   damping = fm.damping.create_damping("frequency rayleigh", dampingFactor=0.05, f1=1, f2=10)
+   damping = fm.damping.frequency_rayleigh(dampingFactor=0.05, f1=1, f2=10)
    region = fm.region.create_region("elementRegion", damping=damping)
    
    # Create the uniform rectangular grid mesh part
-   fm.meshPart.create_mesh_part(
-       "Volume mesh", 
-       "Uniform Rectangular Grid", 
+   fm.meshpart.volume.uniform_rectangular_grid( 
        user_name="SoilBlock", 
        element=element, 
        region=region, 
@@ -104,3 +102,4 @@ Notes
 - Efficient for problems requiring regular grid structures
 - Consider mesh density requirements for accuracy (number of cells in each direction)
 - The same element type and material will be applied to all cells in the mesh
+

@@ -37,8 +37,7 @@ Usage
     from femora.components.Damping import DampingManager
     
     damping_manager = DampingManager()
-    rayleigh_damping = damping_manager.create_damping(
-        'rayleigh', 
+    rayleigh_damping = damping_manager.rayleigh(
         alphaM=0.05, 
         betaK=0.001, 
         betaKInit=0.0, 

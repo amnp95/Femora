@@ -113,8 +113,7 @@ Usage Example
    damping_manager = DampingManager()
    
    # Create a Rayleigh damping instance
-   rayleigh_damping = damping_manager.create_damping(
-       'rayleigh', 
+   rayleigh_damping = damping_manager.rayleigh(
        alphaM=0.1, 
        betaK=0.2
    )
@@ -133,7 +132,7 @@ Usage Example
    )
    
    # Access the global region
-   global_region = region_manager.get_region(0)
+   global_region = region_manager.get(0)
    
    # Remove a region
    region_manager.remove_region(2)

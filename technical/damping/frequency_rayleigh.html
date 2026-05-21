@@ -72,7 +72,6 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../region.html">Region</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../meshparts.html">MeshPart</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../assembler.html">Assembler</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../constraint.html">Constraints</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../timeseries.html">TimeSeries</a></li>
@@ -138,8 +137,7 @@
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">femora.components.Damping</span><span class="w"> </span><span class="kn">import</span> <span class="n">DampingManager</span>
 
 <span class="n">damping_manager</span> <span class="o">=</span> <span class="n">DampingManager</span><span class="p">()</span>
-<span class="n">freq_rayleigh</span> <span class="o">=</span> <span class="n">damping_manager</span><span class="o">.</span><span class="n">create_damping</span><span class="p">(</span>
-    <span class="s1">&#39;frequency rayleigh&#39;</span><span class="p">,</span>
+<span class="n">freq_rayleigh</span> <span class="o">=</span> <span class="n">damping_manager</span><span class="o">.</span><span class="n">frequency_rayleigh</span><span class="p">(</span>
     <span class="n">dampingFactor</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span>  <span class="c1"># 5% damping</span>
     <span class="n">f1</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>              <span class="c1"># 1 Hz lower bound</span>
     <span class="n">f2</span><span class="o">=</span><span class="mf">10.0</span>              <span class="c1"># 10 Hz upper bound</span>

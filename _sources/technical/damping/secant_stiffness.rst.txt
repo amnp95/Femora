@@ -33,8 +33,7 @@ Usage
     from femora.components.Damping import DampingManager
     
     damping_manager = DampingManager()
-    secstiff_damping = damping_manager.create_damping(
-        'secant stiffness proportional',
+    secstiff_damping = damping_manager.secant_stiffness_proportional(
         dampingFactor=0.03    # 3% damping proportional to secant stiffness
     )
 
@@ -45,8 +44,7 @@ With time-dependent activation:
 
 .. code-block:: python
 
-    secstiff_damping = damping_manager.create_damping(
-        'secant stiffness proportional',
+    secstiff_damping = damping_manager.secant_stiffness_proportional(
         dampingFactor=0.03,
         Ta=2.0,               # Activate at 2 seconds
         Td=15.0               # Deactivate at 15 seconds

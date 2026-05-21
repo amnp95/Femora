@@ -47,8 +47,7 @@ Associating damping with a NodeRegion:
     damping_manager = DampingManager()
     
     # Create a damping instance
-    rayleigh_damping = damping_manager.create_damping(
-        'rayleigh', 
+    rayleigh_damping = damping_manager.rayleigh(
         alphaM=0.05, 
         betaK=0.001
     )

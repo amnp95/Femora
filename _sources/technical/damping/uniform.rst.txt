@@ -21,8 +21,7 @@ Usage
     from femora.components.Damping import DampingManager
     
     damping_manager = DampingManager()
-    uniform_damping = damping_manager.create_damping(
-        'uniform',
+    uniform_damping = damping_manager.uniform(
         dampingRatio=0.05,   # 5% damping
         freql=1.0,           # 1 Hz lower bound
         freq2=15.0,          # 15 Hz upper bound
@@ -36,8 +35,7 @@ Specifying activation and deactivation times allows for time-dependent damping b
 
 .. code-block:: python
 
-    uniform_damping = damping_manager.create_damping(
-        'uniform',
+    uniform_damping = damping_manager.uniform(
         dampingRatio=0.05,
         freql=1.0,
         freq2=15.0,

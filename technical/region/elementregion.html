@@ -72,7 +72,6 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="../meshparts.html">MeshPart</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../assembler.html">Assembler</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../constraint.html">Constraints</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../timeseries.html">TimeSeries</a></li>
@@ -155,8 +154,7 @@
 <span class="n">damping_manager</span> <span class="o">=</span> <span class="n">DampingManager</span><span class="p">()</span>
 
 <span class="c1"># Create a damping instance</span>
-<span class="n">rayleigh_damping</span> <span class="o">=</span> <span class="n">damping_manager</span><span class="o">.</span><span class="n">create_damping</span><span class="p">(</span>
-    <span class="s1">&#39;rayleigh&#39;</span><span class="p">,</span>
+<span class="n">rayleigh_damping</span> <span class="o">=</span> <span class="n">damping_manager</span><span class="o">.</span><span class="n">rayleigh</span><span class="p">(</span>
     <span class="n">alphaM</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span>
     <span class="n">betaK</span><span class="o">=</span><span class="mf">0.001</span>
 <span class="p">)</span>

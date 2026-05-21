@@ -25,20 +25,19 @@ Usage
     damping_manager = DampingManager()
     
     # Create a damping instance
-    rayleigh_damping = damping_manager.create_damping(
-        'rayleigh', 
+    rayleigh_damping = damping_manager.rayleigh(
         alphaM=0.05, 
         betaK=0.001
     )
     
     # Access the global region
-    global_region = region_manager.get_region(0)
+    global_region = region_manager.get(0)
     
     # Assign the damping to the global region
     global_region.damping = rayleigh_damping
     
     # Alternatively, you can access the global region through the RegionManager
-    global_region = RegionManager().get_region(0)
+    global_region = RegionManager().get(0)
 
 Component Assignment
 --------------------

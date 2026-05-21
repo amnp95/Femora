@@ -85,14 +85,12 @@ The following example demonstrates how to create a 3D rectangular domain with ge
    )
    
    # Create a region with damping
-   damping = fm.damping.create_damping("frequency rayleigh", dampingFactor=0.05, f1=1, f2=10)
+   damping = fm.damping.frequency_rayleigh(dampingFactor=0.05, f1=1, f2=10)
    region = fm.region.create_region("elementRegion", damping=damping)
    
    # Create the geometric rectangular grid mesh part
    # Cells will progressively get larger in the z-direction (from surface down)
-   fm.meshPart.create_mesh_part(
-       "Volume mesh", 
-       "Geometric Rectangular Grid", 
+   fm.meshpart.volume.geometric_rectangular_grid( 
        user_name="SoilLayer", 
        element=element, 
        region=region, 

@@ -35,8 +35,7 @@ Usage
     from femora.components.Damping import DampingManager
     
     damping_manager = DampingManager()
-    freq_rayleigh = damping_manager.create_damping(
-        'frequency rayleigh',
+    freq_rayleigh = damping_manager.frequency_rayleigh(
         dampingFactor=0.05,  # 5% damping
         f1=1.0,              # 1 Hz lower bound
         f2=10.0              # 10 Hz upper bound

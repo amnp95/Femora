@@ -245,7 +245,7 @@ The combined visualization showing the basin embedded within the layered soil:</
                                 <span class="n">b1</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
                                 <span class="n">b2</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
                                 <span class="n">b3</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-<span class="n">softMat_damp</span> <span class="o">=</span> <span class="n">fm</span><span class="o">.</span><span class="n">damping</span><span class="o">.</span><span class="n">create_damping</span><span class="p">(</span><span class="s2">&quot;frequency rayleigh&quot;</span><span class="p">,</span> <span class="n">dampingFactor</span><span class="o">=</span><span class="n">softMat_xi_s</span><span class="p">,</span> <span class="n">f1</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">f2</span><span class="o">=</span><span class="mi">15</span><span class="p">)</span>
+<span class="n">softMat_damp</span> <span class="o">=</span> <span class="n">fm</span><span class="o">.</span><span class="n">damping</span><span class="o">.</span><span class="n">frequency_rayleigh</span><span class="p">(</span><span class="n">dampingFactor</span><span class="o">=</span><span class="n">softMat_xi_s</span><span class="p">,</span> <span class="n">f1</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">f2</span><span class="o">=</span><span class="mi">15</span><span class="p">)</span>
 <span class="n">softMat_reg</span> <span class="o">=</span> <span class="n">fm</span><span class="o">.</span><span class="n">region</span><span class="o">.</span><span class="n">create_region</span><span class="p">(</span><span class="s2">&quot;elementRegion&quot;</span><span class="p">,</span> <span class="n">damping</span><span class="o">=</span><span class="n">softMat_damp</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -304,7 +304,7 @@ The combined visualization showing the basin embedded within the layered soil:</
 <span class="n">boxwithhole</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">extract_cells</span><span class="p">(</span><span class="o">~</span><span class="n">mask</span><span class="p">)</span>    <span class="c1"># Regular soil part</span>
 
 <span class="c1"># Add regular soil part to Femora</span>
-<span class="n">fm</span><span class="o">.</span><span class="n">meshPart</span><span class="o">.</span><span class="n">create_mesh_part</span><span class="p">(</span><span class="s2">&quot;General mesh&quot;</span><span class="p">,</span> <span class="s2">&quot;External mesh&quot;</span><span class="p">,</span>
+<span class="n">fm</span><span class="o">.</span><span class="n">meshpart</span><span class="o">.</span><span class="n">general</span><span class="o">.</span><span class="n">external_mesh</span><span class="p">(</span>
                         <span class="n">user_name</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Layer</span><span class="si">{</span><span class="n">layer</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
                         <span class="n">element</span><span class="o">=</span><span class="n">ele</span><span class="p">,</span>
                         <span class="n">region</span><span class="o">=</span><span class="n">reg</span><span class="p">,</span>
@@ -312,13 +312,13 @@ The combined visualization showing the basin embedded within the layered soil:</
 
 <span class="c1"># Add basin part with appropriate material</span>
 <span class="k">if</span> <span class="n">BASIN</span><span class="p">:</span>
-    <span class="n">fm</span><span class="o">.</span><span class="n">meshPart</span><span class="o">.</span><span class="n">create_mesh_part</span><span class="p">(</span><span class="s2">&quot;General mesh&quot;</span><span class="p">,</span> <span class="s2">&quot;External mesh&quot;</span><span class="p">,</span>
+    <span class="n">fm</span><span class="o">.</span><span class="n">meshpart</span><span class="o">.</span><span class="n">general</span><span class="o">.</span><span class="n">external_mesh</span><span class="p">(</span>
                                 <span class="n">user_name</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;basin</span><span class="si">{</span><span class="n">layer</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
                                 <span class="n">element</span><span class="o">=</span><span class="n">softele</span><span class="p">,</span>
                                 <span class="n">region</span><span class="o">=</span><span class="n">softMat_reg</span><span class="p">,</span>
                                 <span class="n">mesh</span><span class="o">=</span><span class="n">semihemisphere</span><span class="p">)</span>
 <span class="k">else</span><span class="p">:</span>
-    <span class="n">fm</span><span class="o">.</span><span class="n">meshPart</span><span class="o">.</span><span class="n">create_mesh_part</span><span class="p">(</span><span class="s2">&quot;General mesh&quot;</span><span class="p">,</span> <span class="s2">&quot;External mesh&quot;</span><span class="p">,</span>
+    <span class="n">fm</span><span class="o">.</span><span class="n">meshpart</span><span class="o">.</span><span class="n">general</span><span class="o">.</span><span class="n">external_mesh</span><span class="p">(</span>
                                 <span class="n">user_name</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;basin</span><span class="si">{</span><span class="n">layer</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
                                 <span class="n">element</span><span class="o">=</span><span class="n">ele</span><span class="p">,</span>
                                 <span class="n">region</span><span class="o">=</span><span class="n">reg</span><span class="p">,</span>
