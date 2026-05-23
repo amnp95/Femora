@@ -249,7 +249,7 @@ The process flow includes gravity initialization, setting up the frequency sweep
     mkdir = fm.actions.tcl("file mkdir Results")
     recorder = fm.recorder.create_recorder("vtkhdf", file_base_name="Results/result.vtkhdf",
                                           resp_types=["accel", "disp"], delta_t=0.001)
-    reset = fm.actions.seTime(pseudo_time=0.0)
+    reset = fm.actions.set_time(pseudo_time=0.0)
     
     # Add steps to the process
     fm.process.add_step(gravity,  description="Gravity Analysis Step")
