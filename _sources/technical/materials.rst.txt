@@ -4,40 +4,28 @@ Material
 Understanding the MaterialManager
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The ``MaterialManager`` is a core component of the Femora library that serves as a centralized system for creating, retrieving, tracking, and managing material objects throughout the mesh generation process. It implements the Singleton pattern to ensure a single, consistent point of material management across the entire application.
+The ``MaterialManager`` is a core component of the Femora library that serves as a centralized, model-owned system for creating, retrieving, tracking, and managing material objects. Each ``Model`` instance owns its local ``MaterialManager``, avoiding global singleton registries and keeping runtime state explicit.
 
 Materials defined in Femora are automatically tracked, tagged, and organized by the MaterialManager, simplifying the process of creating complex models with multiple material definitions.
 
 Accessing the MaterialManager
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-There are two ways to access the MaterialManager in your code:
+Access the ``MaterialManager`` through a ``Model`` instance:
 
-1. **Direct Access**: Import and use the MaterialManager class directly
-   
-   .. code-block:: python
-      
-      from femora.components.Material.materialBase import MaterialManager
-      
-      # Get the singleton instance
-      material_manager = MaterialManager.get_instance()
-      
-      # Use the material manager directly
-      material_manager.create_material(...)
+.. code-block:: python
 
-2. **Through Femora** (Recommended): Access via the Femora class's .material property
-   
-   .. code-block:: python
-      
-      import femora as fm
-      
-      # Create a Femora instance
-       
-      
-      # Access the MaterialManager through the .material property
-      fm.material.create_material(...)
+   import femora as fm
+   from femora.core.model import Model
 
-The second approach is recommended as it provides a unified interface to all of Femora's components and ensures proper initialization of all dependencies.
+   # Module-level default model (import femora as fm)
+   fm.material.nd.elastic_isotropic(user_name="soil", E=30e6, nu=0.3, rho=2000)
+
+   # Or an explicit local model instance
+   model = Model()
+   model.material.nd.elastic_isotropic(user_name="soil", E=30e6, nu=0.3, rho=2000)
+
+For scripts and libraries, prefer constructing an explicit ``Model()`` and passing ownership through that instance.
 
 How MaterialManager Works
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -72,9 +60,9 @@ The MaterialManager implements an intelligent tagging system that:
 
 .. code-block:: python
 
-   # Example of setting a custom tag starting point
-   material_manager = MaterialManager.get_instance()
-   material_manager.set_material_tag_start(1000)  # All new materials will start from tag 1000
+   # Example of setting a custom tag starting point on a model-owned manager
+   model = Model()
+   model.material.set_tag_start(1000)  # All new materials will start from tag 1000
 
 MaterialManager API Reference
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

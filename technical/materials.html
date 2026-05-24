@@ -116,37 +116,24 @@
 <h1>Material<a class="headerlink" href="#material" title="Link to this heading"></a></h1>
 <section id="understanding-the-materialmanager">
 <h2>Understanding the MaterialManager<a class="headerlink" href="#understanding-the-materialmanager" title="Link to this heading"></a></h2>
-<p>The <code class="docutils literal notranslate"><span class="pre">MaterialManager</span></code> is a core component of the Femora library that serves as a centralized system for creating, retrieving, tracking, and managing material objects throughout the mesh generation process. It implements the Singleton pattern to ensure a single, consistent point of material management across the entire application.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">MaterialManager</span></code> is a core component of the Femora library that serves as a centralized, model-owned system for creating, retrieving, tracking, and managing material objects. Each <code class="docutils literal notranslate"><span class="pre">Model</span></code> instance owns its local <code class="docutils literal notranslate"><span class="pre">MaterialManager</span></code>, avoiding global singleton registries and keeping runtime state explicit.</p>
 <p>Materials defined in Femora are automatically tracked, tagged, and organized by the MaterialManager, simplifying the process of creating complex models with multiple material definitions.</p>
 </section>
 <section id="accessing-the-materialmanager">
 <h2>Accessing the MaterialManager<a class="headerlink" href="#accessing-the-materialmanager" title="Link to this heading"></a></h2>
-<p>There are two ways to access the MaterialManager in your code:</p>
-<ol class="arabic">
-<li><p><strong>Direct Access</strong>: Import and use the MaterialManager class directly</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">femora.components.Material.materialBase</span><span class="w"> </span><span class="kn">import</span> <span class="n">MaterialManager</span>
-
-<span class="c1"># Get the singleton instance</span>
-<span class="n">material_manager</span> <span class="o">=</span> <span class="n">MaterialManager</span><span class="o">.</span><span class="n">get_instance</span><span class="p">()</span>
-
-<span class="c1"># Use the material manager directly</span>
-<span class="n">material_manager</span><span class="o">.</span><span class="n">create_material</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
-</pre></div>
-</div>
-</li>
-<li><p><strong>Through Femora</strong> (Recommended): Access via the Femora class’s .material property</p>
+<p>Access the <code class="docutils literal notranslate"><span class="pre">MaterialManager</span></code> through a <code class="docutils literal notranslate"><span class="pre">Model</span></code> instance:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">femora</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">fm</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">femora.core.model</span><span class="w"> </span><span class="kn">import</span> <span class="n">Model</span>
 
-<span class="c1"># Create a Femora instance</span>
+<span class="c1"># Module-level default model (import femora as fm)</span>
+<span class="n">fm</span><span class="o">.</span><span class="n">material</span><span class="o">.</span><span class="n">nd</span><span class="o">.</span><span class="n">elastic_isotropic</span><span class="p">(</span><span class="n">user_name</span><span class="o">=</span><span class="s2">&quot;soil&quot;</span><span class="p">,</span> <span class="n">E</span><span class="o">=</span><span class="mf">30e6</span><span class="p">,</span> <span class="n">nu</span><span class="o">=</span><span class="mf">0.3</span><span class="p">,</span> <span class="n">rho</span><span class="o">=</span><span class="mi">2000</span><span class="p">)</span>
 
-
-<span class="c1"># Access the MaterialManager through the .material property</span>
-<span class="n">fm</span><span class="o">.</span><span class="n">material</span><span class="o">.</span><span class="n">create_material</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+<span class="c1"># Or an explicit local model instance</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">Model</span><span class="p">()</span>
+<span class="n">model</span><span class="o">.</span><span class="n">material</span><span class="o">.</span><span class="n">nd</span><span class="o">.</span><span class="n">elastic_isotropic</span><span class="p">(</span><span class="n">user_name</span><span class="o">=</span><span class="s2">&quot;soil&quot;</span><span class="p">,</span> <span class="n">E</span><span class="o">=</span><span class="mf">30e6</span><span class="p">,</span> <span class="n">nu</span><span class="o">=</span><span class="mf">0.3</span><span class="p">,</span> <span class="n">rho</span><span class="o">=</span><span class="mi">2000</span><span class="p">)</span>
 </pre></div>
 </div>
-</li>
-</ol>
-<p>The second approach is recommended as it provides a unified interface to all of Femora’s components and ensures proper initialization of all dependencies.</p>
+<p>For scripts and libraries, prefer constructing an explicit <code class="docutils literal notranslate"><span class="pre">Model()</span></code> and passing ownership through that instance.</p>
 </section>
 <section id="how-materialmanager-works">
 <h2>How MaterialManager Works<a class="headerlink" href="#how-materialmanager-works" title="Link to this heading"></a></h2>
@@ -179,9 +166,9 @@ exists, the MaterialManager will raise an error.</p>
 <li><p>Ensures uniqueness of tags across the model</p></li>
 <li><p>Maps between material objects and their assigned tags</p></li>
 </ul>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Example of setting a custom tag starting point</span>
-<span class="n">material_manager</span> <span class="o">=</span> <span class="n">MaterialManager</span><span class="o">.</span><span class="n">get_instance</span><span class="p">()</span>
-<span class="n">material_manager</span><span class="o">.</span><span class="n">set_material_tag_start</span><span class="p">(</span><span class="mi">1000</span><span class="p">)</span>  <span class="c1"># All new materials will start from tag 1000</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Example of setting a custom tag starting point on a model-owned manager</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">Model</span><span class="p">()</span>
+<span class="n">model</span><span class="o">.</span><span class="n">material</span><span class="o">.</span><span class="n">set_tag_start</span><span class="p">(</span><span class="mi">1000</span><span class="p">)</span>  <span class="c1"># All new materials will start from tag 1000</span>
 </pre></div>
 </div>
 </section>

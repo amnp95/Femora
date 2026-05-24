@@ -4,14 +4,14 @@ Damping
 Understanding the DampingManager
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The ``DampingManager`` is a core component of the Femora library that serves as a centralized, local system for creating, retrieving, tracking, and managing damping objects. Each `MeshMaker` instance owns its local ``DampingManager``, avoiding any global state or singleton registries and keeping the runtime clean and modular.
+The ``DampingManager`` is a core component of the Femora library that serves as a centralized, local system for creating, retrieving, tracking, and managing damping objects. Each ``Model`` instance owns its local ``DampingManager``, avoiding any global state or singleton registries and keeping the runtime clean and modular.
 
 Damping models defined in Femora are automatically tracked, tagged, and organized by the DampingManager.
 
 Accessing the DampingManager
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-You access the DampingManager via the MeshMaker instance's ``damping`` property:
+You access the DampingManager via the Model instance's ``damping`` property:
 
 .. code-block:: python
    

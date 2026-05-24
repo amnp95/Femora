@@ -119,12 +119,12 @@
 <h1>Damping<a class="headerlink" href="#damping" title="Link to this heading"></a></h1>
 <section id="understanding-the-dampingmanager">
 <h2>Understanding the DampingManager<a class="headerlink" href="#understanding-the-dampingmanager" title="Link to this heading"></a></h2>
-<p>The <code class="docutils literal notranslate"><span class="pre">DampingManager</span></code> is a core component of the Femora library that serves as a centralized, local system for creating, retrieving, tracking, and managing damping objects. Each <cite>MeshMaker</cite> instance owns its local <code class="docutils literal notranslate"><span class="pre">DampingManager</span></code>, avoiding any global state or singleton registries and keeping the runtime clean and modular.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">DampingManager</span></code> is a core component of the Femora library that serves as a centralized, local system for creating, retrieving, tracking, and managing damping objects. Each <code class="docutils literal notranslate"><span class="pre">Model</span></code> instance owns its local <code class="docutils literal notranslate"><span class="pre">DampingManager</span></code>, avoiding any global state or singleton registries and keeping the runtime clean and modular.</p>
 <p>Damping models defined in Femora are automatically tracked, tagged, and organized by the DampingManager.</p>
 </section>
 <section id="accessing-the-dampingmanager">
 <h2>Accessing the DampingManager<a class="headerlink" href="#accessing-the-dampingmanager" title="Link to this heading"></a></h2>
-<p>You access the DampingManager via the MeshMaker instance’s <code class="docutils literal notranslate"><span class="pre">damping</span></code> property:</p>
+<p>You access the DampingManager via the Model instance’s <code class="docutils literal notranslate"><span class="pre">damping</span></code> property:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">Femora</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">fm</span>
 
 <span class="c1"># Access the DampingManager and create a Rayleigh damping instance</span>

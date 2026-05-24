@@ -4,48 +4,32 @@ Assembler
 Introduction
 ------------
 
-The ``Assembler`` component in Femora is responsible for combining multiple mesh parts into a unified model, partitioning the model for parallel computing, and managing the combined mesh. It provides a centralized system for creating and managing assembly sections, which are groups of mesh parts that are combined into a single mesh.
+The ``Assembler`` component in Femora is responsible for combining multiple mesh parts into a unified model, partitioning the model for parallel computing, and managing the combined mesh. Each ``Model`` owns one ``Assembler`` with an independent assembly-section registry.
 
 The Assembler system consists of two main classes:
 
-1. ``Assembler``: A singleton class that manages multiple ``AssemblySection`` instances
+1. ``Assembler``: Model-owned manager for multiple ``AssemblySection`` instances
 2. ``AssemblySection``: A class that represents a group of mesh parts combined into a single mesh
 
 Understanding the Assembler
 ---------------------------
 
-The ``Assembler`` class implements the Singleton pattern, ensuring that only one instance exists throughout the application. This provides a centralized point for managing assembly sections and accessing the assembled mesh.
+The ``Assembler`` is bound to a single ``Model`` instance and provides the centralized point for managing assembly sections and accessing the assembled mesh.
 
 Accessing the Assembler
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-There are two ways to access the Assembler:
+.. code-block:: python
 
-1. **Direct Access**:
+   import femora as fm
+   from femora.core.model import Model
 
-   .. code-block:: python
-      
-      from femora.components.Assemble.Assembler import Assembler
-      
-      # Get the singleton instance
-      assembler = Assembler()
-      
-      # Or use the class method
-      assembler = Assembler.get_instance()
+   # Module-level default model
+   fm.assembler.create_section(meshparts=["block"], num_partitions=1)
 
-2. **Through Femora** (recommended):
-
-   .. code-block:: python
-      
-      import femora as fm
-      
-      # Create a Femora instance
-       
-      
-      # Access the Assembler through femora
-      assembler = fm.assembler
-
-The second approach is recommended as it ensures proper initialization of dependencies.
+   # Or an explicit local model instance
+   model = Model()
+   model.assembler.create_section(meshparts=["block"], num_partitions=1)
 
 Structure of the Assembler
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
