@@ -60,10 +60,10 @@ The MP Constraint Manager provides methods to manage constraints:
 .. code-block:: python
 
    # Get a specific constraint by tag
-   constraint = mp_manager.get_constraint(tag=1)
+   constraint = mp_manager.get(tag=1)
    
    # Remove a constraint by tag
-   mp_manager.remove_constraint(tag=1)
+   mp_manager.remove(tag=1)
    
    # Iterate through all constraints
    for constraint in mp_manager:

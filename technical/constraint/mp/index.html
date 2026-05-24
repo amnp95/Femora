@@ -163,10 +163,10 @@
 <h2>Managing MP Constraints<a class="headerlink" href="#managing-mp-constraints" title="Link to this heading"></a></h2>
 <p>The MP Constraint Manager provides methods to manage constraints:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Get a specific constraint by tag</span>
-<span class="n">constraint</span> <span class="o">=</span> <span class="n">mp_manager</span><span class="o">.</span><span class="n">get_constraint</span><span class="p">(</span><span class="n">tag</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">constraint</span> <span class="o">=</span> <span class="n">mp_manager</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">tag</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 
 <span class="c1"># Remove a constraint by tag</span>
-<span class="n">mp_manager</span><span class="o">.</span><span class="n">remove_constraint</span><span class="p">(</span><span class="n">tag</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">mp_manager</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">tag</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 
 <span class="c1"># Iterate through all constraints</span>
 <span class="k">for</span> <span class="n">constraint</span> <span class="ow">in</span> <span class="n">mp_manager</span><span class="p">:</span>

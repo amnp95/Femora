@@ -118,7 +118,7 @@ The elements are created with gravitational body forces in the vertical directio
                                              b1=0.0, b2=0.0, b3=-9.81 * rho)
 
     # Create one damping for all the meshParts
-    uniformDamp = fm.damping.frequencyRayleigh(f1=2.76, f2=13.84, dampingFactor=0.03)
+    uniformDamp = fm.damping.frequency_rayleigh(f1=2.76, f2=13.84, damping_factor=0.03)
     region = fm.region.elementRegion(damping=uniformDamp)
 
 The frequencies for Rayleigh damping (f1=2.76Hz, f2=13.84Hz) were specifically selected based on the first and third natural frequencies of the soil column. This approach ensures relatively constant damping across the frequency range of interest, which is important for accurate transfer function calculation. By targeting these specific modal frequencies, the model maintains consistent energy dissipation characteristics for the predominant modes of vibration.
