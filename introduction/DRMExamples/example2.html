@@ -190,7 +190,7 @@
 <li><p><strong>Localized Refinement</strong>: Allows for mesh refinement in the region of interest without needing to refine the entire domain</p></li>
 </ul>
 <p>In this example, DRM is implemented through:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">h5pattern</span> <span class="o">=</span> <span class="n">fm</span><span class="o">.</span><span class="n">pattern</span><span class="o">.</span><span class="n">create_pattern</span><span class="p">(</span><span class="s1">&#39;h5drm&#39;</span><span class="p">,</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">h5pattern</span> <span class="o">=</span> <span class="n">fm</span><span class="o">.</span><span class="n">pattern</span><span class="o">.</span><span class="n">h5drm</span><span class="p">(</span>
                                     <span class="n">filepath</span><span class="o">=</span><span class="s1">&#39;drmload.h5drm&#39;</span><span class="p">,</span>
                                     <span class="n">factor</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
                                     <span class="n">crd_scale</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
@@ -542,7 +542,7 @@
 <p>After creating all layers, the code assembles all mesh parts and adds PML absorbing boundaries.</p>
 </li>
 <li><p><strong>Loading and Analysis Setup</strong>:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">h5pattern</span> <span class="o">=</span> <span class="n">fm</span><span class="o">.</span><span class="n">pattern</span><span class="o">.</span><span class="n">create_pattern</span><span class="p">(</span><span class="s1">&#39;h5drm&#39;</span><span class="p">,</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">h5pattern</span> <span class="o">=</span> <span class="n">fm</span><span class="o">.</span><span class="n">pattern</span><span class="o">.</span><span class="n">h5drm</span><span class="p">(</span>
                                     <span class="n">filepath</span><span class="o">=</span><span class="s1">&#39;drmload.h5drm&#39;</span><span class="p">,</span>
                                     <span class="n">factor</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
                                     <span class="n">crd_scale</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>

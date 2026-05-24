@@ -23,7 +23,7 @@ There are two ways to access the PatternManager in your code:
       pattern_manager = PatternManager()
 
       # Use the pattern manager directly
-      pattern_manager.create_pattern(...)
+      pattern_manager.uniform_excitation(...)
 
 2. **Through Femora** (Recommended): Access via the Femora class's .pattern property
 
@@ -35,7 +35,7 @@ There are two ways to access the PatternManager in your code:
        
 
       # Access the PatternManager through the .pattern property
-      fm.pattern.create_pattern(...)
+      fm.pattern.uniform_excitation(...)
 
 The second approach is recommended as it provides a unified interface to all of Femora's components and ensures proper initialization of all dependencies.
 
@@ -84,9 +84,9 @@ Usage Example
    pattern_manager = PatternManager()
 
    # Create a grid pattern with specific spacing
-   grid_pattern = pattern_manager.create_pattern(
-       'GridPattern',
-       spacing=(1.0, 1.0)
+   grid_pattern = pattern_manager.plain(
+       time_series=time_series,
+       factor=1.0
    )
 
    # Apply the pattern to a region

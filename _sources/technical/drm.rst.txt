@@ -115,7 +115,7 @@ Example of creating a DRM analysis:
    # Assume a model has been set up already...
    
    # Create an H5DRM pattern
-   drm_pattern = fm.pattern.create_pattern("h5drm", 
+   drm_pattern = fm.pattern.h5drm( 
                                         h5file="seismicData.h5", 
                                         timeScaleFactor=1.0)
    

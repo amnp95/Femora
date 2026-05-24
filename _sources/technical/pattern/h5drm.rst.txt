@@ -50,8 +50,7 @@ Usage Example
    pattern_manager = PatternManager()
 
    # Create an H5DRM pattern
-   h5drm_pattern = pattern_manager.create_pattern(
-       'h5drm',
+   h5drm_pattern = pattern_manager.h5drm(
        filepath='path/to/h5drm/file',
        factor=1.0,
        crd_scale=1.0,

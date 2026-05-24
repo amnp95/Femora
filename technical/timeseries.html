@@ -138,7 +138,7 @@
 <span class="n">timeseries_manager</span> <span class="o">=</span> <span class="n">TimeSeriesManager</span><span class="p">()</span>
 
 <span class="c1"># Use the time series manager directly</span>
-<span class="n">timeseries_manager</span><span class="o">.</span><span class="n">create_time_series</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+<span class="n">timeseries_manager</span><span class="o">.</span><span class="n">path</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
 </pre></div>
 </div>
 </li>
@@ -149,7 +149,7 @@
 
 
 <span class="c1"># Access the TimeSeriesManager through the .timeSeries property</span>
-<span class="n">fm</span><span class="o">.</span><span class="n">timeSeries</span><span class="o">.</span><span class="n">create_time_series</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+<span class="n">fm</span><span class="o">.</span><span class="n">time_series</span><span class="o">.</span><span class="n">path</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
 </pre></div>
 </div>
 </li>
@@ -189,99 +189,33 @@
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="TimeSeriesManager.create_time_series">
-<span class="sig-name descname"><span class="pre">create_time_series</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">series_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">TimeSeries</span></span></span><a class="headerlink" href="#TimeSeriesManager.create_time_series" title="Link to this definition"></a></dt>
-<dd><dl class="field-list simple">
-<dt class="field-odd">No-index<span class="colon">:</span></dt>
-<dd class="field-odd"><p></p></dd>
-</dl>
-<p>Create a new time series of the specified type.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>series_type</strong> (<em>str</em>) – The type of time series to create</p></li>
-<li><p><strong>kwargs</strong> – Parameters specific to the time series type initialization</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>A new time series instance</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>TimeSeries</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="TimeSeriesManager.get_time_series">
-<span class="sig-name descname"><span class="pre">get_time_series</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tag</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">TimeSeries</span></span></span><a class="headerlink" href="#TimeSeriesManager.get_time_series" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="TimeSeriesManager.get">
+<span class="sig-name descname"><span class="pre">get</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tag</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">TimeSeries</span></span></span><a class="headerlink" href="#TimeSeriesManager.get" title="Link to this definition"></a></dt>
 <dd><dl class="field-list simple">
 <dt class="field-odd">No-index<span class="colon">:</span></dt>
 <dd class="field-odd"><p></p></dd>
 </dl>
 <p>Retrieve a specific time series by its tag.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>tag</strong> (<em>int</em>) – The unique identifier tag of the time series</p>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>The time series object with the specified tag</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>TimeSeries</p>
-</dd>
-</dl>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="TimeSeriesManager.get_all_time_series">
-<span class="sig-name descname"><span class="pre">get_all_time_series</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">TimeSeries</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#TimeSeriesManager.get_all_time_series" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="TimeSeriesManager.get_all">
+<span class="sig-name descname"><span class="pre">get_all</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">TimeSeries</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#TimeSeriesManager.get_all" title="Link to this definition"></a></dt>
 <dd><dl class="field-list simple">
 <dt class="field-odd">No-index<span class="colon">:</span></dt>
 <dd class="field-odd"><p></p></dd>
 </dl>
-<p>Retrieve all registered time series objects.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>A dictionary of all time series objects</p>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>Dict[int, TimeSeries]</p>
-</dd>
-</dl>
+<p>Retrieve all managed time series keyed by tag.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="TimeSeriesManager.get_available_types">
-<span class="sig-name descname"><span class="pre">get_available_types</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#TimeSeriesManager.get_available_types" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="TimeSeriesManager.remove">
+<span class="sig-name descname"><span class="pre">remove</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tag</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#TimeSeriesManager.remove" title="Link to this definition"></a></dt>
 <dd><dl class="field-list simple">
 <dt class="field-odd">No-index<span class="colon">:</span></dt>
 <dd class="field-odd"><p></p></dd>
 </dl>
-<p>Get a list of all available time series types.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>A list of available time series types</p>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>List[str]</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="TimeSeriesManager.remove_time_series">
-<span class="sig-name descname"><span class="pre">remove_time_series</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tag</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#TimeSeriesManager.remove_time_series" title="Link to this definition"></a></dt>
-<dd><dl class="field-list simple">
-<dt class="field-odd">No-index<span class="colon">:</span></dt>
-<dd class="field-odd"><p></p></dd>
-</dl>
-<p>Remove a time series by its tag.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>tag</strong> (<em>int</em>) – The tag of the time series to remove</p>
-</dd>
-</dl>
+<p>Remove a managed time series by tag.</p>
 </dd></dl>
 
 </dd></dl>
@@ -310,32 +244,25 @@
 
 
 <span class="c1"># Create a constant time series</span>
-<span class="n">constant_ts</span> <span class="o">=</span> <span class="n">fm</span><span class="o">.</span><span class="n">timeSeries</span><span class="o">.</span><span class="n">create_time_series</span><span class="p">(</span>
-    <span class="s1">&#39;Constant&#39;</span><span class="p">,</span>
+<span class="n">constant_ts</span> <span class="o">=</span> <span class="n">fm</span><span class="o">.</span><span class="n">time_series</span><span class="o">.</span><span class="n">constant</span><span class="p">(</span>
     <span class="n">factor</span><span class="o">=</span><span class="mf">1.0</span>
 <span class="p">)</span>
 
 <span class="c1"># Create a linear time series</span>
-<span class="n">linear_ts</span> <span class="o">=</span> <span class="n">fm</span><span class="o">.</span><span class="n">timeSeries</span><span class="o">.</span><span class="n">create_time_series</span><span class="p">(</span>
-    <span class="s1">&#39;Linear&#39;</span><span class="p">,</span>
-    <span class="n">time_points</span><span class="o">=</span><span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">],</span>
-    <span class="n">factor_points</span><span class="o">=</span><span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.8</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">]</span>
+<span class="n">linear_ts</span> <span class="o">=</span> <span class="n">fm</span><span class="o">.</span><span class="n">time_series</span><span class="o">.</span><span class="n">linear</span><span class="p">(</span>
+    <span class="n">factor</span><span class="o">=</span><span class="mf">1.0</span>
 <span class="p">)</span>
 
 <span class="c1"># Create a path time series from a file</span>
-<span class="n">path_ts</span> <span class="o">=</span> <span class="n">fm</span><span class="o">.</span><span class="n">timeSeries</span><span class="o">.</span><span class="n">create_time_series</span><span class="p">(</span>
-    <span class="s1">&#39;Path&#39;</span><span class="p">,</span>
-    <span class="n">file_path</span><span class="o">=</span><span class="s1">&#39;data/acceleration.txt&#39;</span><span class="p">,</span>
+<span class="n">path_ts</span> <span class="o">=</span> <span class="n">fm</span><span class="o">.</span><span class="n">time_series</span><span class="o">.</span><span class="n">path</span><span class="p">(</span>
+    <span class="n">filePath</span><span class="o">=</span><span class="s1">&#39;data/acceleration.txt&#39;</span><span class="p">,</span>
     <span class="n">dt</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span>
     <span class="n">factor</span><span class="o">=</span><span class="mf">9.81</span>
 <span class="p">)</span>
 
 <span class="c1"># Create a trigonometric time series</span>
-<span class="n">trig_ts</span> <span class="o">=</span> <span class="n">fm</span><span class="o">.</span><span class="n">timeSeries</span><span class="o">.</span><span class="n">create_time_series</span><span class="p">(</span>
-    <span class="s1">&#39;Trig&#39;</span><span class="p">,</span>
-    <span class="n">trig_type</span><span class="o">=</span><span class="s1">&#39;Sine&#39;</span><span class="p">,</span>  <span class="c1"># &#39;Sine&#39; or &#39;Cosine&#39;</span>
+<span class="n">trig_ts</span> <span class="o">=</span> <span class="n">fm</span><span class="o">.</span><span class="n">time_series</span><span class="o">.</span><span class="n">trig</span><span class="p">(</span>
     <span class="n">period</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
-    <span class="n">phase_shift</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
     <span class="n">factor</span><span class="o">=</span><span class="mf">1.0</span>
 <span class="p">)</span>
 </pre></div>
@@ -366,16 +293,14 @@
 </ol>
 <p>Example of applying a time series to a uniform excitation pattern:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create a time series for ground motion</span>
-<span class="n">ground_motion_ts</span> <span class="o">=</span> <span class="n">fm</span><span class="o">.</span><span class="n">timeSeries</span><span class="o">.</span><span class="n">create_time_series</span><span class="p">(</span>
-    <span class="s1">&#39;Path&#39;</span><span class="p">,</span>
-    <span class="n">file_path</span><span class="o">=</span><span class="s1">&#39;ground_motion.txt&#39;</span><span class="p">,</span>
+<span class="n">ground_motion_ts</span> <span class="o">=</span> <span class="n">fm</span><span class="o">.</span><span class="n">time_series</span><span class="o">.</span><span class="n">path</span><span class="p">(</span>
+    <span class="n">filePath</span><span class="o">=</span><span class="s1">&#39;ground_motion.txt&#39;</span><span class="p">,</span>
     <span class="n">dt</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span>
     <span class="n">factor</span><span class="o">=</span><span class="mf">1.0</span>
 <span class="p">)</span>
 
 <span class="c1"># Create a pattern using the time series</span>
-<span class="n">fm</span><span class="o">.</span><span class="n">pattern</span><span class="o">.</span><span class="n">create_pattern</span><span class="p">(</span>
-    <span class="s1">&#39;uniformexcitation&#39;</span><span class="p">,</span>
+<span class="n">fm</span><span class="o">.</span><span class="n">pattern</span><span class="o">.</span><span class="n">uniform_excitation</span><span class="p">(</span>
     <span class="n">dof</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>  <span class="c1"># X direction</span>
     <span class="n">time_series</span><span class="o">=</span><span class="n">ground_motion_ts</span><span class="p">,</span>
     <span class="n">vel0</span><span class="o">=</span><span class="mf">0.0</span>

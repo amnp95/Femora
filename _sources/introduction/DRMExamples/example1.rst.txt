@@ -93,7 +93,7 @@ Once the DRM load pattern is created, it's applied to the model using Femora's p
 .. code-block:: python
 
     # Create H5DRM pattern object
-    h5pattern = fm.pattern.create_pattern('h5drm',
+    h5pattern = fm.pattern.h5drm(
                                          filepath='drmload.h5drm',
                                          factor=1.0,
                                          crd_scale=1.0,

@@ -23,7 +23,7 @@ There are two ways to access the TimeSeriesManager in your code:
       timeseries_manager = TimeSeriesManager()
 
       # Use the time series manager directly
-      timeseries_manager.create_time_series(...)
+      timeseries_manager.path(...)
 
 2. **Through Femora** (Recommended): Access via the Femora class's .timeSeries property
 
@@ -35,7 +35,7 @@ There are two ways to access the TimeSeriesManager in your code:
        
 
       # Access the TimeSeriesManager through the .timeSeries property
-      fm.timeSeries.create_time_series(...)
+      fm.time_series.path(...)
 
 The second approach is recommended as it provides a unified interface to all of Femora's components and ensures proper initialization of all dependencies.
 
@@ -73,52 +73,23 @@ TimeSeriesManager API Reference
 
       Clears all time series from the registry.
 
-   .. py:method:: create_time_series(self, series_type: str, **kwargs) -> TimeSeries
-
-      :no-index:
-
-      Create a new time series of the specified type.
-
-      :param str series_type: The type of time series to create
-      :param kwargs: Parameters specific to the time series type initialization
-      :return: A new time series instance
-      :rtype: TimeSeries
-
-   .. py:method:: get_time_series(self, tag: int) -> TimeSeries
+   .. py:method:: get(self, tag: int) -> TimeSeries
 
       :no-index:
 
       Retrieve a specific time series by its tag.
 
-      :param int tag: The unique identifier tag of the time series
-      :return: The time series object with the specified tag
-      :rtype: TimeSeries
-
-   .. py:method:: get_all_time_series(self) -> Dict[int, TimeSeries]
+   .. py:method:: get_all(self) -> Dict[int, TimeSeries]
 
       :no-index:
 
-      Retrieve all registered time series objects.
+      Retrieve all managed time series keyed by tag.
 
-      :return: A dictionary of all time series objects
-      :rtype: Dict[int, TimeSeries]
-
-   .. py:method:: get_available_types(self) -> List[str]
+   .. py:method:: remove(self, tag: int) -> None
 
       :no-index:
 
-      Get a list of all available time series types.
-
-      :return: A list of available time series types
-      :rtype: List[str]
-
-   .. py:method:: remove_time_series(self, tag: int) -> None
-
-      :no-index:
-
-      Remove a time series by its tag.
-
-      :param int tag: The tag of the time series to remove
+      Remove a managed time series by tag.
 
 Time Series Creation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -148,32 +119,25 @@ Usage Example
     
 
    # Create a constant time series
-   constant_ts = fm.timeSeries.create_time_series(
-       'Constant', 
+   constant_ts = fm.time_series.constant( 
        factor=1.0
    )
 
    # Create a linear time series
-   linear_ts = fm.timeSeries.create_time_series(
-       'Linear',
-       time_points=[0.0, 0.1, 0.2, 0.5, 1.0],
-       factor_points=[0.0, 0.2, 0.5, 0.8, 1.0]
+   linear_ts = fm.time_series.linear(
+       factor=1.0
    )
 
    # Create a path time series from a file
-   path_ts = fm.timeSeries.create_time_series(
-       'Path',
-       file_path='data/acceleration.txt',
+   path_ts = fm.time_series.path(
+       filePath='data/acceleration.txt',
        dt=0.01,
        factor=9.81
    )
 
    # Create a trigonometric time series
-   trig_ts = fm.timeSeries.create_time_series(
-       'Trig',
-       trig_type='Sine',  # 'Sine' or 'Cosine'
+   trig_ts = fm.time_series.trig(
        period=1.0,
-       phase_shift=0.0,
        factor=1.0
    )
 
@@ -208,16 +172,14 @@ Example of applying a time series to a uniform excitation pattern:
 .. code-block:: python
 
    # Create a time series for ground motion
-   ground_motion_ts = fm.timeSeries.create_time_series(
-       'Path',
-       file_path='ground_motion.txt',
+   ground_motion_ts = fm.time_series.path(
+       filePath='ground_motion.txt',
        dt=0.01,
        factor=1.0
    )
 
    # Create a pattern using the time series
-   fm.pattern.create_pattern(
-       'uniformexcitation',
+   fm.pattern.uniform_excitation(
        dof=1,  # X direction
        time_series=ground_motion_ts,
        vel0=0.0

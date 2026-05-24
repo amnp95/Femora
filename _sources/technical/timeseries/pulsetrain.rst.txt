@@ -41,8 +41,7 @@ Parameters:
         ts_manager = TimeSeriesManager()
         
         # Create a pulse train with 0.2s period and 0.1s pulse width
-        pulse_ts = ts_manager.create_time_series(
-            'PulseTrain',
+        pulse_ts = ts_manager.pulse(
             tStart=0.0,
             tEnd=1.0,
             period=0.2,
@@ -54,8 +53,7 @@ Parameters:
         import femora as fm
         
          
-        pulse_ts = fm.timeSeries.create_time_series(
-            'PulseTrain',
+        pulse_ts = fm.time_series.pulse(
             tStart=0.0,
             tEnd=5.0,
             period=1.0,

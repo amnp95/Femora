@@ -193,13 +193,13 @@ Instead of using an earthquake record, we use a frequency sweep signal that tran
     MOTIONS = motions_dir()
 
     # Create a TimeSeries for the uniform excitation
-    timeseries = fm.timeSeries.create_time_series(series_type="path",
+    timeseries = fm.time_series.path(
                                                 filePath=str(MOTIONS / "FrequencySweep.acc"),
                                                 fileTime=str(MOTIONS / "FrequencySweep.time"),
                                                 factor= 9.81)
     
     # Create a pattern for the uniform excitation
-    kobe = fm.pattern.create_pattern(pattern_type="uniformexcitation",dof=1, time_series=timeseries)
+    kobe = fm.pattern.uniform_excitation(dof=1, time_series=timeseries)
 
 Boundary Conditions
 ~~~~~~~~~~~~~~~~~~~

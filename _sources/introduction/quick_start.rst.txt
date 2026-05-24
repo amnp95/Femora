@@ -244,12 +244,12 @@ Now we define the seismic loading by creating a time series and excitation patte
    MOTIONS = motions_dir()
 
    # Create a TimeSeries for excitation using the Kobe earthquake record
-   timeseries = fm.timeSeries.create_time_series(series_type="path",
+   timeseries = fm.time_series.path(
                                                filePath=str(MOTIONS / "kobe.acc"),  # Acceleration file
                                                fileTime=str(MOTIONS / "kobe.time")) # Time steps file
 
    # Create a pattern for the uniform excitation (base shaking)
-   kobe = fm.pattern.create_pattern(pattern_type="uniformexcitation",
+   kobe = fm.pattern.uniform_excitation(
                                   dof=1,  # X-direction excitation
                                   time_series=timeseries)
 
@@ -529,12 +529,12 @@ Here's the complete code for this quick start example:
    fm.assembler.Assemble()
 
    # Create a TimeSeries for excitation using the Kobe earthquake record
-   timeseries = fm.timeSeries.create_time_series(series_type="path",
+   timeseries = fm.time_series.path(
                                                filePath=str(MOTIONS / "kobe.acc"),  # Acceleration file
                                                fileTime=str(MOTIONS / "kobe.time")) # Time steps file
 
    # Create a pattern for the uniform excitation (base shaking)
-   kobe = fm.pattern.create_pattern(pattern_type="uniformexcitation",
+   kobe = fm.pattern.uniform_excitation(
                                   dof=1,  # X-direction excitation
                                   time_series=timeseries)
 

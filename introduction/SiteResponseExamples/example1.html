@@ -287,13 +287,13 @@
 <span class="n">MOTIONS</span> <span class="o">=</span> <span class="n">motions_dir</span><span class="p">()</span>
 
 <span class="c1"># Create a TimeSeries for the uniform excitation</span>
-<span class="n">timeseries</span> <span class="o">=</span> <span class="n">fm</span><span class="o">.</span><span class="n">timeSeries</span><span class="o">.</span><span class="n">create_time_series</span><span class="p">(</span><span class="n">series_type</span><span class="o">=</span><span class="s2">&quot;path&quot;</span><span class="p">,</span>
+<span class="n">timeseries</span> <span class="o">=</span> <span class="n">fm</span><span class="o">.</span><span class="n">time_series</span><span class="o">.</span><span class="n">path</span><span class="p">(</span>
                                             <span class="n">filePath</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">MOTIONS</span> <span class="o">/</span> <span class="s2">&quot;FrequencySweep.acc&quot;</span><span class="p">),</span>
                                             <span class="n">fileTime</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">MOTIONS</span> <span class="o">/</span> <span class="s2">&quot;FrequencySweep.time&quot;</span><span class="p">),</span>
                                             <span class="n">factor</span><span class="o">=</span> <span class="mf">9.81</span><span class="p">)</span>
 
 <span class="c1"># Create a pattern for the uniform excitation</span>
-<span class="n">kobe</span> <span class="o">=</span> <span class="n">fm</span><span class="o">.</span><span class="n">pattern</span><span class="o">.</span><span class="n">create_pattern</span><span class="p">(</span><span class="n">pattern_type</span><span class="o">=</span><span class="s2">&quot;uniformexcitation&quot;</span><span class="p">,</span><span class="n">dof</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">time_series</span><span class="o">=</span><span class="n">timeseries</span><span class="p">)</span>
+<span class="n">kobe</span> <span class="o">=</span> <span class="n">fm</span><span class="o">.</span><span class="n">pattern</span><span class="o">.</span><span class="n">uniform_excitation</span><span class="p">(</span><span class="n">dof</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">time_series</span><span class="o">=</span><span class="n">timeseries</span><span class="p">)</span>
 </pre></div>
 </div>
 </section>

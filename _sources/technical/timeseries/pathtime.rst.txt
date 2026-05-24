@@ -45,16 +45,14 @@ Parameters:
         from femora.components.TimeSeries.timeSeriesBase import TimeSeriesManager
         
         ts_manager = TimeSeriesManager()
-        pathtime_ts = ts_manager.create_time_series(
-            'PathTime',
+        pathtime_ts = ts_manager.path(
             time=[0.0, 0.1, 0.2, 0.3, 0.4],
             values=[0.0, 0.5, 1.0, 0.5, 0.0],
             factor=2.0
         )
 
         # Using files
-        pathtime_ts = ts_manager.create_time_series(
-            'PathTime',
+        pathtime_ts = ts_manager.path(
             fileTime='data/time.txt',
             filePath='data/forces.txt',
             factor=9.81,
@@ -65,8 +63,7 @@ Parameters:
         import femora as fm
         
          
-        pathtime_ts = fm.timeSeries.create_time_series(
-            'PathTime',
+        pathtime_ts = fm.time_series.path(
             time=[0, 1, 2, 3],
             values=[0, 1, 0, -1],
             factor=1.5,

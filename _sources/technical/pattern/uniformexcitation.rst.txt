@@ -45,8 +45,7 @@ Usage Example
    pattern_manager = PatternManager()
 
    # Create a UniformExcitation pattern
-   uniform_excitation = pattern_manager.create_pattern(
-       'uniformexcitation',
+   uniform_excitation = pattern_manager.uniform_excitation(
        dof=1,
        time_series=time_series,
        vel0=0.0,

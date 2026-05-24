@@ -114,7 +114,7 @@ Example of creating and managing a process:
    
    # Create components for the process
    sp_constraint = fm.constraint.sp.create_constraint(...)
-   pattern = fm.pattern.create_pattern(...)
+   pattern = fm.pattern.uniform_excitation(...)
    analysis = fm.analysis.create_analysis(...)
    recorder = fm.recorder.create_node_recorder(...)
    

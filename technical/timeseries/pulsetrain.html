@@ -164,8 +164,7 @@
 <span class="n">ts_manager</span> <span class="o">=</span> <span class="n">TimeSeriesManager</span><span class="p">()</span>
 
 <span class="c1"># Create a pulse train with 0.2s period and 0.1s pulse width</span>
-<span class="n">pulse_ts</span> <span class="o">=</span> <span class="n">ts_manager</span><span class="o">.</span><span class="n">create_time_series</span><span class="p">(</span>
-    <span class="s1">&#39;PulseTrain&#39;</span><span class="p">,</span>
+<span class="n">pulse_ts</span> <span class="o">=</span> <span class="n">ts_manager</span><span class="o">.</span><span class="n">pulse</span><span class="p">(</span>
     <span class="n">tStart</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
     <span class="n">tEnd</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
     <span class="n">period</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span>
@@ -177,8 +176,7 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">femora</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">fm</span>
 
 
-<span class="n">pulse_ts</span> <span class="o">=</span> <span class="n">fm</span><span class="o">.</span><span class="n">timeSeries</span><span class="o">.</span><span class="n">create_time_series</span><span class="p">(</span>
-    <span class="s1">&#39;PulseTrain&#39;</span><span class="p">,</span>
+<span class="n">pulse_ts</span> <span class="o">=</span> <span class="n">fm</span><span class="o">.</span><span class="n">time_series</span><span class="o">.</span><span class="n">pulse</span><span class="p">(</span>
     <span class="n">tStart</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
     <span class="n">tEnd</span><span class="o">=</span><span class="mf">5.0</span><span class="p">,</span>
     <span class="n">period</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>

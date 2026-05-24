@@ -156,8 +156,7 @@
 <span class="n">ts_manager</span> <span class="o">=</span> <span class="n">TimeSeriesManager</span><span class="p">()</span>
 
 <span class="c1"># Create a sine wave with period 0.5s and amplitude 2.0</span>
-<span class="n">sine_ts</span> <span class="o">=</span> <span class="n">ts_manager</span><span class="o">.</span><span class="n">create_time_series</span><span class="p">(</span>
-    <span class="s1">&#39;Trig&#39;</span><span class="p">,</span>
+<span class="n">sine_ts</span> <span class="o">=</span> <span class="n">ts_manager</span><span class="o">.</span><span class="n">trig</span><span class="p">(</span>
     <span class="n">trig_type</span><span class="o">=</span><span class="s1">&#39;Sine&#39;</span><span class="p">,</span>
     <span class="n">period</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
     <span class="n">phase_shift</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
@@ -165,8 +164,7 @@
 <span class="p">)</span>
 
 <span class="c1"># Create a cosine wave with period 1.0s, phase shift π/4, and amplitude 0.5</span>
-<span class="n">cosine_ts</span> <span class="o">=</span> <span class="n">ts_manager</span><span class="o">.</span><span class="n">create_time_series</span><span class="p">(</span>
-    <span class="s1">&#39;Trig&#39;</span><span class="p">,</span>
+<span class="n">cosine_ts</span> <span class="o">=</span> <span class="n">ts_manager</span><span class="o">.</span><span class="n">trig</span><span class="p">(</span>
     <span class="n">trig_type</span><span class="o">=</span><span class="s1">&#39;Cosine&#39;</span><span class="p">,</span>
     <span class="n">period</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
     <span class="n">phase_shift</span><span class="o">=</span><span class="mf">0.7853981634</span><span class="p">,</span>  <span class="c1"># π/4</span>
@@ -178,8 +176,7 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">math</span>
 
 
-<span class="n">trig_ts</span> <span class="o">=</span> <span class="n">fm</span><span class="o">.</span><span class="n">timeSeries</span><span class="o">.</span><span class="n">create_time_series</span><span class="p">(</span>
-    <span class="s1">&#39;Trig&#39;</span><span class="p">,</span>
+<span class="n">trig_ts</span> <span class="o">=</span> <span class="n">fm</span><span class="o">.</span><span class="n">time_series</span><span class="o">.</span><span class="n">trig</span><span class="p">(</span>
     <span class="n">trig_type</span><span class="o">=</span><span class="s1">&#39;Sine&#39;</span><span class="p">,</span>
     <span class="n">period</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
     <span class="n">phase_shift</span><span class="o">=</span><span class="n">math</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="mi">6</span><span class="p">,</span>  <span class="c1"># 30 degrees</span>

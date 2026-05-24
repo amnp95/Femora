@@ -35,8 +35,7 @@ Parameters:
         ts_manager = TimeSeriesManager()
         
         # Create a sine wave with period 0.5s and amplitude 2.0
-        sine_ts = ts_manager.create_time_series(
-            'Trig',
+        sine_ts = ts_manager.trig(
             trig_type='Sine',
             period=0.5,
             phase_shift=0.0,
@@ -44,8 +43,7 @@ Parameters:
         )
         
         # Create a cosine wave with period 1.0s, phase shift π/4, and amplitude 0.5
-        cosine_ts = ts_manager.create_time_series(
-            'Trig',
+        cosine_ts = ts_manager.trig(
             trig_type='Cosine',
             period=1.0,
             phase_shift=0.7853981634,  # π/4
@@ -57,8 +55,7 @@ Parameters:
         import math
         
          
-        trig_ts = fm.timeSeries.create_time_series(
-            'Trig',
+        trig_ts = fm.time_series.trig(
             trig_type='Sine',
             period=0.5,
             phase_shift=math.pi/6,  # 30 degrees

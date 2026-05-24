@@ -166,16 +166,14 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">femora.components.TimeSeries.timeSeriesBase</span><span class="w"> </span><span class="kn">import</span> <span class="n">TimeSeriesManager</span>
 
 <span class="n">ts_manager</span> <span class="o">=</span> <span class="n">TimeSeriesManager</span><span class="p">()</span>
-<span class="n">path_ts</span> <span class="o">=</span> <span class="n">ts_manager</span><span class="o">.</span><span class="n">create_time_series</span><span class="p">(</span>
-    <span class="s1">&#39;Path&#39;</span><span class="p">,</span>
+<span class="n">path_ts</span> <span class="o">=</span> <span class="n">ts_manager</span><span class="o">.</span><span class="n">path</span><span class="p">(</span>
     <span class="n">dt</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span>
     <span class="n">values</span><span class="o">=</span><span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">],</span>
     <span class="n">factor</span><span class="o">=</span><span class="mf">2.0</span>
 <span class="p">)</span>
 
 <span class="c1"># Using a file</span>
-<span class="n">path_ts</span> <span class="o">=</span> <span class="n">ts_manager</span><span class="o">.</span><span class="n">create_time_series</span><span class="p">(</span>
-    <span class="s1">&#39;Path&#39;</span><span class="p">,</span>
+<span class="n">path_ts</span> <span class="o">=</span> <span class="n">ts_manager</span><span class="o">.</span><span class="n">path</span><span class="p">(</span>
     <span class="n">dt</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span>
     <span class="n">filePath</span><span class="o">=</span><span class="s1">&#39;data/forces.txt&#39;</span><span class="p">,</span>
     <span class="n">factor</span><span class="o">=</span><span class="mf">9.81</span><span class="p">,</span>
@@ -186,8 +184,7 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">femora</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">fm</span>
 
 
-<span class="n">path_ts</span> <span class="o">=</span> <span class="n">fm</span><span class="o">.</span><span class="n">timeSeries</span><span class="o">.</span><span class="n">create_time_series</span><span class="p">(</span>
-    <span class="s1">&#39;Path&#39;</span><span class="p">,</span>
+<span class="n">path_ts</span> <span class="o">=</span> <span class="n">fm</span><span class="o">.</span><span class="n">time_series</span><span class="o">.</span><span class="n">path</span><span class="p">(</span>
     <span class="n">dt</span><span class="o">=</span><span class="mf">0.02</span><span class="p">,</span>
     <span class="n">filePath</span><span class="o">=</span><span class="s1">&#39;acceleration.txt&#39;</span><span class="p">,</span>
     <span class="n">factor</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>

@@ -83,7 +83,7 @@ In this example, DRM is implemented through:
 
 .. code-block:: python
 
-    h5pattern = fm.pattern.create_pattern('h5drm',
+    h5pattern = fm.pattern.h5drm(
                                         filepath='drmload.h5drm',
                                         factor=1.0,
                                         crd_scale=1.0,
@@ -458,7 +458,7 @@ Let's examine the key components of the Example 2 code:
 
    .. code-block:: python
    
-       h5pattern = fm.pattern.create_pattern('h5drm',
+       h5pattern = fm.pattern.h5drm(
                                            filepath='drmload.h5drm',
                                            factor=1.0,
                                            crd_scale=1.0,

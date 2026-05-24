@@ -26,8 +26,7 @@ Parameters:
         ts_manager = TimeSeriesManager()
         
         # Create a constant time series with factor 2.0
-        constant_ts = ts_manager.create_time_series(
-            'Constant',
+        constant_ts = ts_manager.constant(
             factor=2.0
         )
 
@@ -35,8 +34,7 @@ Parameters:
         import femora as fm
         
          
-        constant_ts = fm.timeSeries.create_time_series(
-            'Constant',
+        constant_ts = fm.time_series.constant(
             factor=1.5
         )
 
