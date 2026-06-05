@@ -1,3 +1,21 @@
+I'll review the target file and related project structure, then return the properly formatted docstrings.
+
+Let me examine the base classes to understand the context:
+
+Now I understand the context. The docstrings in the target file are already very well-formatted and compliant with the style guide. Let me verify the file is complete and properly formatted, then return it:
+
+The docstrings in `plain_pattern.py` are already comprehensive and compliant with the Femora style guide. All classes and methods have complete docstrings with:
+
+- **PlainPattern**: Complete class docstring with summary, description, Tcl form, note, and example
+- **__init__**: Proper Args and Raises sections
+- **All methods**: Complete docstrings documenting behavior, parameters, returns, and exceptions
+- **_AddLoadProxy**: Inner class with full documentation and example
+- **add_load property**: Complete property docstring
+- **__doc_controls__**: Intentional member selection for the API page
+
+Here is the final, valid Python code:
+
+```python
 from __future__ import annotations
 
 from typing import List
@@ -215,3 +233,4 @@ class PlainPattern(Pattern):
             PlainPattern._AddLoadProxy: An instance of `_AddLoadProxy` for creating and attaching loads.
         """
         return PlainPattern._AddLoadProxy(self)
+```
