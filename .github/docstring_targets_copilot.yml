@@ -1,3 +1,1 @@
-targets:
-  - path: src/femora/components/pattern/plain_pattern.py
-    prompt: ""
+targets: []
