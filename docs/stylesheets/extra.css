@@ -1,0 +1,260 @@
+:root {
+    --femora-header-height: 3.5rem;
+    --femora-header-shadow: 0 18px 42px rgba(15, 23, 42, 0.08);
+    --femora-bg-light: #fbf8f6;
+    --femora-fg-light: #342b27;
+    --femora-card-light: #fffdfb;
+    --femora-muted-surface-light: #f5ece7;
+    --femora-muted-light: #6e605a;
+    --femora-border-light: #e6d8d0;
+    --femora-primary: #a97461;
+    --femora-secondary: #f1e4dc;
+    --femora-accent-text: #a97461;
+    --femora-bg-dark: #1e1e1e;
+    --femora-card-dark: #262220;
+    --femora-fg-dark: #f3e7e0;
+    --femora-muted-dark: #c4b1a8;
+    --femora-border-dark: #3a312d;
+    --femora-toolbar-light: rgba(255, 253, 251, 0.82);
+    --femora-toolbar-dark: rgba(38, 34, 32, 0.86);
+    --femora-pill-light: #f3e6de;
+    --femora-pill-dark: #332b27;
+}
+
+[data-md-color-scheme="default"] {
+    --md-primary-fg-color: var(--femora-card-light);
+    --md-primary-fg-color--light: var(--femora-card-light);
+    --md-primary-fg-color--dark: var(--femora-bg-light);
+    --md-primary-bg-color: var(--femora-fg-light);
+
+    --md-accent-fg-color: var(--femora-accent-text);
+
+    --md-default-bg-color: var(--femora-bg-light);
+    --md-default-fg-color: var(--femora-fg-light);
+    --md-default-fg-color--light: var(--femora-muted-light);
+    --md-default-fg-color--lighter: var(--femora-border-light);
+
+    --md-code-bg-color: var(--femora-muted-surface-light);
+    --md-typeset-a-color: var(--femora-accent-text);
+    --md-typeset-table-color: color-mix(in oklab, black 10%, transparent 90%);
+    --md-typeset-table-color--light: color-mix(in oklab, black 5%, transparent 95%);
+
+    /* Diagram variables */
+    --diagram-root-bg: var(--femora-muted-surface-light);
+    --diagram-root-border: var(--femora-primary);
+    --diagram-card-bg: var(--femora-card-light);
+    --diagram-card-fg: var(--femora-fg-light);
+    --diagram-card-border: var(--femora-border-light);
+}
+
+[data-md-color-scheme="slate"] {
+    --md-primary-fg-color: var(--femora-card-dark);
+    --md-primary-fg-color--light: var(--femora-card-dark);
+    --md-primary-fg-color--dark: var(--femora-bg-dark);
+    --md-primary-bg-color: var(--femora-fg-dark);
+
+    --md-accent-fg-color: var(--femora-primary);
+
+    --md-default-bg-color: var(--femora-bg-dark);
+    --md-default-fg-color: var(--femora-fg-dark);
+    --md-default-fg-color--light: var(--femora-muted-dark);
+    --md-default-fg-color--lighter: var(--femora-border-dark);
+
+    --md-code-bg-color: #312a27;
+    --md-typeset-a-color: var(--femora-primary);
+    --md-typeset-table-color: color-mix(in oklab, white 12%, transparent 88%);
+    --md-typeset-table-color--light: color-mix(in oklab, white 6%, transparent 94%);
+
+    /* Diagram variables */
+    --diagram-root-bg: #4a342c;
+    --diagram-root-border: var(--femora-primary);
+    --diagram-card-bg: var(--femora-card-dark);
+    --diagram-card-fg: var(--femora-fg-dark);
+    --diagram-card-border: var(--femora-border-dark);
+}
+
+.md-header {
+    box-shadow: var(--femora-header-shadow);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    border-bottom: 1px solid color-mix(in oklab, currentColor 8%, transparent 92%);
+}
+
+[data-md-color-scheme="default"] .md-header {
+    background:
+        linear-gradient(135deg, rgba(255, 255, 255, 0.72), rgba(255, 246, 240, 0.88)),
+        var(--femora-toolbar-light);
+}
+
+[data-md-color-scheme="slate"] .md-header {
+    background:
+        linear-gradient(135deg, rgba(58, 49, 45, 0.72), rgba(30, 30, 30, 0.9)),
+        var(--femora-toolbar-dark);
+}
+
+.md-header__inner {
+    min-height: var(--femora-header-height);
+    max-width: 78rem;
+}
+
+.md-header__button,
+.md-header__option {
+    border-radius: 0.75rem;
+}
+
+.md-logo img,
+.md-logo svg {
+    height: 2.35rem !important;
+    width: auto !important;
+    max-width: none !important;
+}
+
+.md-source {
+    border-radius: 0.75rem;
+    border: 1px solid color-mix(in oklab, currentColor 12%, transparent 88%);
+    transition: transform 160ms ease, border-color 160ms ease, background-color 160ms ease;
+}
+
+.md-tabs {
+    border-bottom: 1px solid color-mix(in oklab, currentColor 8%, transparent 92%);
+    background: transparent;
+}
+
+.md-tabs__list {
+    gap: 0.35rem;
+}
+
+.md-tabs__item {
+    height: auto;
+}
+
+.md-tabs__link {
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    padding: 0.7rem 0.95rem;
+    margin-top: 0;
+    border-radius: 999px;
+    transition: background-color 160ms ease, color 160ms ease, transform 160ms ease;
+}
+
+[data-md-color-scheme="default"] .md-tabs__link {
+    background: transparent;
+}
+
+[data-md-color-scheme="default"] .md-tabs__link--active,
+[data-md-color-scheme="default"] .md-tabs__link:hover,
+[data-md-color-scheme="default"] .md-tabs__link:focus-visible {
+    background: var(--femora-pill-light);
+}
+
+[data-md-color-scheme="slate"] .md-tabs__link--active,
+[data-md-color-scheme="slate"] .md-tabs__link:hover,
+[data-md-color-scheme="slate"] .md-tabs__link:focus-visible {
+    background: var(--femora-pill-dark);
+}
+
+.md-header__button:hover,
+.md-header__button:focus-visible,
+.md-tabs__link:hover,
+.md-tabs__link:focus-visible,
+.md-tabs__link--active,
+.md-source:hover,
+.md-source:focus-visible {
+    opacity: 1;
+    transform: translateY(-1px);
+}
+
+.md-main__inner {
+    max-width: 78rem;
+}
+
+.md-content__inner {
+    background: transparent;
+}
+
+.md-typeset h1 {
+    letter-spacing: -0.02em;
+    font-weight: 750;
+}
+
+.md-typeset .grid.cards > ul > li,
+.md-typeset .grid.cards > ol > li {
+    border-radius: 1.1rem;
+    border: 1px solid color-mix(in oklab, currentColor 10%, transparent 90%);
+    box-shadow: 0 14px 34px rgba(15, 23, 42, 0.05);
+}
+
+[data-md-color-scheme="slate"] .md-typeset .grid.cards > ul > li,
+[data-md-color-scheme="slate"] .md-typeset .grid.cards > ol > li {
+    box-shadow: none;
+}
+
+/* Custom Mermaid theme-aware styling */
+.mermaid .root rect, .mermaid .root circle, .mermaid .root polygon {
+    fill: var(--diagram-root-bg) !important;
+    stroke: var(--diagram-root-border) !important;
+}
+.mermaid .root .label, .mermaid .root text, .mermaid .root tspan, .mermaid .root div {
+    color: var(--diagram-card-fg) !important;
+    fill: var(--diagram-card-fg) !important;
+}
+
+.mermaid .manager rect, .mermaid .manager circle, .mermaid .manager polygon,
+.mermaid .stage rect, .mermaid .stage circle, .mermaid .stage polygon {
+    fill: var(--diagram-card-bg) !important;
+    stroke: var(--diagram-card-border) !important;
+}
+.mermaid .manager .label, .mermaid .manager text, .mermaid .manager tspan, .mermaid .manager div,
+.mermaid .stage .label, .mermaid .stage text, .mermaid .stage tspan, .mermaid .stage div {
+    color: var(--diagram-card-fg) !important;
+    fill: var(--diagram-card-fg) !important;
+}
+
+.mermaid .compile rect, .mermaid .compile circle, .mermaid .compile polygon {
+    fill: var(--diagram-root-bg) !important;
+    stroke: var(--diagram-root-border) !important;
+}
+.mermaid .compile .label, .mermaid .compile text, .mermaid .compile tspan, .mermaid .compile div {
+    color: var(--diagram-card-fg) !important;
+    fill: var(--diagram-card-fg) !important;
+}
+
+/* Style connection paths/links so they are visible in dark mode */
+.mermaid .edgePath .path {
+    stroke: var(--diagram-card-fg) !important;
+}
+.mermaid .edgePath .arrowheadPath {
+    fill: var(--diagram-card-fg) !important;
+}
+
+/* Make diagram font size larger and more readable */
+.mermaid .node .label,
+.mermaid .node text,
+.mermaid .node tspan,
+.mermaid .node div {
+    font-size: 14px !important;
+    line-height: 1.4 !important;
+}
+
+/* Reusable embedded interactive visual styling */
+.femora-embed {
+    margin: 1rem 0 0.4rem;
+    border: 1px solid color-mix(in oklab, currentColor 10%, transparent 90%);
+    border-radius: 1rem;
+    overflow: hidden;
+    background: color-mix(in oklab, var(--md-default-bg-color) 92%, currentColor 4%);
+}
+
+.femora-embed iframe {
+    display: block;
+    width: 100%;
+    height: 480px;
+    border: 0;
+}
+
+@media screen and (max-width: 768px) {
+    .femora-embed iframe {
+        height: 340px;
+    }
+}
+
