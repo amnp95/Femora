@@ -1,0 +1,670 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Rayleigh Damping Explorer</title>
+  <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+  <style>
+    :root {
+      color-scheme: light dark;
+      --bg: #f7f2ee;
+      --panel: rgba(255, 252, 249, 0.88);
+      --panel-strong: rgba(255, 255, 255, 0.95);
+      --text: #302823;
+      --muted: #6d5f59;
+      --border: rgba(115, 87, 73, 0.18);
+      --primary: #a97461;
+      --primary-soft: rgba(169, 116, 97, 0.08);
+      --warning: #9d3d00;
+      --warning-soft: rgba(157, 61, 0, 0.1);
+      --shadow: 0 24px 60px rgba(53, 31, 21, 0.12);
+    }
+
+    :root[data-theme="dark"] {
+      --bg: #1d1a18;
+      --panel: rgba(39, 34, 31, 0.84);
+      --panel-strong: rgba(41, 36, 33, 0.95);
+      --text: #f2e7df;
+      --muted: #c6b3a8;
+      --border: rgba(255, 255, 255, 0.1);
+      --primary-soft: rgba(169, 116, 97, 0.12);
+      --warning: #ffb58b;
+      --warning-soft: rgba(255, 181, 139, 0.12);
+      --shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+        --bg: #1d1a18;
+        --panel: rgba(39, 34, 31, 0.84);
+        --panel-strong: rgba(41, 36, 33, 0.95);
+        --text: #f2e7df;
+        --muted: #c6b3a8;
+        --border: rgba(255, 255, 255, 0.1);
+        --primary-soft: rgba(169, 116, 97, 0.12);
+        --warning: #ffb58b;
+        --warning-soft: rgba(255, 181, 139, 0.12);
+        --shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+      }
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Arial, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(169, 116, 97, 0.14), transparent 28rem),
+        radial-gradient(circle at bottom right, rgba(169, 116, 97, 0.12), transparent 32rem),
+        var(--bg);
+    }
+    .shell {
+      max-width: 1320px;
+      margin: 0 auto;
+      padding: 32px 20px 40px;
+    }
+    .hero {
+      margin-bottom: 24px;
+      padding: 28px;
+      border: 1px solid var(--border);
+      border-radius: 28px;
+      background: var(--panel);
+      backdrop-filter: blur(16px);
+      box-shadow: var(--shadow);
+    }
+    .hero-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 10px;
+    }
+    .eyebrow {
+      display: inline-block;
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .theme-toggle {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      width: 38px;
+      height: 38px;
+      border: 1px solid var(--border);
+      border-radius: 9999px;
+      background: transparent;
+      color: var(--text);
+      cursor: pointer;
+      transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease;
+    }
+    .theme-toggle:hover {
+      background: var(--primary-soft);
+    }
+    .theme-toggle svg {
+      position: absolute;
+      width: 18px;
+      height: 18px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      transition: transform 180ms ease, opacity 180ms ease;
+    }
+    .theme-toggle .sun-icon {
+      opacity: 1;
+      transform: rotate(0deg) scale(1);
+    }
+    .theme-toggle .moon-icon,
+    .theme-toggle .auto-icon {
+      opacity: 0;
+      transform: rotate(90deg) scale(0.7);
+    }
+    :root[data-theme="dark"] .theme-toggle .sun-icon {
+      opacity: 0;
+      transform: rotate(-90deg) scale(0.7);
+    }
+    :root[data-theme="dark"] .theme-toggle .moon-icon {
+      opacity: 1;
+      transform: rotate(0deg) scale(1);
+    }
+    :root[data-theme="system"] .theme-toggle .sun-icon,
+    :root[data-theme="system"] .theme-toggle .moon-icon {
+      opacity: 0;
+      transform: rotate(-90deg) scale(0.7);
+    }
+    :root[data-theme="system"] .theme-toggle .auto-icon {
+      opacity: 1;
+      transform: rotate(0deg) scale(1);
+    }
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+    h1 {
+      margin: 0 0 10px;
+      font-size: clamp(2rem, 4vw, 3.5rem);
+      line-height: 1.05;
+    }
+    .lead {
+      max-width: 56rem;
+      margin: 0;
+      font-size: 1.03rem;
+      line-height: 1.75;
+      color: var(--muted);
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: 380px 1fr;
+      gap: 22px;
+    }
+    .panel {
+      overflow: hidden;
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      background: var(--panel-strong);
+      box-shadow: var(--shadow);
+    }
+    .panel-head {
+      padding: 18px 20px;
+      border-bottom: 1px solid var(--border);
+      background: var(--primary-soft);
+    }
+    .panel-head h2 {
+      margin: 0;
+      font-size: 1rem;
+    }
+    .panel-body {
+      padding: 20px;
+    }
+    .mode-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+    .mode-chip {
+      flex: 1 1 0;
+      min-width: 150px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      cursor: pointer;
+      background: rgba(255, 255, 255, 0.02);
+      font-size: 0.92rem;
+    }
+    .mode-chip input {
+      margin: 0;
+    }
+    .field-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+    .field {
+      margin-bottom: 16px;
+    }
+    .field label {
+      display: block;
+      margin-bottom: 7px;
+      font-size: 0.92rem;
+      font-weight: 700;
+    }
+    .field input[type="number"] {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: transparent;
+      color: var(--text);
+      font-size: 0.95rem;
+    }
+    .field input[type="range"] {
+      width: 100%;
+      margin-top: 10px;
+      accent-color: var(--primary);
+    }
+    .section-title {
+      margin: 16px 0 12px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+      font-size: 0.85rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 18px;
+    }
+    button {
+      padding: 10px 14px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: transparent;
+      color: var(--text);
+      cursor: pointer;
+      font-size: 0.92rem;
+    }
+    button.primary {
+      border-color: transparent;
+      background: var(--primary);
+      color: #fffaf8;
+    }
+    .summary {
+      margin-top: 18px;
+      padding: 14px 16px;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      background: var(--primary-soft);
+      font-family: Consolas, "SFMono-Regular", monospace;
+      font-size: 0.89rem;
+      line-height: 1.7;
+      white-space: pre-wrap;
+    }
+    .warning {
+      display: none;
+      margin-top: 14px;
+      padding: 12px 14px;
+      border: 1px solid color-mix(in srgb, var(--warning) 25%, transparent);
+      border-radius: 14px;
+      background: var(--warning-soft);
+      color: var(--warning);
+      line-height: 1.6;
+      font-size: 0.92rem;
+    }
+    #plot {
+      width: 100%;
+      height: 680px;
+    }
+    .notes {
+      margin-top: 16px;
+      color: var(--muted);
+      line-height: 1.7;
+      font-size: 0.95rem;
+    }
+    .hidden { display: none; }
+    @media (max-width: 960px) {
+      .grid { grid-template-columns: 1fr; }
+      #plot { height: 520px; }
+      .hero-top { flex-direction: column; }
+    }
+    @media (max-width: 640px) {
+      .field-grid { grid-template-columns: 1fr; }
+      .actions { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <section class="hero">
+      <div class="hero-top">
+        <div class="eyebrow">Interactive tool</div>
+        <button type="button" class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">
+          <svg class="sun-icon" viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="12" cy="12" r="4"></circle>
+            <path d="M12 2v2"></path>
+            <path d="M12 20v2"></path>
+            <path d="m4.93 4.93 1.41 1.41"></path>
+            <path d="m17.66 17.66 1.41 1.41"></path>
+            <path d="M2 12h2"></path>
+            <path d="M20 12h2"></path>
+            <path d="m6.34 17.66-1.41 1.41"></path>
+            <path d="m19.07 4.93-1.41 1.41"></path>
+          </svg>
+          <svg class="moon-icon" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"></path>
+          </svg>
+          <svg class="auto-icon" viewBox="0 0 24 24" aria-hidden="true">
+            <rect x="4" y="5" width="16" height="12" rx="2"></rect>
+            <path d="M8 19h8"></path>
+            <path d="M10 17v2"></path>
+            <path d="M14 17v2"></path>
+          </svg>
+          <span class="sr-only">Toggle theme</span>
+        </button>
+      </div>
+      <h1>Rayleigh Damping Explorer</h1>
+      <p class="lead">
+        Start from target frequencies and target damping ratios, or enter alpha and beta directly.
+        The plot separates the mass-proportional and stiffness-proportional contributions so you can see where the total curve comes from.
+      </p>
+    </section>
+    <div class="grid">
+      <section class="panel">
+        <div class="panel-head"><h2>Input</h2></div>
+        <div class="panel-body">
+          <div class="mode-row">
+            <label class="mode-chip"><input type="radio" name="mode" value="targets" checked>Target points</label>
+            <label class="mode-chip"><input type="radio" name="mode" value="explicit">Explicit coefficients</label>
+          </div>
+          <div id="target-box">
+            <div class="field-grid">
+              <div class="field">
+                <label for="f1">f1 [Hz]</label>
+                <input id="f1" type="number" min="0.001" step="0.1" value="1.0">
+                <input id="f1s" type="range" min="0.1" max="20" step="0.1" value="1.0">
+              </div>
+              <div class="field">
+                <label for="f2">f2 [Hz]</label>
+                <input id="f2" type="number" min="0.001" step="0.1" value="10.0">
+                <input id="f2s" type="range" min="0.1" max="50" step="0.1" value="10.0">
+              </div>
+            </div>
+            <div class="field-grid">
+              <div class="field">
+                <label for="z1">zeta1 [%]</label>
+                <input id="z1" type="number" min="0" step="0.1" value="5.0">
+                <input id="z1s" type="range" min="0" max="20" step="0.1" value="5.0">
+              </div>
+              <div class="field">
+                <label for="z2">zeta2 [%]</label>
+                <input id="z2" type="number" min="0" step="0.1" value="5.0">
+                <input id="z2s" type="range" min="0" max="20" step="0.1" value="5.0">
+              </div>
+            </div>
+          </div>
+          <div id="explicit-box" class="hidden">
+            <div class="field-grid">
+              <div class="field">
+                <label for="alpha">alphaM [1/s]</label>
+                <input id="alpha" type="number" min="0" step="0.001" value="0.5712">
+                <input id="alphas" type="range" min="0" max="5" step="0.001" value="0.5712">
+              </div>
+              <div class="field">
+                <label for="beta">betaK [s]</label>
+                <input id="beta" type="number" min="0" step="0.00001" value="0.001447">
+                <input id="betas" type="range" min="0" max="0.05" step="0.00001" value="0.001447">
+              </div>
+            </div>
+          </div>
+          <div class="section-title">Plot range</div>
+          <div class="field-grid">
+            <div class="field">
+              <label for="fmin">Min frequency [Hz]</label>
+              <input id="fmin" type="number" min="0.001" step="0.1" value="0.1">
+            </div>
+            <div class="field">
+              <label for="fmax">Max frequency [Hz]</label>
+              <input id="fmax" type="number" min="0.01" step="1" value="30">
+            </div>
+          </div>
+          <div class="actions">
+            <button class="primary" id="reset">Reset defaults</button>
+          </div>
+          <div class="summary" id="summary"></div>
+          <div class="warning" id="warning"></div>
+        </div>
+      </section>
+      <section class="panel">
+        <div class="panel-head"><h2>Damping ratio curve</h2></div>
+        <div class="panel-body">
+          <div id="plot"></div>
+          <div class="notes">
+            Rayleigh damping uses <strong>C = alphaM * M + betaK * K</strong> and
+            <strong> zeta(w) = alphaM / (2w) + betaK * w / 2</strong>.
+            The dashed curve is the mass term. The dotted curve is the stiffness term.
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+  <script>
+    function byId(id) { return document.getElementById(id); }
+    const controls = {
+      f1: byId("f1"), f1s: byId("f1s"),
+      f2: byId("f2"), f2s: byId("f2s"),
+      z1: byId("z1"), z1s: byId("z1s"),
+      z2: byId("z2"), z2s: byId("z2s"),
+      alpha: byId("alpha"), alphas: byId("alphas"),
+      beta: byId("beta"), betas: byId("betas"),
+      fmin: byId("fmin"), fmax: byId("fmax"),
+      summary: byId("summary"), warning: byId("warning"),
+      targetBox: byId("target-box"), explicitBox: byId("explicit-box"),
+      reset: byId("reset"),
+      themeToggle: byId("theme-toggle"),
+    };
+    const pairedInputs = [
+      ["f1", "f1s"], ["f2", "f2s"], ["z1", "z1s"],
+      ["z2", "z2s"], ["alpha", "alphas"], ["beta", "betas"],
+    ];
+    function currentMode() {
+      return document.querySelector('input[name="mode"]:checked').value;
+    }
+    function rayleighFromTargets(f1, f2, z1, z2) {
+      const w1 = 2 * Math.PI * f1;
+      const w2 = 2 * Math.PI * f2;
+      const a11 = 1 / (2 * w1);
+      const a12 = w1 / 2;
+      const a21 = 1 / (2 * w2);
+      const a22 = w2 / 2;
+      const det = a11 * a22 - a12 * a21;
+      const alpha = (z1 * a22 - a12 * z2) / det;
+      const beta = (a11 * z2 - z1 * a21) / det;
+      return { alpha, beta };
+    }
+    function zetaAtFrequency(frequency, alpha, beta) {
+      const omega = 2 * Math.PI * frequency;
+      return alpha / (2 * omega) + beta * omega / 2;
+    }
+    function linearSpace(min, max, count) {
+      const values = [];
+      for (let i = 0; i < count; i += 1) values.push(min + ((max - min) * i) / (count - 1));
+      return values;
+    }
+    function formatExp(value) {
+      return Number(value).toExponential(6);
+    }
+    function storedTheme() {
+      return localStorage.getItem("theme") || "system";
+    }
+
+    function prefersDark() {
+      return window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+    }
+
+    function effectiveTheme() {
+      const theme = storedTheme();
+      if (theme === "light" || theme === "dark") return theme;
+      return prefersDark() ? "dark" : "light";
+    }
+
+    function applyTheme(theme, shouldUpdate = true) {
+      document.documentElement.setAttribute("data-theme", theme);
+      localStorage.setItem("theme", theme);
+      const nextTheme = theme === "system" ? "light" : theme === "light" ? "dark" : "system";
+      controls.themeToggle.setAttribute(
+        "aria-label",
+        nextTheme === "system"
+          ? "Switch to system theme"
+          : nextTheme === "light"
+            ? "Switch to light theme"
+            : "Switch to dark theme"
+      );
+      if (shouldUpdate) update();
+    }
+
+    function initializeTheme() {
+      applyTheme(storedTheme(), false);
+    }
+
+    function toggleTheme() {
+      const current = document.documentElement.getAttribute("data-theme") || "system";
+      if (current === "system") {
+        applyTheme("light");
+      } else if (current === "light") {
+        applyTheme("dark");
+      } else {
+        applyTheme("system");
+      }
+    }
+    function resetDefaults() {
+      controls.f1.value = controls.f1s.value = 1.0;
+      controls.f2.value = controls.f2s.value = 10.0;
+      controls.z1.value = controls.z1s.value = 5.0;
+      controls.z2.value = controls.z2s.value = 5.0;
+      controls.alpha.value = controls.alphas.value = 0.5712;
+      controls.beta.value = controls.betas.value = 0.001447;
+      controls.fmin.value = 0.1;
+      controls.fmax.value = 30;
+      update();
+    }
+    function update() {
+      const mode = currentMode();
+      const f1 = Math.max(0.001, Number(controls.f1.value));
+      const f2 = Math.max(f1 + 0.001, Number(controls.f2.value));
+      const z1 = Math.max(0, Number(controls.z1.value)) / 100;
+      const z2 = Math.max(0, Number(controls.z2.value)) / 100;
+      let alpha;
+      let beta;
+      if (mode === "targets") {
+        const solved = rayleighFromTargets(f1, f2, z1, z2);
+        alpha = solved.alpha;
+        beta = solved.beta;
+        controls.alpha.value = alpha.toFixed(6);
+        controls.beta.value = beta.toExponential(6);
+        controls.alphas.value = Math.max(0, Math.min(Number(controls.alphas.max), alpha));
+        controls.betas.value = Math.max(0, Math.min(Number(controls.betas.max), beta));
+      } else {
+        alpha = Number(controls.alpha.value);
+        beta = Number(controls.beta.value);
+      }
+      let fmin = Number(controls.fmin.value);
+      let fmax = Number(controls.fmax.value);
+      if (!(fmin > 0)) fmin = 0.01;
+      if (!(fmax > fmin)) fmax = fmin + 1.0;
+      const frequencies = linearSpace(fmin, fmax, 500);
+      const total = frequencies.map((freq) => 100 * zetaAtFrequency(freq, alpha, beta));
+      const massTerm = frequencies.map((freq) => {
+        const omega = 2 * Math.PI * freq;
+        return 100 * alpha / (2 * omega);
+      });
+      const stiffnessTerm = frequencies.map((freq) => {
+        const omega = 2 * Math.PI * freq;
+        return 100 * beta * omega / 2;
+      });
+      const minValue = Math.min(...total);
+      const minIndex = total.indexOf(minValue);
+      const minFrequency = frequencies[minIndex];
+      const traces = [
+        { x: frequencies, y: total, type: "scatter", mode: "lines", name: "Total zeta", line: { color: "#a97461", width: 3 } },
+        { x: frequencies, y: massTerm, type: "scatter", mode: "lines", name: "Mass term", line: { color: "#3c4c59", width: 2, dash: "dash" } },
+        { x: frequencies, y: stiffnessTerm, type: "scatter", mode: "lines", name: "Stiffness term", line: { color: "#5f7669", width: 2, dash: "dot" } },
+      ];
+      if (mode === "targets") {
+        traces.push({
+          x: [f1, f2],
+          y: [100 * zetaAtFrequency(f1, alpha, beta), 100 * zetaAtFrequency(f2, alpha, beta)],
+          type: "scatter",
+          mode: "markers",
+          name: "Target points",
+          marker: { size: 10, color: "#1f2937" },
+        });
+      }
+      const selectedTheme = document.documentElement.getAttribute("data-theme") || "system";
+      const isDark = selectedTheme === "dark" || (selectedTheme === "system" && prefersDark());
+      const axisColor = isDark ? "rgba(255,255,255,0.14)" : "rgba(127,127,127,0.16)";
+      const fontColor = isDark ? "#f2e7df" : "#302823";
+      const totalColor = isDark ? "#d6a08b" : "#a97461";
+      const massColor = isDark ? "#9ec5d1" : "#3c4c59";
+      const stiffnessColor = isDark ? "#a7d0bf" : "#5f7669";
+      const markerColor = isDark ? "#f4eee8" : "#1f2937";
+
+      traces[0].line.color = totalColor;
+      traces[1].line.color = massColor;
+      traces[2].line.color = stiffnessColor;
+      if (mode === "targets") {
+        traces[3].marker.color = markerColor;
+      }
+
+      Plotly.react("plot", traces, {
+        title: "Rayleigh damping ratio vs frequency",
+        hovermode: "x unified",
+        margin: { l: 72, r: 24, t: 56, b: 68 },
+        legend: { orientation: "h", y: -0.22 },
+        paper_bgcolor: "rgba(0,0,0,0)",
+        plot_bgcolor: "rgba(0,0,0,0)",
+        font: { color: fontColor },
+        xaxis: { title: "Frequency [Hz]", zeroline: false, gridcolor: axisColor },
+        yaxis: { title: "Damping ratio [%]", rangemode: "tozero", gridcolor: axisColor },
+        hoverlabel: {
+          bgcolor: "#fffdfb",
+          bordercolor: "#e3d6ce",
+          font: { color: "#2f2824" },
+        },
+      }, { responsive: true, displaylogo: false });
+      controls.summary.textContent =
+        "alphaM = " + formatExp(alpha) + " [1/s]\n" +
+        "betaK  = " + formatExp(beta) + " [s]\n\n" +
+        "minimum damping in plotted range:\n" +
+        "f ~= " + minFrequency.toFixed(3) + " Hz\n" +
+        "zeta ~= " + minValue.toFixed(3) + " %\n\n" +
+        "formula:\n" +
+        "zeta(f) = alphaM / (2 * 2pi f) + betaK * (2pi f) / 2";
+      if (alpha < 0 || beta < 0) {
+        controls.warning.style.display = "block";
+        controls.warning.textContent =
+          "This target pair produces a negative alphaM or betaK. That is usually not a physically reasonable Rayleigh damping fit. Change the target points or use explicit coefficients.";
+      } else {
+        controls.warning.style.display = "none";
+        controls.warning.textContent = "";
+      }
+    }
+    pairedInputs.forEach(([first, second]) => {
+      controls[first].addEventListener("input", () => {
+        controls[second].value = controls[first].value;
+        update();
+      });
+      controls[second].addEventListener("input", () => {
+        controls[first].value = controls[second].value;
+        update();
+      });
+    });
+    [controls.fmin, controls.fmax].forEach((input) => input.addEventListener("input", update));
+    document.querySelectorAll('input[name="mode"]').forEach((input) => {
+      input.addEventListener("change", () => {
+        const targetsMode = currentMode() === "targets";
+        controls.targetBox.classList.toggle("hidden", !targetsMode);
+        controls.explicitBox.classList.toggle("hidden", targetsMode);
+        update();
+      });
+    });
+    controls.reset.addEventListener("click", resetDefaults);
+    controls.themeToggle.addEventListener("click", toggleTheme);
+    if (window.matchMedia) {
+      window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
+        if (storedTheme() === "system") {
+          update();
+        }
+      });
+    }
+    window.addEventListener("storage", (e) => {
+      if (e.key === "theme") {
+        applyTheme(e.newValue || "system", true);
+      }
+    });
+    initializeTheme();
+    resetDefaults();
+  </script>
+</body>
+</html>

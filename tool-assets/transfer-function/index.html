@@ -1,0 +1,709 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Transfer Function Explorer</title>
+  <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+  <style>
+    :root {
+      color-scheme: light dark;
+      --bg: #f7f2ee;
+      --panel: rgba(255, 252, 249, 0.88);
+      --panel-strong: rgba(255, 255, 255, 0.95);
+      --text: #302823;
+      --text-strong: #000000;
+      --muted: #6d5f59;
+      --border: rgba(115, 87, 73, 0.18);
+      --primary: #a97461;
+      --primary-soft: rgba(169, 116, 97, 0.08);
+      --shadow: 0 24px 60px rgba(53, 31, 21, 0.12);
+      --success: #3c763d;
+      --success-soft: #dff0d8;
+    }
+    :root[data-theme="dark"] {
+      --bg: #1d1a18;
+      --panel: rgba(39, 34, 31, 0.84);
+      --panel-strong: rgba(41, 36, 33, 0.95);
+      --text: #f2e7df;
+      --text-strong: #ffffff;
+      --muted: #c6b3a8;
+      --border: rgba(255, 255, 255, 0.1);
+      --primary-soft: rgba(169, 116, 97, 0.12);
+      --shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+      --success: #78a378;
+      --success-soft: rgba(60, 118, 61, 0.15);
+    }
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+        --bg: #1d1a18;
+        --panel: rgba(39, 34, 31, 0.84);
+        --panel-strong: rgba(41, 36, 33, 0.95);
+        --text: #f2e7df;
+        --text-strong: #ffffff;
+        --muted: #c6b3a8;
+        --border: rgba(255, 255, 255, 0.1);
+        --primary-soft: rgba(169, 116, 97, 0.12);
+        --shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+        --success: #78a378;
+        --success-soft: rgba(60, 118, 61, 0.15);
+      }
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Arial, sans-serif;
+      color: var(--text);
+      background: var(--bg);
+    }
+    .shell {
+      max-width: 1440px;
+      margin: 0 auto;
+      padding: 32px 20px 40px;
+    }
+    .hero {
+      margin-bottom: 24px;
+      padding: 28px;
+      border: 1px solid var(--border);
+      border-radius: 28px;
+      background: var(--panel);
+      backdrop-filter: blur(16px);
+      box-shadow: var(--shadow);
+    }
+    .hero-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 10px; }
+    .eyebrow {
+      display: inline-block; padding: 8px 12px; border: 1px solid var(--border); border-radius: 999px;
+      font-size: 12px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted);
+    }
+    .theme-toggle {
+      display: inline-flex; align-items: center; justify-content: center; position: relative;
+      width: 38px; height: 38px; border: 1px solid var(--border); border-radius: 9999px;
+      background: transparent; color: var(--text); cursor: pointer;
+      transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease;
+    }
+    .theme-toggle:hover { background: var(--primary-soft); }
+    .theme-toggle svg {
+      position: absolute; width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 1.8;
+      stroke-linecap: round; stroke-linejoin: round; transition: transform 180ms ease, opacity 180ms ease;
+    }
+    .theme-toggle .sun-icon { opacity: 1; transform: rotate(0deg) scale(1); }
+    .theme-toggle .moon-icon, .theme-toggle .auto-icon { opacity: 0; transform: rotate(90deg) scale(0.7); }
+    :root[data-theme="dark"] .theme-toggle .sun-icon { opacity: 0; transform: rotate(-90deg) scale(0.7); }
+    :root[data-theme="dark"] .theme-toggle .moon-icon { opacity: 1; transform: rotate(0deg) scale(1); }
+    :root[data-theme="system"] .theme-toggle .sun-icon, :root[data-theme="system"] .theme-toggle .moon-icon { opacity: 0; transform: rotate(-90deg) scale(0.7); }
+    :root[data-theme="system"] .theme-toggle .auto-icon { opacity: 1; transform: rotate(0deg) scale(1); }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+    h1 { margin: 0 0 10px; font-size: 2.5rem; }
+    .lead { margin: 0; color: var(--muted); line-height: 1.6; }
+    .grid { display: grid; grid-template-columns: 460px 100px 1fr; gap: 16px; align-items: stretch; }
+    .panel { border: 1px solid var(--border); border-radius: 16px; background: var(--panel-strong); box-shadow: var(--shadow); overflow: hidden; display: flex; flex-direction: column; height: 100%; }
+    .panel-head { padding: 12px 16px; border-bottom: 1px solid var(--border); background: var(--primary-soft); }
+    .panel-head h2 { margin: 0; font-size: 0.95rem; }
+    .panel-body { padding: 16px; flex: 1; display: flex; flex-direction: column; }
+    .layers-table { width: 100%; border-collapse: collapse; margin-bottom: 8px; font-size: 0.85rem; }
+    .layers-table th { text-align: left; padding: 6px 4px; border-bottom: 2px solid var(--border); color: var(--text-strong); font-weight: 700; font-size: 0.75rem; }
+    .layers-table td { padding: 4px; border-bottom: 1px solid var(--border); }
+    .layers-table input[type="number"] { width: 100%; min-width: 50px; padding: 4px 6px; border: 1px solid var(--border); border-radius: 4px; background: transparent; color: var(--text-strong); font-size: 0.85rem; font-weight: 600; }
+    .btn-icon { background: transparent; border: none; color: #d9534f; cursor: pointer; font-size: 1.1rem; padding: 2px; border-radius: 4px; }
+    .btn-icon:hover { background: rgba(217, 83, 79, 0.1); }
+    .layer-card { border: 1px solid var(--border); border-radius: 12px; padding: 10px; margin-bottom: 12px; position: relative; background: var(--bg); }
+    .layer-card-header { font-weight: 600; margin-bottom: 8px; display: flex; justify-content: space-between; }
+    .btn-remove { background: transparent; border: none; color: #d9534f; cursor: pointer; font-size: 0.85rem; }
+    .field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .field { margin-bottom: 6px; }
+    .field label { display: block; font-size: 0.8rem; font-weight: 700; margin-bottom: 2px; }
+    .field input { width: 100%; padding: 6px 8px; border: 1px solid var(--border); border-radius: 6px; background: transparent; color: var(--text); font-size: 0.85rem; }
+    .btn { padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px; background: transparent; color: var(--text); cursor: pointer; font-weight: 600; }
+    .btn-primary { background: var(--primary); color: #fff; border-color: transparent; width: 100%; font-size: 1rem; padding: 10px; margin-top: 12px; }
+    .section-title { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); margin: 12px 0 8px; }
+    #plot-mag, #plot-phase { width: 100%; }
+    .summary-box { margin-top: 16px; padding: 14px; background: var(--primary-soft); border-radius: 12px; font-size: 0.95rem; line-height: 1.6; border: 1px solid var(--border); }
+    .status-indicator { margin-top: 12px; font-size: 0.85rem; padding: 8px 12px; border-radius: 8px; text-align: center; font-weight: 600; }
+    .status-webgpu { background: var(--success-soft); color: var(--success); border: 1px solid var(--success); }
+    .status-cpu { background: var(--primary-soft); color: var(--primary); border: 1px solid var(--primary); }
+    .profile-container { display: flex; justify-content: center; margin-top: 10px; }
+    canvas { border: 1px solid var(--border); background: var(--panel-strong); border-radius: 8px; }
+    .switch { position: relative; display: inline-block; width: 40px; height: 22px; }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: var(--border); transition: .3s; border-radius: 22px; }
+    .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 3px; bottom: 3px; background-color: var(--text); transition: .3s; border-radius: 50%; }
+    input:checked + .slider { background-color: var(--primary); }
+    input:checked + .slider:before { transform: translateX(18px); background-color: white; }
+    
+    @media (max-width: 960px) { .grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <section class="hero">
+      <div class="hero-top">
+        <div class="eyebrow">Interactive tool</div>
+        <button type="button" class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">
+          <svg class="sun-icon" viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="12" cy="12" r="4"></circle><path d="M12 2v2"></path><path d="M12 20v2"></path>
+            <path d="m4.93 4.93 1.41 1.41"></path><path d="m17.66 17.66 1.41 1.41"></path><path d="M2 12h2"></path>
+            <path d="M20 12h2"></path><path d="m6.34 17.66-1.41 1.41"></path><path d="m19.07 4.93-1.41 1.41"></path>
+          </svg>
+          <svg class="moon-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"></path></svg>
+          <svg class="auto-icon" viewBox="0 0 24 24" aria-hidden="true">
+            <rect x="4" y="5" width="16" height="12" rx="2"></rect><path d="M8 19h8"></path><path d="M10 17v2"></path><path d="M14 17v2"></path>
+          </svg>
+          <span class="sr-only">Toggle theme</span>
+        </button>
+      </div>
+      <h1>Transfer Function Explorer</h1>
+      <p class="lead">Compute 1D shear-wave transfer functions for layered soil columns using the transfer matrix method.</p>
+    </section>
+    
+    <div class="grid">
+      <section class="panel">
+        <div class="panel-head"><h2>Profile Settings</h2></div>
+        <div class="panel-body">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <div class="section-title" style="margin: 0;">Soil Layers</div>
+            <button class="btn" id="add-layer-btn" style="padding: 4px 8px; font-size: 0.75rem;">+ Add Layer</button>
+          </div>
+          <div style="height: 130px; overflow-y: auto; overflow-x: hidden; border: 1px solid var(--border); border-radius: 8px; margin-bottom: 8px; background: var(--bg);">
+            <table class="layers-table" style="margin-bottom: 0; border: none;">
+              <thead style="position: sticky; top: 0; background: var(--panel-strong); z-index: 1;">
+                <tr>
+                  <th>#</th>
+                  <th>H (m)</th>
+                  <th>Vs (m/s)</th>
+                  <th>ρ (kg/m³)</th>
+                  <th>Damp</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="layers-tbody"></tbody>
+            </table>
+          </div>
+          
+          <div class="section-title" style="margin-top: 8px;">Rock (Half-space)</div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;">
+            <div class="field" style="margin-bottom:0;"><label>Vs (m/s)</label><input type="number" id="rock-vs" value="850"></div>
+            <div class="field" style="margin-bottom:0;"><label>Density</label><input type="number" id="rock-rho" value="1500"></div>
+            <div class="field" style="margin-bottom:0;"><label>Damping</label><input type="number" id="rock-damp" value="0.05" step="0.01"></div>
+          </div>
+
+          <div class="section-title" style="margin-top: 12px;">Computation Settings</div>
+          <div class="field-grid">
+            <div class="field"><label>f_max (Hz)</label><input type="number" id="f-max" value="25"></div>
+            <div class="field"><label>n_freqs</label><input type="number" id="n-freqs" value="2000"></div>
+            <div class="field" style="grid-column: 1 / -1; display: flex; align-items: center; justify-content: space-between; margin-top: 8px;">
+              <label style="margin: 0;">Use GPU Acceleration</label>
+              <label class="switch">
+                <input type="checkbox" id="use-gpu">
+                <span class="slider"></span>
+              </label>
+            </div>
+          </div>
+          
+          <div id="compute-status" class="status-indicator" style="display:none; margin-top:12px; padding: 6px;"></div>
+          <div id="summary" class="summary-box" style="display:none; margin-top: 10px; padding: 10px; font-size: 0.85rem;"></div>
+        </div>
+      </section>
+      
+      <section class="panel">
+        <div class="panel-head"><h2>Profile</h2></div>
+        <div class="panel-body profile-container" style="padding: 0; position: relative;">
+          <canvas id="profile-canvas" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"></canvas>
+        </div>
+      </section>
+      
+      <section class="panel">
+        <div class="panel-head"><h2>Results</h2></div>
+        <div class="panel-body" style="padding: 0;">
+          <div id="plot-mag" style="flex: 1; min-height: 180px;"></div>
+          <div id="plot-phase" style="flex: 1; min-height: 180px;"></div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <script>
+    // --- Complex Math implementation ---
+    class Complex {
+      constructor(r, i) { this.r = r; this.i = i; }
+      add(c) { return new Complex(this.r + c.r, this.i + c.i); }
+      sub(c) { return new Complex(this.r - c.r, this.i - c.i); }
+      mul(c) {
+        if (typeof c === 'number') return new Complex(this.r * c, this.i * c);
+        return new Complex(this.r * c.r - this.i * c.i, this.r * c.i + this.i * c.r);
+      }
+      div(c) {
+        if (typeof c === 'number') return new Complex(this.r / c, this.i / c);
+        const denom = c.r * c.r + c.i * c.i;
+        return new Complex((this.r * c.r + this.i * c.i) / denom, (this.i * c.r - this.r * c.i) / denom);
+      }
+      mag() { return Math.sqrt(this.r * this.r + this.i * this.i); }
+      phase() { return Math.atan2(this.i, this.r); }
+    }
+    const cOne = new Complex(1, 0);
+    const cI = new Complex(0, 1);
+    const cHalf = new Complex(0.5, 0);
+    function cExp(c) {
+      const e = Math.exp(c.r);
+      return new Complex(e * Math.cos(c.i), e * Math.sin(c.i));
+    }
+    function cSqrt(c) {
+      const mag = Math.sqrt(c.mag());
+      const angle = c.phase() / 2;
+      return new Complex(mag * Math.cos(angle), mag * Math.sin(angle));
+    }
+
+    // --- CPU Computation ---
+    function computeTF_CPU(soil_profile, rock, f_max, n_freqs) {
+      const all_layers = [...soil_profile, { h: 0, vs: rock.vs, rho: rock.rho, damping: rock.damping }];
+      const num_layers = all_layers.length;
+      
+      const freqs = new Float32Array(n_freqs);
+      const mag = new Float32Array(n_freqs);
+      const phase = new Float32Array(n_freqs);
+      const freq_resolution = f_max / n_freqs;
+      
+      for (let i = 0; i < n_freqs; i++) {
+        const f = freq_resolution * (i + 1);
+        freqs[i] = f;
+        const omega = 2 * Math.PI * f;
+        
+        let E00 = cOne, E01 = new Complex(0,0), E10 = new Complex(0,0), E11 = cOne;
+        
+        for (let j = num_layers - 2; j >= 0; j--) {
+          const layer1 = all_layers[j];
+          const layer2 = all_layers[j+1];
+          
+          const vs_star1 = new Complex(layer1.vs, 0).mul(cSqrt(new Complex(1, 2 * layer1.damping)));
+          const vs_star2 = new Complex(layer2.vs, 0).mul(cSqrt(new Complex(1, 2 * layer2.damping)));
+          
+          const k_star1 = new Complex(omega, 0).div(vs_star1);
+          
+          const num_alpha = vs_star1.mul(layer1.rho);
+          const den_alpha = vs_star2.mul(layer2.rho);
+          const alpha_star = num_alpha.div(den_alpha);
+          
+          const i_k_h = cI.mul(k_star1).mul(layer1.h);
+          const e_pos = cExp(i_k_h);
+          const e_neg = cExp(i_k_h.mul(-1));
+          
+          const one_plus_alpha = cOne.add(alpha_star);
+          const one_minus_alpha = cOne.sub(alpha_star);
+          
+          const D00 = cHalf.mul(one_plus_alpha).mul(e_pos);
+          const D01 = cHalf.mul(one_minus_alpha).mul(e_neg);
+          const D10 = cHalf.mul(one_minus_alpha).mul(e_pos);
+          const D11 = cHalf.mul(one_plus_alpha).mul(e_neg);
+          
+          const newE00 = E00.mul(D00).add(E01.mul(D10));
+          const newE01 = E00.mul(D01).add(E01.mul(D11));
+          const newE10 = E10.mul(D00).add(E11.mul(D10));
+          const newE11 = E10.mul(D01).add(E11.mul(D11));
+          
+          E00 = newE00; E01 = newE01; E10 = newE10; E11 = newE11;
+        }
+        
+        const sumE = E00.add(E01).add(E10).add(E11);
+        const TF_uu = new Complex(2, 0).div(sumE);
+        
+        mag[i] = TF_uu.mag();
+        phase[i] = TF_uu.phase();
+      }
+      
+      return { f: Array.from(freqs), mag: Array.from(mag), phase: Array.from(phase) };
+    }
+
+    // --- WebGPU Computation ---
+    async function computeTF_WebGPU(soil_profile, rock, f_max, n_freqs) {
+      if (!navigator.gpu) return null;
+      try {
+        const adapter = await navigator.gpu.requestAdapter();
+        if (!adapter) return null;
+        
+        let gpuName = "Hardware GPU";
+        if (adapter.info) {
+          gpuName = adapter.info.device || adapter.info.description || adapter.info.architecture || gpuName;
+        } else if (adapter.requestAdapterInfo) {
+          const info = await adapter.requestAdapterInfo();
+          gpuName = info.device || info.description || info.architecture || gpuName;
+        }
+
+        const device = await adapter.requestDevice();
+
+        const all_layers = [...soil_profile, { h: 0, vs: rock.vs, rho: rock.rho, damping: rock.damping }];
+        const num_layers = all_layers.length;
+
+        const shaderCode = `
+          struct Complex { r: f32, i: f32 }
+          fn c_add(a: Complex, b: Complex) -> Complex { return Complex(a.r + b.r, a.i + b.i); }
+          fn c_sub(a: Complex, b: Complex) -> Complex { return Complex(a.r - b.r, a.i - b.i); }
+          fn c_mul(a: Complex, b: Complex) -> Complex { return Complex(a.r * b.r - a.i * b.i, a.r * b.i + a.i * b.r); }
+          fn c_div(a: Complex, b: Complex) -> Complex {
+              let den = b.r * b.r + b.i * b.i;
+              return Complex((a.r * b.r + a.i * b.i) / den, (a.i * b.r - a.r * b.i) / den);
+          }
+          fn c_exp(a: Complex) -> Complex {
+              let e = exp(a.r);
+              return Complex(e * cos(a.i), e * sin(a.i));
+          }
+          fn c_sqrt(a: Complex) -> Complex {
+              let mag = sqrt(a.r * a.r + a.i * a.i);
+              let angle = atan2(a.i, a.r) / 2.0;
+              return Complex(sqrt(mag) * cos(angle), sqrt(mag) * sin(angle));
+          }
+          fn c_from_real(r: f32) -> Complex { return Complex(r, 0.0); }
+
+          struct Layer { h: f32, vs: f32, rho: f32, damping: f32 }
+          struct Params { num_layers: u32, n_freqs: u32, f_max: f32, pad: u32 }
+
+          @group(0) @binding(0) var<storage, read> layers: array<Layer>;
+          @group(0) @binding(1) var<storage, read_write> out_mag: array<f32>;
+          @group(0) @binding(2) var<storage, read_write> out_phase: array<f32>;
+          @group(0) @binding(3) var<uniform> params: Params;
+
+          @compute @workgroup_size(64)
+          fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
+              let idx = global_id.x;
+              if (idx >= params.n_freqs) { return; }
+              
+              let freq_resolution = params.f_max / f32(params.n_freqs);
+              let freq = freq_resolution * f32(idx + 1);
+              let omega = 2.0 * 3.141592653589793 * freq;
+              
+              var E00 = Complex(1.0, 0.0);
+              var E01 = Complex(0.0, 0.0);
+              var E10 = Complex(0.0, 0.0);
+              var E11 = Complex(1.0, 0.0);
+              
+              for (var j: i32 = i32(params.num_layers) - 2; j >= 0; j--) {
+                  let layer1 = layers[j];
+                  let layer2 = layers[j + 1];
+                  
+                  let vs_star1 = c_mul(c_from_real(layer1.vs), c_sqrt(Complex(1.0, 2.0 * layer1.damping)));
+                  let vs_star2 = c_mul(c_from_real(layer2.vs), c_sqrt(Complex(1.0, 2.0 * layer2.damping)));
+                  
+                  let k_star1 = c_div(c_from_real(omega), vs_star1);
+                  
+                  let num_alpha = c_mul(c_from_real(layer1.rho), vs_star1);
+                  let den_alpha = c_mul(c_from_real(layer2.rho), vs_star2);
+                  let alpha_star = c_div(num_alpha, den_alpha);
+                  
+                  let i_k_h = c_mul(Complex(0.0, 1.0), c_mul(k_star1, c_from_real(layer1.h)));
+                  let e_pos = c_exp(i_k_h);
+                  let e_neg = c_exp(Complex(-i_k_h.r, -i_k_h.i));
+                  
+                  let one = Complex(1.0, 0.0);
+                  let one_plus_alpha = c_add(one, alpha_star);
+                  let one_minus_alpha = c_sub(one, alpha_star);
+                  
+                  let D00 = c_mul(c_from_real(0.5), c_mul(one_plus_alpha, e_pos));
+                  let D01 = c_mul(c_from_real(0.5), c_mul(one_minus_alpha, e_neg));
+                  let D10 = c_mul(c_from_real(0.5), c_mul(one_minus_alpha, e_pos));
+                  let D11 = c_mul(c_from_real(0.5), c_mul(one_plus_alpha, e_neg));
+                  
+                  let newE00 = c_add(c_mul(E00, D00), c_mul(E01, D10));
+                  let newE01 = c_add(c_mul(E00, D01), c_mul(E01, D11));
+                  let newE10 = c_add(c_mul(E10, D00), c_mul(E11, D10));
+                  let newE11 = c_add(c_mul(E10, D01), c_mul(E11, D11));
+                  
+                  E00 = newE00; E01 = newE01; E10 = newE10; E11 = newE11;
+              }
+              
+              let sumE = c_add(c_add(E00, E01), c_add(E10, E11));
+              let TF_uu = c_div(Complex(2.0, 0.0), sumE);
+              
+              out_mag[idx] = sqrt(TF_uu.r * TF_uu.r + TF_uu.i * TF_uu.i);
+              out_phase[idx] = atan2(TF_uu.i, TF_uu.r);
+          }
+        `;
+        const module = device.createShaderModule({ code: shaderCode });
+
+        const layersArray = new Float32Array(num_layers * 4);
+        for (let i = 0; i < num_layers; i++) {
+          layersArray[i * 4 + 0] = all_layers[i].h;
+          layersArray[i * 4 + 1] = all_layers[i].vs;
+          layersArray[i * 4 + 2] = all_layers[i].rho;
+          layersArray[i * 4 + 3] = all_layers[i].damping;
+        }
+        const layersBuffer = device.createBuffer({ size: layersArray.byteLength, usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST });
+        device.queue.writeBuffer(layersBuffer, 0, layersArray);
+
+        const magBuffer = device.createBuffer({ size: n_freqs * 4, usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC });
+        const phaseBuffer = device.createBuffer({ size: n_freqs * 4, usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC });
+
+        const paramsArray = new Uint32Array([num_layers, n_freqs, 0, 0]);
+        const paramsFloatArray = new Float32Array(paramsArray.buffer);
+        paramsFloatArray[2] = f_max;
+        const paramsBuffer = device.createBuffer({ size: 16, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
+        device.queue.writeBuffer(paramsBuffer, 0, paramsArray);
+
+        const bindGroupLayout = device.createBindGroupLayout({
+          entries: [
+            { binding: 0, visibility: GPUShaderStage.COMPUTE, buffer: { type: "read-only-storage" } },
+            { binding: 1, visibility: GPUShaderStage.COMPUTE, buffer: { type: "storage" } },
+            { binding: 2, visibility: GPUShaderStage.COMPUTE, buffer: { type: "storage" } },
+            { binding: 3, visibility: GPUShaderStage.COMPUTE, buffer: { type: "uniform" } },
+          ]
+        });
+
+        const bindGroup = device.createBindGroup({
+          layout: bindGroupLayout,
+          entries: [
+            { binding: 0, resource: { buffer: layersBuffer } },
+            { binding: 1, resource: { buffer: magBuffer } },
+            { binding: 2, resource: { buffer: phaseBuffer } },
+            { binding: 3, resource: { buffer: paramsBuffer } },
+          ]
+        });
+
+        const pipelineLayout = device.createPipelineLayout({ bindGroupLayouts: [bindGroupLayout] });
+        const pipeline = device.createComputePipeline({ layout: pipelineLayout, compute: { module, entryPoint: "main" } });
+
+        const commandEncoder = device.createCommandEncoder();
+        const passEncoder = commandEncoder.beginComputePass();
+        passEncoder.setPipeline(pipeline);
+        passEncoder.setBindGroup(0, bindGroup);
+        passEncoder.dispatchWorkgroups(Math.ceil(n_freqs / 64));
+        passEncoder.end();
+
+        const magReadBuffer = device.createBuffer({ size: n_freqs * 4, usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ });
+        const phaseReadBuffer = device.createBuffer({ size: n_freqs * 4, usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ });
+
+        commandEncoder.copyBufferToBuffer(magBuffer, 0, magReadBuffer, 0, n_freqs * 4);
+        commandEncoder.copyBufferToBuffer(phaseBuffer, 0, phaseReadBuffer, 0, n_freqs * 4);
+
+        device.queue.submit([commandEncoder.finish()]);
+
+        await Promise.all([magReadBuffer.mapAsync(GPUMapMode.READ), phaseReadBuffer.mapAsync(GPUMapMode.READ)]);
+
+        const magResult = new Float32Array(magReadBuffer.getMappedRange());
+        const phaseResult = new Float32Array(phaseReadBuffer.getMappedRange());
+        const freqs = new Float32Array(n_freqs);
+        for (let i = 0; i < n_freqs; i++) freqs[i] = (f_max / n_freqs) * (i + 1);
+
+        const res = { f: Array.from(freqs), mag: Array.from(magResult), phase: Array.from(phaseResult) };
+
+        magReadBuffer.unmap();
+        phaseReadBuffer.unmap();
+        return { res, gpuName };
+      } catch (e) {
+        console.warn("WebGPU failed", e);
+        return null;
+      }
+    }
+
+    // --- UI Logic ---
+    let layers = [
+      { h: 2, vs: 200, rho: 1500, damping: 0.05 },
+      { h: 54, vs: 400, rho: 1500, damping: 0.05 }
+    ];
+
+    const layersTbody = document.getElementById('layers-tbody');
+    
+    function renderLayers() {
+      layersTbody.innerHTML = '';
+      layers.forEach((layer, idx) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td style="font-weight:700; color:var(--text-strong);">${idx + 1}</td>
+          <td><input type="number" oninput="updateLayer(${idx}, 'h', this.value)" value="${layer.h}" min="0.1" step="0.1"></td>
+          <td><input type="number" oninput="updateLayer(${idx}, 'vs', this.value)" value="${layer.vs}" min="1" step="10"></td>
+          <td><input type="number" oninput="updateLayer(${idx}, 'rho', this.value)" value="${layer.rho}" min="100" step="10"></td>
+          <td><input type="number" oninput="updateLayer(${idx}, 'damping', this.value)" value="${layer.damping}" min="0" step="0.01" max="1"></td>
+          <td style="text-align:center;">
+            ${layers.length > 1 ? `<button class="btn-icon" onclick="removeLayer(${idx})" title="Remove Layer">×</button>` : ''}
+          </td>
+        `;
+        layersTbody.appendChild(tr);
+      });
+      drawProfile();
+    }
+
+    let computeTimeout = null;
+    function requestCompute() {
+      if (computeTimeout) clearTimeout(computeTimeout);
+      computeTimeout = setTimeout(computeAndPlot, 20);
+    }
+
+    window.removeLayer = (idx) => { layers.splice(idx, 1); renderLayers(); requestCompute(); };
+    window.updateLayer = (idx, key, val) => { layers[idx][key] = Number(val); drawProfile(); requestCompute(); };
+    
+    document.getElementById('add-layer-btn').addEventListener('click', () => {
+      layers.push({ h: 10, vs: 300, rho: 1800, damping: 0.05 });
+      renderLayers();
+      requestCompute();
+    });
+
+    document.getElementById('rock-vs').addEventListener('input', requestCompute);
+    document.getElementById('rock-rho').addEventListener('input', requestCompute);
+    document.getElementById('rock-damp').addEventListener('input', requestCompute);
+    document.getElementById('f-max').addEventListener('input', requestCompute);
+    document.getElementById('n-freqs').addEventListener('input', requestCompute);
+    document.getElementById('use-gpu').addEventListener('change', requestCompute);
+
+    function getRock() {
+      return {
+        vs: Number(document.getElementById('rock-vs').value),
+        rho: Number(document.getElementById('rock-rho').value),
+        damping: Number(document.getElementById('rock-damp').value)
+      };
+    }
+
+    function drawProfile() {
+      const canvas = document.getElementById('profile-canvas');
+      const rect = canvas.parentElement.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      const logicalWidth = rect.width > 0 ? rect.width : 100;
+      const logicalHeight = rect.height > 0 ? rect.height : 400;
+      
+      canvas.width = logicalWidth * dpr;
+      canvas.height = logicalHeight * dpr;
+      
+      const ctx = canvas.getContext('2d');
+      ctx.scale(dpr, dpr);
+      const w = logicalWidth, h = logicalHeight;
+      ctx.clearRect(0, 0, w, h);
+      
+      const totalDepth = layers.reduce((acc, l) => acc + l.h, 0);
+      const scale = (h - 40) / (totalDepth || 1); // leave space for rock
+      
+      let y = 0;
+      
+      const textColor = getComputedStyle(document.documentElement).getPropertyValue('--text-strong').trim() || '#000000';
+
+      layers.forEach((layer, idx) => {
+        const lh = layer.h * scale;
+        ctx.fillStyle = idx % 2 === 0 ? 'rgba(169, 116, 97, 0.2)' : 'rgba(169, 116, 97, 0.4)';
+        ctx.fillRect(10, y, w - 20, lh);
+        ctx.strokeRect(10, y, w - 20, lh);
+        
+        ctx.fillStyle = textColor;
+        ctx.font = 'bold 13px "Segoe UI", sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(`L${idx+1}: ${layer.h}m`, w/2, y + lh/2);
+        
+        y += lh;
+      });
+      
+      // Rock
+      ctx.fillStyle = 'rgba(100, 100, 100, 0.3)';
+      ctx.fillRect(10, y, w - 20, h - y);
+      ctx.strokeRect(10, y, w - 20, h - y);
+      ctx.fillStyle = textColor;
+      ctx.font = 'bold 13px "Segoe UI", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(`Rock (∞)`, w/2, y + (h - y)/2);
+    }
+
+    async function computeAndPlot() {
+      const f_max = Number(document.getElementById('f-max').value) || 25;
+      const n_freqs = Number(document.getElementById('n-freqs').value) || 2000;
+      const rock = getRock();
+      const useGPU = document.getElementById('use-gpu').checked;
+      
+      const statusIndicator = document.getElementById('compute-status');
+      statusIndicator.style.display = 'block';
+      
+      let webGpuData = null;
+      if (useGPU) {
+        webGpuData = await computeTF_WebGPU(layers, rock, f_max, n_freqs);
+      }
+      
+      let res;
+      if (webGpuData) {
+        res = webGpuData.res;
+        statusIndicator.innerHTML = `Computed using <strong>WebGPU Acceleration</strong> 🚀<br><span style="font-size:0.8rem; font-weight:normal; opacity:0.85;">Hardware detected: ${webGpuData.gpuName}</span>`;
+        statusIndicator.className = 'status-indicator status-webgpu';
+      } else {
+        res = computeTF_CPU(layers, rock, f_max, n_freqs);
+        statusIndicator.innerHTML = `Computed using <strong>CPU Fallback</strong> ⚙️<br><span style="font-size:0.8rem; font-weight:normal; opacity:0.85;">Use Chrome or Edge to enable true WebGPU acceleration.</span>`;
+        statusIndicator.className = 'status-indicator status-cpu';
+      }
+      
+      // Find summary values
+      const maxMag = Math.max(...res.mag);
+      const maxMagIdx = res.mag.indexOf(maxMag);
+      const f0 = res.f[maxMagIdx];
+      const totalDepth = layers.reduce((acc, l) => acc + l.h, 0);
+      
+      document.getElementById('summary').style.display = 'block';
+      document.getElementById('summary').innerHTML = `
+        <strong>Summary</strong><br>
+        Total Depth: ${totalDepth.toFixed(2)} m<br>
+        Est. Fundamental Frequency (f0): ${f0.toFixed(2)} Hz<br>
+        Peak Amplification: ${maxMag.toFixed(2)}
+      `;
+
+      const selectedTheme = document.documentElement.getAttribute("data-theme") || "system";
+      const isDark = selectedTheme === "dark" || (selectedTheme === "system" && window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches);
+      
+      const fontColor = isDark ? "#f2e7df" : "#302823";
+      const gridColor = isDark ? "rgba(255,255,255,0.14)" : "rgba(127,127,127,0.16)";
+      const magLineColor = isDark ? "#d6a08b" : "#a97461";
+      const phaseLineColor = isDark ? "#9ec5d1" : "#3c4c59";
+
+      Plotly.react('plot-mag', [{
+        x: res.f, y: res.mag, type: 'scatter', mode: 'lines', line: { color: magLineColor, width: 2 }
+      }], {
+        margin: { l: 45, r: 15, t: 25, b: 30 },
+        paper_bgcolor: 'transparent', plot_bgcolor: 'transparent', font: { color: fontColor },
+        xaxis: { title: 'Frequency (Hz)', gridcolor: gridColor },
+        yaxis: { title: 'Magnitude (u_top / u_base)', gridcolor: gridColor }
+      }, { displayModeBar: false, responsive: true });
+      
+      Plotly.react('plot-phase', [{
+        x: res.f, y: res.phase, type: 'scatter', mode: 'lines', line: { color: phaseLineColor, width: 2 }
+      }], {
+        margin: { l: 45, r: 15, t: 25, b: 30 },
+        paper_bgcolor: 'transparent', plot_bgcolor: 'transparent', font: { color: fontColor },
+        xaxis: { title: 'Frequency (Hz)', gridcolor: gridColor },
+        yaxis: { title: 'Phase (rad)', gridcolor: gridColor }
+      }, { displayModeBar: false, responsive: true });
+      
+      // Update canvas profile theme on plot redraw
+      drawProfile();
+    }
+
+    // Theme Logic
+    function storedTheme() { return localStorage.getItem("theme") || "system"; }
+    function prefersDark() { return window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches; }
+    function applyTheme(theme, shouldUpdate = true) {
+      document.documentElement.setAttribute("data-theme", theme);
+      localStorage.setItem("theme", theme);
+      const nextTheme = theme === "system" ? "light" : theme === "light" ? "dark" : "system";
+      document.getElementById('theme-toggle').setAttribute(
+        "aria-label",
+        nextTheme === "system" ? "Switch to system theme" : nextTheme === "light" ? "Switch to light theme" : "Switch to dark theme"
+      );
+      if (shouldUpdate) requestCompute();
+    }
+    function initializeTheme() { applyTheme(storedTheme(), false); }
+    function toggleTheme() {
+      const current = document.documentElement.getAttribute("data-theme") || "system";
+      if (current === "system") applyTheme("light");
+      else if (current === "light") applyTheme("dark");
+      else applyTheme("system");
+    }
+    
+    document.getElementById('theme-toggle').addEventListener("click", toggleTheme);
+    if (window.matchMedia) {
+      window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
+        if (storedTheme() === "system") requestCompute();
+      });
+    }
+    
+    window.addEventListener("storage", (e) => {
+      if (e.key === "theme") {
+        applyTheme(e.newValue || "system", true);
+      }
+    });
+    
+    initializeTheme();
+
+    // Initial render
+    renderLayers();
+    setTimeout(computeAndPlot, 100);
+  </script>
+</body>
+</html>

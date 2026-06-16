@@ -692,7 +692,7 @@
   <span class="md-ellipsis">
     
   
-    Constraints and Interfaces
+    Interfaces
   
 
     
@@ -11797,7 +11797,7 @@
 1. Gathers all independent parts.
 2. Combines their coordinate meshes into a single global grid: <code>model.assembled_mesh</code>.
 3. Performs a spatial sweep, merging coincident points that lie within a specified distance (<code>tolerance=1e-5</code>) to establish continuous elements.
-4. Triggers the event bus (<code>PRE_ASSEMBLE</code>, <code>POST_ASSEMBLE</code>) to allow sub-managers (such as constraints, interfaces, and boundary absorbers) to calculate node contacts and apply mathematical constraints to the unified grid.</p>
+4. Triggers the event bus (<code>PRE_ASSEMBLE</code>, <code>POST_ASSEMBLE</code>) to allow sub-managers (such as interfaces, boundary absorbers, and later assembled-model behaviors) to update the unified grid.</p>
 <hr />
 <h2 id="where-it-fits">Where It Fits</h2>
 <p>Assembly acts as the boundary between the geometry definition phase and the execution configuration phase:</p>
@@ -11852,7 +11852,7 @@
 <h2 id="related-concepts">Related Concepts</h2>
 <ul>
 <li><a href="../mesh-parts/">Mesh Parts</a>: Define the source geometries compiled by the assembler.</li>
-<li><a href="../constraints-and-interfaces/">Constraints and Interfaces</a>: Learn how connections execute during assembly events.</li>
+<li><a href="../constraints-and-interfaces/">Interfaces</a>: Learn how mesh-part relationships execute during assembly events.</li>
 <li><a href="../tags-sources-regions-and-groups/">Tags, Sources, Regions, and Groups</a>: See how to organize the assembled grid.</li>
 </ul>
 
@@ -11887,7 +11887,7 @@
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href="../constraints-and-interfaces/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Constraints and Interfaces">
+          <a href="../constraints-and-interfaces/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Interfaces">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
@@ -11897,7 +11897,7 @@
                 Previous
               </span>
               <div class="md-ellipsis">
-                Constraints and Interfaces
+                Interfaces
               </div>
             </div>
           </a>

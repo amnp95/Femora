@@ -25,7 +25,7 @@
     
     
       
-        <title>Constraints and Interfaces - Femora</title>
+        <title>Interfaces - Femora</title>
       
     
     
@@ -80,7 +80,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#constraints-and-interfaces" class="md-skip">
+        <a href="#interfaces" class="md-skip">
           Skip to content
         </a>
       
@@ -113,7 +113,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Constraints and Interfaces
+              Interfaces
             
           </span>
         </div>
@@ -701,7 +701,7 @@
   <span class="md-ellipsis">
     
   
-    Constraints and Interfaces
+    Interfaces
   
 
     
@@ -721,7 +721,7 @@
   <span class="md-ellipsis">
     
   
-    Constraints and Interfaces
+    Interfaces
   
 
     
@@ -769,10 +769,32 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#minimal-example" class="md-nav__link">
+  <a href="#what-interfaces-mean-in-femora" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Minimal Example
+        What Interfaces Mean In Femora
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-main-workflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Main Workflow
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#minimal-examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Minimal Examples
       
     </span>
   </a>
@@ -791,10 +813,43 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#what-happens-under-the-hood" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What Happens Under The Hood
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-interfaces-are-not" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What Interfaces Are Not
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#common-mistakes" class="md-nav__link">
     <span class="md-ellipsis">
       
         Common Mistakes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#how-to-proceed-in-practice" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How To Proceed In Practice
       
     </span>
   </a>
@@ -11725,10 +11780,32 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#minimal-example" class="md-nav__link">
+  <a href="#what-interfaces-mean-in-femora" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Minimal Example
+        What Interfaces Mean In Femora
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-main-workflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Main Workflow
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#minimal-examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Minimal Examples
       
     </span>
   </a>
@@ -11747,10 +11824,43 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#what-happens-under-the-hood" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What Happens Under The Hood
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-interfaces-are-not" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What Interfaces Are Not
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#common-mistakes" class="md-nav__link">
     <span class="md-ellipsis">
       
         Common Mistakes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#how-to-proceed-in-practice" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How To Proceed In Practice
       
     </span>
   </a>
@@ -11788,65 +11898,219 @@
   
 
 
-<h1 id="constraints-and-interfaces">Constraints and Interfaces</h1>
-<p>Boundary conditions and spatial connections between independent mesh parts are defined using Constraints and Interfaces.</p>
+<h1 id="interfaces">Interfaces</h1>
+<p>Interfaces describe relationships between mesh parts that should be resolved during assembly instead of being hard-coded into one conforming mesh up front.</p>
+<p>In other words, mesh parts define geometry separately, and interfaces tell Femora how those separate pieces should interact when the global model is compiled.</p>
 <hr />
 <h2 id="mental-model">Mental Model</h2>
+<p>Think of interfaces as <strong>declared relationships</strong> rather than finished connectivity.</p>
+<pre class="mermaid"><code>flowchart LR
+    parts["Mesh parts&lt;br/&gt;independent geometry"]
+    interface["Interface declaration&lt;br/&gt;relationship rule"]
+    assembly{{"Assembly&lt;br/&gt;search + resolve"}}
+    model["Assembled model&lt;br/&gt;new constraints / metadata / updates"]
+
+    parts --&gt; interface
+    interface --&gt; assembly
+    assembly --&gt; model
+
+    classDef stage stroke-width:1px;
+    classDef compile stroke-width:2px;
+
+    class parts,interface,model stage;
+    class assembly compile;</code></pre>
+<p>An interface usually means one of these ideas:</p>
 <ul>
-<li><strong>Constraints</strong>: Mathematical rules applied directly to degrees of freedom (DOFs) at specific node coordinates.</li>
-<li><strong>Single-Point Constraints (SP)</strong>: Enforce fixities or boundary walls (e.g., locking the base nodes to prevent motion).</li>
-<li><strong>Multi-Point Constraints (MP)</strong>: Link the DOFs of different nodes together (e.g. enforcing that boundary nodes move in unison).</li>
-<li><strong>Interfaces</strong>: High-level modeling constructs used to connect separate <a href="../mesh-parts/">Mesh Parts</a> that do not share nodes initially (e.g., embedding a pile column inside a solid soil domain).</li>
+<li>one part is embedded inside another</li>
+<li>one set of cells should search for nearby host cells</li>
+<li>one boundary treatment should be generated from the assembled model</li>
 </ul>
-<p>Instead of forcing you to build a single conformal mesh where all parts share matching nodes along boundaries, Femora allows you to mesh parts independently and declare logical interfaces to link them. The interface handles resolving these connections during compilation.</p>
+<p>The important point is that the interface is <strong>declared before assembly</strong>, but most of its real work happens <strong>during assembly events</strong>.</p>
+<details class="note" open="open">
+<summary>Interfaces are not just geometry</summary>
+<p>A mesh part answers: "what geometry do I have?" An interface answers: "how should two already-defined parts relate once Femora sees the full assembled model?"</p>
+</details>
 <hr />
 <h2 id="where-it-fits">Where It Fits</h2>
-<p>Constraints and Interfaces are declared <strong>before</strong> assembly. They register to listen for compiler events, executing their search and intersection operations only when the final model is compiled:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>Instantiate Mesh Parts
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>   └─ Declare Interfaces (e.g. beam_solid_interface)
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>        └─ Compile via Assembly Section
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>             └─ [Assembly Event: POST_ASSEMBLE]
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>                  └─ Interfaces search coordinates, find overlapping cells, 
-<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>                     and generate mathematical constraints on the assembled mesh
+<p>Interfaces belong after mesh parts and before assembly.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>Building blocks
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>  -&gt; mesh parts
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>  -&gt; interfaces
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>  -&gt; assembly
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>  -&gt; constraints, loads, damping, recorders, analysis
 </code></pre></div>
+<p>That ordering matters because an interface usually needs:</p>
+<ol>
+<li>mesh parts to already exist</li>
+<li>the assembled mesh to perform search, filtering, or conflict resolution</li>
+</ol>
+<p>So interfaces sit at the boundary between <strong>local modeling</strong> and <strong>global compilation</strong>.</p>
 <hr />
-<h2 id="minimal-example">Minimal Example</h2>
-<p>Fixing base boundary DOFs and embedding a beam pile part into a solid soil volume:</p>
+<h2 id="what-interfaces-mean-in-femora">What Interfaces Mean In Femora</h2>
+<p>Femora interfaces are model objects managed under <code>model.interface</code>.</p>
+<p>They are useful when you do <strong>not</strong> want to force everything into one perfectly matching mesh by hand. Instead, you let Femora inspect the assembled model and generate the needed relationships.</p>
+<p>Current interface ideas in Femora include:</p>
+<table>
+<thead>
+<tr>
+<th>Interface idea</th>
+<th>What it connects or generates</th>
+<th>Typical use</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Embedded beam-solid interface</td>
+<td>A line mesh part inside surrounding solid cells</td>
+<td>Piles, embedded beams, beam-soil interaction</td>
+</tr>
+<tr>
+<td>Embedded node interface</td>
+<td>Node-based embedding relationship</td>
+<td>Specialized node-to-domain coupling</td>
+</tr>
+<tr>
+<td>Boundary absorber</td>
+<td>New absorbing boundary layers derived from the assembled model</td>
+<td>Truncating wave-reflecting boundaries</td>
+</tr>
+</tbody>
+</table>
+<p>This page focuses on the concept. The exact API surface comes from the interface manager and interface components.</p>
+<hr />
+<h2 id="the-main-workflow">The Main Workflow</h2>
+<p>For most users, the interface workflow is:</p>
+<ol>
+<li>Create the mesh parts independently.</li>
+<li>Declare the interface by naming the participating parts.</li>
+<li>Run assembly.</li>
+<li>Let Femora resolve the relationship during event-driven assembly steps.</li>
+</ol>
+<p>This is different from manually writing node-by-node constraints after export. The interface stays as a higher-level modeling object inside Femora.</p>
+<hr />
+<h2 id="minimal-examples">Minimal Examples</h2>
+<div class="tabbed-set tabbed-alternate" data-tabs="1:2"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><input id="__tabbed_1_2" name="__tabbed_1" type="radio" /><div class="tabbed-labels"><label for="__tabbed_1_1">Embedded beam in solids</label><label for="__tabbed_1_2">Boundary absorber</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<p>This is the most important interface pattern in the current workflow.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">femora.core.model</span><span class="w"> </span><span class="kn">import</span> <span class="n">Model</span>
 <a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>
 <a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="n">model</span> <span class="o">=</span> <span class="n">Model</span><span class="p">()</span>
 <a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>
-<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="c1"># 1. Define single-point (SP) fixity constraints on boundary faces</span>
-<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="c1"># Fixes all three translation DOFs at the minimum Z boundary coordinate</span>
-<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="n">model</span><span class="o">.</span><span class="n">constraint</span><span class="o">.</span><span class="n">sp</span><span class="o">.</span><span class="n">fix_macro_z_min</span><span class="p">(</span><span class="n">dofs</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">tol</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">)</span>
-<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>
-<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="c1"># 2. Define an interface to connect a line part with solid volume parts</span>
-<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="c1"># Note: This is declared before assembly, and evaluates once assembly runs</span>
-<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="n">pile_contact</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">interface</span><span class="o">.</span><span class="n">beam_solid_interface</span><span class="p">(</span>
-<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a>    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;pile_soil_interface&quot;</span><span class="p">,</span>
-<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a>    <span class="n">beam_part</span><span class="o">=</span><span class="s2">&quot;pile&quot;</span><span class="p">,</span>
-<a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a>    <span class="n">solid_parts</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;soil_box&quot;</span><span class="p">],</span>
-<a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a>    <span class="n">radius</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
-<a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a><span class="p">)</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="c1"># Assume &quot;pile&quot; is a line mesh part and &quot;soil_box&quot; is a solid mesh part.</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="n">interface</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">interface</span><span class="o">.</span><span class="n">beam_solid_interface</span><span class="p">(</span>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;pile_soil_interface&quot;</span><span class="p">,</span>
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>    <span class="n">beam_part</span><span class="o">=</span><span class="s2">&quot;pile&quot;</span><span class="p">,</span>
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>    <span class="n">solid_parts</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;soil_box&quot;</span><span class="p">],</span>
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>    <span class="n">radius</span><span class="o">=</span><span class="mf">0.50</span><span class="p">,</span>
+<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>    <span class="n">n_peri</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span>
+<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a>    <span class="n">n_long</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a>    <span class="n">penalty_param</span><span class="o">=</span><span class="mf">1.0e12</span><span class="p">,</span>
+<a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a>    <span class="n">g_penalty</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a><span class="p">)</span>
+<a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a>
+<a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a><span class="n">model</span><span class="o">.</span><span class="n">assembler</span><span class="o">.</span><span class="n">create_section</span><span class="p">(</span>
+<a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a>    <span class="n">meshparts</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;pile&quot;</span><span class="p">,</span> <span class="s2">&quot;soil_box&quot;</span><span class="p">],</span>
+<a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a>    <span class="n">merge_points</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<a id="__codelineno-1-20" name="__codelineno-1-20" href="#__codelineno-1-20"></a><span class="p">)</span>
+<a id="__codelineno-1-21" name="__codelineno-1-21" href="#__codelineno-1-21"></a><span class="n">model</span><span class="o">.</span><span class="n">assembler</span><span class="o">.</span><span class="n">assemble</span><span class="p">()</span>
 </code></pre></div>
-<p>For more options, refer to the <a href="../reference/core/sp_constraint_manager.md">SpConstraintManager API Reference</a> and <a href="../reference/core/interface_base.md">InterfaceManager API Reference</a>.</p>
+<p>Here the interface is declared before assembly, but the surrounding-solid search and embedded relationship generation happen only when the assembled model exists.</p>
+</div>
+<div class="tabbed-block">
+<p>Some interfaces are not part-to-part embedding relationships. They are assembly-time boundary treatments.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">femora.core.model</span><span class="w"> </span><span class="kn">import</span> <span class="n">Model</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="n">model</span> <span class="o">=</span> <span class="n">Model</span><span class="p">()</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="n">model</span><span class="o">.</span><span class="n">interface</span><span class="o">.</span><span class="n">boundary</span><span class="o">.</span><span class="n">absorber</span><span class="p">(</span>
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>    <span class="n">num_layers</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>    <span class="n">geometry</span><span class="o">=</span><span class="s2">&quot;rectangular&quot;</span><span class="p">,</span>
+<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>    <span class="n">boundary_type</span><span class="o">=</span><span class="s2">&quot;dashpot&quot;</span><span class="p">,</span>
+<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>    <span class="n">rayleigh_damping</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span>
+<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="p">)</span>
+<a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a>
+<a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a><span class="n">model</span><span class="o">.</span><span class="n">assembler</span><span class="o">.</span><span class="n">assemble</span><span class="p">()</span>
+</code></pre></div>
+<p>In this pattern, the interface logic inspects the assembled boundary and then creates the absorbing treatment after assembly begins.</p>
+</div>
+</div>
+</div>
 <hr />
 <h2 id="what-femora-stores">What Femora Stores</h2>
-<p>For constraints and interfaces, Femora tracks:
-- <strong>SP/MP Constraints</strong>: Coordinate bounds, target degrees of freedom, tolerance thresholds, and target values.
-- <strong>Interfaces</strong>: Target beam parts, solid parts, cross-sectional geometry properties (e.g. shape, radius), and numerical penalty parameters.
-- <strong>Event Listeners</strong>: Internal subscriptions to compiler stages like <code>POST_ASSEMBLE</code> and <code>RESOLVE_CORE_CONFLICTS</code>.</p>
+<p>When you create an interface, Femora stores the <strong>relationship definition</strong>, not just a final Tcl line.</p>
+<p>Depending on the interface type, that can include:</p>
+<ul>
+<li>referenced mesh parts</li>
+<li>geometric search parameters such as radius or section envelope settings</li>
+<li>discretization controls such as <code>n_peri</code> and <code>n_long</code></li>
+<li>penalty settings and formulation flags</li>
+<li>event subscriptions for assembly-time execution</li>
+<li>generated embedded information used for conflict resolution across cores</li>
+</ul>
+<p>Conceptually, an interface is a model object that waits for the right assembly stage to do its work.</p>
+<details class="tip" open="open">
+<summary>This is why interfaces are easier to debug than raw solver commands</summary>
+<p>Because the interface exists as a Femora object before export, you can inspect names, owners, participating parts, and often plot or trace the relationship before committing to the final solver script.</p>
+</details>
+<hr />
+<h2 id="what-happens-under-the-hood">What Happens Under The Hood</h2>
+<p>The interface system is event-driven.</p>
+<p>The manager and component code show that interfaces subscribe to model events such as:</p>
+<ul>
+<li><code>POST_ASSEMBLE</code></li>
+<li><code>RESOLVE_CORE_CONFLICTS</code></li>
+</ul>
+<p>That means Femora can:</p>
+<ul>
+<li>wait until the full assembled mesh exists</li>
+<li>search only the relevant cells or parts</li>
+<li>generate embedded/contact information</li>
+<li>resolve conflicts when parallel cores or overlapping interface results need cleanup</li>
+</ul>
+<p>This is the main reason interfaces belong conceptually before assembly but computationally act during assembly.</p>
+<hr />
+<h2 id="what-interfaces-are-not">What Interfaces Are Not</h2>
+<p>Interfaces are not the same thing as ordinary constraints.</p>
+<ul>
+<li>Interfaces start from mesh-part relationships and assembly-time search.</li>
+<li>Constraints usually start from already-known nodes, DOFs, or assembled selections.</li>
+</ul>
+<p>So even though both can eventually affect the solver domain, they solve different modeling problems.</p>
+<p>Constraints belong later in the concept chain because users usually think about them after the assembled model exists.</p>
 <hr />
 <h2 id="common-mistakes">Common Mistakes</h2>
 <details class="warning" open="open">
-<summary>Interfaces do not physically merge nodes</summary>
-<p>Do not use interfaces when you want two touching grids to behave as a single continuous volume. If parts are meant to be physically continuous, the assembler's node-merging step will combine their overlapping points automatically. Use interfaces only to resolve contact surfaces, apply slip conditions, or embed line elements inside solid volumes.</p>
+<summary>Do not use an interface when simple node merging is enough</summary>
+<p>If two mesh parts are meant to become one continuous domain and their coincident points should simply be merged, ordinary assembly point merging is the simpler path. Use an interface only when you need a declared relationship beyond shared nodes.</p>
 </details>
+<details class="warning" open="open">
+<summary>Do not think of interfaces as immediate solver commands</summary>
+<p>Creating an interface object does not finish the connection. The heavy work usually happens when <code>model.assembler.assemble()</code> triggers the relevant model events.</p>
+</details>
+<details class="warning" open="open">
+<summary>Make the participating parts explicit when needed</summary>
+<p>For embedded workflows, restricting the relevant solid parts is often clearer and more controllable than letting the search operate over everything.</p>
+</details>
+<details class="tip" open="open">
+<summary>Use interfaces to keep complex coupling readable</summary>
+<p>A named interface such as <code>"pile_soil_interface"</code> is far easier to inspect and maintain than scattering equivalent coupling logic throughout a long hand-written solver script.</p>
+</details>
+<hr />
+<h2 id="how-to-proceed-in-practice">How To Proceed In Practice</h2>
+<p>When you reach interfaces in a model, ask:</p>
+<ol>
+<li>Are these parts truly separate sources that need a relationship?</li>
+<li>Should assembly point merging handle the connection automatically?</li>
+<li>If not, what interface object best expresses the intended coupling?</li>
+<li>Which participating parts should the interface search or modify?</li>
+</ol>
+<p>Once those answers are clear, define the interface and move on to assembly.</p>
 <hr />
 <h2 id="related-concepts">Related Concepts</h2>
 <ul>
-<li><a href="../mesh-parts/">Mesh Parts</a>: Define the parts connected by interfaces.</li>
-<li><a href="../assembly/">Assembly</a>: Explore the compile phase where interface searches are executed.</li>
+<li><a href="../mesh-parts/">Mesh Parts</a>: Define the independent geometric sources that interfaces relate.</li>
+<li><a href="../assembly/">Assembly</a>: The stage where interface searches and updates actually run.</li>
 </ul>
 
 

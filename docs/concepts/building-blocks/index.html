@@ -851,7 +851,7 @@
   <span class="md-ellipsis">
     
   
-    Constraints and Interfaces
+    Interfaces
   
 
     
@@ -11904,6 +11904,11 @@
 <details class="note" open="open">
 <summary>Building block first, geometry second</summary>
 <p>A mesh part usually needs an element template. The element template usually needs a material, section, or transformation first.</p>
+</details>
+<details class="tip" open="open">
+<summary>Femora checks consistency</summary>
+<p>Femora does not only store building blocks. It also validates many of the relationships between them. For example, referenced dependencies usually need to belong to the same <code>Model</code>, some section families require compatible material families, and invalid transformation inputs are rejected early.</p>
+<p>This helps catch many modeling mistakes before export or analysis. It does not mean Femora automatically proves that every chosen formulation is mechanically appropriate. That part still depends on engineering judgment.</p>
 </details>
 <hr />
 <h2 id="how-to-think">How To Think</h2>
