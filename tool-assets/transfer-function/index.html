@@ -95,11 +95,31 @@
     .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
     h1 { margin: 0 0 10px; font-size: 2.5rem; }
     .lead { margin: 0; color: var(--muted); line-height: 1.6; }
-    .grid { display: grid; grid-template-columns: 460px 100px 1fr; gap: 16px; align-items: stretch; }
+    .grid { display: grid; grid-template-columns: 460px 320px 1fr; gap: 16px; align-items: stretch; }
     .panel { border: 1px solid var(--border); border-radius: 16px; background: var(--panel-strong); box-shadow: var(--shadow); overflow: hidden; display: flex; flex-direction: column; height: 100%; }
     .panel-head { padding: 12px 16px; border-bottom: 1px solid var(--border); background: var(--primary-soft); }
     .panel-head h2 { margin: 0; font-size: 0.95rem; }
     .panel-body { padding: 16px; flex: 1; display: flex; flex-direction: column; }
+    .profile-panel-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+    .profile-settings-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
+    .profile-tabs { display: inline-flex; gap: 6px; }
+    .profile-tab {
+      padding: 6px 10px; border: 1px solid var(--border); border-radius: 999px; background: transparent;
+      color: var(--text); cursor: pointer; font-size: 0.75rem; font-weight: 700;
+    }
+    .profile-tab.is-active { background: var(--primary); border-color: var(--primary); color: #fff; }
+    .profile-toolbar {
+      display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 12px;
+      border-bottom: 1px solid var(--border); background: rgba(0,0,0,0.02);
+    }
+    .profile-toolbar.hidden { display: none; }
+    .profile-toolbar .field-inline { display: flex; align-items: center; gap: 6px; font-size: 0.78rem; font-weight: 700; }
+    .profile-toolbar input {
+      width: 84px; padding: 5px 7px; border: 1px solid var(--border); border-radius: 6px;
+      background: transparent; color: var(--text); font-size: 0.8rem;
+    }
+    .profile-help { padding: 8px 12px 0; color: var(--muted); font-size: 0.78rem; line-height: 1.4; }
+    .hidden { display: none !important; }
     .layers-table { width: 100%; border-collapse: collapse; margin-bottom: 8px; font-size: 0.85rem; }
     .layers-table th { text-align: left; padding: 6px 4px; border-bottom: 2px solid var(--border); color: var(--text-strong); font-weight: 700; font-size: 0.75rem; }
     .layers-table td { padding: 4px; border-bottom: 1px solid var(--border); }
@@ -159,6 +179,31 @@
       <section class="panel">
         <div class="panel-head"><h2>Profile Settings</h2></div>
         <div class="panel-body">
+          <div class="profile-settings-head">
+            <div class="profile-tabs">
+              <button class="profile-tab is-active" id="settings-tab-layers" type="button">Layers</button>
+              <button class="profile-tab" id="settings-tab-vs" type="button">Vs-depth</button>
+            </div>
+          </div>
+          <div id="settings-vs-controls" class="hidden" style="margin-bottom: 10px;">
+            <div class="profile-toolbar" style="padding-left: 0; padding-right: 0; border-top: 1px solid transparent;">
+              <div class="field-inline">
+                <label for="settings-profile-dz">Î”z (m)</label>
+                <input type="number" id="settings-profile-dz" min="0.05" step="0.05" value="1.0">
+              </div>
+              <button class="btn" id="settings-profile-reset-vs" type="button" style="padding: 6px 10px; font-size: 0.78rem;">Reset from layers</button>
+            </div>
+            <div class="profile-help" style="padding-left: 0; padding-right: 0;">
+              The profile panel will show a discretized Vs-depth step plot. Drag the blue step segments left or right to modify shear-wave velocity for each depth interval.
+            </div>
+            <div style="display:flex; gap:8px; margin-top:10px;">
+              <button class="btn profile-edit-mode is-active" id="vs-mode-step" type="button" style="padding: 6px 10px; font-size: 0.78rem;">Step edit</button>
+              <button class="btn profile-edit-mode" id="vs-mode-line" type="button" style="padding: 6px 10px; font-size: 0.78rem;">Draw line</button>
+            </div>
+            <div class="profile-help" style="padding-left: 0; padding-right: 0; margin-top: 6px;">
+              In draw-line mode, click inside the plot to add control points, drag points to reshape the line, and right-click a point to remove it.
+            </div>
+          </div>
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
             <div class="section-title" style="margin: 0;">Soil Layers</div>
             <button class="btn" id="add-layer-btn" style="padding: 4px 8px; font-size: 0.75rem;">+ Add Layer</button>
@@ -205,7 +250,23 @@
       </section>
       
       <section class="panel">
-        <div class="panel-head"><h2>Profile</h2></div>
+        <div class="panel-head profile-panel-head" style="display:none;">
+          <h2>Profile</h2>
+          <div class="profile-tabs">
+            <button class="profile-tab is-active" id="profile-tab-layers" type="button">Layers</button>
+            <button class="profile-tab" id="profile-tab-vs" type="button">Vs-depth</button>
+          </div>
+        </div>
+        <div class="profile-toolbar hidden" id="profile-toolbar-vs" style="display:none;">
+          <div class="field-inline">
+            <label for="profile-dz">Δz (m)</label>
+            <input type="number" id="profile-dz" min="0.05" step="0.05" value="1.0">
+          </div>
+          <button class="btn" id="profile-reset-vs" type="button" style="padding: 6px 10px; font-size: 0.78rem;">Reset from layers</button>
+        </div>
+        <div class="profile-help hidden" id="profile-help-vs" style="display:none;">
+          Drag the blue step segments left or right to modify shear-wave velocity for each discretized depth interval.
+        </div>
         <div class="panel-body profile-container" style="padding: 0; position: relative;">
           <canvas id="profile-canvas" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"></canvas>
         </div>
@@ -496,8 +557,30 @@
       { h: 2, vs: 200, rho: 1500, damping: 0.05 },
       { h: 54, vs: 400, rho: 1500, damping: 0.05 }
     ];
+    let activeProfileTab = 'layers';
+    let vsEditMode = 'step';
+    let discretizedProfile = [];
+    let vsEditorGeometry = null;
+    let vsDragState = null;
+    let lineControlPoints = [];
+    let lineEditorGeometry = null;
 
     const layersTbody = document.getElementById('layers-tbody');
+    const profileCanvas = document.getElementById('profile-canvas');
+    const profileDzInput = document.getElementById('profile-dz');
+    const profileToolbarVs = document.getElementById('profile-toolbar-vs');
+    const profileHelpVs = document.getElementById('profile-help-vs');
+    const profileTabLayers = document.getElementById('profile-tab-layers');
+    const profileTabVs = document.getElementById('profile-tab-vs');
+    const settingsTabLayers = document.getElementById('settings-tab-layers');
+    const settingsTabVs = document.getElementById('settings-tab-vs');
+    const settingsVsControls = document.getElementById('settings-vs-controls');
+    const settingsProfileDzInput = document.getElementById('settings-profile-dz');
+    const settingsProfileResetVs = document.getElementById('settings-profile-reset-vs');
+    const vsModeStepButton = document.getElementById('vs-mode-step');
+    const vsModeLineButton = document.getElementById('vs-mode-line');
+    document.querySelector('label[for="profile-dz"]').textContent = 'delta z (m)';
+    document.querySelector('label[for="settings-profile-dz"]').textContent = 'delta z (m)';
     
     function renderLayers() {
       layersTbody.innerHTML = '';
@@ -515,7 +598,179 @@
         `;
         layersTbody.appendChild(tr);
       });
+      refreshVsDerivedData();
       drawProfile();
+    }
+
+    function discretizeLayers(sourceLayers, dz) {
+      const bins = [];
+      const safeDz = Math.max(0.05, Number(dz) || 1.0);
+      sourceLayers.forEach((layer) => {
+        let remaining = Number(layer.h);
+        while (remaining > 1e-9) {
+          const h = Math.min(safeDz, remaining);
+          bins.push({
+            h,
+            vs: Number(layer.vs),
+            rho: Number(layer.rho),
+            damping: Number(layer.damping),
+          });
+          remaining -= h;
+        }
+      });
+      return bins;
+    }
+
+    function compressBinsToLayers(bins) {
+      if (!bins.length) return [];
+      const compressed = [];
+      const tol = 1e-9;
+      bins.forEach((bin) => {
+        const last = compressed[compressed.length - 1];
+        if (
+          last &&
+          Math.abs(last.vs - bin.vs) < tol &&
+          Math.abs(last.rho - bin.rho) < tol &&
+          Math.abs(last.damping - bin.damping) < tol
+        ) {
+          last.h += Number(bin.h);
+        } else {
+          compressed.push({
+            h: Number(bin.h),
+            vs: Number(bin.vs),
+            rho: Number(bin.rho),
+            damping: Number(bin.damping),
+          });
+        }
+      });
+      return compressed;
+    }
+
+    function resetDiscretizedProfileFromLayers() {
+      discretizedProfile = discretizeLayers(layers, Number(profileDzInput.value));
+    }
+
+    function getTotalDepthFromLayers() {
+      return layers.reduce((acc, layer) => acc + Number(layer.h || 0), 0);
+    }
+
+    function buildLineControlPointsFromLayers() {
+      const points = [];
+      let depth = 0;
+      if (!layers.length) return [{ depth: 0, vs: 200 }, { depth: 1, vs: 200 }];
+      points.push({ depth: 0, vs: Number(layers[0].vs) });
+      layers.forEach((layer) => {
+        depth += Number(layer.h);
+        points.push({ depth, vs: Number(layer.vs) });
+      });
+      return points;
+    }
+
+    function sortAndClampLineControlPoints() {
+      const totalDepth = Math.max(getTotalDepthFromLayers(), 0.1);
+      lineControlPoints.sort((a, b) => a.depth - b.depth);
+      if (!lineControlPoints.length) {
+        lineControlPoints = [{ depth: 0, vs: 200 }, { depth: totalDepth, vs: 200 }];
+      }
+      lineControlPoints[0].depth = 0;
+      lineControlPoints[lineControlPoints.length - 1].depth = totalDepth;
+      lineControlPoints.forEach((point) => {
+        point.vs = Math.max(1, Number(point.vs));
+        point.depth = Math.max(0, Math.min(totalDepth, Number(point.depth)));
+      });
+    }
+
+    function interpolateLineVs(depth) {
+      if (!lineControlPoints.length) return 0;
+      sortAndClampLineControlPoints();
+      if (depth <= lineControlPoints[0].depth) return lineControlPoints[0].vs;
+      if (depth >= lineControlPoints[lineControlPoints.length - 1].depth) {
+        return lineControlPoints[lineControlPoints.length - 1].vs;
+      }
+      for (let i = 0; i < lineControlPoints.length - 1; i++) {
+        const a = lineControlPoints[i];
+        const b = lineControlPoints[i + 1];
+        if (depth >= a.depth && depth <= b.depth) {
+          const span = Math.max(b.depth - a.depth, 1e-9);
+          const t = (depth - a.depth) / span;
+          return a.vs + t * (b.vs - a.vs);
+        }
+      }
+      return lineControlPoints[lineControlPoints.length - 1].vs;
+    }
+
+    function layerPropertiesAtDepth(depth) {
+      let running = 0;
+      for (const layer of layers) {
+        running += Number(layer.h);
+        if (depth <= running + 1e-9) {
+          return { rho: Number(layer.rho), damping: Number(layer.damping) };
+        }
+      }
+      const last = layers[layers.length - 1] || { rho: 1500, damping: 0.05 };
+      return { rho: Number(last.rho), damping: Number(last.damping) };
+    }
+
+    function updateDiscretizedProfileFromLine() {
+      sortAndClampLineControlPoints();
+      const bins = [];
+      const totalDepth = Math.max(getTotalDepthFromLayers(), 0.1);
+      const dz = Math.max(0.05, Number(profileDzInput.value) || 1.0);
+      let depth = 0;
+      while (depth < totalDepth - 1e-9) {
+        const h = Math.min(dz, totalDepth - depth);
+        const centerDepth = depth + 0.5 * h;
+        const props = layerPropertiesAtDepth(centerDepth);
+        bins.push({
+          h,
+          vs: Math.max(1, Math.round(interpolateLineVs(centerDepth))),
+          rho: props.rho,
+          damping: props.damping,
+        });
+        depth += h;
+      }
+      discretizedProfile = bins;
+    }
+
+    function refreshVsDerivedData() {
+      if (vsEditMode === 'line') {
+        if (!lineControlPoints.length) {
+          lineControlPoints = buildLineControlPointsFromLayers();
+        }
+        updateDiscretizedProfileFromLine();
+      } else {
+        resetDiscretizedProfileFromLayers();
+      }
+    }
+
+    function setVsEditMode(mode) {
+      vsEditMode = mode;
+      vsModeStepButton.classList.toggle('is-active', mode === 'step');
+      vsModeLineButton.classList.toggle('is-active', mode === 'line');
+      if (mode === 'line' && !lineControlPoints.length) {
+        lineControlPoints = buildLineControlPointsFromLayers();
+      }
+      refreshVsDerivedData();
+      drawProfile();
+      requestCompute();
+    }
+
+    function setActiveProfileTab(tab) {
+      activeProfileTab = tab;
+      profileTabLayers.classList.toggle('is-active', tab === 'layers');
+      profileTabVs.classList.toggle('is-active', tab === 'vs');
+      settingsTabLayers.classList.toggle('is-active', tab === 'layers');
+      settingsTabVs.classList.toggle('is-active', tab === 'vs');
+      profileToolbarVs.classList.add('hidden');
+      profileHelpVs.classList.add('hidden');
+      settingsVsControls.classList.toggle('hidden', tab !== 'vs');
+      drawProfile();
+    }
+
+    function syncLayersFromDiscretizedProfile() {
+      layers = compressBinsToLayers(discretizedProfile);
+      renderLayers();
+      requestCompute();
     }
 
     let computeTimeout = null;
@@ -525,7 +780,7 @@
     }
 
     window.removeLayer = (idx) => { layers.splice(idx, 1); renderLayers(); requestCompute(); };
-    window.updateLayer = (idx, key, val) => { layers[idx][key] = Number(val); drawProfile(); requestCompute(); };
+    window.updateLayer = (idx, key, val) => { layers[idx][key] = Number(val); resetDiscretizedProfileFromLayers(); drawProfile(); requestCompute(); };
     
     document.getElementById('add-layer-btn').addEventListener('click', () => {
       layers.push({ h: 10, vs: 300, rho: 1800, damping: 0.05 });
@@ -539,6 +794,35 @@
     document.getElementById('f-max').addEventListener('input', requestCompute);
     document.getElementById('n-freqs').addEventListener('input', requestCompute);
     document.getElementById('use-gpu').addEventListener('change', requestCompute);
+    settingsTabLayers.addEventListener('click', () => setActiveProfileTab('layers'));
+    settingsTabVs.addEventListener('click', () => setActiveProfileTab('vs'));
+    profileTabLayers.addEventListener('click', () => setActiveProfileTab('layers'));
+    profileTabVs.addEventListener('click', () => setActiveProfileTab('vs'));
+    profileDzInput.addEventListener('input', () => {
+      settingsProfileDzInput.value = profileDzInput.value;
+      resetDiscretizedProfileFromLayers();
+      drawProfile();
+      requestCompute();
+    });
+    settingsProfileDzInput.addEventListener('input', () => {
+      profileDzInput.value = settingsProfileDzInput.value;
+      resetDiscretizedProfileFromLayers();
+      drawProfile();
+      requestCompute();
+    });
+    document.getElementById('profile-reset-vs').addEventListener('click', () => {
+      resetDiscretizedProfileFromLayers();
+      drawProfile();
+      requestCompute();
+    });
+    settingsProfileResetVs.addEventListener('click', () => {
+      lineControlPoints = buildLineControlPointsFromLayers();
+      refreshVsDerivedData();
+      drawProfile();
+      requestCompute();
+    });
+    vsModeStepButton.addEventListener('click', () => setVsEditMode('step'));
+    vsModeLineButton.addEventListener('click', () => setVsEditMode('line'));
 
     function getRock() {
       return {
@@ -549,7 +833,7 @@
     }
 
     function drawProfile() {
-      const canvas = document.getElementById('profile-canvas');
+      const canvas = profileCanvas;
       const rect = canvas.parentElement.getBoundingClientRect();
       const dpr = window.devicePixelRatio || 1;
       const logicalWidth = rect.width > 0 ? rect.width : 100;
@@ -566,10 +850,18 @@
       const totalDepth = layers.reduce((acc, l) => acc + l.h, 0);
       const scale = (h - 40) / (totalDepth || 1); // leave space for rock
       
+      const textColor = getComputedStyle(document.documentElement).getPropertyValue('--text-strong').trim() || '#000000';
+      const primary = getComputedStyle(document.documentElement).getPropertyValue('--primary').trim() || '#a97461';
+      const border = getComputedStyle(document.documentElement).getPropertyValue('--border').trim() || 'rgba(0,0,0,0.15)';
+      const bgPanel = getComputedStyle(document.documentElement).getPropertyValue('--panel-strong').trim() || '#ffffff';
+
+      if (activeProfileTab === 'vs') {
+        drawVsDepthProfile(ctx, w, h, textColor, primary, border, bgPanel);
+        return;
+      }
+
       let y = 0;
       
-      const textColor = getComputedStyle(document.documentElement).getPropertyValue('--text-strong').trim() || '#000000';
-
       layers.forEach((layer, idx) => {
         const lh = layer.h * scale;
         ctx.fillStyle = idx % 2 === 0 ? 'rgba(169, 116, 97, 0.2)' : 'rgba(169, 116, 97, 0.4)';
@@ -595,6 +887,263 @@
       ctx.textBaseline = 'middle';
       ctx.fillText(`Rock (∞)`, w/2, y + (h - y)/2);
     }
+
+    function drawVsDepthProfile(ctx, w, h, textColor, primary, border, bgPanel) {
+      if (!discretizedProfile.length) refreshVsDerivedData();
+      const leftPad = 50;
+      const rightPad = 20;
+      const topPad = 18;
+      const bottomPad = 28;
+      const plotW = Math.max(40, w - leftPad - rightPad);
+      const plotH = Math.max(40, h - topPad - bottomPad);
+      const totalDepth = discretizedProfile.reduce((acc, bin) => acc + bin.h, 0) || 1;
+      const maxVs = Math.max(getRock().vs, ...discretizedProfile.map((bin) => bin.vs)) * 1.1;
+      const xScale = (value) => leftPad + (Math.max(0, value) / maxVs) * plotW;
+      const yScale = (depth) => topPad + (depth / totalDepth) * plotH;
+
+      ctx.fillStyle = bgPanel;
+      ctx.fillRect(0, 0, w, h);
+
+      ctx.strokeStyle = border;
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(leftPad, topPad);
+      ctx.lineTo(leftPad, topPad + plotH);
+      ctx.lineTo(leftPad + plotW, topPad + plotH);
+      ctx.stroke();
+
+      ctx.fillStyle = textColor;
+      ctx.font = '11px "Segoe UI", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'top';
+      [0.25, 0.5, 0.75, 1.0].forEach((fraction) => {
+        const vsValue = maxVs * fraction;
+        const x = xScale(vsValue);
+        ctx.strokeStyle = 'rgba(127,127,127,0.18)';
+        ctx.beginPath();
+        ctx.moveTo(x, topPad);
+        ctx.lineTo(x, topPad + plotH);
+        ctx.stroke();
+        ctx.fillText(`${Math.round(vsValue)}`, x, topPad + plotH + 6);
+      });
+
+      ctx.save();
+      ctx.translate(12, topPad + plotH / 2);
+      ctx.rotate(-Math.PI / 2);
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('Depth (m)', 0, 0);
+      ctx.restore();
+
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'top';
+      ctx.fillText('Vs (m/s)', leftPad + plotW / 2, h - 18);
+
+      vsEditorGeometry = [];
+      lineEditorGeometry = {
+        leftPad,
+        rightPad,
+        topPad,
+        bottomPad,
+        plotW,
+        plotH,
+        totalDepth,
+        maxVs,
+        points: [],
+      };
+
+      ctx.fillStyle = textColor;
+      ctx.font = '10px "Segoe UI", sans-serif';
+      ctx.textAlign = 'right';
+      ctx.textBaseline = 'middle';
+      const tickCount = 20;
+      for (let i = 0; i <= tickCount; i++) {
+        const tickDepth = (totalDepth * i) / tickCount;
+        const yTick = yScale(tickDepth);
+        ctx.strokeStyle = 'rgba(127,127,127,0.18)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(leftPad - 5, yTick);
+        ctx.lineTo(leftPad, yTick);
+        ctx.stroke();
+        ctx.fillText(`${tickDepth.toFixed(1)}`, leftPad - 8, yTick);
+      }
+
+      let depth = 0;
+      let prevX = null;
+      discretizedProfile.forEach((bin, idx) => {
+        const y0 = yScale(depth);
+        const y1 = yScale(depth + bin.h);
+        const x = xScale(bin.vs);
+        ctx.strokeStyle = primary;
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(x, y0);
+        ctx.lineTo(x, y1);
+        ctx.stroke();
+        if (prevX !== null) {
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(prevX, y0);
+          ctx.lineTo(x, y0);
+          ctx.stroke();
+        }
+        ctx.fillStyle = '#4ca3dd';
+        ctx.beginPath();
+        ctx.arc(x, (y0 + y1) / 2, 4.5, 0, Math.PI * 2);
+        ctx.fill();
+
+        vsEditorGeometry.push({ idx, y0, y1, x });
+        prevX = x;
+        depth += bin.h;
+      });
+
+      if (vsEditMode === 'line') {
+        sortAndClampLineControlPoints();
+        ctx.strokeStyle = '#4ca3dd';
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        lineControlPoints.forEach((point, idx) => {
+          const px = xScale(point.vs);
+          const py = yScale(point.depth);
+          if (idx === 0) ctx.moveTo(px, py);
+          else ctx.lineTo(px, py);
+          lineEditorGeometry.points.push({ idx, x: px, y: py });
+        });
+        ctx.stroke();
+
+        lineEditorGeometry.points.forEach((point, idx) => {
+          ctx.fillStyle = idx === 0 || idx === lineEditorGeometry.points.length - 1 ? '#1f77b4' : '#0ea5e9';
+          ctx.beginPath();
+          ctx.arc(point.x, point.y, 5.5, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.strokeStyle = bgPanel;
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+        });
+      }
+
+      const rockX = xScale(getRock().vs);
+      const yRock0 = yScale(totalDepth);
+      ctx.setLineDash([6, 4]);
+      ctx.strokeStyle = '#777';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(rockX, yRock0 - 1);
+      ctx.lineTo(rockX, topPad + plotH);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle = textColor;
+      ctx.font = '10px "Segoe UI", sans-serif';
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'bottom';
+      ctx.fillText('rock', Math.min(rockX + 4, leftPad + plotW - 28), topPad + plotH - 4);
+    }
+
+    function updateBinVsFromPointer(clientX, clientY) {
+      if (!vsDragState || activeProfileTab !== 'vs') return;
+      const rect = profileCanvas.getBoundingClientRect();
+      const x = clientX - rect.left;
+      const { idx, leftPad, plotW, maxVs } = vsDragState;
+      const clampedX = Math.max(leftPad, Math.min(leftPad + plotW, x));
+      const newVs = ((clampedX - leftPad) / plotW) * maxVs;
+      discretizedProfile[idx].vs = Math.max(1, Math.round(newVs));
+      layers = compressBinsToLayers(discretizedProfile);
+      renderLayers();
+      requestCompute();
+    }
+
+    function pointFromCanvas(clientX, clientY) {
+      const rect = profileCanvas.getBoundingClientRect();
+      const x = clientX - rect.left;
+      const y = clientY - rect.top;
+      return { x, y, rect };
+    }
+
+    function updateLinePointFromPointer(clientX, clientY) {
+      if (!vsDragState || vsEditMode !== 'line' || activeProfileTab !== 'vs' || !lineEditorGeometry) return;
+      const { x, y } = pointFromCanvas(clientX, clientY);
+      const {
+        leftPad,
+        topPad,
+        plotW,
+        plotH,
+        totalDepth,
+        maxVs,
+      } = lineEditorGeometry;
+      const clampedX = Math.max(leftPad, Math.min(leftPad + plotW, x));
+      const clampedY = Math.max(topPad, Math.min(topPad + plotH, y));
+      const vs = Math.max(1, Math.round(((clampedX - leftPad) / plotW) * maxVs));
+      const depth = ((clampedY - topPad) / plotH) * totalDepth;
+      const idx = vsDragState.idx;
+      lineControlPoints[idx].vs = vs;
+      if (idx !== 0 && idx !== lineControlPoints.length - 1) {
+        const prevDepth = lineControlPoints[idx - 1].depth + 0.05;
+        const nextDepth = lineControlPoints[idx + 1].depth - 0.05;
+        lineControlPoints[idx].depth = Math.max(prevDepth, Math.min(nextDepth, depth));
+      }
+      updateDiscretizedProfileFromLine();
+      layers = compressBinsToLayers(discretizedProfile);
+      renderLayers();
+      requestCompute();
+    }
+
+    profileCanvas.addEventListener('mousedown', (event) => {
+      if (activeProfileTab !== 'vs' || !vsEditorGeometry?.length) return;
+      const { x, y, rect } = pointFromCanvas(event.clientX, event.clientY);
+      if (vsEditMode === 'line' && lineEditorGeometry) {
+        const hitPoint = lineEditorGeometry.points.find((point) => Math.hypot(point.x - x, point.y - y) <= 10);
+        if (hitPoint) {
+          vsDragState = { idx: hitPoint.idx };
+          updateLinePointFromPointer(event.clientX, event.clientY);
+          return;
+        }
+        const leftPad = lineEditorGeometry.leftPad;
+        const topPad = lineEditorGeometry.topPad;
+        const plotW = lineEditorGeometry.plotW;
+        const plotH = lineEditorGeometry.plotH;
+        if (x >= leftPad && x <= leftPad + plotW && y >= topPad && y <= topPad + plotH) {
+          const depth = ((y - topPad) / plotH) * lineEditorGeometry.totalDepth;
+          const vs = Math.max(1, Math.round(((x - leftPad) / plotW) * lineEditorGeometry.maxVs));
+          lineControlPoints.push({ depth, vs });
+          sortAndClampLineControlPoints();
+          const idx = lineControlPoints.findIndex((point) => Math.abs(point.depth - depth) < 1e-6 && Math.abs(point.vs - vs) < 1e-6);
+          vsDragState = { idx: Math.max(0, idx) };
+          updateLinePointFromPointer(event.clientX, event.clientY);
+        }
+        return;
+      }
+      const leftPad = 50;
+      const rightPad = 20;
+      const plotW = Math.max(40, rect.width - leftPad - rightPad);
+      const maxVs = Math.max(getRock().vs, ...discretizedProfile.map((bin) => bin.vs)) * 1.1;
+      const hit = vsEditorGeometry.find((segment) => y >= segment.y0 && y <= segment.y1 && Math.abs(x - segment.x) <= 14);
+      if (!hit) return;
+      vsDragState = { idx: hit.idx, leftPad, plotW, maxVs };
+      updateBinVsFromPointer(event.clientX, event.clientY);
+    });
+
+    window.addEventListener('mousemove', (event) => {
+      if (!vsDragState) return;
+      if (vsEditMode === 'line') updateLinePointFromPointer(event.clientX, event.clientY);
+      else updateBinVsFromPointer(event.clientX, event.clientY);
+    });
+    window.addEventListener('mouseup', () => { vsDragState = null; });
+    profileCanvas.addEventListener('mouseleave', () => { if (!vsDragState) drawProfile(); });
+    profileCanvas.addEventListener('contextmenu', (event) => {
+      if (activeProfileTab !== 'vs' || vsEditMode !== 'line' || !lineEditorGeometry) return;
+      const { x, y } = pointFromCanvas(event.clientX, event.clientY);
+      const hitPoint = lineEditorGeometry.points.find((point) => Math.hypot(point.x - x, point.y - y) <= 10);
+      if (!hitPoint) return;
+      if (hitPoint.idx === 0 || hitPoint.idx === lineEditorGeometry.points.length - 1) return;
+      event.preventDefault();
+      lineControlPoints.splice(hitPoint.idx, 1);
+      updateDiscretizedProfileFromLine();
+      layers = compressBinsToLayers(discretizedProfile);
+      renderLayers();
+      requestCompute();
+    });
+    window.addEventListener('resize', drawProfile);
 
     async function computeAndPlot() {
       const f_max = Number(document.getElementById('f-max').value) || 25;
@@ -703,6 +1252,7 @@
 
     // Initial render
     renderLayers();
+    setActiveProfileTab('layers');
     setTimeout(computeAndPlot, 100);
   </script>
 </body>

@@ -678,7 +678,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../concepts/constraints-and-interfaces/" class="md-nav__link">
+      <a href="../../../../concepts/interfaces/" class="md-nav__link">
         
   
   
@@ -13554,7 +13554,7 @@ the supplied steel material modulus is used when available.</p>
   </span>
 
 </h4>
-<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">story_heights</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">story_heights</span><span class="p">)</span> <span class="k">if</span> <span class="n">story_heights</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">[</span><span class="mf">4.0</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="mf">3.5</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="n">num_stories</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">story_heights</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">story_heights</span><span class="p">)</span> <span class="k">if</span> <span class="n">story_heights</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">[</span><span class="mf">4.0</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="mf">3.5</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_stories</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
 </code></pre></div>
 
     <div class="doc doc-contents ">
@@ -13576,7 +13576,7 @@ the supplied steel material modulus is used when available.</p>
   </span>
 
 </h4>
-<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">num_x_grid</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">x_bays</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">num_x_grid</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x_bays</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
 </code></pre></div>
 
     <div class="doc doc-contents ">
@@ -13598,7 +13598,7 @@ the supplied steel material modulus is used when available.</p>
   </span>
 
 </h4>
-<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">num_y_grid</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">y_bays</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">num_y_grid</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">y_bays</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
 </code></pre></div>
 
     <div class="doc doc-contents ">
@@ -13708,7 +13708,7 @@ the supplied steel material modulus is used when available.</p>
   </span>
 
 </h4>
-<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">floor_masses</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">floor_masses</span><span class="p">)</span> <span class="k">if</span> <span class="n">floor_masses</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">]</span> <span class="o">*</span> <span class="n">num_stories</span>
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">floor_masses</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">floor_masses</span><span class="p">)</span> <span class="k">if</span> <span class="n">floor_masses</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_stories</span>
 </code></pre></div>
 
     <div class="doc doc-contents ">
@@ -13730,7 +13730,7 @@ the supplied steel material modulus is used when available.</p>
   </span>
 
 </h4>
-<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">brace_bays_x</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;front&#39;</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;front&#39;</span><span class="p">,</span> <span class="p">[]))</span> <span class="k">if</span> <span class="n">brace_bays_x</span> <span class="k">else</span> <span class="p">[</span><span class="n">mid_x</span><span class="p">],</span> <span class="s1">&#39;back&#39;</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;back&#39;</span><span class="p">,</span> <span class="p">[]))</span> <span class="k">if</span> <span class="n">brace_bays_x</span> <span class="k">else</span> <span class="p">[</span><span class="n">mid_x</span><span class="p">]}</span>
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">brace_bays_x</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;front&#39;</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">brace_bays_x</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;front&#39;</span><span class="p">,</span> <span class="p">[]))</span> <span class="k">if</span> <span class="n">brace_bays_x</span> <span class="k">else</span> <span class="p">[</span><span class="n">mid_x</span><span class="p">],</span> <span class="s1">&#39;back&#39;</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">brace_bays_x</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;back&#39;</span><span class="p">,</span> <span class="p">[]))</span> <span class="k">if</span> <span class="n">brace_bays_x</span> <span class="k">else</span> <span class="p">[</span><span class="n">mid_x</span><span class="p">]}</span>
 </code></pre></div>
 
     <div class="doc doc-contents ">
@@ -13752,7 +13752,7 @@ the supplied steel material modulus is used when available.</p>
   </span>
 
 </h4>
-<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">brace_bays_y</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;left&#39;</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;left&#39;</span><span class="p">,</span> <span class="p">[]))</span> <span class="k">if</span> <span class="n">brace_bays_y</span> <span class="k">else</span> <span class="p">[</span><span class="n">mid_y</span><span class="p">],</span> <span class="s1">&#39;right&#39;</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;right&#39;</span><span class="p">,</span> <span class="p">[]))</span> <span class="k">if</span> <span class="n">brace_bays_y</span> <span class="k">else</span> <span class="p">[</span><span class="n">mid_y</span><span class="p">]}</span>
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">brace_bays_y</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;left&#39;</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">brace_bays_y</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;left&#39;</span><span class="p">,</span> <span class="p">[]))</span> <span class="k">if</span> <span class="n">brace_bays_y</span> <span class="k">else</span> <span class="p">[</span><span class="n">mid_y</span><span class="p">],</span> <span class="s1">&#39;right&#39;</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">brace_bays_y</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;right&#39;</span><span class="p">,</span> <span class="p">[]))</span> <span class="k">if</span> <span class="n">brace_bays_y</span> <span class="k">else</span> <span class="p">[</span><span class="n">mid_y</span><span class="p">]}</span>
 </code></pre></div>
 
     <div class="doc doc-contents ">
@@ -13818,7 +13818,7 @@ the supplied steel material modulus is used when available.</p>
   </span>
 
 </h4>
-<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">target_period</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">target_period</span><span class="p">)</span> <span class="k">if</span> <span class="n">target_period</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="mf">0.1</span> <span class="o">*</span> <span class="n">num_stories</span>
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">target_period</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">target_period</span><span class="p">)</span> <span class="k">if</span> <span class="n">target_period</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="mf">0.1</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_stories</span>
 </code></pre></div>
 
     <div class="doc doc-contents ">

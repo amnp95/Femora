@@ -8,7 +8,7 @@
       
       
       
-        <link rel="canonical" href="https://femora.io/docs/concepts/constraints-and-interfaces/">
+        <link rel="canonical" href="https://femora.io/docs/concepts/interfaces/">
       
       
         <link rel="prev" href="../mesh-parts/">
@@ -795,6 +795,17 @@
     <span class="md-ellipsis">
       
         Minimal Examples
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#inspecting-interfaces-after-assembly" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Inspecting Interfaces After Assembly
       
     </span>
   </a>
@@ -11813,6 +11824,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#inspecting-interfaces-after-assembly" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Inspecting Interfaces After Assembly
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#what-femora-stores" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -11989,7 +12011,7 @@
 <p>This is different from manually writing node-by-node constraints after export. The interface stays as a higher-level modeling object inside Femora.</p>
 <hr />
 <h2 id="minimal-examples">Minimal Examples</h2>
-<div class="tabbed-set tabbed-alternate" data-tabs="1:2"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><input id="__tabbed_1_2" name="__tabbed_1" type="radio" /><div class="tabbed-labels"><label for="__tabbed_1_1">Embedded beam in solids</label><label for="__tabbed_1_2">Boundary absorber</label></div>
+<div class="tabbed-set tabbed-alternate" data-tabs="1:3"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><input id="__tabbed_1_2" name="__tabbed_1" type="radio" /><input id="__tabbed_1_3" name="__tabbed_1" type="radio" /><div class="tabbed-labels"><label for="__tabbed_1_1">Embedded beam in solids</label><label for="__tabbed_1_2">Boundary absorber</label><label for="__tabbed_1_3">Embedded nodes in a host mesh</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
 <p>This is the most important interface pattern in the current workflow.</p>
@@ -12034,8 +12056,75 @@
 </code></pre></div>
 <p>In this pattern, the interface logic inspects the assembled boundary and then creates the absorbing treatment after assembly begins.</p>
 </div>
+<div class="tabbed-block">
+<p>Embedded node interfaces are useful when the constrained part should be tied to surrounding retained cells through node-based embedding logic instead of the beam-solid workflow.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">femora.core.model</span><span class="w"> </span><span class="kn">import</span> <span class="n">Model</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="n">model</span> <span class="o">=</span> <span class="n">Model</span><span class="p">()</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="n">interface</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">interface</span><span class="o">.</span><span class="n">node_interface</span><span class="p">(</span>
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;building_foundation_interface&quot;</span><span class="p">,</span>
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>    <span class="n">constrained_node</span><span class="o">=</span><span class="s2">&quot;building&quot;</span><span class="p">,</span>
+<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>    <span class="n">retained_nodes</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;foundation&quot;</span><span class="p">],</span>
+<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a>    <span class="n">rot</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+<a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a>    <span class="n">p</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+<a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a>    <span class="n">offset</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+<a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a><span class="p">)</span>
+<a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a>
+<a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a><span class="n">model</span><span class="o">.</span><span class="n">assembler</span><span class="o">.</span><span class="n">assemble</span><span class="p">()</span>
+</code></pre></div>
+<p>The constrained part is sampled after assembly, host cells are searched, and Femora generates the embedded interface contribution from those discovered relationships.</p>
 </div>
 </div>
+</div>
+<hr />
+<h2 id="inspecting-interfaces-after-assembly">Inspecting Interfaces After Assembly</h2>
+<p>After <code>model.assembler.assemble()</code>, the embedded interfaces can be plotted directly to inspect what Femora actually selected.</p>
+<div class="tabbed-set tabbed-alternate" data-tabs="2:2"><input checked="checked" id="__tabbed_2_1" name="__tabbed_2" type="radio" /><input id="__tabbed_2_2" name="__tabbed_2" type="radio" /><div class="tabbed-labels"><label for="__tabbed_2_1">Beam-solid plot</label><label for="__tabbed_2_2">Embedded-node plot</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="n">interface</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">interface</span><span class="o">.</span><span class="n">beam_solid_interface</span><span class="p">(</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;pile_soil_interface&quot;</span><span class="p">,</span>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>    <span class="n">beam_part</span><span class="o">=</span><span class="s2">&quot;pile&quot;</span><span class="p">,</span>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>    <span class="n">solid_parts</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;soil_box&quot;</span><span class="p">],</span>
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>    <span class="n">radius</span><span class="o">=</span><span class="mf">0.50</span><span class="p">,</span>
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="p">)</span>
+<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>
+<a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="n">model</span><span class="o">.</span><span class="n">assembler</span><span class="o">.</span><span class="n">assemble</span><span class="p">()</span>
+<a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a><span class="n">interface</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
+</code></pre></div>
+</div>
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="n">interface</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">interface</span><span class="o">.</span><span class="n">node_interface</span><span class="p">(</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;building_foundation_interface&quot;</span><span class="p">,</span>
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>    <span class="n">constrained_node</span><span class="o">=</span><span class="s2">&quot;building&quot;</span><span class="p">,</span>
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>    <span class="n">retained_nodes</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;foundation&quot;</span><span class="p">],</span>
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="p">)</span>
+<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>
+<a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="n">model</span><span class="o">.</span><span class="n">assembler</span><span class="o">.</span><span class="n">assemble</span><span class="p">()</span>
+<a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="n">interface</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
+</code></pre></div>
+</div>
+</div>
+</div>
+<p>The plot helpers are useful because they show the <strong>resolved interface result</strong>, not just the declaration. That makes it much easier to confirm that the right cells, points, and search region were actually used.</p>
+<details class="tip" open="open">
+<summary>Read the plot like a debugging view</summary>
+<p>For a beam-solid interface, the usual reading is:</p>
+<ul>
+<li>black line cells: the beam path owned by the interface</li>
+<li>orange solid cells: the surrounding host cells selected by the search</li>
+<li>blue envelope: the geometric radius/envelope used for discovery</li>
+</ul>
+<p>For an embedded-node interface, the usual reading is:</p>
+<ul>
+<li>black geometry: the constrained mesh part</li>
+<li>orange cells: the retained host cells that received the embedded search hits</li>
+<li>blue points: constrained points used by the interface</li>
+<li>red markers: generated interface cells added to the assembled model</li>
+</ul>
+<p>If those highlights do not match what you intended physically, the interface definition should be adjusted before export or analysis.</p>
+</details>
 <hr />
 <h2 id="what-femora-stores">What Femora Stores</h2>
 <p>When you create an interface, Femora stores the <strong>relationship definition</strong>, not just a final Tcl line.</p>

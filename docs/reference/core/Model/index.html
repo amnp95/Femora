@@ -678,7 +678,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../concepts/constraints-and-interfaces/" class="md-nav__link">
+      <a href="../../../concepts/interfaces/" class="md-nav__link">
         
   
   
@@ -13047,7 +13047,7 @@
   </span>
 
 </h4>
-<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">model_name</span> <span class="o">=</span> <span class="n">get</span><span class="p">(</span><span class="s1">&#39;model_name&#39;</span><span class="p">)</span>
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">model_name</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;model_name&#39;</span><span class="p">)</span>
 </code></pre></div>
 
     <div class="doc doc-contents ">
@@ -13069,7 +13069,7 @@
   </span>
 
 </h4>
-<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">model_path</span> <span class="o">=</span> <span class="n">get</span><span class="p">(</span><span class="s1">&#39;model_path&#39;</span><span class="p">)</span>
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">model_path</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;model_path&#39;</span><span class="p">)</span>
 </code></pre></div>
 
     <div class="doc doc-contents ">
@@ -13179,7 +13179,7 @@
   </span>
 
 </h4>
-<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">ground_motion</span> <span class="o">=</span> <span class="n">GroundMotionManager</span><span class="p">(</span><span class="n">mesh_maker</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span> <span class="n">time_series_manager</span><span class="o">=</span><span class="n">time_series</span><span class="p">)</span>
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">ground_motion</span> <span class="o">=</span> <span class="n">GroundMotionManager</span><span class="p">(</span><span class="n">mesh_maker</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span> <span class="n">time_series_manager</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">time_series</span><span class="p">)</span>
 </code></pre></div>
 
     <div class="doc doc-contents ">
@@ -13377,7 +13377,7 @@
   </span>
 
 </h4>
-<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">pattern</span> <span class="o">=</span> <span class="n">PatternManager</span><span class="p">(</span><span class="n">mesh_maker</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span> <span class="n">time_series_manager</span><span class="o">=</span><span class="n">time_series</span><span class="p">,</span> <span class="n">ground_motion_manager</span><span class="o">=</span><span class="n">ground_motion</span><span class="p">)</span>
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">pattern</span> <span class="o">=</span> <span class="n">PatternManager</span><span class="p">(</span><span class="n">mesh_maker</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span> <span class="n">time_series_manager</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">time_series</span><span class="p">,</span> <span class="n">ground_motion_manager</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ground_motion</span><span class="p">)</span>
 </code></pre></div>
 
     <div class="doc doc-contents ">

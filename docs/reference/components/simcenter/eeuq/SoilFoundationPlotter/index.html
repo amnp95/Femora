@@ -678,7 +678,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../../concepts/constraints-and-interfaces/" class="md-nav__link">
+      <a href="../../../../../concepts/interfaces/" class="md-nav__link">
         
   
   
@@ -12644,7 +12644,7 @@ and piles using PyVista + trame. Based on reliable patterns from test.py.</p>
   </span>
 
 </h4>
-<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">pv</span> <span class="o">=</span> <span class="n">pyvista</span>
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">pv</span> <span class="o">=</span> <span class="n">pv</span>
 </code></pre></div>
 
     <div class="doc doc-contents ">
@@ -12886,7 +12886,7 @@ and piles using PyVista + trame. Based on reliable patterns from test.py.</p>
   </span>
 
 </h4>
-<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">plotter</span> <span class="o">=</span> <span class="n">Plotter</span><span class="p">(</span><span class="n">off_screen</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">notebook</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">window_size</span><span class="o">=</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span> <span class="mi">700</span><span class="p">))</span>
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">plotter</span> <span class="o">=</span> <span class="n">pv</span><span class="o">.</span><span class="n">Plotter</span><span class="p">(</span><span class="n">off_screen</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">notebook</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">window_size</span><span class="o">=</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span> <span class="mi">700</span><span class="p">))</span>
 </code></pre></div>
 
     <div class="doc doc-contents ">
@@ -12930,7 +12930,7 @@ and piles using PyVista + trame. Based on reliable patterns from test.py.</p>
   </span>
 
 </h4>
-<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">state_defaults</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;show_soil&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="s1">&#39;soil_opacity&#39;</span><span class="p">:</span> <span class="mf">0.35</span><span class="p">,</span> <span class="s1">&#39;show_foundation&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="s1">&#39;foundation_opacity&#39;</span><span class="p">:</span> <span class="mf">0.55</span><span class="p">,</span> <span class="s1">&#39;show_piles&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="s1">&#39;piles_opacity&#39;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span> <span class="s1">&#39;show_mesh&#39;</span><span class="p">:</span> <span class="nb">bool</span><span class="p">(</span><span class="n">mesh_file</span><span class="p">),</span> <span class="s1">&#39;mesh_opacity&#39;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span> <span class="s1">&#39;discretized&#39;</span><span class="p">:</span> <span class="n">_discretized_exists</span><span class="p">,</span> <span class="s1">&#39;show_axes&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span> <span class="s1">&#39;show_grid&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span> <span class="s1">&#39;selected_scalar&#39;</span><span class="p">:</span> <span class="s1">&#39;Mesh&#39;</span><span class="p">}</span>
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">state_defaults</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;show_soil&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="s1">&#39;soil_opacity&#39;</span><span class="p">:</span> <span class="mf">0.35</span><span class="p">,</span> <span class="s1">&#39;show_foundation&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="s1">&#39;foundation_opacity&#39;</span><span class="p">:</span> <span class="mf">0.55</span><span class="p">,</span> <span class="s1">&#39;show_piles&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="s1">&#39;piles_opacity&#39;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span> <span class="s1">&#39;show_mesh&#39;</span><span class="p">:</span> <span class="nb">bool</span><span class="p">(</span><span class="n">mesh_file</span><span class="p">),</span> <span class="s1">&#39;mesh_opacity&#39;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span> <span class="s1">&#39;discretized&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_discretized_exists</span><span class="p">,</span> <span class="s1">&#39;show_axes&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span> <span class="s1">&#39;show_grid&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span> <span class="s1">&#39;selected_scalar&#39;</span><span class="p">:</span> <span class="s1">&#39;Mesh&#39;</span><span class="p">}</span>
 </code></pre></div>
 
     <div class="doc doc-contents ">
