@@ -1,4 +1,4 @@
-﻿# =============================================================================
+# =============================================================================
 # Femora: Fast Efficient Meta-modeling for OpenSees-based Resilience Analysis
 # Copyright 2026 Amin Pakzad and Pedro Arduino
 # Developed at the UW Geotechnical Lab
@@ -41,10 +41,11 @@ class Steel01Material(Material):
 
         model = Model()
         mat = model.material.uniaxial.steel01(
-            user_name="A992",
+            user_name="A992_Isotropic",
             Fy=345.0,
             E0=200000.0,
             b=0.01,
+            a1=1.0, a2=10.0, a3=0.8, a4=10.0,
         )
         print(mat.tag)
         ```
@@ -52,7 +53,7 @@ class Steel01Material(Material):
 
     __doc_controls__ = {
         "show_docstring_attributes": True,
-        "members": ["__init__"],
+        "members": ["__init__", "to_tcl"],
     }
 
     def __init__(
@@ -68,7 +69,7 @@ class Steel01Material(Material):
         a4: float | None = None,
         **_: Any,
     ) -> None:
-        """Validate yield, stiffness, and optional isotropic hardening inputs.
+        """Create a Steel01 material with validated yield, stiffness, and optional isotropic hardening inputs.
 
         Args:
             user_name: Unique Femora and OpenSees material label surfaced in Tcl.
@@ -129,14 +130,15 @@ class Steel01Material(Material):
         self.params = params
 
     def to_tcl(self) -> str:
-        """Emit ``Steel01`` with optional isotropic arguments.
+        """Emit ``Steel01`` as an OpenSees Tcl command with optional isotropic arguments.
 
         Returns:
             str: Tcl text including ``Fy E0 b`` and the four optional isotropic
             parameters when all were supplied at construction.
 
         Raises:
-            ValueError: If the material has not been registered with a manager.
+            ValueError: If the material has not been registered with a manager
+                (i.e., its ``tag`` is not yet set).
         """
         p = self.params
         parts = [
