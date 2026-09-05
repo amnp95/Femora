@@ -1,4 +1,4 @@
-﻿# =============================================================================
+# =============================================================================
 # Femora: Fast Efficient Meta-modeling for OpenSees-based Resilience Analysis
 # Copyright 2026 Amin Pakzad and Pedro Arduino
 # Developed at the UW Geotechnical Lab
@@ -68,7 +68,7 @@ class Steel01Material(Material):
         a4: float | None = None,
         **_: Any,
     ) -> None:
-        """Validate yield, stiffness, and optional isotropic hardening inputs.
+        """Create a Steel01 material with validated yield, stiffness, and optional isotropic hardening inputs.
 
         Args:
             user_name: Unique Femora and OpenSees material label surfaced in Tcl.
@@ -129,14 +129,15 @@ class Steel01Material(Material):
         self.params = params
 
     def to_tcl(self) -> str:
-        """Emit ``Steel01`` with optional isotropic arguments.
+        """Emit the OpenSees ``Steel01`` command with optional isotropic arguments.
 
         Returns:
             str: Tcl text including ``Fy E0 b`` and the four optional isotropic
             parameters when all were supplied at construction.
 
         Raises:
-            ValueError: If the material has not been registered with a manager.
+            ValueError: If the material has not been registered with a manager
+                (and thus has no assigned tag).
         """
         p = self.params
         parts = [
