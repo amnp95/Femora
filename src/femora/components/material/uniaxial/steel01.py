@@ -1,4 +1,4 @@
-﻿# =============================================================================
+# =============================================================================
 # Femora: Fast Efficient Meta-modeling for OpenSees-based Resilience Analysis
 # Copyright 2026 Amin Pakzad and Pedro Arduino
 # Developed at the UW Geotechnical Lab
@@ -33,7 +33,8 @@ class Steel01Material(Material):
         - Stray keyword arguments are ignored to keep factory calls forward compatible.
 
     Attributes:
-        params: Holds ``Fy``, ``E0``, ``b``, and optional ``a1`` to ``a4``.
+        params: A dictionary mapping parameter names (`Fy`, `E0`, `b`, and
+            optional `a1` to `a4`) to their numeric values.
 
     Example:
         ```python
@@ -47,6 +48,16 @@ class Steel01Material(Material):
             b=0.01,
         )
         print(mat.tag)
+
+        # With isotropic hardening parameters
+        iso_mat = model.material.uniaxial.steel01(
+            user_name="A572_iso",
+            Fy=400.0,
+            E0=200000.0,
+            b=0.005,
+            a1=0.1, a2=1.0, a3=0.1, a4=1.0,
+        )
+        print(iso_mat.tag)
         ```
     """
 
@@ -68,7 +79,7 @@ class Steel01Material(Material):
         a4: float | None = None,
         **_: Any,
     ) -> None:
-        """Validate yield, stiffness, and optional isotropic hardening inputs.
+        """Create a Steel01 material with validated yield, stiffness, and optional isotropic hardening inputs.
 
         Args:
             user_name: Unique Femora and OpenSees material label surfaced in Tcl.
@@ -129,14 +140,17 @@ class Steel01Material(Material):
         self.params = params
 
     def to_tcl(self) -> str:
-        """Emit ``Steel01`` with optional isotropic arguments.
+        """Render this material as an OpenSees ``uniaxialMaterial Steel01`` command.
+
+        Emits the Tcl command including ``Fy E0 b`` and the four optional
+        isotropic parameters when all were supplied at construction.
 
         Returns:
-            str: Tcl text including ``Fy E0 b`` and the four optional isotropic
-            parameters when all were supplied at construction.
+            str: Tcl command string for this material.
 
         Raises:
-            ValueError: If the material has not been registered with a manager.
+            ValueError: If the material has not been registered with a manager
+                and therefore does not have a tag.
         """
         p = self.params
         parts = [
