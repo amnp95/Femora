@@ -62,6 +62,17 @@
       "tags": ["Static", "Embedded pile", "Beam forces"],
       "level": "Intermediate",
       "prerequisites": []
+    },
+    {
+      "slug": "dynamic-pile-soil-interaction",
+      "title": "Boundary Effects in Dynamic Pile-Soil Interaction",
+      "summary": "Compare fixed, PML, and Rayleigh boundaries under the same H5DRM wave field.",
+      "preview": "../assets/examples/dynamic-pile-soil-interaction/index.html",
+      "previewTitle": "Dynamic pile in layered soil with a quarter-cut view",
+      "categories": ["Soil-Structure Interaction", "Wave Propagation", "Interfaces"],
+      "tags": ["Dynamic", "Rayleigh damping", "H5DRM", "Embedded pile"],
+      "level": "Advanced",
+      "prerequisites": ["laterally-loaded-pile"]
     }
   ]
 }

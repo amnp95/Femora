@@ -1,0 +1,116 @@
+/* Workflow walkthrough: keep diagrams readable without changing other pages. */
+.md-typeset ol.workflow-route:not([hidden]) {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.6rem;
+  margin: 1.2rem 0;
+  padding: 0;
+  list-style: none;
+}
+
+.md-typeset .workflow-route li {
+  margin: 0;
+  padding: 0.8rem;
+  border: 1px solid var(--md-default-fg-color--lightest);
+  border-top: 3px solid var(--md-typeset-a-color);
+  border-radius: 0.35rem;
+  background: var(--md-code-bg-color);
+}
+
+.workflow-route span,
+.workspace-kicker {
+  display: block;
+  color: var(--md-typeset-a-color);
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.workflow-route strong { display: block; margin: 0.3rem 0; }
+.workflow-route small { display: block; line-height: 1.5; }
+
+.md-typeset .workflow-distinction {
+  margin: 1rem 0;
+  padding: 0.7rem 1rem;
+  border-left: 3px solid var(--md-default-fg-color--lighter);
+  color: var(--md-default-fg-color--light);
+}
+
+.md-typeset .workflow-distinction p { margin: 0; }
+
+.md-typeset .workspace-view {
+  margin: 1.1rem 0 1.5rem;
+  overflow: hidden;
+  border: 1px solid var(--md-default-fg-color--lightest);
+  border-radius: 0.5rem;
+}
+
+.workspace-heading {
+  padding: 0.8rem 1rem;
+  border-bottom: 1px solid var(--md-default-fg-color--lightest);
+  background: var(--md-code-bg-color);
+}
+
+.workspace-heading strong { display: block; margin-top: 0.15rem; }
+.workspace-heading small { color: var(--md-default-fg-color--light); }
+
+.workspace-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+}
+
+.md-typeset .workspace-tree {
+  margin: 0;
+  padding: 1rem;
+  overflow-x: auto;
+}
+
+.md-typeset .workspace-tree ul {
+  margin: 0.2rem 0 0.2rem 0.35rem;
+  padding-left: 0.85rem;
+  border-left: 1px solid var(--md-default-fg-color--lighter);
+  list-style: none;
+}
+
+.md-typeset .workspace-tree li {
+  margin: 0;
+  padding: 0.2rem 0;
+  white-space: nowrap;
+  font-size: 0.7rem;
+}
+
+.md-typeset .workspace-tree code { background: transparent; }
+.workspace-new > code { color: var(--md-typeset-a-color); font-weight: 700; }
+.workspace-tag {
+  display: inline-block;
+  margin-left: 0.35rem;
+  padding: 0.05rem 0.3rem;
+  border-radius: 0.2rem;
+  background: var(--md-code-bg-color);
+  color: var(--md-typeset-a-color);
+  font-size: 0.55rem;
+}
+
+.workspace-context {
+  padding: 0.85rem 1rem;
+  border-left: 1px solid var(--md-default-fg-color--lightest);
+  font-size: 0.7rem;
+}
+
+.md-typeset .workspace-context p { margin: 0.4rem 0 0.8rem; }
+.workspace-context code { overflow-wrap: anywhere; }
+.workspace-context strong { font-size: 0.68rem; }
+
+@media (max-width: 760px) {
+  .md-typeset ol.workflow-route:not([hidden]) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .workspace-body { grid-template-columns: minmax(0, 1fr); }
+  .workspace-context {
+    border-left: 0;
+    border-top: 1px solid var(--md-default-fg-color--lightest);
+  }
+}
+
+@media (max-width: 400px) {
+  .md-typeset ol.workflow-route:not([hidden]) { grid-template-columns: minmax(0, 1fr); }
+}

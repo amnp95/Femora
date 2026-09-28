@@ -282,6 +282,82 @@
     margin: 0 auto;
 }
 
+/* Editable cross-section used by the dynamic pile-soil boundary example. */
+.femora-boundary-schematic {
+    max-width: 920px;
+    margin: 1.2rem auto 1.5rem;
+    color: var(--md-default-fg-color);
+}
+
+.femora-boundary-schematic svg {
+    display: block;
+    width: 100%;
+    height: auto;
+}
+
+.femora-boundary-schematic .schematic-soil-upper {
+    fill: color-mix(in oklab, #c59652 62%, var(--md-default-bg-color));
+}
+
+.femora-boundary-schematic .schematic-soil-lower {
+    fill: color-mix(in oklab, #527d8e 58%, var(--md-default-bg-color));
+}
+
+.femora-boundary-schematic .schematic-pile {
+    stroke: var(--md-default-fg-color);
+    stroke-width: 5;
+}
+
+.femora-boundary-schematic .schematic-mass {
+    fill: var(--md-default-fg-color);
+}
+
+.femora-boundary-schematic .schematic-drm-layer {
+    fill: color-mix(in oklab, #4f936b 68%, var(--md-default-bg-color));
+}
+
+.femora-boundary-schematic .schematic-outer-fixity {
+    stroke: var(--md-default-fg-color);
+    stroke-width: 5;
+}
+
+.femora-boundary-schematic .schematic-wave {
+    fill: none;
+    stroke: var(--md-accent-fg-color);
+    stroke-width: 3;
+    marker-end: url("#wave-arrow");
+}
+
+.femora-boundary-schematic .schematic-absorber {
+    fill: color-mix(in oklab, var(--md-accent-fg-color) 58%, var(--md-default-bg-color));
+}
+
+.femora-boundary-schematic .schematic-label,
+.femora-boundary-schematic .schematic-caption,
+.femora-boundary-schematic .schematic-absorber-label,
+.femora-boundary-schematic .schematic-drm-label,
+.femora-boundary-schematic .schematic-fixed-label {
+    fill: currentColor;
+    font-family: var(--md-text-font-family);
+    font-size: 16px;
+}
+
+.femora-boundary-schematic .schematic-absorber-label {
+    font-size: 15px;
+    font-weight: 600;
+}
+
+.femora-boundary-schematic .schematic-drm-label,
+.femora-boundary-schematic .schematic-fixed-label {
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.femora-boundary-schematic .schematic-caption {
+    font-size: 14px;
+    font-weight: 600;
+}
+
 .femora-embed--cantilever iframe {
     height: auto;
     aspect-ratio: 1000 / 410;
