@@ -1,0 +1,67 @@
+{
+  "categories": [
+    "Site Response",
+    "Wave Propagation",
+    "Parallel Models",
+    "Nonlinear Analysis",
+    "Soil-Structure Interaction",
+    "Interfaces"
+  ],
+  "examples": [
+    {
+      "slug": "layered-elastic-soil-column",
+      "title": "Layered Elastic Soil Column",
+      "summary": "Run gravity and frequency-sweep excitation through a three-stratum laminar soil profile.",
+      "preview": "../assets/examples/layered-elastic-soil-column/index.html",
+      "previewTitle": "Layered elastic soil-column preview",
+      "categories": ["Site Response", "Wave Propagation"],
+      "tags": ["Elastic", "Transient", "VTKHDF"],
+      "level": "Foundational",
+      "prerequisites": []
+    },
+    {
+      "slug": "partitioned-layered-soil-domain",
+      "title": "Partitioned Layered Soil Domain",
+      "summary": "Expand the layered profile to a 3D domain and divide 2,500 bricks into eight connected METIS partitions.",
+      "preview": "../assets/examples/partitioned-layered-soil-domain/index.html",
+      "previewTitle": "Partitioned layered soil-domain preview",
+      "categories": ["Site Response", "Parallel Models"],
+      "tags": ["3D", "METIS", "8 partitions"],
+      "level": "Intermediate",
+      "prerequisites": ["layered-elastic-soil-column"]
+    },
+    {
+      "slug": "deconvolved-ricker-site-response",
+      "title": "Deconvolved Ricker-Wave Site Response",
+      "summary": "Calculate a base motion from a prescribed surface pulse, then verify it with a layered finite-element model.",
+      "preview": "../assets/examples/deconvolved-ricker-site-response/index.html",
+      "previewTitle": "Deconvolved Ricker-wave site-response preview",
+      "categories": ["Site Response", "Wave Propagation"],
+      "tags": ["Deconvolution", "Ricker wave", "Transient"],
+      "level": "Intermediate",
+      "prerequisites": ["layered-elastic-soil-column"]
+    },
+    {
+      "slug": "nonlinear-layered-soil-column",
+      "title": "Nonlinear Layered Soil Column",
+      "summary": "Stage multi-yield soil materials under gravity, activate plasticity, and inspect amplification and hysteresis.",
+      "preview": "../assets/examples/nonlinear-layered-soil-column/index.html",
+      "previewTitle": "Nonlinear layered soil-column preview",
+      "categories": ["Site Response", "Nonlinear Analysis"],
+      "tags": ["Nonlinear", "Material staging", "Hysteresis"],
+      "level": "Advanced",
+      "prerequisites": ["layered-elastic-soil-column"]
+    },
+    {
+      "slug": "laterally-loaded-pile",
+      "title": "Laterally Loaded Pile",
+      "summary": "Embed a beam-column pile in graded 3D soil and recover its response under lateral head loading.",
+      "preview": "../assets/examples/laterally-loaded-pile/index.html",
+      "previewTitle": "Laterally loaded pile interface preview",
+      "categories": ["Soil-Structure Interaction", "Interfaces"],
+      "tags": ["Static", "Embedded pile", "Beam forces"],
+      "level": "Intermediate",
+      "prerequisites": []
+    }
+  ]
+}

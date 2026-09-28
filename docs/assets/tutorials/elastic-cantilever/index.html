@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Elastic cantilever model and response</title>
+    <link rel="stylesheet" href="figure.css">
+  </head>
+  <body>
+    <main class="figure-shell">
+      <svg viewBox="0 0 1000 410" role="img" aria-labelledby="svg-title svg-desc">
+        <title id="svg-title">Elastic cantilever model and deformed shape</title>
+        <desc id="svg-desc">
+          A four-element beam fixed at its left end, with five nodes, a downward tip load,
+          and an exaggerated deformed shape shown over the undeformed model.
+        </desc>
+
+        <defs>
+          <pattern id="support-hatch" width="11" height="11" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+            <line x1="0" y1="0" x2="0" y2="11" class="hatch-line"></line>
+          </pattern>
+          <marker id="load-arrow" markerWidth="14" markerHeight="14" refX="7" refY="7" orient="auto" markerUnits="userSpaceOnUse">
+            <path d="M 0 0 L 14 7 L 0 14 z" class="load-fill"></path>
+          </marker>
+        </defs>
+
+        <g class="legend" aria-label="Figure legend">
+          <line x1="650" y1="42" x2="700" y2="42" class="undeformed-line"></line>
+          <text x="714" y="47">Undeformed model</text>
+          <line x1="650" y1="72" x2="700" y2="72" class="deformed-line"></line>
+          <text x="714" y="77">Deformed shape (exaggerated)</text>
+        </g>
+
+        <g class="support" aria-label="All six degrees of freedom fixed at node N1">
+          <rect x="94" y="113" width="46" height="190" fill="url(#support-hatch)"></rect>
+          <line x1="140" y1="110" x2="140" y2="306" class="support-line"></line>
+          <text x="117" y="330" text-anchor="middle" class="support-title">FIXED</text>
+          <text x="117" y="349" text-anchor="middle" class="support-detail">6 DOF</text>
+        </g>
+
+        <g aria-label="Four undeformed beam elements">
+          <line x1="140" y1="180" x2="325" y2="180" class="undeformed-line"></line>
+          <line x1="325" y1="180" x2="510" y2="180" class="undeformed-line"></line>
+          <line x1="510" y1="180" x2="695" y2="180" class="undeformed-line"></line>
+          <line x1="695" y1="180" x2="880" y2="180" class="undeformed-line"></line>
+          <text x="232" y="214" text-anchor="middle" class="element-label">E1</text>
+          <text x="417" y="214" text-anchor="middle" class="element-label">E2</text>
+          <text x="602" y="214" text-anchor="middle" class="element-label">E3</text>
+          <text x="787" y="214" text-anchor="middle" class="element-label">E4</text>
+        </g>
+
+        <path
+          d="M140 180 C310 182 470 198 610 232 C720 258 810 292 880 326"
+          class="deformed-line"
+          aria-label="Exaggerated cantilever deformed shape"
+        ></path>
+
+        <g class="undeformed-nodes" aria-label="Five model nodes">
+          <circle cx="140" cy="180" r="7"></circle>
+          <circle cx="325" cy="180" r="7"></circle>
+          <circle cx="510" cy="180" r="7"></circle>
+          <circle cx="695" cy="180" r="7"></circle>
+          <circle cx="880" cy="180" r="7"></circle>
+        </g>
+
+        <g class="deformed-nodes" aria-hidden="true">
+          <circle cx="140" cy="180" r="7"></circle>
+          <circle cx="325" cy="187" r="7"></circle>
+          <circle cx="510" cy="210" r="7"></circle>
+          <circle cx="695" cy="254" r="7"></circle>
+          <circle cx="880" cy="326" r="8"></circle>
+        </g>
+
+        <g class="node-labels" aria-hidden="true">
+          <text x="140" y="154" text-anchor="middle">N1</text>
+          <text x="325" y="154" text-anchor="middle">N2</text>
+          <text x="510" y="154" text-anchor="middle">N3</text>
+          <text x="695" y="154" text-anchor="middle">N4</text>
+          <text x="880" y="154" text-anchor="middle">N5</text>
+        </g>
+
+        <g class="load" aria-label="Downward one-thousand-newton tip load">
+          <line x1="880" y1="58" x2="880" y2="128" marker-end="url(#load-arrow)"></line>
+          <text x="880" y="39" text-anchor="middle">Fz = -1,000 N</text>
+        </g>
+
+        <g class="dimension" aria-label="Cantilever length four metres">
+          <line x1="140" y1="374" x2="880" y2="374"></line>
+          <line x1="140" y1="365" x2="140" y2="383"></line>
+          <line x1="880" y1="365" x2="880" y2="383"></line>
+          <text x="510" y="397" text-anchor="middle">L = 4.0 m</text>
+        </g>
+      </svg>
+    </main>
+
+    <script src="figure.js"></script>
+  </body>
+</html>

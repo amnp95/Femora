@@ -252,9 +252,365 @@
     border: 0;
 }
 
+.femora-video {
+    margin: 1rem auto 1.4rem;
+    max-width: 760px;
+}
+
+.femora-video video {
+    display: block;
+    width: 100%;
+    border-radius: 0.65rem;
+    background: #101719;
+}
+
+.femora-result-figure {
+    display: flex;
+    justify-content: center;
+    margin: 1rem auto 1.4rem;
+}
+
+.femora-result-figure p {
+    margin: 0;
+    text-align: center;
+}
+
+.femora-result-figure img {
+    display: block;
+    width: auto;
+    max-width: min(100%, 780px);
+    margin: 0 auto;
+}
+
+.femora-embed--cantilever iframe {
+    height: auto;
+    aspect-ratio: 1000 / 410;
+}
+
+.femora-embed--cantilever {
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+}
+
+.tutorial-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.65rem;
+    margin: 1rem 0 1.25rem;
+}
+
+.tutorial-actions > p {
+    display: contents;
+}
+
+.tutorial-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.55rem;
+    min-height: 2.55rem;
+    padding: 0.55rem 0.9rem;
+    border: 1px solid #c4cfd2;
+    border-radius: 0.45rem;
+    color: #263238 !important;
+    background: #ffffff;
+    font-size: 0.72rem;
+    font-weight: 650;
+    line-height: 1;
+    text-decoration: none !important;
+    box-shadow: 0 1px 2px rgb(29 49 55 / 8%);
+    transition: border-color 140ms ease, background-color 140ms ease, box-shadow 140ms ease;
+}
+
+.tutorial-action:hover {
+    border-color: #71898f;
+    color: #172126 !important;
+    background: #f5f8f8;
+    box-shadow: 0 2px 5px rgb(29 49 55 / 12%);
+}
+
+.tutorial-action:focus-visible {
+    outline: 2px solid var(--md-accent-fg-color);
+    outline-offset: 2px;
+}
+
+.tutorial-action .twemoji {
+    width: 1.15rem;
+    height: 1.15rem;
+    margin: 0;
+}
+
+.tutorial-action--colab .twemoji {
+    color: #e89a00;
+}
+
+.tutorial-action--source .twemoji {
+    color: #246f78;
+}
+
+[data-md-color-scheme="slate"] .tutorial-action {
+    border-color: #52656c;
+    color: #edf2f2 !important;
+    background: #1d292f;
+    box-shadow: none;
+}
+
+[data-md-color-scheme="slate"] .tutorial-action:hover {
+    border-color: #8aa0a5;
+    color: #ffffff !important;
+    background: #26373e;
+}
+
+[data-md-color-scheme="slate"] .tutorial-action--colab .twemoji {
+    color: #f9ab00;
+}
+
+[data-md-color-scheme="slate"] .tutorial-action--source .twemoji {
+    color: #79c5ca;
+}
+
+/* Tutorial and example gallery landing pages */
+.learning-gallery {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.9rem;
+    margin: 1.4rem 0 2rem;
+}
+
+.learning-card {
+    display: block;
+    overflow: hidden;
+    border: 1px solid color-mix(in oklab, currentColor 14%, transparent 86%);
+    border-radius: 0.65rem;
+    color: var(--md-default-fg-color) !important;
+    background: var(--md-default-bg-color);
+    text-decoration: none !important;
+    transition: border-color 140ms ease, transform 140ms ease;
+}
+
+.learning-card:hover {
+    border-color: color-mix(in oklab, var(--md-accent-fg-color) 55%, currentColor 15%);
+    transform: translateY(-2px);
+}
+
+.learning-card__preview {
+    overflow: hidden;
+    aspect-ratio: 16 / 7;
+    border-bottom: 1px solid color-mix(in oklab, currentColor 12%, transparent 88%);
+    background: color-mix(in oklab, var(--md-default-bg-color) 94%, currentColor 6%);
+}
+
+.learning-card__preview iframe {
+    display: block;
+    width: 100%;
+    height: 100%;
+    border: 0;
+    pointer-events: none;
+}
+
+.learning-card__body {
+    padding: 0.75rem 0.8rem 0.85rem;
+}
+
+.learning-card__sequence {
+    margin: 0 0 0.25rem;
+    color: var(--md-accent-fg-color);
+    font-size: 0.64rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.learning-card h2 {
+    margin: 0 0 0.25rem;
+    color: var(--md-default-fg-color);
+    font-size: 0.92rem;
+}
+
+.learning-card__body > p:not(.learning-card__sequence) {
+    margin: 0.3rem 0;
+    color: var(--md-default-fg-color--light);
+    font-size: 0.7rem;
+    line-height: 1.45;
+}
+
+.learning-card__meta,
+.example-scope {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+}
+
+.learning-card__meta {
+    margin: 0.85rem 0;
+}
+
+.learning-card__meta span,
+.example-scope span {
+    padding: 0.22rem 0.5rem;
+    border: 1px solid color-mix(in oklab, currentColor 15%, transparent 85%);
+    border-radius: 999px;
+    color: var(--md-default-fg-color--light);
+    font-size: 0.64rem;
+    line-height: 1.25;
+}
+
+.learning-card__link {
+    color: var(--md-typeset-a-color);
+    font-size: 0.72rem;
+    font-weight: 650;
+}
+
+.collection-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+    margin: 1.4rem 0 2rem;
+}
+
+.collection-card {
+    display: block;
+    padding: 1rem 1.1rem;
+    border: 1px solid color-mix(in oklab, currentColor 14%, transparent 86%);
+    border-radius: 0.65rem;
+    color: var(--md-default-fg-color) !important;
+    text-decoration: none !important;
+    transition: border-color 140ms ease, transform 140ms ease;
+}
+
+.collection-card:hover {
+    border-color: color-mix(in oklab, var(--md-accent-fg-color) 55%, currentColor 15%);
+    transform: translateY(-2px);
+}
+
+.collection-card__eyebrow {
+    margin: 0 0 0.2rem;
+    color: var(--md-accent-fg-color);
+    font-size: 0.64rem;
+    font-weight: 700;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+}
+
+.collection-card h2 {
+    margin: 0 0 0.35rem;
+    color: var(--md-default-fg-color);
+    font-size: 1rem;
+}
+
+.collection-card > p:not(.collection-card__eyebrow) {
+    color: var(--md-default-fg-color--light);
+    font-size: 0.72rem;
+}
+
+.collection-card > span {
+    color: var(--md-typeset-a-color);
+    font-size: 0.72rem;
+    font-weight: 650;
+}
+
+.example-scope {
+    margin: 1rem 0 1.25rem;
+}
+
+.example-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    margin: 1.2rem 0 0.45rem;
+}
+
+.example-filter {
+    padding: 0.42rem 0.72rem;
+    border: 1px solid color-mix(in oklab, currentColor 16%, transparent 84%);
+    border-radius: 999px;
+    color: var(--md-default-fg-color--light);
+    background: color-mix(in oklab, var(--md-default-bg-color) 96%, currentColor 4%);
+    font: inherit;
+    font-size: 0.68rem;
+    font-weight: 650;
+    cursor: pointer;
+    transition: border-color 140ms ease, background-color 140ms ease, color 140ms ease;
+}
+
+.example-filter:hover,
+.example-filter:focus-visible {
+    border-color: color-mix(in oklab, var(--md-accent-fg-color) 60%, currentColor 10%);
+    color: var(--md-default-fg-color);
+}
+
+.example-filter--active {
+    border-color: var(--md-accent-fg-color);
+    color: var(--md-default-bg-color);
+    background: var(--md-accent-fg-color);
+}
+
+.example-filter-status {
+    margin: 0;
+    color: var(--md-default-fg-color--light);
+    font-size: 0.67rem;
+}
+
+.example-filter-panel {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    margin: 0 0 0.65rem;
+    padding: 0.7rem;
+    border: 1px solid color-mix(in oklab, currentColor 12%, transparent 88%);
+    border-radius: 0.65rem;
+    background: color-mix(in oklab, var(--md-default-bg-color) 94%, currentColor 6%);
+}
+
+.example-filter-panel[hidden] {
+    display: none;
+}
+
+.learning-card[hidden] {
+    display: none;
+}
+
+.gallery-empty {
+    display: flex;
+    gap: 0.9rem;
+    align-items: flex-start;
+    max-width: 46rem;
+    padding: 1rem 1.1rem;
+    border-left: 0.18rem solid var(--md-accent-fg-color);
+    background: color-mix(in oklab, var(--md-default-bg-color) 95%, currentColor 5%);
+}
+
+.gallery-empty h2 {
+    margin: 0 0 0.25rem;
+    font-size: 0.95rem;
+}
+
+.gallery-empty p {
+    margin: 0;
+}
+
+@media screen and (max-width: 960px) {
+    .learning-gallery {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
 @media screen and (max-width: 768px) {
+    .learning-gallery {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .collection-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
     .femora-embed iframe {
         height: 340px;
+    }
+
+    .femora-embed--cantilever iframe {
+        height: auto;
     }
 }
 

@@ -1,0 +1,149 @@
+:root {
+  color-scheme: light;
+  --ink: #263238;
+  --muted: #68777d;
+  --beam: #246f78;
+  --beam-soft: #8aa5aa;
+  --node: #d58a35;
+  --load: #c6543f;
+  --support: #465d64;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --ink: #e7eded;
+  --muted: #a9b7ba;
+  --beam: #74c3c8;
+  --beam-soft: #718b90;
+  --node: #efb45f;
+  --load: #f2836c;
+  --support: #b6c8ca;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  min-height: 100%;
+  margin: 0;
+}
+
+body {
+  color: var(--ink);
+  background: transparent;
+  font-family: "Aptos", "Trebuchet MS", sans-serif;
+}
+
+.figure-shell {
+  width: min(1040px, 100%);
+  margin: 0 auto;
+}
+
+svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.hatch-line {
+  stroke: var(--support);
+  stroke-width: 2.5;
+}
+
+.support-line {
+  stroke: var(--support);
+  stroke-width: 7;
+}
+
+.support-title,
+.support-detail,
+.element-label,
+.node-labels,
+.legend,
+.dimension {
+  fill: var(--muted);
+  font-family: "Cascadia Mono", "Consolas", monospace;
+}
+
+.support-title {
+  fill: var(--ink);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+}
+
+.support-detail,
+.element-label,
+.node-labels,
+.dimension {
+  font-size: 11px;
+}
+
+.undeformed-line {
+  fill: none;
+  stroke: var(--beam-soft);
+  stroke-dasharray: 8 7;
+  stroke-linecap: round;
+  stroke-width: 4;
+}
+
+.deformed-line {
+  fill: none;
+  stroke: var(--beam);
+  stroke-linecap: round;
+  stroke-width: 8;
+}
+
+.undeformed-nodes circle {
+  fill: transparent;
+  stroke: var(--beam-soft);
+  stroke-width: 3;
+}
+
+.deformed-nodes circle {
+  fill: var(--node);
+  stroke: var(--ink);
+  stroke-width: 2;
+}
+
+.load line {
+  stroke: var(--load);
+  stroke-width: 3;
+}
+
+.load-fill {
+  fill: var(--load);
+}
+
+.load text {
+  fill: var(--load);
+  font-family: "Cascadia Mono", "Consolas", monospace;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.legend {
+  font-size: 11px;
+}
+
+.legend .deformed-line {
+  stroke-width: 6;
+}
+
+.dimension line {
+  stroke: var(--muted);
+  stroke-width: 1.5;
+}
+
+@media (max-width: 700px) {
+  .legend {
+    display: none;
+  }
+
+  .node-labels,
+  .element-label {
+    font-size: 10px;
+  }
+}
