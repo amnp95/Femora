@@ -14291,7 +14291,7 @@ DRM files are created there rather than uploaded from your computer.</p>
 <p><a class="tutorial-action tutorial-action--source" href="https://github.com/GeotechUW/Femora/blob/main/examples/soil_structure_interaction/two_pile_bent_drm.py" rel="noopener" target="_blank"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8 3a2 2 0 0 0-2 2v4a2 2 0 0 1-2 2H3v2h1a2 2 0 0 1 2 2v4a2 2 0 0 0 2 2h2v-2H8v-5a2 2 0 0 0-2-2 2 2 0 0 0 2-2V5h2V3m6 0a2 2 0 0 1 2 2v4a2 2 0 0 0 2 2h1v2h-1a2 2 0 0 0-2 2v4a2 2 0 0 1-2 2h-2v-2h2v-5a2 2 0 0 1 2-2 2 2 0 0 1-2-2V5h-2V3z"/></svg></span> View source</a></p>
 </div>
 <h2 id="model">Model</h2>
-<p><img alt="Two embedded piles connected by an elevated beam, with a center mass and absorbing boundaries" src="../../assets/examples/two-pile-bent-drm/model.svg" /></p>
+<p><img alt="Two embedded piles connected by an elevated beam, with a center mass and absorbing boundaries" src="../../assets/examples/two-pile-bent-drm/model.svg" style="display: block; width: 100%; max-width: 640px; margin: 0 auto;" /></p>
 <p>The physical soil box is 16 m long, 6 m wide, and 8 m deep. It uses homogeneous
 elastic soil with Young's modulus 200 MPa, Poisson's ratio 0.4, and density
 2,100 kg/m3. Bricks have 0.5 m spacing, giving 32 by 12 by 16 cells.
@@ -14682,7 +14682,7 @@ after the pulse.</p>
 <p>The figure below comes from the 16-rank remote run with the 5% supplementary
 PML damping described above. It shows node displacements in the global x
 direction, not displacement relative to the surrounding soil.</p>
-<p><img alt="X-displacement histories of the left pile head, beam center, and right pile head" src="../../assets/examples/two-pile-bent-drm/bent_comparison.png" /></p>
+<p><img alt="X-displacement histories of the left pile head, beam center, and right pile head" src="../../assets/examples/two-pile-bent-drm/bent_comparison.png" style="display: block; width: 100%; max-width: 720px; margin: 0 auto;" /></p>
 <p>All three locations reach their largest displacement near 0.196 s, then
 oscillate with decreasing amplitude. The two pile heads move almost together,
 consistent with the symmetric bent and the incoming wave field. The beam
@@ -14718,7 +14718,7 @@ not a comparison that isolates the effect of the PML or its extra damping.</p>
 <p>The head histories describe the frame's overall motion. To see what happens
 below the heads, we next extract displacement along each pile using its
 structural beam nodes, rather than nearby soil nodes.</p>
-<p><img alt="Signed minimum and maximum x and y displacement along both piles over the full four-second record" src="../../assets/examples/two-pile-bent-drm/pile_displacement_envelopes.png" /></p>
+<p><img alt="Signed minimum and maximum x and y displacement along both piles over the full four-second record" src="../../assets/examples/two-pile-bent-drm/pile_displacement_envelopes.png" style="display: block; width: 100%; max-width: 720px; margin: 0 auto;" /></p>
 <p>Solid curves show the maximum signed displacement at each elevation; dashed
 curves show the minimum. Both use the full four-second record. The x motion
 dominates, while the y response is close to zero. The two sides need not be
@@ -14730,7 +14730,7 @@ beam end forces and moments. The example provides both XML beam-force and
 VTKHDF recorders. VTKHDF support for <code>force3D</code> and <code>localForce3D</code> depends on
 the OpenSees version and build;
 the postprocessor uses XML for the bending plots below.</p>
-<p><img alt="Signed minimum and maximum Mx and My envelopes for both piles, with adjacent end moments averaged at shared nodes" src="../../assets/examples/two-pile-bent-drm/pile_moment_envelopes.png" /></p>
+<p><img alt="Signed minimum and maximum Mx and My envelopes for both piles, with adjacent end moments averaged at shared nodes" src="../../assets/examples/two-pile-bent-drm/pile_moment_envelopes.png" style="display: block; width: 100%; max-width: 720px; margin: 0 auto;" /></p>
 <p>The bending envelopes show <strong>global Mx and My</strong> in kN m. My dominates because
 the incoming motion acts in the x direction. Solid curves show maxima and
 dashed curves show minima over the full record.</p>
@@ -15249,7 +15249,7 @@ download completed output. Checking a job does not require submitting it again.<
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="September 29, 2026 00:28:50 UTC">September 29, 2026</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="September 29, 2026 00:40:45 UTC">September 29, 2026</span>
   </span>
 
     
@@ -15259,7 +15259,7 @@ download completed output. Checking a job does not require submitting it again.<
     <span class="md-icon" title="Created">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M14.47 15.08 11 13V7h1.5v5.25l3.08 1.83c-.41.28-.79.62-1.11 1m-1.39 4.84c-.36.05-.71.08-1.08.08-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8c0 .37-.03.72-.08 1.08.69.1 1.33.32 1.92.64.1-.56.16-1.13.16-1.72 0-5.5-4.5-10-10-10S2 6.5 2 12s4.47 10 10 10c.59 0 1.16-.06 1.72-.16-.32-.59-.54-1.23-.64-1.92M18 15v3h-3v2h3v3h2v-3h3v-2h-3v-3z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="September 29, 2026 00:28:50 UTC">September 29, 2026</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="September 29, 2026 00:40:45 UTC">September 29, 2026</span>
   </span>
 
     

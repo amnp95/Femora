@@ -149,7 +149,8 @@
     root.dataset.initialized = "true";
 
     try {
-      const response = await fetch(root.dataset.manifest);
+      // Revalidate the manifest so newly deployed examples appear on return visits.
+      const response = await fetch(root.dataset.manifest, { cache: "no-cache" });
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       renderGallery(root, await response.json());
     } catch (error) {
