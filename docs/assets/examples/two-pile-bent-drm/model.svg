@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" role="img" aria-labelledby="title desc">
+  <title id="title">Two-pile bent under DRM excitation</title>
+  <desc id="desc">Cross-section: two piles embedded five meters in soil, connected by a beam three meters above the surface, with a center mass. DRM and PML layers surround the sides and base. Not to scale.</desc>
+  <rect width="800" height="450" rx="18" fill="#faf8f5"/>
+  <path d="M95 175H705V385H95Z" fill="#d7e5e3" stroke="#668c87" stroke-width="2"/>
+  <path d="M140 175H660V340H140Z" fill="#efe0c5" stroke="#ba9762" stroke-width="2"/>
+  <rect x="165" y="175" width="470" height="140" fill="#d7c7af"/>
+  <g stroke="#ad9980" stroke-width=".8" opacity=".7">
+    <path d="M165 210H635M165 245H635M165 280H635M210 175V315M260 175V315M310 175V315M360 175V315M410 175V315M460 175V315M510 175V315M560 175V315M610 175V315"/>
+  </g>
+  <path d="M280 285V100H520V285" fill="none" stroke="#324c59" stroke-width="13" stroke-linejoin="round"/>
+  <circle cx="400" cy="100" r="18" fill="#ba493c" stroke="#92342a" stroke-width="2"/>
+  <path d="M80 175H720" stroke="#85745b" stroke-width="2"/>
+  <path d="M90 175V390H710V175" fill="none" stroke="#597577" stroke-width="3" stroke-dasharray="7 5"/>
+  <g font-family="sans-serif" font-size="17" fill="#283b42">
+    <text x="400" y="44" text-anchor="middle">Two piles + connecting beam</text>
+    <text x="427" y="84">25,000 kg (x direction)</text>
+    <text x="570" y="156">Ground: z = 0</text>
+    <text x="310" y="143">Beam: z = +3 m</text>
+    <text x="280" y="309" text-anchor="middle">x = -2.5 m</text>
+    <text x="520" y="309" text-anchor="middle">x = +2.5 m</text>
+    <text x="400" y="269" text-anchor="middle">Elastic soil</text>
+    <text x="400" y="333" text-anchor="middle">DRM layer</text>
+    <text x="400" y="373" text-anchor="middle">PML absorbing region</text>
+    <text x="400" y="423" text-anchor="middle" font-size="14">Schematic cross-section; not to scale</text>
+  </g>
+</svg>

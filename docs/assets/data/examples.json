@@ -73,6 +73,17 @@
       "tags": ["Dynamic", "Rayleigh damping", "H5DRM", "Embedded pile"],
       "level": "Advanced",
       "prerequisites": ["laterally-loaded-pile"]
+    },
+    {
+      "slug": "two-pile-bent-drm",
+      "title": "Two-Pile Bent Under DRM Excitation",
+      "summary": "Connect two embedded piles with an elevated beam and recover their response to a DRM wave pulse.",
+      "preview": "../assets/examples/two-pile-bent-drm/index.html",
+      "previewTitle": "Two-pile bent and center mass schematic",
+      "categories": ["Soil-Structure Interaction", "Wave Propagation", "Interfaces", "Parallel Models"],
+      "tags": ["Two piles", "H5DRM", "PML", "16 ranks"],
+      "level": "Advanced",
+      "prerequisites": ["dynamic-pile-soil-interaction"]
     }
   ]
 }
