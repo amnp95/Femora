@@ -193,8 +193,8 @@ workflow concepts and execution modes, see the
 [Workflows and Remote Execution](../concepts/workflows.md) guide.
 
 The workflow builds all four cases (`angle_000`, `angle_030`, `angle_060`, `angle_090`) in
-parallel, solves each case on 9 MPI ranks (one structural and eight soil;
-36 ranks concurrently across the study),
+sequentially, solves each case on 33 MPI ranks (one structural and 32 soil;
+132 ranks concurrently across the study),
 and passes the resulting partition datasets to the companion postprocessor:
 
 ```python
@@ -223,29 +223,47 @@ CLI tool:
 femora jobs track
 ```
 
-Select the submitted job in the tracker. All generated model files, raw
-partition outputs, interface records, and XML pile forces are selected for
-download while the processing is being checked.
+Select the submitted job in the tracker. After solving, the postprocessor
+extracts compact histories and generates experimental comparison plots remotely.
+The download package includes the reduced HDF5 file, PNG/PDF plots, model Tcl,
+motion input, and logs. Raw VTKHDF and pile-force XML files are not selected for
+download; they remain in the remote workspace subject to cluster retention.
 
 ## Results
 
-Quantitative response curves and directional stiffness comparisons between the
-0 deg, 30 deg, 60 deg, and 90 deg orientations are pending multi-rank remote solver
-verification. Upon completion, the companion postprocessor generates:
+Job `b41b13ca-970d-4124-886a-6be920737d6c-007` completed all four
+orientations on Stampede3. Each extracted history contains 2,501 samples over
+0-50 s. The reduced numerical HDF5 file is approximately 41 MB, rather than
+the approximately 16 GB raw result archive.
 
-- 16 raw displacement history CSV files (4 cases x 4 probes: `left_head`,
-  `right_head`, `cap_top`, and `ground_surface`) containing time, $dx$, $dy$,
-  and $dz$ in meters.
-- A multi-panel comparison figure showing side-by-side relative-to-ground $dx$
-  displacement histories across the four angles.
-- A `summary.json` file capturing extrema, timestamps, and initial gravity
-  settlement offsets for each probe.
+The companion postprocessor produces:
 
-`cap_top` is the actual top-surface mesh node closest to the cap center, not
-an interpolated response at its geometric center. The postprocessor locates
-the pile heads and other probes in each case's recorded mesh, so the model
-does not need to export separate geometry or metadata files. Each orientation
-retains its own recorded times;
-adaptive stepping can shift sample times, so the plot does not silently
-resample the histories. Forces and movies are not interpreted by this
-postprocessor yet; the raw files remain available for that separate review.
+- `rotated_bent_numerical.h5`: bent-top absolute acceleration in global and
+  bent-local axes, free-field acceleration, and signed element-end moments
+  for both piles with elevations, element tags, and end identifiers.
+- `free_field_acceleration_comparison.png` and `.pdf`: the 0-degree free-field
+  and base acceleration histories and frequency content versus experiment.
+- `bent_top_acceleration_comparison.png` and `.pdf`: local horizontal
+  acceleration comparisons for all four configurations.
+- `pile_moment_comparison_all_angles.png` and `.pdf`: left-pile local Mx/My
+  minimum/maximum envelopes versus measured moments for all four angles.
+
+The acceleration comparison adds the prescribed base acceleration to the
+relative uniform-excitation response before rotating to bent-local axes.
+Plots use acceleration in g and moments in kN m. Experimental timestamps are
+shifted by the existing 11.45 s convention; displayed histories span 10-40 s.
+The moment plot averages duplicate elevations and applies the postprocessor's
+thesis elevation correction. Raw signed end moments remain in the reduced file.
+
+These are numerical-to-experimental comparisons, not a claim of exact agreement
+or complete validation. The existing transverse experimental channel is named
+`ay_global` while the numerical curve uses bent-local y; confirm its measurement
+axis convention before interpreting transverse agreement. Missing experimental
+acceleration channels currently appear as zero curves, not measured zero motion.
+
+To regenerate plots locally from the downloaded reduced file:
+
+```bash
+python examples/soil_structure_interaction/rotated_two_pile_bent_postprocess.py plot \
+  --numerical-file rotated_bent_numerical.h5 --output post_processing
+```

@@ -39,6 +39,7 @@ from femora.utils.paths import motions_dir
 RANKS_PER_CASE = 33  # 1 structural + 32 soil partitions
 MOTION_FILE = "CFG2_ax_base_02g_avg.acc"
 POSTPROCESS = "rotated_two_pile_bent_postprocess.py"
+EXPERIMENT_FILE = "selected_experiment_processed.h5"
 
 
 def build_model(context, angle_degrees=0):
@@ -410,19 +411,24 @@ def build_model(context, angle_degrees=0):
     return tcl_file
 
 
-# def postprocess_results(context):
-#     """Run the staged companion postprocessor over all built cases."""
-#     import matplotlib
-
-#     matplotlib.use("Agg")
-#     spec = importlib.util.spec_from_file_location(
-#         "rotated_postprocess", context.workspace / POSTPROCESS
-#     )
-#     module = importlib.util.module_from_spec(spec)
-#     spec.loader.exec_module(module)
-#     return module.generate_results(
-#         context.workspace / "build", context.output_dir
-#     )
+def postprocess_results(context):
+    """Reduce remote histories and plot validation without archiving raw fields."""
+    spec = importlib.util.spec_from_file_location(
+        "rotated_postprocess", context.workspace / POSTPROCESS
+    )
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    output = Path(context.output_dir)
+    output.mkdir(parents=True, exist_ok=True)
+    numerical = module.extract_reduced_results(
+        context.workspace / "build",
+        context.workspace / "motions" / MOTION_FILE,
+        output / "rotated_bent_numerical.h5",
+        motion_dt=0.0127,
+    )
+    return module.generate_validation_plots(
+        numerical, context.workspace / EXPERIMENT_FILE, output
+    )
 
 
 # --8<-- [start:workflow]
@@ -448,14 +454,13 @@ def build_workflow():
             fm.tasks.OpenSees("angle_090", "build/angle_090/model.tcl", ranks=RANKS_PER_CASE),
         ],
     )
-    # Run postprocessing after reviewing the raw solver results.
-    # workflow.add(
-    #     "postprocess", tasks=[fm.tasks.Python("responses", postprocess_results)]
-    # )
+    workflow.add(
+        "postprocess", tasks=[fm.tasks.Python("responses", postprocess_results)]
+    )
     workflow.outputs(
-        # "postprocess/responses/*",
+        "postprocess/responses/*",
         "**/stdout.log",
-        "build/**/*",
+        "build/*/model.tcl",
         "motions/**/*",
         "solve/**/*",
     )
@@ -478,7 +483,12 @@ if __name__ == "__main__":
             "minutes": 2880,
         },
         files={
-            # POSTPROCESS: Path(__file__).with_name(POSTPROCESS),
+            POSTPROCESS: Path(__file__).with_name(POSTPROCESS),
+            EXPERIMENT_FILE: (
+                Path(__file__).resolve().parents[1]
+                / "inputs/validation/rotated_two_pile_bent"
+                / EXPERIMENT_FILE
+            ),
             f"motions/{MOTION_FILE}": motions_dir() / MOTION_FILE,
         },
     )
