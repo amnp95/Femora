@@ -329,9 +329,27 @@ class Analysis(AnalysisComponent):
         """Return Tcl support for bounded retries and optional substepping."""
         max_levels = self.num_sublevels or 0
         num_substeps = self.num_substeps or 2
+        factor_once_commands = []
+        if getattr(self.algorithm, "factor_once", False):
+            # Newmark's effective matrix changes with dt, including on recovery
+            # back to the base increment. Recreating the algorithm resets reuse.
+            factor_once_commands = [
+                "set FemoraFactorOnceDt {}",
+            ]
+            refresh_commands = [
+                "\tglobal FemoraFactorOnceDt",
+                "\tif {$FemoraFactorOnceDt eq {} || $dt != $FemoraFactorOnceDt} {",
+                f"\t\t{self.algorithm.to_tcl()}",
+                "\t\tset FemoraFactorOnceDt $dt",
+                "\t}",
+            ]
+        else:
+            refresh_commands = []
         return [
+            *factor_once_commands,
             "proc FemoraAnalyzeTransientStep {dt level} {",
             "\tglobal pid",
+            *refresh_commands,
             "\tset Ok [analyze 1 $dt]",
             "\tset FemoraRetry 0",
             f"\twhile {{$Ok != 0 && $FemoraRetry < {self.max_retries}}} {{",
