@@ -1,8 +1,8 @@
-﻿# =============================================================================
+# =============================================================================
 # Femora: Fast Efficient Meta-modeling for OpenSees-based Resilience Analysis
 # Copyright 2026 Amin Pakzad and Pedro Arduino
 # Developed at the UW Geotechnical Lab
-# SPDX-License-Identifier: Apache-2.0
+# SPDX-License-Identifier: Apache-20.0
 # =============================================================================
 
 """Uniaxial Steel01 hysteretic material wrapping OpenSees ``Steel01``."""
@@ -132,8 +132,7 @@ class Steel01Material(Material):
         """Emit ``Steel01`` with optional isotropic arguments.
 
         Returns:
-            str: Tcl text including ``Fy E0 b`` and the four optional isotropic
-            parameters when all were supplied at construction.
+            str: Tcl command string for the Steel01 material.
 
         Raises:
             ValueError: If the material has not been registered with a manager.
