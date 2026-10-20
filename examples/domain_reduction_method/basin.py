@@ -218,8 +218,16 @@ def build_case(context, material, site, final_time):
 
 def postprocess_results(context, final_time):
     """Keep all plotting and result inspection in the companion file."""
-    from basin_postprocess import generate_results
-    return generate_results(context.workspace / "build", context.output_dir, final_time)
+    import importlib.util
+
+    # Bundled companion files are staged in the workspace, not on sys.path.
+    path = context.workspace / "basin_postprocess.py"
+    spec = importlib.util.spec_from_file_location("basin_postprocess", path)
+    if spec is None or spec.loader is None:
+        raise ImportError(f"Cannot load basin postprocessor from {path}")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module.generate_results(context.workspace / "build", context.output_dir, final_time)
 
 
 # --8<-- [start:workflow]

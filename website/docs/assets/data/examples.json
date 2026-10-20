@@ -97,6 +97,17 @@
       "prerequisites": ["two-pile-bent-drm", "nonlinear-layered-soil-column"]
     },
     {
+      "slug": "basin",
+      "title": "Elastic and Plastic Basin",
+      "summary": "Compare elastic and plastic basin responses against a layered background at three DRM sites.",
+      "preview": "../assets/examples/basin/index.html",
+      "previewTitle": "Actual basin bricks in perspective and center section",
+      "categories": ["Wave Propagation", "Nonlinear Analysis", "Parallel Models"],
+      "tags": ["Basin", "H5DRM", "Plasticity"],
+      "level": "Advanced",
+      "prerequisites": ["nonlinear-layered-soil-column"]
+    },
+    {
       "slug": "embedded-block-contact",
       "title": "Foundation Contact and Separation",
       "summary": "Connect a shallow foundation to soil with frictional contact, then expose uplift through lateral rocking.",

@@ -71,10 +71,105 @@ def generate_results(results_root, output_dir, final_time=2.0):
     figure.savefig(output_dir / "surface_acceleration.png", dpi=180)
     plt.close(figure)
     (output_dir / "summary.json").write_text(json.dumps(summary, indent=2), encoding="utf-8")
+    plot_response_comparisons(output_dir)
     return output_dir
 
 
-def render_mesh(output_dir):
+def plot_response_comparisons(histories_dir, output_dir=None):
+    """Plot separate center overlays and component PGA ratios from probe CSVs.
+
+    Both center figures use identical panel limits and the native time vectors.
+    Peak ratios compare separate absolute maxima, not simultaneous values or
+    frequency-domain transfer functions. No reference motions are required.
+    """
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    import numpy as np
+
+    source = Path(histories_dir)
+    output = Path(output_dir) if output_dir is not None else source
+    output.mkdir(parents=True, exist_ok=True)
+    cases = ("no_basin", "elastic", "plastic")
+    probes = ("center", "edge", "outside")
+    colors = {"no_basin": "#353c42", "elastic": "#267aab", "plastic": "#c45a27"}
+    histories = {}
+    for site in (1, 2, 3):
+        for case in cases:
+            for probe in probes:
+                path = source / f"site{site}_{case}_{probe}.csv"
+                values = np.loadtxt(path, delimiter=",", skiprows=1, ndmin=2)
+                if values.shape[1] != 7 or len(values) < 2 or not np.isfinite(values).all():
+                    raise ValueError(f"Invalid probe history: {path}")
+                if np.any(np.diff(values[:, 0]) <= 0):
+                    raise ValueError(f"Non-increasing probe timestamps: {path}")
+                histories[site, case, probe] = values
+    start = max(v[0, 0] for v in histories.values())
+    end = min(v[-1, 0] for v in histories.values())
+    if end <= start:
+        raise ValueError("Probe histories have no shared comparison interval")
+    for key, values in histories.items():
+        values = values[(values[:, 0] >= start) & (values[:, 0] <= end)]
+        if len(values) < 2:
+            raise ValueError(f"Insufficient samples in shared interval: {key}")
+        histories[key] = values
+
+    for case in ("elastic", "plastic"):
+        figure, axes = plt.subplots(3, 3, figsize=(16, 10), sharex=True)
+        for column, site in enumerate((1, 2, 3)):
+            for row, direction in enumerate("XYZ"):
+                axis = axes[row, column]
+                for selected in ("no_basin", case):
+                    values = histories[site, selected, "center"]
+                    label = "No basin" if selected == "no_basin" else f"{selected.capitalize()} basin"
+                    axis.plot(values[:, 0], values[:, row+1], lw=.85,
+                              color=colors[selected], label=label)
+                limit = max(np.abs(histories[site, c, "center"][:, row+1]).max() for c in cases)
+                limit = 1.08 * limit if limit else 1.0
+                axis.set_ylim(-limit, limit)
+                axis.set_xlim(start, end)
+                axis.set_ylabel(f"{direction} acceleration (m/s^2)")
+                axis.grid(alpha=.2)
+                if row == 0:
+                    axis.set_title(f"Site {site}")
+                if row == 2:
+                    axis.set_xlabel("Time (s)")
+        axes[0, 0].legend(fontsize=9)
+        figure.suptitle(f"Center surface: no basin versus {case} basin")
+        figure.tight_layout()
+        figure.savefig(output / f"center_{case}_comparison.png", dpi=180)
+        plt.close(figure)
+
+    figure, axes = plt.subplots(3, 3, figsize=(13, 9), sharex=True, sharey=True)
+    maximum_ratio = 1.0
+    for row, probe in enumerate(probes):
+        for column, direction in enumerate("XYZ"):
+            axis = axes[row, column]
+            for offset, case in ((-.18, "elastic"), (.18, "plastic")):
+                ratios = []
+                for site in (1, 2, 3):
+                    baseline = np.abs(histories[site, "no_basin", probe][:, column+1]).max()
+                    if baseline == 0:
+                        raise ValueError(f"Zero no-basin peak at site {site}, {probe}, {direction}")
+                    ratios.append(np.abs(histories[site, case, probe][:, column+1]).max() / baseline)
+                maximum_ratio = max(maximum_ratio, *ratios)
+                bars = axis.bar(np.arange(3)+offset, ratios, width=.34,
+                                color=colors[case], label=f"{case.capitalize()} basin")
+                axis.bar_label(bars, fmt="%.2f", fontsize=8, padding=2)
+            axis.axhline(1, color=colors["no_basin"], ls="--", lw=.8)
+            axis.set_xticks(range(3), ["Site 1", "Site 2", "Site 3"])
+            axis.set_title(f"{probe.capitalize()} / {direction}")
+            if column == 0:
+                axis.set_ylabel("PGA / no-basin PGA")
+    axes[0, 0].set_ylim(0, maximum_ratio * 1.17)
+    axes[0, 0].legend(fontsize=8)
+    figure.tight_layout()
+    figure.savefig(output / "pga_amplification.png", dpi=180)
+    plt.close(figure)
+    return output
+
+
+def render_mesh(output_dir, dark=False):
     """Render the layered mesh figure without launching a simulation."""
     import matplotlib
     matplotlib.use("Agg")
@@ -87,8 +182,9 @@ def render_mesh(output_dir):
     # A separate presentation script keeps the model's interactive preview simple.
     colors = ["#cfb781", "#b7c79f", "#80b5ac", "#709da9", "#738aa3", "#8c829e"]
     basin_color = "#bd6348"
-    background = "#f6f4ee"
-    ink = "#293e45"
+    background = "#1e2129" if dark else "#f6f4ee"
+    ink = "#e5e7eb" if dark else "#293e45"
+    muted = "#b1bdc4" if dark else "#647578"
     destination = Path(output_dir)
     destination.mkdir(parents=True, exist_ok=True)
 
@@ -143,13 +239,13 @@ def render_mesh(output_dir):
     section.text(-64, 5, "Ground surface", fontsize=10, color=ink)
     section.annotate("Soft basin", xy=(0, -8), xytext=(28, 9), fontsize=11, color=ink,
                      arrowprops={"arrowstyle": "-", "color": ink, "linewidth": 0.8})
-    dimension = {"arrowstyle": "|-|", "color": "#6b7c7d", "linewidth": 0.8}
+    dimension = {"arrowstyle": "|-|", "color": muted, "linewidth": 0.8}
     section.annotate("", xy=(-64, -56), xytext=(64, -56), arrowprops=dimension)
     section.text(0, -62, "128 m", ha="center", fontsize=11)
     section.annotate("", xy=(-73, 0), xytext=(-73, -48), arrowprops=dimension)
     section.text(-79, -24, "48 m", ha="center", va="center", rotation=90, fontsize=11)
     for depth in (0, -8, -16, -24, -32, -40, -48):
-        section.text(67, depth, f"{depth} m", va="center", fontsize=9, color="#647578")
+        section.text(67, depth, f"{depth} m", va="center", fontsize=9, color=muted)
 
     legend = [Patch(facecolor=basin_color, label="Basin")]
     for index, color in enumerate(colors, start=1):
@@ -157,11 +253,12 @@ def render_mesh(output_dir):
     figure.legend(handles=legend, loc="lower center", ncol=7, frameon=False,
                   bbox_to_anchor=(0.5, 0.055), handlelength=1.3, columnspacing=1.7)
     figure.text(0.5, 0.022, "Actual 4 m bricks  |  Muted mesh edges  |  Absorbing extension omitted",
-                ha="center", fontsize=10, color="#647578")
+                ha="center", fontsize=10, color=muted)
     figure.subplots_adjust(left=0.025, right=0.975, bottom=0.16, top=0.91, wspace=0.04)
-    figure.savefig(destination / "mesh.png", dpi=180, facecolor=background)
+    filename = "mesh_dark.png" if dark else "mesh.png"
+    figure.savefig(destination / filename, dpi=180, facecolor=background)
     plt.close(figure)
-    print(f"Rendered {destination / 'mesh.png'}")
+    print(f"Rendered {destination / filename}")
 
 
 if __name__ == "__main__":
@@ -174,5 +271,6 @@ if __name__ == "__main__":
     if args.mesh:
         output = args.output or Path(__file__).resolve().parents[2] / "website/docs/assets/examples/basin"
         render_mesh(output)
+        render_mesh(output, dark=True)
     else:
         generate_results(args.results_root, args.output or Path("example_outputs/basin/responses"), args.final_time)

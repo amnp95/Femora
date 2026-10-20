@@ -1,0 +1,14 @@
+:root{--viewer-bg:#f4f3ef;--viewer-fg:#243b43;--viewer-halo:#fff;color-scheme:light}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--viewer-bg);color:var(--viewer-fg);font-family:sans-serif}
+#viewport{position:absolute;inset:0 0 42px;overflow:hidden}
+#stage{position:absolute;width:1600px;height:1050px;transform-origin:top left}
+canvas{display:block;touch-action:none;cursor:grab}
+.label{position:absolute;font:17px sans-serif;pointer-events:none;white-space:nowrap;text-shadow:0 1px 4px var(--viewer-halo),0 1px 4px var(--viewer-halo)}
+.label strong{font-weight:600}
+#toolbar{position:absolute;bottom:0;left:0;right:0;min-height:42px;display:flex;align-items:center;justify-content:center;gap:18px;font-size:13px;background:var(--viewer-bg)}
+button{font:inherit;color:inherit;border:1px solid #a6b1b5;border-radius:4px;background:transparent;padding:5px 10px;cursor:pointer}
+button:focus-visible,canvas:focus-visible{outline:2px solid #287f91;outline-offset:2px}
+#status{position:absolute;left:20px;top:12px;font-size:14px}
+#status a{color:inherit}
+@media(max-width:450px){#toolbar{font-size:11px;gap:8px}}
+@media print{#toolbar{display:none}}

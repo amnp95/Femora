@@ -5,71 +5,95 @@ icon: material/file-document-outline
 
 # Elastic and Plastic Basin
 
-Compare a soft elastic basin with a pressure-independent elastoplastic basin
-inside the same six-layer elastic background. One setting changes the basin
-material; the geometry, density, viscous damping, input, and recording settings
-remain unchanged.
+How does a soft soil basin change earthquake motion at the ground surface?
+This example compares an elastic basin, a plastic basin, and a layered
+background without a basin at three sites. It walks through model construction,
+DRM excitation, surface-response interpretation, and remote workflow execution.
 
-A third `no_basin` reference keeps exactly the same extracted cells and mesh
-parts, but assigns each basin part its host layer's material, density, and
-damping. It therefore represents the original six-layer background without a
-soft inclusion. All three cases use the same process steps; each site supplies its own shared DRM input.
-
-!!! warning "Initial migration, not a validated benchmark"
-    Geometry previews are not simulation results. Gravity equilibrium,
-    implicit convergence and time-step accuracy, DRM compatibility, and absorbing-boundary
-    performance must be checked before interpreting a full run.
+Within each site, the three configurations share the same geometry, mesh,
+incoming wave field, and recording settings. The no-basin configuration assigns
+the host layer's material, density, and damping to the basin cells. Comparing
+against this background isolates the effect of the soft inclusion.
 
 <div class="tutorial-actions" markdown>
 [:material-code-braces: View source](https://github.com/GeotechUW/Femora/blob/main/examples/domain_reduction_method/basin.py){ .tutorial-action .tutorial-action--source }
 </div>
 
+## Regional Background
+
+The incoming motions come from a physics-based **SW4 regional earthquake
+simulation**, described by [Huang and McCallen (2025)](https://doi.org/10.1002/eqe.4350).
+The scenario represents a magnitude Mw 6.5 strike-slip earthquake. SW4 computes
+wave propagation from the fault through the regional geology, including a
+sedimentary basin. Three DRM boxes extract the wave field at different sites.
+
+=== "3D View"
+
+    <iframe src="../../assets/viewer/viewer.html?scene=../scenes/basin-regional.js&amp;fallback=../examples/basin/regional_3d.png" title="Interactive regional basin, fault plane, and DRM sites" loading="lazy" style="width:100%;height:clamp(340px,65vw,720px);border:0;border-radius:6px"></iframe>
+
+    [View static figure](../assets/examples/basin/regional_3d.png)
+
+=== "Site Plan"
+
+    <div class="femora-boundary-schematic">
+    --8<-- "website/docs/assets/examples/basin/regional_sites.svg"
+    </div>
+
+| Site | Approximate Fault-Normal Distance | Position Relative to Site 1 |
+|---|---|---|
+| 1 | 1 km | Near-fault reference site |
+| 2 | 1 km | 20 km along the fault |
+| 3 | 18 km | 17 km farther from the fault |
+
+DRM transfers the regional wave field into each local Femora model. The
+**regional sedimentary basin in SW4** and the **small local soft basin added
+in Femora** are distinct. The no-basin case omits only the additional local
+basin; its excitation still contains the regional source, propagation, and
+site effects. The following model focuses on how that additional soft deposit
+changes the surface motion.
+
+## Model and Assumptions
+
 | Item | Configuration |
 |---|---|
 | Units | m, kN, tonne, s; moduli and stresses in kPa |
 | Physical domain | 128 x 128 x 48 m |
-| Mesh | 4 m bricks; 12,288 physical cells |
-| Basin | Sphere center (0, 0, 70) m, radius 85 m, clipped by soil |
+| Mesh | 4 m bricks; 12,288 physical cells; consistent mass |
+| Basin | Sphere center (0, 0, 70) m, radius 85 m, intersected with the soil |
 | Materials | Elastic host; elastic or PressureIndependMultiYield basin |
-| Analysis | Implicit Newmark; ModifiedNewton with factor-once dynamics |
-| Time | 27.4 s at all sites; initial integration interval 0.01 s, recording interval 0.02 s |
-| Parallel export | 32 physical + 64 absorber partitions = 96 ranks |
-
-## Model
+| Absorber | Eight layers on the sides and bottom; Rayleigh damping setting 0.95 |
+| Analysis | Implicit Newmark; Modified Newton with factor-once dynamics |
+| Time | 27.4 s; initial integration step 0.01 s; recording interval 0.02 s |
+| Partitions | 32 physical + 64 absorber partitions = 96 MPI ranks per case |
 
 <div class="femora-boundary-schematic">
 --8<-- "website/docs/assets/examples/basin/model.svg"
 </div>
 
-The basin is a **shallow spherical cap**, not a hemisphere. Its ideal bottom is
-at z = -15 m and its surface radius is approximately 48.22 m. Cells are assigned
-by their centers, so the actual interface is stepped and the modeled depth is
-quantized by the 4 m spacing. Basin and host points are merged during assembly:
-this is a continuous soil domain, not a contact interface.
+The basin is a **shallow spherical cap** with its ideal bottom at z = -15 m
+and surface radius approximately 48.22 m. Whole bricks are assigned by their
+cell centers, producing a stepped interface. Shared basin and host nodes are
+merged during assembly so that the materials form one continuous soil domain.
 
-## Inspect the Actual Mesh
+![Basin mesh: perspective cutaway and center section showing the stepped interface](../assets/examples/basin/mesh.png#only-light)
+![Basin mesh: perspective cutaway and center section showing the stepped interface](../assets/examples/basin/mesh_dark.png#only-dark)
 
-![Actual 4 m basin mesh: perspective cutaway and center section](../assets/examples/basin/mesh.png)
+The cutaway and center section show the physical soil mesh. The absorbing
+extension is omitted from this view. All cases use small-strain brick elements;
+only the plastic basin has nonlinear material behavior.
 
-The figure is generated by the postprocessor, separately from model construction:
+## Model Construction
 
-```bash
-python examples/domain_reduction_method/basin_postprocess.py --mesh
-```
-This renders geometry only. Running `basin.py` submits the TACC workflow.
+=== "1. Define the basin"
 
-## Worked Model
+    The `material` argument of `build_model()` selects `"elastic"`,
+    `"plastic"`, or `"no_basin"`. The workflow builds all three at each site.
 
-=== "1. Select the material"
-
-    ```python
-    --8<-- "examples/domain_reduction_method/basin.py:settings"
-    ```
-
-    Change `BASIN_MATERIAL` to `"plastic"` to use the nonlinear material. Both
-    variants use density 1.8 tonne/m3, Vs = 150 m/s, Vp = 300 m/s, G = 40,500 kPa,
-    and K = 108,000 kPa. The nonlinear material uses cohesion 8 kPa and peak shear
-    strain 0.1; these inherited parameters are illustrative, not a calibration.
+    Both basin materials use density 1.8 tonne/m3, Vs = 150 m/s, and
+    Vp = 300 m/s. These give shear modulus G = 40,500 kPa and bulk modulus
+    K = 108,000 kPa. The plastic material uses cohesion 8 kPa and peak shear
+    strain 0.1. The no-basin case retains the same cells but uses their
+    corresponding host-layer properties.
 
     ```python
     --8<-- "examples/domain_reduction_method/basin.py:basin-material"
@@ -77,9 +101,18 @@ This renders geometry only. Running `basin.py` submits the TACC workflow.
 
 === "2. Build the layers"
 
-    The loop walks downward from z = 0, creates the elastic host material, and
-    separates basin cells from host cells. Only the upper two layers intersect
-    the basin. No cells are duplicated between the two materials.
+    The six host layers extend downward from the surface, each with two rows
+    of 4 m bricks. Only the upper two layers intersect the basin. The mesh
+    separates basin cells from host cells without duplicating either.
+
+    | Layer | Thickness (m) | Density (tonne/m3) | Vp (m/s) | Vs (m/s) | Damping Ratio |
+    |---|---:|---:|---:|---:|---:|
+    | 1 | 8 | 2.14205 | 669.05 | 353.10 | 0.0296 |
+    | 2 | 8 | 2.14620 | 785.25 | 414.40 | 0.0269 |
+    | 3 | 8 | 2.15035 | 886.05 | 467.60 | 0.0249 |
+    | 4 | 8 | 2.15445 | 976.40 | 515.30 | 0.0234 |
+    | 5 | 8 | 2.15860 | 1059.05 | 558.95 | 0.0221 |
+    | 6 | 8 | 2.16275 | 1135.65 | 599.40 | 0.0211 |
 
     ```python
     --8<-- "examples/domain_reduction_method/basin.py:mesh"
@@ -87,48 +120,145 @@ This renders geometry only. Running `basin.py` submits the TACC workflow.
 
 === "3. Add the boundary"
 
+    Eight 4 m absorbing rows extend the model 32 m at each side and below.
+    The extension uses `rayleigh_damping=0.95` to attenuate outgoing waves,
+    separately from the physical-soil damping. The outer side and bottom
+    faces are fixed; the top surface remains free.
+
     ```python
     --8<-- "examples/domain_reduction_method/basin.py:boundary"
     ```
 
-    The eight-layer Rayleigh absorbing extension retains the legacy damping
-    setting of 0.95. This is separate from physical-soil damping and requires
-    reflection checks; it is not a claim of perfect absorption. The free surface
-    has no absorber above it. Eight 4 m rows extend 32 m at each side and below.
+=== "4. Initialize and analyze"
 
-=== "4. Initialize and record"
+    Host-layer Rayleigh damping uses the ratios in the table, fitted at
+    3 and 15 Hz. Both basin variants use 3% viscous damping at those
+    frequencies; the plastic material additionally supports hysteretic
+    dissipation. Set `NO_PHYSICAL_DAMPING = True` to disable basin and host
+    viscous damping while retaining the absorber damping.
 
-    Physical strata use their listed viscous damping ratios, fitted at 3 and
-    15 Hz; the basin uses 3% in both variants. Plastic hysteresis adds dissipation
-    on top of this common viscous damping. Self-weight is enabled in the bricks.
-    The plastic basin is initialized elastically, switched to plastic, and
-    equilibrated again before DRM excitation. Check residual velocities and
-    equilibrium before accepting that initialization.
+    Self-weight is applied through the brick body forces. The first gravity
+    phase initializes the basin elastically; the second re-equilibrates after
+    enabling the plastic material stage. Elastic materials retain their
+    elastic behavior throughout. Each phase uses ten static steps at fixed
+    body-force loading rather than gradually ramping gravity.
+
+    The first phase uses an energy-increment tolerance of `1e-8` and
+    factor-once Modified Newton; the second uses `1e-5` and plain Modified
+    Newton. Both allow 30 iterations and no retries. The dynamic clock then
+    resets to zero while retaining the gravity state.
+
+    Dynamics use Newmark (`gamma=0.5`, `beta=0.25`), Mumps, and factor-once
+    Modified Newton, with tolerance `1e-4` and up to eight iterations.
+    The initial time step is 0.01 s. A failed increment gets one retry,
+    followed by up to three halving levels, down to 0.00125 s. The
+    factorization refreshes when the time step changes and is reused at
+    an unchanged step size. Responses are recorded every 0.02 s.
 
     ```python
     --8<-- "examples/domain_reduction_method/basin.py:analysis"
     ```
 
-## TACC Workflow
+## Results
 
-The model script follows the same submission format as the other migrated
-examples: `build_workflow()` defines the stages and the final `fm.submit(...)`
-block specifies the cluster settings. No command-line options are required.
+The following comparisons cover 0-27.4 s at all three sites, with physical
+viscous damping enabled. Each history contains 1,371 recorded samples at
+0.02 s intervals. Within each site, the three models share the same incoming
+DRM wave field and differ in the material assigned to the basin cells.
+
+=== "Elastic Basin"
+
+    ![Center surface XYZ acceleration: no basin versus elastic basin at three sites](../assets/examples/basin/center_elastic_comparison.png)
+
+    Columns represent Sites 1-3; rows represent X, Y, and Z acceleration at
+    the center surface point `(0, 0, 0)`. The black curve is the layered
+    no-basin background and the blue curve is the soft elastic basin.
+
+    The elastic basin increases center peak accelerations in every component.
+    Peak ratios range from approximately **2.00 to 3.84**, depending on site
+    and direction. Site 2 has the largest absolute center acceleration:
+    **27.64 m/s2 in Y**. Site 3 has the largest relative center Z amplification,
+    **3.84 times** its no-basin peak; a larger ratio does not necessarily mean
+    a larger absolute acceleration.
+
+    The elastic basin intentionally retains its stiffness during strong
+    shaking. Without modulus reduction and hysteretic dissipation, it can
+    overpredict amplification compared with yielding soil. This idealized
+    case illustrates the amplification potential of the soft basin rather
+    than realistic strong-motion soil behavior.
+
+=== "Plastic Basin"
+
+    ![Center surface XYZ acceleration: no basin versus plastic basin at three sites](../assets/examples/basin/center_plastic_comparison.png)
+
+    The black curve is again the no-basin background; the orange curve is the
+    plastic basin. Each panel uses the **same time and acceleration limits**
+    as its counterpart in the elastic tab, so changing tabs does not change
+    the visual scale.
+
+    Plastic-case center peaks are lower than the elastic-case peaks in every
+    component at all sites. The X peak ratios are approximately **1.03-1.13**,
+    while Y and Z still amplify by approximately **1.47-2.02**. Plasticity
+    therefore reduces peak acceleration amplification in this comparison,
+    with a different reduction in each direction. The basin effect remains
+    visible, especially in Y and Z.
+
+=== "Peak Amplification"
+
+    ![Component PGA ratios at center, edge, and outside surface probes for three sites](../assets/examples/basin/pga_amplification.png)
+
+    Rows show the center `(0, 0, 0)`, near-edge `(48, 0, 0)`, and outside
+    `(60, 0, 0)` surface probes. Columns show the X, Y, and Z components.
+    Blue bars represent the elastic basin and orange bars the plastic basin.
+    Each bar is computed at the same site, component, and probe as:
+
+    $$
+    R_{\mathrm{PGA}} =
+    \frac{\max_t |a_{\mathrm{basin}}(t)|}
+         {\max_t |a_{\mathrm{no\ basin}}(t)|}.
+    $$
+
+    The dashed line at **1** denotes an unchanged peak.
+
+    | Site | Elastic Center X / Y / Z | Plastic Center X / Y / Z |
+    |---|---|---|
+    | 1 | 2.00 / 2.06 / 2.31 | 1.03 / 1.77 / 1.59 |
+    | 2 | 2.74 / 3.63 / 3.22 | 1.05 / 1.47 / 1.63 |
+    | 3 | 3.45 / 2.39 / 3.84 | 1.13 / 1.74 / 2.02 |
+
+    The strongest peak changes occur at the center. Near-edge ratios range
+    approximately **0.93-1.20**, and outside ratios **0.95-1.13**. This shows
+    spatial variation in the basin effect: center peaks change substantially
+    more than those at the near-edge and outside probes.
+
+## Run the Workflow
+
+The workflow builds nine models, solves them on Stampede3, and reduces the
+results to the plots and histories needed for comparison. Run it from your
+local Femora environment; OpenSees executes on the remote system.
 
 === "1. Configure"
 
-    `FINAL_TIME = 27.4` near the top selects the shared duration. The workflow
-    builds elastic, plastic, and no-basin cases for Site1, Site2, and Site3.
-    `DRM_ROOT` points to `/scratch/08189/amnp95/drm_inputs`, containing the
-    three community records copied from Corral on the login node. This
-    scratch copy is needed because the compute nodes could not access Corral.
-    No new DRM input is generated or uploaded. Other users must change
-    `DRM_ROOT` to their own compute-accessible input directory.
-    Edit the app, allocation, queue, nodes, and minutes directly in the
-    submission block to match your account.
+    Set `DRM_ROOT` near the top of the script to a directory readable by the
+    remote compute nodes:
 
     ```python
-    --8<-- "examples/domain_reduction_method/basin.py:submission"
+    DRM_ROOT = Path("/path/to/drm_inputs")
+    ```
+
+    That directory must contain:
+
+    ```text
+    HaywardFault_SW4_DRM_Site1.h5drm
+    HaywardFault_SW4_DRM_Site2.h5drm
+    HaywardFault_SW4_DRM_Site3.h5drm
+    ```
+
+    In `fm.submit(...)`, set `app_id` and `allocation` for your account.
+    The DRM files are read from `DRM_ROOT` on the remote system.
+
+    ```python
+    --8<-- "examples/domain_reduction_method/basin.py:workflow"
     ```
 
 === "2. Submit"
@@ -139,95 +269,44 @@ block specifies the cluster settings. No command-line options are required.
     python examples/domain_reduction_method/basin.py
     ```
 
-    This submits a job and prompts for DesignSafe authentication as needed.
-    Defaults are Stampede3, `skx`, six 48-core nodes, and 240 minutes.
-    Each site's three 96-rank solves run concurrently, using all 288 cores.
-    The three site groups run sequentially and reuse the same allocation.
-    Python stages remain sequential one-core callbacks.
+    Complete the DesignSafe authentication prompts. The workflow builds the
+    nine cases sequentially, then runs each site's three 96-rank solves
+    concurrently, using all 288 cores. The three site groups reuse the
+    same allocation in sequence. Postprocessing starts after all solves.
 
-    The three existing Hayward-fault SW4 records have matching box bounds
-    (-64 to 64 m horizontally, -48 to 0 m vertically) and 4 m spacing.
-    Their sample interval is 0.010778281762249068 s; the solver's initial
-    0.01 s integration step is independent of this interval. Coordinates
-    remain unchanged and the DRM load factor remains 1.0.
-
-    Newmark uses gamma = 0.5 and beta = 0.25, Mumps, and
-    ModifiedNewton with `factor_once=True`. The fixed tangent can struggle
-    during plastic yielding. Each failed increment gets one same-step retry,
-    then up to three halving levels (down to 0.00125 s). Factor-once reuse
-    resets whenever the integration step changes, including the return to
-    0.01 s. The analysis stops if recovery fails. A short smoke
-    run should establish convergence before the full-duration run. Site2 and
-    Site3 lack a velocity dataset; confirm the installed H5DRM reader accepts
-    them. Motion units and site fault distances are not inferred from filenames.
-
-=== "3. Inspect"
+    Track the submitted job with:
 
     ```bash
     femora jobs track
     ```
 
-    Download the small acceleration plot, 27 probe-history CSV files,
-    `summary.json`, solver logs, and exported Tcl. Surface probes are at
-    (0, 0, 0), (48, 0, 0), and (60, 0, 0) m. The reducer checks completion,
-    timestamps, coordinates, and finite acceleration and displacement.
-    Inspect the peaks and solver warnings before accepting the run.
+=== "3. View the results"
 
-    `center_acceleration_all_cases.csv` combines the center-surface acceleration
-    for all nine cases. Its columns are `case,time_s,ax_m_per_s2,ay_m_per_s2,az_m_per_s2`.
-    Each case retains its own recorded timestamps; no interpolation is applied.
+    Download the compact outputs from `postprocess/responses`:
 
-    Raw VTKHDF stays under `build/site1_elastic/results` and the eight
-    corresponding site/material folders
-    in the remote workspace, outside the default download package.
+    | Output | Contents |
+    |---|---|
+    | `center_elastic_comparison.png` | No-basin and elastic-basin center XYZ histories |
+    | `center_plastic_comparison.png` | No-basin and plastic-basin center XYZ histories |
+    | `pga_amplification.png` | Peak ratios for all sites, directions, and probes |
+    | `surface_acceleration.png` | X-acceleration overview at the three probes |
+    | `center_acceleration_all_cases.csv` | Center XYZ acceleration for all nine cases |
+    | 27 individual probe CSVs | XYZ acceleration and displacement histories |
+    | `summary.json` | Recorded duration, probe coordinates, and peak responses |
 
-=== "4. Extend"
+    The combined acceleration CSV has columns
+    `case,time_s,ax_m_per_s2,ay_m_per_s2,az_m_per_s2` and retains each case's
+    recorded timestamps. Individual probe CSVs also include displacement.
+    Surface probes are at the center `(0, 0, 0)`, near the edge `(48, 0, 0)`,
+    and outside the basin `(60, 0, 0)`, in meters.
 
-    For a short smoke test, temporarily set `FINAL_TIME = 2.0`; restore
-    `27.4` for the full comparison. Adjust `minutes` in `fm.submit(...)`
-    based on measured timings for the three sequential site groups.
+    Solver logs and exported Tcl are included in the workflow outputs.
+    Raw VTKHDF remains in the remote workspace under
+    `build/<case>/results`, outside the default download package.
 
-    The model and postprocessor are staged from your local files. The remote
-    Femora installation and OpenSeesMP must already provide the APIs and
-    VTKHDF recorder used by the example.
+=== "4. Customize"
 
-```python
---8<-- "examples/domain_reduction_method/basin.py:workflow"
-```
-
-## Differences from the Legacy Examples
-
-This consolidates `DRM/Example3` and `DRM/Example6` as a controlled comparison,
-not an exact reproduction of either. It uses density 1.8 rather than the plastic
-legacy value 1.3, enables physical viscous damping by default, uses consistent
-mass throughout, adopts eight absorber layers and 96 ranks, and uses the same
-common implicit analysis for all cases. Self-weight is now active instead of the zero
-body forces in the legacy plastic example. The obsolete
-`updatewithsigmav0` constructor argument is not carried over.
-
-Set `NO_PHYSICAL_DAMPING = True` to disable basin and host viscous damping
-without changing absorber damping. Both gravity phases use ten static
-zero-load-increment steps with 30 iterations and no retries: the elastic
-phase uses tolerance `1e-8` and factor-once Modified Newton; the subsequent
-re-equilibration uses `1e-5` and plain Modified Newton. These steps correct
-equilibrium at fixed body-force loading rather than ramping self-weight.
-Dynamics use tolerance `1e-4` and eight iterations in all three cases.
-The installed remote Femora exporter must include the time-step-dependent
-factor-once reset for this recovery behavior.
-
-## Planned Response Comparisons
-
-After short runs establish numerical behavior, compare surface acceleration
-at the center, near the basin edge, and outside the basin; deformation; and
-representative basin stress-strain histories. The VTKHDF recorder requests
-displacement, velocity, acceleration, stress, and strain. Verify the installed
-solver's tensor output conventions before building those comparisons. No
-validated response plots or experimental validation are claimed yet. The
-workflow's initial acceleration comparison is a smoke diagnostic only.
-
-The companion `basin_postprocess.py` contains response plotting and the
-documentation mesh renderer. Recreate the mesh figure with:
-
-```bash
-python examples/domain_reduction_method/basin_postprocess.py --mesh
-```
+    Change the basin wave speeds or material parameters to explore stiffness
+    and strength effects. Set `NO_PHYSICAL_DAMPING = True` to examine the
+    contribution of physical viscous damping, keeping the no-basin case as
+    the common background for peak ratios.

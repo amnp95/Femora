@@ -46,5 +46,6 @@ nav:
           - 'Two-Pile Bent Under DRM Excitation': examples/two-pile-bent-drm.md
           - 'Rotated Two-Pile Bent': examples/rotated-two-pile-bent.md
           - 'Foundation Contact and Separation': examples/embedded-block-contact.md
+          - 'Elastic and Plastic Basin': examples/basin.md
   - 'Technical Reference':
       - 'Mesh Data Schema': technical-reference/mesh-data-schema.md
