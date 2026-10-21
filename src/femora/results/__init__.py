@@ -20,6 +20,7 @@ from .readers import VTKHDFResultReader
 from .registry import reader_registry
 from .result_set import PointSelection, ResultSet, open_results
 from .visualization import DeformationRenderer
+from .building import BuildingResults
 
 
 reader_registry.register(
@@ -43,6 +44,7 @@ def register_reader(name, reader, *, suffixes=(), replace=False):
 open = open_results
 
 __all__ = [
+    "BuildingResults",
     "CELL_FRAME",
     "CELL_HISTORY",
     "DeformationRenderer",

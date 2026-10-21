@@ -107,14 +107,25 @@ class VTKHDFResultReader(ResultReader):
 
     @property
     def number_of_points(self) -> int:
+        if "NumberOfPoints" in self._vtkhdf:
+            return self._first_mesh_count("NumberOfPoints")
         return int(self._vtkhdf["Points"].shape[0])
 
     @property
     def number_of_cells(self) -> int:
         if "NumberOfCells" in self._vtkhdf:
-            value = np.asarray(self._vtkhdf["NumberOfCells"][()]).reshape(-1)
-            return int(value.sum())
+            return self._first_mesh_count("NumberOfCells")
         return int(self.mesh.n_cells)
+
+    def _first_mesh_count(self, name):
+        counts = np.asarray(self._vtkhdf[name][()]).reshape(-1)
+        steps = self._vtkhdf["Steps"]
+        if "PartOffsets" in steps and "NumberOfParts" in steps:
+            start = int(steps["PartOffsets"][0])
+            parts = int(steps["NumberOfParts"][0])
+            return int(counts[start:start+parts].sum())
+        # OpenSees appends a count for every transient step, not extra cells.
+        return int(counts[0]) if self.number_of_steps > 1 else int(counts.sum())
 
     def point_history(
         self,
@@ -162,7 +173,13 @@ class VTKHDFResultReader(ResultReader):
             )
         values, offsets = self._response_data(location, response)
         indices = offsets[()] + entity_index
-        history = values[indices]
+        # Regular transient meshes permit a strided read instead of expensive
+        # HDF5 fancy indexing over thousands of individual samples.
+        stride = int(indices[1] - indices[0]) if len(indices) > 1 else 0
+        if stride > 0 and np.all(np.diff(indices) == stride):
+            history = values[int(indices[0]):int(indices[-1]) + 1:stride]
+        else:
+            history = values[indices]
         return self._select_component(history, component)
 
     def _frame(

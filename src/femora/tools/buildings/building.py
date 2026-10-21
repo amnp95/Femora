@@ -7,7 +7,9 @@
 
 from __future__ import annotations
 
-from typing import Callable, Dict, List, Optional, Tuple, Union
+from typing import Callable, Dict, List, Optional, Sequence, Tuple, Union
+
+from femora.core.time_series_base import TimeSeries
 
 import numpy as np
 import pyvista as pv
@@ -49,12 +51,40 @@ class Building:
         """Return recorder objects for this building."""
         raise NotImplementedError
 
+    def export_metadata(self, model, path, **kwargs):
+        """Explicitly export structure-specific interpretation metadata after assembly."""
+        raise NotImplementedError
+
+    def get_results(self, source, **kwargs):
+        """Return this structure's response object; implementations define its semantics."""
+        raise NotImplementedError
+
     def create_rigid_diaphragms(self, model, verbose: bool = True) -> None:
         """Create rigid diaphragm constraints if supported by this building."""
         raise NotImplementedError
 
     def create_gravity_pattern(self, model, g: float):
         """Create and return a gravity load pattern if supported."""
+        raise NotImplementedError
+
+    def create_pushover_pattern(
+        self,
+        model,
+        *,
+        time_series: TimeSeries,
+        base_shear: float,
+        direction: Union[str, float] = "x",
+        distribution: Union[str, Sequence[float]] = "mass_height",
+        mode_shape: Optional[Sequence[float]] = None,
+        eccentricity: Tuple[float, float] = (0.0, 0.0),
+    ):
+        """Return a reference lateral-force pattern; do not run an analysis.
+
+        Building implementations choose appropriate load application nodes.
+        ``time_series`` must be supplied by the caller. ``base_shear`` is the
+        positive reference resultant, not the final force in a scaled analysis.
+        ``direction`` is X, Y, or an angle in degrees counterclockwise from X.
+        """
         raise NotImplementedError
 
     def apply_fixed_base(self, model, tol: float = 1e-4) -> None:
@@ -92,8 +122,15 @@ class Building:
 
         if isinstance(material, dict):
             material_type = str(material.get("type", "elastic_isotropic")).lower()
+            if material_type in {"elastic", "steel01"}:
+                parameters = {key: value for key, value in material.items()
+                              if key not in {"type", "name", "user_name", "rho"}}
+                name = str(material.get("name", material.get("user_name", default_name)))
+                created = getattr(model.material.uniaxial, material_type)(user_name=name, **parameters)
+                density = material.get("rho", default_density) if material_density is None else material_density
+                return created, float(density)
             if material_type not in {"elastic_isotropic", "elasticisotropic"}:
-                raise ValueError("Only elastic_isotropic material definitions are supported for get_modes().")
+                raise ValueError("Supported modal material definitions are elastic_isotropic, Elastic, and Steel01; use a factory for other laws.")
             name = str(material.get("name", material.get("user_name", default_name)))
             if "E" not in material:
                 raise ValueError("Material definition for get_modes() must include 'E'.")

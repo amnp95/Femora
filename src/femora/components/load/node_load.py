@@ -163,6 +163,8 @@ class NodeLoad(Load):
         Returns:
             The OpenSees load command string(s) for the node(s).
         """
+        from femora.components.element.ghost_node import GhostNodeElement
+
         def wrap_with_pid_for_node(nid: int, s: str) -> str:
             pids = self.pids
             if self.node_mask is not None and hasattr(self.node_mask._mesh, "node_core_map"):
@@ -178,7 +180,9 @@ class NodeLoad(Load):
             tag_list = self.node_mask.to_tags()
             lines: List[str] = []
             for nid, node_tag in zip(id_list, tag_list):
-                ndf = int(mesh.node_ndf[nid]) if hasattr(mesh, "node_ndf") else len(self.values)
+                ndf = GhostNodeElement.resolve_ndf(
+                    int(mesh.node_ndf[nid]) if hasattr(mesh, "node_ndf") else len(self.values)
+                )
                 vals = list(self.values)[:ndf]
                 if len(vals) < ndf:
                     vals = vals + [0.0] * (ndf - len(vals))

@@ -47,5 +47,6 @@ nav:
           - 'Rotated Two-Pile Bent': examples/rotated-two-pile-bent.md
           - 'Foundation Contact and Separation': examples/embedded-block-contact.md
           - 'Elastic and Plastic Basin': examples/basin.md
+          - 'Steel Braced Frame': examples/steel-concentrically-braced-frame-3d.md
   - 'Technical Reference':
       - 'Mesh Data Schema': technical-reference/mesh-data-schema.md

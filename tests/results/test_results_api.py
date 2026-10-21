@@ -77,6 +77,21 @@ def test_vtkhdf_reader_extracts_histories_and_frames_lazily(tmp_path):
         )
 
 
+def test_transient_counts_are_not_summed_over_time(tmp_path):
+    path = _write_response_file(tmp_path / "counts.vtkhdf", times=np.array([0., .1, .2]))
+    with h5py.File(path, "a") as target:
+        root = target["VTKHDF"]
+        root.create_dataset("NumberOfCells", data=[2, 2, 2])
+        root.create_dataset("NumberOfPoints", data=[3, 3, 3])
+        root["CellData"].create_dataset("force3D", data=np.arange(72).reshape(6, 12))
+        root["Steps/CellDataOffsets"].create_dataset("force3D", data=[0, 2, 4])
+    with VTKHDFResultReader(path) as result:
+        assert result.number_of_cells == 2
+        assert result.number_of_points == 3
+        assert result.cell_frame("force3D", 0).shape == (2, 12)
+        assert result.cell_history("force3D", 1).shape == (3, 12)
+
+
 def test_open_discovers_partition_files_and_validates_times(tmp_path):
     times = np.array([0.0, 0.1, 0.2])
     _write_response_file(tmp_path / "result0.vtkhdf", times=times)

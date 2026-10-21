@@ -99,7 +99,7 @@ try {
   const sceneURL = localAsset(params.get('scene'), '../scenes/');
   if (!sceneURL.pathname.endsWith('.js')) throw new Error('Expected a scene module');
   const {createScene} = await import(sceneURL.href);
-  const view = createScene(stage);
+  const view = await createScene(stage);
   followTheme(view);
   stage.style.width = `${view.width}px`;
   stage.style.height = `${view.height}px`;

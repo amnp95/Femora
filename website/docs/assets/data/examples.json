@@ -5,7 +5,8 @@
     "Parallel Models",
     "Nonlinear Analysis",
     "Soil-Structure Interaction",
-    "Interfaces"
+    "Interfaces",
+    "Structures"
   ],
   "examples": [
     {
@@ -106,6 +107,17 @@
       "tags": ["Basin", "H5DRM", "Plasticity"],
       "level": "Advanced",
       "prerequisites": ["nonlinear-layered-soil-column"]
+    },
+    {
+      "slug": "steel-concentrically-braced-frame-3d",
+      "title": "Steel Braced Frame: From Model to Response",
+      "summary": "Build a steel braced frame, calculate its mode shapes, and explore pushover and earthquake response with building-aware results.",
+      "preview": "../assets/viewer/viewer.html?scene=../scenes/steel-braced-frame.js&variant=default",
+      "previewTitle": "Five-story concentrically braced steel frame",
+      "categories": ["Structures"],
+      "tags": ["Steel", "Modal analysis", "Pushover", "Earthquake response"],
+      "level": "Intermediate",
+      "prerequisites": []
     },
     {
       "slug": "embedded-block-contact",

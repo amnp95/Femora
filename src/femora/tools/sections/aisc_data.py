@@ -8,7 +8,7 @@
 # AISC Section Database
 # Values are in Imperial Units (inches, sq.in, in^4)
 # Format for W-Sections: A d bf tw tf Ix Iy Zx Sx rx Zy Sy ry J
-# Format for HSS-Sections: A h b tdes Ix Zx Sx rx Iy Zy Sy ry J C
+# Format for HSS-Sections: weight A flat_h flat_b tdes Ix Zx Sx rx Iy Zy Sy ry J C
 AISC_DATABASE = {
     "W44X335": "98.5 44.0 15.9 1.03 1.77 31100 1200 1620 1410 17.8 236 150 3.49 74.7",
     "W44X290": "85.4 43.6 15.8 0.865 1.58 27000 1040 1410 1240 17.8 205 132 3.49 50.9",

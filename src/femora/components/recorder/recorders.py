@@ -556,7 +556,15 @@ class VTKHDFRecorder(Recorder):
         Args:
             **kwargs: Key-value parameters:
                 file_base_name: Base name of the file to which output is sent (required).
-                resp_types: List of strings indicating response types to record (required).
+                resp_types: Requested fields (required). Nodal fields are
+                    ``disp``, ``vel``, ``accel``. Element fields are
+                    ``force2D``, ``force3D``, ``localForce2D``, ``localForce3D``,
+                    ``stress2D3``, ``strain2D3``, ``stress3D6``, ``strain3D6``.
+                    Availability depends on the OpenSees recorder build and
+                    each element's implemented responses. Inspect the output
+                    datasets to confirm availability; some older binaries
+                    silently ignore force keywords. Continuum stress/strain
+                    fields are not substitutes for beam-fiber recorders.
                 delta_t: Optional time interval for recording.
                 r_tol_dt: Optional relative tolerance for time step matching.
                 region: Optional region tag, name, or RegionBase instance used to restrict VTKHDF output to one region. If not specified, the entire model will be recorded.
