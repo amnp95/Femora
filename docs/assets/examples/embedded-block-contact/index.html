@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Embedded foundation contact preview</title>
+  <style>
+    html, body { margin: 0; width: 100%; height: 100%; background: transparent; overflow: hidden; }
+    object { width: 100%; height: 100%; display: block; }
+  </style>
+</head>
+<body>
+  <object id="model" data="model.svg" type="image/svg+xml" aria-label="Foundation block with five frictional soil-contact faces"></object>
+  <script>
+    const model = document.getElementById("model");
+    function syncTheme() {
+      const scheme = parent.document.documentElement.dataset.mdColorScheme;
+      const color = scheme === "slate" ? "#e7e1dc" : "#283b42";
+      model.contentDocument?.documentElement.style.setProperty("--md-default-fg-color", color);
+    }
+    model.addEventListener("load", syncTheme);
+    new MutationObserver(syncTheme).observe(parent.document.documentElement, {
+      attributes: true,
+      attributeFilter: ["data-md-color-scheme"],
+    });
+  </script>
+</body>
+</html>

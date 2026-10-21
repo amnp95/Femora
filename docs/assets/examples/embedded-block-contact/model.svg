@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 480" role="img" aria-labelledby="title desc">
+  <title id="title">Foundation block with five frictional soil-contact faces</title>
+  <desc id="desc">Section and plan views of a shallow block embedded 0.25 meters into a meshed soil domain. Arrows identify the buried contact faces and a horizontal load rocks the block.</desc>
+  <style>
+    text { fill: var(--md-default-fg-color, #283b42) !important; }
+    @media (prefers-color-scheme: dark) {
+      rect[fill="#d7c7af"] { fill: #4c463e !important; stroke: #a99679 !important; }
+      rect[fill="#bf654b"] { fill: #b95f48 !important; stroke: #e0a08d !important; }
+      path[stroke="#8f7c62"] { stroke: #9f917e !important; }
+      line[stroke="#675743"] { stroke: #c1b29d !important; }
+    }
+  </style>
+  <defs>
+    <marker id="arrow-blue" markerWidth="7" markerHeight="7" refX="6.5" refY="3.5" orient="auto"><path d="M0 0L7 3.5L0 7Z" fill="#2f6f8f"/></marker>
+    <marker id="arrow-green" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0L8 4L0 8Z" fill="#4f7f62"/></marker>
+    <pattern id="soil-grid" width="36" height="32" patternUnits="userSpaceOnUse"><path d="M36 0H0V32" fill="none" stroke="#8f7c62" stroke-width="1" opacity=".58"/></pattern>
+  </defs>
+  <rect width="900" height="480" rx="18" fill="none"/>
+
+  <text x="275" y="38" text-anchor="middle" font-family="sans-serif" font-size="20" font-weight="600" fill="#283b42">Section</text>
+  <rect x="45" y="190" width="460" height="230" fill="#d7c7af" stroke="#8b7658" stroke-width="2"/>
+  <rect x="45" y="190" width="460" height="230" fill="url(#soil-grid)"/>
+  <line x1="35" y1="190" x2="515" y2="190" stroke="#675743" stroke-width="3"/>
+  <rect x="190" y="82" width="170" height="140" fill="#bf654b" stroke="#663a30" stroke-width="3"/>
+  <g stroke="#854536" stroke-width="1" opacity=".8"><path d="M232.5 82V222M275 82V222M317.5 82V222M190 117H360M190 152H360M190 187H360"/></g>
+  <path d="M185 222H365" stroke="#4f7f62" stroke-width="5"/>
+  <path d="M190 187V224M360 187V224" stroke="#4f7f62" stroke-width="5"/>
+  <line x1="75" y1="112" x2="180" y2="112" stroke="#2f6f8f" stroke-width="5" marker-end="url(#arrow-blue)"/>
+  <text x="120" y="92" text-anchor="middle" font-family="sans-serif" font-size="15" fill="#2f6f8f">150 kN</text>
+  <line x1="275" y1="225" x2="275" y2="265" stroke="#4f7f62" stroke-width="3" marker-end="url(#arrow-green)"/>
+  <line x1="186" y1="205" x2="150" y2="205" stroke="#4f7f62" stroke-width="3" marker-end="url(#arrow-green)"/>
+  <line x1="364" y1="205" x2="400" y2="205" stroke="#4f7f62" stroke-width="3" marker-end="url(#arrow-green)"/>
+  <text x="60" y="178" font-family="sans-serif" font-size="15" fill="#4d4337">Ground surface, z = 0</text>
+  <text x="275" y="310" text-anchor="middle" font-family="sans-serif" font-size="17" fill="#4d4337">Elastic host soil</text>
+  <text x="275" y="69" text-anchor="middle" font-family="sans-serif" font-size="17" fill="#513229">Solid foundation block</text>
+  <text x="378" y="238" font-family="sans-serif" font-size="14" fill="#4f7f62">0.25 m embedment</text>
+
+  <text x="700" y="38" text-anchor="middle" font-family="sans-serif" font-size="20" font-weight="600" fill="#283b42">Plan at the embedded zone</text>
+  <rect x="555" y="80" width="290" height="290" fill="#d7c7af" stroke="#8b7658" stroke-width="2"/>
+  <rect x="555" y="80" width="290" height="290" fill="url(#soil-grid)"/>
+  <rect x="630" y="155" width="140" height="140" fill="#bf654b" stroke="#663a30" stroke-width="3"/>
+  <path d="M630 155H770V295H630Z" fill="none" stroke="#4f7f62" stroke-width="6"/>
+  <line x1="625" y1="225" x2="590" y2="225" stroke="#4f7f62" stroke-width="3" marker-end="url(#arrow-green)"/>
+  <line x1="775" y1="225" x2="810" y2="225" stroke="#4f7f62" stroke-width="3" marker-end="url(#arrow-green)"/>
+  <line x1="700" y1="150" x2="700" y2="115" stroke="#4f7f62" stroke-width="3" marker-end="url(#arrow-green)"/>
+  <line x1="700" y1="300" x2="700" y2="335" stroke="#4f7f62" stroke-width="3" marker-end="url(#arrow-green)"/>
+  <text x="700" y="397" text-anchor="middle" font-family="sans-serif" font-size="16" fill="#4f7f62">Four side faces + bottom face</text>
+  <text x="450" y="455" text-anchor="middle" font-family="sans-serif" font-size="14" fill="#6a625a">Green arrows show the outward block normals used by normal_filter; schematic not to scale.</text>
+</svg>

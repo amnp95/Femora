@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1040 480" role="img" aria-labelledby="basin-title basin-desc">
+<title id="basin-title">Soft basin in six elastic strata</title>
+<desc id="basin-desc">A shallow basin in six elastic strata. Absorbing rows extend 32 meters at the sides and below the soil, never above the free surface. Schematic not to scale.</desc>
+<style>
+text {font-family:sans-serif;fill:var(--md-default-fg-color,#293e45)}
+.host {fill:#b9ad91;fill-opacity:.45;stroke:#8b806b}
+.basin {fill:#bb6449;fill-opacity:.85;stroke:#91452e;stroke-width:2}
+.shell {fill:#60979d;fill-opacity:.12;stroke:#60979d;stroke-dasharray:6 4}
+.layer {stroke:#8b806b;stroke-width:1}
+.stratum {fill-opacity:.65;stroke:#827e73;stroke-width:.6}
+.dimension {fill:none;stroke:var(--md-default-fg-color,#536b70);stroke-width:1;opacity:.7}
+</style>
+<text x="272" y="32" text-anchor="middle" font-size="21">Center section</text>
+<!-- Physical domain uses 3 px/m; absorber width is schematic. -->
+<path class="shell" d="M20 100H80V244H464V100H524V304H20Z"/>
+<rect class="stratum" x="80" y="100" width="384" height="24" fill="#cfb781"/>
+<rect class="stratum" x="80" y="124" width="384" height="24" fill="#b7c79f"/>
+<rect class="stratum" x="80" y="148" width="384" height="24" fill="#80b5ac"/>
+<rect class="stratum" x="80" y="172" width="384" height="24" fill="#709da9"/>
+<rect class="stratum" x="80" y="196" width="384" height="24" fill="#738aa3"/>
+<rect class="stratum" x="80" y="220" width="384" height="24" fill="#8c829e"/>
+<path class="basin" d="M127.345 100 A255 255 0 0 0 416.655 100 Z"/>
+<text x="272" y="80" text-anchor="middle" font-size="15">Free surface, z = 0 m</text>
+<text x="272" y="193" text-anchor="middle" font-size="15">Six elastic layers, 8 m each</text>
+<text x="272" y="280" text-anchor="middle" font-size="14">32 m absorbing extension</text>
+<path class="dimension" d="M80 323V337 M464 323V337 M80 330H464"/>
+<text x="272" y="357" text-anchor="middle" font-size="15">128 m physical domain</text>
+<text x="272" y="394" text-anchor="middle" font-size="15">Basin: Vs = 150 m/s, Vp = 300 m/s</text>
+<text x="272" y="421" text-anchor="middle" font-size="14">Ideal depth 15 m; surface radius 48.22 m</text>
+<text x="778" y="32" text-anchor="middle" font-size="21">Surface plan</text>
+<!-- Physical domain uses 2 px/m; absorber width is schematic. -->
+<path class="shell" fill-rule="evenodd" d="M610 50H946V386H610Z M650 90H906V346H650Z"/>
+<rect class="host" x="650" y="90" width="256" height="256"/>
+<circle class="basin" cx="778" cy="218" r="96.436"/>
+<path d="M650 218H906 M778 90V346" fill="none" stroke="#60979d" stroke-dasharray="5 5" opacity=".5"/>
+<text x="778" y="207" text-anchor="middle" font-size="16">Elastic or plastic basin</text>
+<text x="778" y="236" text-anchor="middle" font-size="13">Shared geometry and density</text>
+<text x="778" y="414" text-anchor="middle" font-size="14">Absorber surrounds the four sides</text>
+<text x="520" y="467" text-anchor="middle" font-size="13">Schematic, not to scale. Basin cells follow the 4 m mesh; no absorber covers the free surface.</text>
+</svg>

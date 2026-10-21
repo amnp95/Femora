@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 420" role="img" aria-labelledby="title desc">
+  <title id="title">Rotated two-pile bent geometry and orientations</title>
+  <desc id="desc">Left: projected mesh of two segmented piles, an aluminum cap, and nonlinear soil. The soil has 30 columns and 7, 13, and 1 vertical layers; each pile has 27 beam elements. The uppermost 1 m of soil is intentionally uncoupled from the pile. Right: 30 by 30 soil cells in plan, an 11 by 6 cell cap at zero degrees, dashed pile axes at 30, 60, and 90 degrees, and fixed global-x shaking. Interface and partition details are omitted.</desc>
+  <style>
+    svg { --bg: #fbf9f6; --ink: #273d48; --muted: #685848; --dimension: #657984; --divider: #d9d3c9; --soil: #eadfce; --soil-plan: #eee6d9; --soil-edge: #a99d8c; --soil-grid: #b9ac98; --crust: #d7c6a9; --cap: #83a2ae; --pile: #263d49; --pile-core: #d8e5e6; --accent: #b45739; --label30: #965723; --label60: #4f6b82; --label90: #547354; }
+    @media (prefers-color-scheme: dark) {
+      svg { --bg: #1d2529; --ink: #e5eceb; --muted: #d1c2af; --dimension: #aabdc6; --divider: #435158; --soil: #4b4338; --soil-plan: #4b4338; --soil-edge: #b7a792; --soil-grid: #817461; --crust: #76644f; --cap: #577482; --pile: #d5e3e7; --pile-core: #38525b; --accent: #f0a384; --label30: #efb875; --label60: #a8c7df; --label90: #afd0ae; }
+    }
+  </style>
+  <defs>
+    <marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0 0 L7 4 L0 8" fill="none" stroke="var(--accent)" stroke-width="1.5"/></marker>
+    <pattern id="soil-deep-mesh" x="66" y="220.4" width="11.333333" height="15.657143" patternUnits="userSpaceOnUse"><path d="M0 0 V15.657143" fill="none" stroke="var(--soil-grid)" stroke-width=".65"/></pattern>
+    <pattern id="soil-upper-mesh" x="66" y="114" width="11.333333" height="8.184615" patternUnits="userSpaceOnUse"><path d="M0 0 V8.184615" fill="none" stroke="var(--soil-grid)" stroke-width=".65"/></pattern>
+    <pattern id="soil-crust-mesh" x="66" y="106" width="11.333333" height="8" patternUnits="userSpaceOnUse"><path d="M11.333333 0 H0 V8" fill="none" stroke="var(--soil-grid)" stroke-width=".65"/></pattern>
+    <pattern id="soil-plan-mesh" x="662" y="76" width="9.133333" height="9.133333" patternUnits="userSpaceOnUse"><path d="M9.133333 0 H0 V9.133333" fill="none" stroke="var(--soil-grid)" stroke-width=".5"/></pattern>
+    <pattern id="cap-elevation-mesh" x="171" y="48" width="11.818182" height="9" patternUnits="userSpaceOnUse"><path d="M11.818182 0 H0 V9" fill="none" stroke="var(--ink)" stroke-opacity=".42" stroke-width=".65"/></pattern>
+    <pattern id="cap-plan-mesh" x="-52" y="-28" width="9.454545" height="9.333333" patternUnits="userSpaceOnUse"><path d="M9.454545 0 H0 V9.333333" fill="none" stroke="var(--ink)" stroke-opacity=".42" stroke-width=".65"/></pattern>
+  </defs>
+  <rect width="1100" height="420" fill="var(--bg)"/>
+  <path d="M550 34 V390" stroke="var(--divider)"/>
+  <g fill="var(--ink)" font-family="Georgia, serif">
+    <text x="36" y="40" font-size="24">Elevation</text>
+    <text x="588" y="40" font-size="24">Plan and rotation</text>
+  </g>
+  <rect x="66" y="106" width="340" height="224" fill="var(--soil)" stroke="var(--soil-edge)"/>
+  <rect x="66" y="220.4" width="340" height="109.6" fill="url(#soil-deep-mesh)"/>
+  <rect x="66" y="114" width="340" height="106.4" fill="url(#soil-upper-mesh)"/>
+  <rect x="66" y="106" width="340" height="8" fill="var(--crust)"/>
+  <rect x="66" y="106" width="340" height="8" fill="url(#soil-crust-mesh)"/>
+  <path d="M66 122.185 H406 M66 130.369 H406 M66 138.554 H406 M66 146.738 H406 M66 154.923 H406 M66 163.108 H406 M66 171.292 H406 M66 179.477 H406 M66 187.662 H406 M66 195.846 H406 M66 204.031 H406 M66 212.215 H406 M66 220.4 H406 M66 236.057 H406 M66 251.714 H406 M66 267.371 H406 M66 283.029 H406 M66 298.686 H406 M66 314.343 H406" fill="none" stroke="var(--soil-grid)" stroke-width=".65"/>
+  <path d="M66 106 H406 M66 114 H406" stroke="var(--soil-edge)" stroke-width="1.5"/>
+  <text x="73" y="99" font-family="Arial, sans-serif" font-size="13" fill="var(--muted)">z = 0</text>
+  <text x="73" y="134" font-family="Arial, sans-serif" font-size="12" fill="var(--muted)">Top 1 m</text>
+  <text x="73" y="149" font-family="Arial, sans-serif" font-size="12" fill="var(--muted)">pile uncoupled</text>
+  <rect x="171" y="48" width="130" height="27" fill="var(--cap)" stroke="var(--ink)" stroke-width="2"/>
+  <rect x="171" y="48" width="130" height="27" fill="url(#cap-elevation-mesh)"/>
+  <path d="M193 61 V220 M279 61 V220" stroke="var(--pile)" stroke-width="8"/>
+  <path d="M193 61 V220 M279 61 V220" stroke="var(--pile-core)" stroke-width="3"/>
+  <g fill="none" stroke="var(--pile)" stroke-width="1">
+    <path id="pile-divisions" d="M189 68 H197 M189 74.8 H197 M189 80 H197 M189 85.2 H197 M189 90.4 H197 M189 95.6 H197 M189 100.8 H197 M189 106 H197 M189 112.021 H197 M189 118.042 H197 M189 124.063 H197 M189 130.084 H197 M189 136.105 H197 M189 142.126 H197 M189 148.147 H197 M189 154.168 H197 M189 160.189 H197 M189 166.211 H197 M189 172.232 H197 M189 178.253 H197 M189 184.274 H197 M189 190.295 H197 M189 196.316 H197 M189 202.337 H197 M189 208.358 H197 M189 214.379 H197"/>
+    <use href="#pile-divisions" transform="translate(86 0)"/>
+  </g>
+  <text x="176" y="224" text-anchor="end" font-family="Arial, sans-serif" font-size="13" fill="var(--ink)">Pile tips, z = -14.3 m</text>
+  <path d="M307 48 H329 M307 75 H329 M320 48 V75 M320 48 L316 55 M320 48 L324 55 M320 75 L316 68 M320 75 L324 68" fill="none" stroke="var(--dimension)"/>
+  <text x="336" y="66" font-family="Arial, sans-serif" font-size="13" fill="var(--ink)">Cap 3.38 m</text>
+  <path d="M426 48 H448 M426 330 H448 M439 48 V330 M439 48 L435 55 M439 48 L443 55 M439 330 L435 323 M439 330 L443 323" fill="none" stroke="var(--dimension)"/>
+  <text x="454" y="194" font-family="Arial, sans-serif" font-size="13" fill="var(--ink)">35.28 m</text>
+  <path d="M66 350 V367 M406 350 V367 M66 359 H406 M66 359 L73 355 M66 359 L73 363 M406 359 L399 355 M406 359 L399 363" fill="none" stroke="var(--dimension)"/>
+  <text x="236" y="382" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" fill="var(--ink)">30 m soil width, 30 cells</text>
+  <text x="68" y="403" font-family="Arial, sans-serif" font-size="12" fill="var(--muted)">Pile spacing 7.618 m; hollow pile radii 0.449 / 0.495 m</text>
+  <rect x="662" y="76" width="274" height="274" fill="var(--soil-plan)" stroke="var(--soil-edge)" stroke-width="1.5"/>
+  <rect x="662" y="76" width="274" height="274" fill="url(#soil-plan-mesh)"/>
+  <path d="M799 76 V350 M662 213 H936" stroke="var(--soil-grid)" stroke-dasharray="4 5"/>
+  <g transform="translate(799 213)">
+    <path d="M-60 0 H60" transform="rotate(-30)" stroke="var(--label30)" stroke-width="3" stroke-dasharray="8 5"/>
+    <path d="M-60 0 H60" transform="rotate(-60)" stroke="var(--label60)" stroke-width="3" stroke-dasharray="8 5"/>
+    <path d="M0 -60 V60" stroke="var(--label90)" stroke-width="3" stroke-dasharray="8 5"/>
+    <rect x="-52" y="-28" width="104" height="56" fill="var(--cap)" fill-opacity=".9" stroke="var(--ink)" stroke-width="2"/>
+    <rect x="-52" y="-28" width="104" height="56" fill="url(#cap-plan-mesh)"/>
+    <path d="M-35 0 H35" stroke="var(--ink)" stroke-width="2"/>
+    <circle cx="-35" cy="0" r="5" fill="var(--bg)" stroke="var(--ink)" stroke-width="2"/>
+    <circle cx="35" cy="0" r="5" fill="var(--bg)" stroke="var(--ink)" stroke-width="2"/>
+  </g>
+  <path d="M893 198 A95 95 0 0 0 851 136" fill="none" stroke="var(--accent)" stroke-width="2" marker-end="url(#arrow)"/>
+  <g font-family="Arial, sans-serif" font-size="13" fill="var(--ink)">
+    <text x="861" y="226">0 deg</text>
+    <text x="838" y="181" fill="var(--label30)">30 deg</text>
+    <text x="805" y="154" fill="var(--label60)">60 deg</text>
+    <text x="748" y="142" fill="var(--label90)">90 deg</text>
+    <text x="799" y="336" text-anchor="middle">30 m x 30 m, 30 x 30 cells</text>
+  </g>
+  <path d="M669 376 H792" stroke="var(--accent)" stroke-width="2.5" marker-end="url(#arrow)"/>
+  <text x="809" y="381" font-family="Arial, sans-serif" font-size="14" fill="var(--accent)">Base motion: global +x for every angle</text>
+  <text x="799" y="403" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="var(--muted)">Solid: 0 deg cap and pile axes. Dashed: rotated pile axes.</text>
+</svg>

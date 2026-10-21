@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<base target="_top">
+<title>FEMORA — Fast Efficient Meta-modeling for OpenSees-based Resilience Analysis</title>
+<meta name="description" content="Build modular 3D models, model seismic wave propagation and scale OpenSees simulations to HPC.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Nunito:wght@800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#fbf8f6;--fg:#342b27;--accent:#a97461;--secondary:#f1e4dc;--border:#e6d8d0;--bg-rgb:251,248,246}
+:root[data-theme="dark"]{--bg:#1e1e1e;--fg:#f3e7e0;--accent:#a97461;--secondary:#3a312d;--border:#3a312d;--bg-rgb:30,30,30}
+*{box-sizing:border-box;margin:0}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;overflow:hidden;transition:background .4s,color .4s;-webkit-font-smoothing:antialiased}
+#wave{position:fixed;inset:0;width:100%;height:100%;display:block}
+.scrim{position:fixed;inset:0;pointer-events:none;background:
+ radial-gradient(ellipse 46% 52% at 50% 50%,rgba(var(--bg-rgb),.82) 0,rgba(var(--bg-rgb),.55) 55%,rgba(var(--bg-rgb),0) 100%),
+ linear-gradient(to bottom,rgba(var(--bg-rgb),.35),rgba(var(--bg-rgb),0) 22%)}
+header{position:fixed;top:0;left:0;right:0;display:flex;justify-content:flex-end;gap:10px;padding:18px 22px;z-index:5}
+.icon{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;color:var(--fg);background:rgba(var(--bg-rgb),.55);border:1px solid var(--border);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);cursor:pointer;transition:border-color .2s,color .2s,transform .2s}
+.icon:hover{border-color:var(--accent);color:var(--accent);transform:translateY(-1px)}
+.icon svg{width:20px;height:20px;fill:currentColor}
+#theme .moon{display:none}
+:root[data-theme="dark"] #theme .sun{display:none}
+:root[data-theme="dark"] #theme .moon{display:block}
+main{position:relative;z-index:2;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px;gap:clamp(12px,2.2vh,22px)}
+.brand{position:relative;line-height:0;transform:translateX(-17.9%)}  /* re-centres mark + wordmark as one unit */
+.logo{display:block;height:clamp(115px,22vh,220px);width:auto;filter:drop-shadow(0 2px 14px rgba(var(--bg-rgb),.8))}
+.wm{position:absolute;inset:0;width:100%;height:100%;overflow:visible;color:var(--fg);pointer-events:none;transition:color .4s;filter:drop-shadow(0 0 10px rgba(var(--bg-rgb),.85))}
+.wm text{fill:currentColor;font:800 180px "Nunito","Varela Round",ui-rounded,"Segoe UI",system-ui,sans-serif}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.expand{position:fixed;left:0;right:0;bottom:max(16px,env(safe-area-inset-bottom));z-index:3;padding:0 20px;text-align:center;font-size:clamp(.6rem,.85vw,.74rem);letter-spacing:.16em;text-transform:uppercase;font-weight:500;color:var(--fg);opacity:.62;text-shadow:0 0 12px rgba(var(--bg-rgb),.9)}
+.roll{height:1.3em;line-height:1.3em;overflow:hidden;font-size:clamp(1.15rem,3.4vw,2.9rem);font-weight:600;letter-spacing:-.02em;text-shadow:0 0 22px rgba(var(--bg-rgb),.95),0 0 4px rgba(var(--bg-rgb),.7)}
+.roll ul{list-style:none;padding:0;transition:transform .7s cubic-bezier(.65,0,.25,1)}
+.roll li{height:1.3em;white-space:nowrap}
+.cta{display:flex;flex-direction:column;align-items:center;gap:16px;margin-top:clamp(6px,1.5vh,16px)}
+.install{display:inline-flex;align-items:center;gap:10px;padding:6px 6px 6px 20px;border-radius:999px;border:1px solid var(--border);background:rgba(var(--bg-rgb),.55);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.92rem}
+.install .pr{color:var(--accent);user-select:none}
+.install code{font:inherit;color:var(--fg)}
+.copy{width:34px;height:34px;border-radius:50%;border:0;display:grid;place-items:center;cursor:pointer;background:var(--secondary);color:var(--fg);transition:background .2s,color .2s}
+.copy:hover{background:var(--accent);color:#fff}
+.copy svg{width:16px;height:16px;grid-area:1/1}
+.copy .i-check{display:none}.copy.done .i-copy{display:none}.copy.done .i-check{display:block}.copy.done{background:var(--accent);color:#fff}
+.docs{font-size:.86rem;color:var(--fg);opacity:.72;text-decoration:none;text-shadow:0 0 12px rgba(var(--bg-rgb),.9);transition:opacity .2s,color .2s}
+.docs:hover{opacity:1;color:var(--accent)}
+.btn{display:inline-flex;align-items:center;padding:.72em 1.7em;border-radius:999px;font-size:.95rem;font-weight:500;text-decoration:none;color:var(--fg);border:1px solid var(--border);background:rgba(var(--bg-rgb),.5);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);transition:all .2s}
+.btn:hover{border-color:var(--accent);transform:translateY(-1px)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.primary:hover{filter:brightness(1.08)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+
+.actions{display:flex;flex-wrap:wrap;justify-content:center;gap:12px}
+.btn svg{width:17px;height:17px;margin-right:8px;fill:currentColor}
+
+@media(prefers-reduced-motion:reduce){.roll ul{transition:none}}
+/* animation on/off toggle */
+#motion .i-play{display:none}
+#motion[aria-pressed="false"] .i-stop{display:none}
+#motion[aria-pressed="false"] .i-play{display:block}
+</style>
+</head>
+<body>
+<canvas id="wave" aria-hidden="true"></canvas>
+<div class="scrim"></div>
+<header>
+  <button class="icon" id="motion" type="button" aria-pressed="true" aria-label="Turn animation off" title="Turn animation off">
+    <svg class="i-stop" viewBox="0 0 24 24" aria-hidden="true"><rect x="6.5" y="6.5" width="11" height="11" rx="2"/></svg>
+    <svg class="i-play" viewBox="0 0 24 24" style="fill:none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12h3l2.5-6 4 13 3.5-10 2.5 5H22"/></svg>
+  </button>
+  <a class="icon" href="https://github.com/GeotechUW/Femora" target="_blank" rel="noopener" aria-label="FEMORA on GitHub">
+    <svg viewBox="0 0 16 16"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.6 7.6 0 0 1 4 0c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>
+  </a>
+  <button class="icon" id="theme" aria-label="Toggle light/dark mode">
+    <svg class="sun" viewBox="0 0 24 24"><path d="M12 7a5 5 0 1 0 0 10 5 5 0 0 0 0-10zM11 1h2v3h-2V1zm0 19h2v3h-2v-3zM1 11h3v2H1v-2zm19 0h3v2h-3v-2zM4.2 5.6l1.4-1.4 2.1 2.1-1.4 1.4-2.1-2.1zm12.1 12.1 1.4-1.4 2.1 2.1-1.4 1.4-2.1-2.1zM5.6 19.8l-1.4-1.4 2.1-2.1 1.4 1.4-2.1 2.1zM18.4 4.2l1.4 1.4-2.1 2.1-1.4-1.4 2.1-2.1z"/></svg>
+    <svg class="moon" viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+  </button>
+</header>
+<main>
+  <h1 class="sr">FEMORA</h1>
+  <div class="brand"><img class="logo" alt="FEMORA logo" src="/femora-logo.svg"><svg class="wm" viewBox="0 0 760 880" aria-hidden="true"><text x="322" y="785" textLength="712" lengthAdjust="spacingAndGlyphs">FEMORA</text></svg></div>
+  <p class="expand">Fast Efficient Meta-modeling for OpenSees-based Resilience Analysis</p>
+  <div class="roll" aria-live="off"><ul id="phrases">
+    <li>Build modular 3D models</li><li>Assemble soil + structure</li><li>Model seismic wave propagation</li><li>Automate OpenSees workflows</li><li>Scale simulations to HPC</li>
+  </ul></div>
+  <div class="cta">
+    <div class="install"><span class="pr" aria-hidden="true">$</span><code id="cmd">pip install femora</code>
+      <button class="copy" id="copy" aria-label="Copy install command" title="Copy">
+        <svg class="i-copy" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2.5"/><path d="M5 15V6.5A2.5 2.5 0 0 1 7.5 4H15"/></svg>
+        <svg class="i-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>
+      </button>
+    </div>
+    <span class="sr" id="copied" role="status" aria-live="polite"></span>
+    <div class="actions">
+      <a class="btn primary" href="/docs/"><svg viewBox="0 0 24 24" style="fill:none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4.5A1.5 1.5 0 0 1 5.5 3H20v15H5.5A1.5 1.5 0 0 0 4 19.5z"/><path d="M4 19.5A1.5 1.5 0 0 0 5.5 21H20"/></svg>Documentation</a>
+      <a class="btn" href="/tools"><svg viewBox="0 0 24 24" style="fill:none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a4 4 0 0 0-5-5l2.1 2.1-8.4 8.4-2.1-2.1a4 4 0 0 0 5 5l8.4-8.4Z"/><path d="m13 11 7.5 7.5a1.4 1.4 0 0 1-2 2L11 13"/></svg>Explore Tools</a>
+    </div>
+  </div>
+</main>
+
+<script>
+(()=>{
+const root=document.documentElement, $=id=>document.getElementById(id);
+/* reduce = animation off: the simulation is reset to its start and nothing is computed or moves.
+   Every page load starts running, except for visitors whose OS asks for reduced motion. The on/off choice is
+   not remembered between visits. */
+try{localStorage.removeItem('femora-motion')}catch(e){} /* clear the choice saved by earlier versions */
+let reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ---------- theme ---------- */
+let saved=null;try{saved=localStorage.getItem('femora-theme')}catch(e){}
+root.dataset.theme=saved||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');
+$('theme').onclick=()=>{const t=root.dataset.theme==='dark'?'light':'dark';root.dataset.theme=t;try{localStorage.setItem('femora-theme',t)}catch(e){}buildLUT();if(reduce)draw()};
+
+/* ---------- copy install command ---------- */
+const CMD='pip install femora';
+async function copyCmd(){
+  try{await navigator.clipboard.writeText(CMD)}catch(e){const a=document.createElement('textarea');a.value=CMD;document.body.appendChild(a);a.select();try{document.execCommand('copy')}catch(_){}a.remove()}
+  $('copied').textContent='Copied';setTimeout(()=>{$('copied').textContent=''},1600)}
+const cb=$('copy');
+cb.onclick=async()=>{await copyCmd();cb.classList.add('done');setTimeout(()=>cb.classList.remove('done'),1600)};
+
+/* ---------- rolling phrases ---------- */
+const ul=$('phrases');ul.appendChild(ul.firstElementChild.cloneNode(true));
+const n=ul.children.length;let k=0;
+setInterval(()=>{
+  if(reduce)return;
+  k++;ul.style.transition='';ul.style.transform=`translateY(${-k*1.3}em)`;
+  if(k===n-1)setTimeout(()=>{ul.style.transition='none';k=0;ul.style.transform='translateY(0)'},760);
+},2800);
+
+/* ---------- animation on/off ---------- */
+const mb=$('motion');
+function syncMotionBtn(){const l=reduce?'Start an earthquake (turn animation on)':'Turn animation off';
+  mb.setAttribute('aria-pressed',!reduce);mb.setAttribute('aria-label',l);mb.title=l}
+function setMotion(on){
+  reduce=!on;
+  syncMotionBtn();
+  if(on)startLoop();
+  else{ul.style.transition='none';k=0;ul.style.transform='translateY(0)';rmsPeak=.002;setup()} /* reset to the start: first phrase, empty field */
+}
+syncMotionBtn();
+mb.onclick=()=>setMotion(reduce);
+
+
+/* ---------- wavefield ---------- */
+const cv=$('wave'),ctx=cv.getContext('2d'),off=document.createElement('canvas'),octx=off.getContext('2d');
+const PAD=30;let vw,vh,gw,gh,Px,Py,Vx,Vy,c2,Dx,Dy,img,px,lut=new Uint32Array(512),gain=1,rms=0.01,rmsPeak=.002,t=0,gridH=170;
+const PERIOD=2000,FADE0=1300,SPS=62;
+let slip=[],hypo=.4,f1=.05,f2=.11;
+const N=100,FA=[.13,.41],FC=[.15,.26],FB=[.26,.10];
+/* buildings, in visible-window fractions (overwritten by layout()) */
+const K_SWAY=.014,HB=2; /* HB = base (foundation) thickness in cells: only this strip interacts with the waves */
+const STRUCT=[{x:.482,y:.76,w:.036,h:.11,Tn:76}]; /* single centered building under the docs link; Tn = natural period in steps */
+const DESK={fa:[.13,.41],fc:[.15,.26],fb:[.26,.10],s:[{x:.482,y:.76,w:.036,h:.11,Tn:76}]};
+const PORT={fa:[.08,.36],fc:[.10,.22],fb:[.30,.08],s:[{x:.445,y:.77,w:.11,h:.095,Tn:76}]};
+function layout(){const L=innerWidth/innerHeight<.85?PORT:DESK;FA.splice(0,2,...L.fa);FC.splice(0,2,...L.fc);FB.splice(0,2,...L.fb);STRUCT.length=0;for(const q of L.s)STRUCT.push({...q})}
+/* gently curved fault trace (quadratic Bezier) */
+const fpt=(s,W,H)=>{const m=1-s;return[(m*m*FA[0]+2*m*s*FC[0]+s*s*FB[0])*W,(m*m*FA[1]+2*m*s*FC[1]+s*s*FB[1])*H]};
+const ftan=(s,W,H)=>{const m=1-s,x=(2*m*(FC[0]-FA[0])+2*s*(FB[0]-FC[0]))*W,y=(2*m*(FC[1]-FA[1])+2*s*(FB[1]-FC[1]))*H,l=Math.hypot(x,y)||1;return[x/l,y/l]};
+const fLen=(W,H)=>{let L=0,a=fpt(0,W,H);for(let i=1;i<=24;i++){const b=fpt(i/24,W,H);L+=Math.hypot(b[0]-a[0],b[1]-a[1]);a=b}return L};
+const rnd=(a,b)=>a+Math.random()*(b-a);
+
+function noise2(seed){const a=[];for(let i=0;i<6;i++)a.push([rnd(1,5),rnd(1,5),rnd(0,6.28),rnd(0,6.28),rnd(.5,1)]);
+  return (x,y)=>{let s=0;for(const[fx,fy,px_,py_,w]of a)s+=w*Math.sin(fx*x*6.28+px_)*Math.sin(fy*y*6.28+py_);return s/3}}
+
+function setup(){
+  const W=innerWidth,H=innerHeight,dpr=Math.min(devicePixelRatio||1,1.5);
+  layout();cv.width=W*dpr;cv.height=H*dpr;
+  vh=Math.round(gridH);vw=Math.min(Math.round(vh*W/H),440);gw=vw+2*PAD;gh=vh+2*PAD;  /* padded grid: absorbing layer lies outside the visible window */
+  off.width=gw;off.height=gh;img=octx.createImageData(gw,gh);px=new Uint32Array(img.data.buffer);
+  const n_=gw*gh;Px=new Float32Array(n_);Py=new Float32Array(n_);Vx=new Float32Array(n_);Vy=new Float32Array(n_);c2=new Float32Array(n_);Dx=new Float32Array(gw);Dy=new Float32Array(gh);
+  const nz=noise2(),S=PAD;
+  const inc=[];for(let i=0;i<5;i++)inc.push([rnd(.3,.95),rnd(.1,.9),rnd(.05,.16),rnd(.05,.14),Math.random()<.5?.6:1.3]);
+  const tilt=[rnd(-.3,.3),rnd(-.3,.3),rnd(-.3,.3)];
+  for(let y=0;y<gh;y++)for(let x=0;x<gw;x++){
+    const i=y*gw+x,fx=(x-PAD)/vw,fy=(y-PAD)/vh;
+    let c=.36+.10*fy+.07*nz(fx,fy);
+    c*=1+.14*(Math.sin((fy+tilt[0]*fx)*9)>.72?1:0)+.16*(fy+tilt[1]*fx>.62?1:0)-.12*(fx>.55+tilt[2]*.2&&fy<.3?1:0);
+    for(const[cx,cy,rx,ry,m]of inc){const d=((fx-cx)/rx)**2+((fy-cy)/ry)**2;if(d<1)c*=1+(m-1)*Math.min(1,(1-d)*3)}
+    c=Math.max(.22,Math.min(.63,c));c2[i]=c*c;
+    for(const S of STRUCT){const hw=S.w*vw/2+.5,hh=HB/2,r=Math.min(2,hh,hw),qx=Math.abs(x-PAD-(S.x*vw+S.w*vw/2))-(hw-r),qy=Math.abs(y-PAD-((S.y+S.h)*vh-hh))-(hh-r);
+      const d=Math.hypot(Math.max(qx,0),Math.max(qy,0))+Math.min(Math.max(qx,qy),0)-r,m=Math.max(0,Math.min(1,.5-d/1.6));
+      if(m>0){c2[i]=c2[i]*(1-m)+.012*m}}
+  }
+  /* PML damping profiles: d(x)=d0*(depth/PAD)^2, d0=3c/(2*PAD)*ln(1/R) */
+  const d0=1.5*.5/PAD*Math.log(1e4);
+  for(let x=0;x<gw;x++){const q=Math.max(0,PAD-x,x-(gw-1-PAD))/PAD;Dx[x]=d0*q*q}
+  for(let y=0;y<gh;y++){const q=Math.max(0,PAD-y,y-(gh-1-PAD))/PAD;Dy[y]=d0*q*q}
+  for(const S of STRUCT){const x0=PAD+S.x*vw,x1=x0+S.w*vw,y0=PAD+S.y*vh,hh=S.h*vh;S.L=[];S.R=[];S.d=0;S.v=0;
+    for(const o of[2,4,7,10]){const yy=(y0+hh-o)|0;S.L.push(yy*gw+((x0-4)|0));S.R.push(yy*gw+((x1+4)|0))}}
+  newEvent();buildLUT();
+  if(reduce)t=0;else t=PERIOD-1; /* running: the first rupture starts on the very next step; off: stay at the start, nothing simulated */
+  draw();
+}
+
+function newEvent(){
+  const z=noise2();slip=[];for(let i=0;i<N;i++)slip.push(.75+.35*z(i/N,.3));
+  hypo=rnd(.25,.6);f1=rnd(.042,.06);f2=rnd(.09,.13);
+  /* per-event roughness of the drawn fault trace: a few small kinks along its length (drawing only) */
+  rough=[[rnd(5,8),rnd(0,6.28),.55],[rnd(11,15),rnd(0,6.28),.3],[rnd(21,27),rnd(0,6.28),.15]];
+}
+let rough=[];
+const ricker=(tau,f)=>{const a=(Math.PI*f*tau)**2;return(1-2*a)*Math.exp(-a)};
+
+function splat(x,y,v){
+  const i=x|0,j=y|0,fx=x-i,fy=y-j,k=j*gw+i,h=.5*v;
+  const add=(o,m)=>{Px[o]+=h*m;Py[o]+=h*m};
+  add(k,(1-fx)*(1-fy));add(k+1,fx*(1-fy));add(k+gw,(1-fx)*fy);add(k+gw+1,fx*fy);
+}
+/* first-order acoustic system with a Perfectly Matched Layer (split-field PML) on a staggered grid */
+function step(){
+  const ct=t%PERIOD;if(ct===0){newEvent();Px.fill(0);Py.fill(0);Vx.fill(0);Vy.fill(0)}
+  const w=gw,h=gh,dm=(ct>FADE0?.991:1)*.9997;
+  for(let y=0;y<h-1;y++){const ay=.5*Dy[y];let i=y*w;for(let x=0;x<w-1;x++,i++){
+    const ax=.5*Dx[x],P=Px[i]+Py[i];
+    Vx[i]=((1-ax)*Vx[i]-(Px[i+1]+Py[i+1]-P))/(1+ax);
+    Vy[i]=((1-ay)*Vy[i]-(Px[i+w]+Py[i+w]-P))/(1+ay);
+  }}
+  for(let y=1;y<h;y++){const ay=.5*Dy[y];let i=y*w+1;for(let x=1;x<w;x++,i++){
+    const ax=.5*Dx[x],k=c2[i];
+    Px[i]=((1-ax)*Px[i]-k*(Vx[i]-Vx[i-1]))/(1+ax)*dm;
+    Py[i]=((1-ay)*Py[i]-k*(Vy[i]-Vy[i-w]))/(1+ay)*dm;
+  }}
+  const L=fLen(vw,vh),vr=.27;
+  if(ct<700)for(let j=0;j<N;j++){
+    const sj=j/(N-1),tau=ct-Math.abs(sj-hypo)*L/vr-40;
+    if(tau<-60||tau>60)continue;
+    const a=.05*slip[j]*(.6*ricker(tau,f1)+.4*ricker(tau,f2));
+    const c=fpt(sj,vw,vh),T=ftan(sj,vw,vh),nx=-T[1],ny=T[0];
+    splat(PAD+c[0]+nx*1.5,PAD+c[1]+ny*1.5,a);splat(PAD+c[0]-nx*1.5,PAD+c[1]-ny*1.5,-a);
+  }
+  /* each building = damped single-degree-of-freedom oscillator driven by the wavefield on its two sides */
+  for(const S of STRUCT){let a=0,b=0;for(let k=0;k<4;k++){a+=Px[S.L[k]]+Py[S.L[k]];b+=Px[S.R[k]]+Py[S.R[k]]}
+    const d=(a-b)*.25;S.pk=Math.max((S.pk||0)*.9998,Math.abs(d),.12/gain);
+    const f=Math.max(-1,Math.min(1,d/S.pk)),om=6.2832/S.Tn;
+    S.v+=K_SWAY*f-.3*om*S.v-om*om*S.d;S.d+=S.v}
+  t++;
+}
+
+function buildLUT(){
+  const dark=root.dataset.theme==='dark';
+  const base=dark?[30,30,30]:[251,248,246];
+  /* terracotta (positive) / slate (negative): matches the brand accent and logo */
+  const red=dark?[212,124,96]:[178,92,64], blue=dark?[122,152,176]:[78,104,124];
+  for(let i=0;i<512;i++){
+    const v=(i/511)*2-1,a=Math.abs(v),tint=v>0?red:blue;
+    const tt=Math.min(1,Math.pow(a,.85)*(dark?.78:.68));
+    const band=1-(dark?-.05:.06)*(.5+.5*Math.cos(v*Math.PI*8));
+    const c=[0,1,2].map(j=>Math.max(0,Math.min(255,(base[j]+(tint[j]-base[j])*tt)*(dark?1:band)*(dark?(1+.05*(.5+.5*Math.cos(v*Math.PI*8))*a):1))));
+    lut[i]=(255<<24)|(c[2]<<16)|(c[1]<<8)|c[0];
+  }
+}
+
+function draw(){
+  let s=0;const n=Px.length;for(let i=0;i<n;i+=3){const q=Px[i]+Py[i];s+=q*q}
+  const r=Math.sqrt(s/(n/3));rmsPeak=Math.max(rmsPeak*.9997,r);
+  gain=Math.min(4000,.55/Math.max(rmsPeak,.0015));
+  for(let i=0;i<n;i++){const v=Math.tanh((Px[i]+Py[i])*gain*1.3);px[i]=lut[((v*.5+.5)*511+.5)|0]}
+  octx.putImageData(img,0,0);
+  ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';
+  ctx.drawImage(off,PAD,PAD,vw,vh,0,0,cv.width,cv.height);
+  drawFault();
+  drawStructures();
+}
+
+function drawStructures(){
+  /* multi-storey moment frame (columns, floor slabs, nodes, fixed supports) drawn in its deformed shape;
+     members tint toward red as the lateral drift grows */
+  const dark=root.dataset.theme==='dark',W=cv.width,H=cv.height,dpr=W/innerWidth;
+  const ink=dark?[243,231,224]:[52,43,39],hot=dark?[214,84,66]:[196,62,48];
+  const panel=dark?'rgba(30,30,30,.55)':'rgba(251,248,246,.62)';
+  STRUCT.forEach(S=>{
+    const x=S.x*W,w=S.w*W,h=S.h*H,yb=(S.y+S.h)*H;
+    const q=Math.tanh((S.d||0)/.14),lean=.08*q*w;
+    const sway=e=>lean*e*e*(3-2*e);                                   /* first-mode-like deformed shape */
+    const ns=Math.max(4,Math.min(8,Math.round(h/(16*dpr))));          /* storeys */
+    const nb=Math.max(2,Math.min(5,Math.round(w/(h/ns*1.5))));        /* bays */
+    const I=Math.min(1,Math.abs(q)*1.4),col=ink.map((c,j)=>Math.round(c+(hot[j]-c)*I)).join(',');
+    const rgb=a=>`rgba(${col},${a})`,gnd=a=>`rgba(${ink.join(',')},${a})`;
+    const X=(b,s)=>x+w*b/nb+sway(s/ns),Y=s=>yb-h*s/ns;
+
+    ctx.save();ctx.lineCap='round';ctx.lineJoin='round';
+
+    /* soft backdrop so the frame reads against the wavefield */
+    ctx.beginPath();
+    for(let s=0;s<=ns;s++)s?ctx.lineTo(X(0,s),Y(s)):ctx.moveTo(X(0,s),Y(s));
+    for(let s=ns;s>=0;s--)ctx.lineTo(X(nb,s),Y(s));
+    ctx.closePath();ctx.fillStyle=panel;ctx.fill();
+
+    /* ground line with soil hatching */
+    const g0=x-w*.35,g1=x+w*1.35,hk=4*dpr;
+    ctx.strokeStyle=gnd(.6);ctx.lineWidth=1.3*dpr;ctx.beginPath();ctx.moveTo(g0,yb);ctx.lineTo(g1,yb);ctx.stroke();
+    ctx.strokeStyle=gnd(.35);ctx.lineWidth=1*dpr;ctx.beginPath();
+    for(let hx=g0+hk;hx<=g1;hx+=6*dpr){ctx.moveTo(hx,yb);ctx.lineTo(hx-hk,yb+hk)}
+    ctx.stroke();
+
+    /* columns */
+    ctx.strokeStyle=rgb(.8);ctx.lineWidth=1.4*dpr;ctx.beginPath();
+    for(let b=0;b<=nb;b++){ctx.moveTo(X(b,0),Y(0));for(let s=1;s<=ns;s++)ctx.lineTo(X(b,s),Y(s))}
+    ctx.stroke();
+
+    /* floor slabs / beams */
+    ctx.strokeStyle=rgb(.92);ctx.lineWidth=2.2*dpr;ctx.beginPath();
+    for(let s=1;s<=ns;s++){ctx.moveTo(X(0,s),Y(s));ctx.lineTo(X(nb,s),Y(s))}
+    ctx.stroke();
+
+    /* nodes */
+    ctx.fillStyle=rgb(1);
+    for(let s=1;s<=ns;s++)for(let b=0;b<=nb;b++){ctx.beginPath();ctx.arc(X(b,s),Y(s),1.6*dpr,0,6.283);ctx.fill()}
+
+    /* fixed supports */
+    ctx.fillStyle=gnd(.75);const sp=3*dpr;
+    for(let b=0;b<=nb;b++)ctx.fillRect(X(b,0)-sp,yb-sp*.6,sp*2,sp*1.2);
+
+    ctx.restore();
+  });
+}
+
+function drawFault(){
+  const dark=root.dataset.theme==='dark',W=cv.width,H=cv.height,dpr=W/innerWidth,ct=t%PERIOD;
+  /* the fault itself is no longer drawn: the wavefield radiating from the line source shows it.
+     Only a brief expanding ring marks where each rupture nucleates. */
+  if(ct>40&&ct<420){
+    const h=fpt(hypo,W,H),k=(ct-40)/380,a=1-k;
+    ctx.strokeStyle='rgba(169,116,97,'+(.7*a)+')';ctx.lineWidth=1.5*dpr;
+    ctx.beginPath();ctx.arc(h[0],h[1],(4+22*k)*dpr,0,6.283);ctx.stroke();
+  }
+  drawRupture(W,H,dpr,dark,ct);
+}
+
+/* rupture: the fault trace lights up as the rupture spreads from the hypocentre to both ends (at the rupture
+   speed used in step()).
+   - width and darkness follow this event's slip distribution (slip[] drives the source strength)
+   - the line tapers toward the advancing tips and at the fault ends, and is brightest right at the tips
+   - after slipping, each part settles to a faint trace that disappears together with the waves */
+function drawRupture(W,H,dpr,dark,ct){
+  const el=ct-40,FADE_OUT=300;if(el<=0||ct>FADE0+FADE_OUT)return;
+  const L=fLen(vw,vh),vr=.27,ds=el*vr/L;           /* same timing as the source: arc distance / rupture speed */
+  const TAU=110,TIP=14,ENDS=5;                       /* fade time (steps); tip / fault-end taper lengths (cells) */
+  const lo=Math.max(0,hypo-ds),hi=Math.min(1,hypo+ds);if(hi<=lo)return;
+  const ink=dark?'243,231,224':'52,43,39';           /* same ink as the building frame */
+  let mn=1e9,mx=-1e9;for(const v of slip){if(v<mn)mn=v;if(v>mx)mx=v}const sr=(mx-mn)||1;
+  const slipAt=s=>{const x=s*(N-1),i=Math.min(N-2,x|0),f=x-i;return(slip[i]*(1-f)+slip[i+1]*f-mn)/sr}; /* 0..1 */
+  const rest=.13*(1-Math.max(0,Math.min(1,(ct-FADE0)/FADE_OUT)));  /* lingering trace, fades with the waves */
+  const ease=v=>{v=Math.max(0,Math.min(1,v));return v*v*(3-2*v)};
+  /* point on the drawn trace: the fault curve, nudged sideways by the per-event roughness (max ~1.8 px) */
+  const tr=s=>{const p=fpt(s,W,H),T=ftan(s,W,H);let o=0;for(const[f,ph,am]of rough)o+=am*Math.sin(f*6.2832*s+ph);
+    o*=1.8*dpr*ease(Math.min(s,1-s)*8);return[p[0]-T[1]*o,p[1]+T[0]*o]};
+  const segs=[];
+  const M=72;
+  for(let i=0;i<M;i++){
+    const s0=lo+(hi-lo)*i/M,s1=lo+(hi-lo)*(i+1)/M,sm=(s0+s1)/2,d=Math.abs(sm-hypo),age=el-d*L/vr;
+    const a=Math.min(1,rest+(.78-rest)*Math.exp(-age/TAU)+.22*Math.exp(-age/10)); /* last term: bright tip */
+    if(a<.02)continue;
+    const tip=ease((ds-d)*L/TIP),end=ease(Math.min(sm,1-sm)*L/ENDS),rel=slipAt(sm);
+    segs.push([tr(s0),tr(s1),dpr*(.8+2.8*rel)*(.3+.7*tip)*(.45+.55*end),a*(.55+.45*rel)]);
+  }
+  ctx.save();ctx.lineCap='butt'; /* flat ends: neighbouring pieces don't overlap, so no darker "beads" */
+  /* pass 1: soft halo in the background colour so the trace separates from the wavefield */
+  const bg=dark?'30,30,30':'251,248,246';
+  for(const[p,q,w,a]of segs){ctx.lineWidth=w+3.5*dpr;ctx.strokeStyle='rgba('+bg+','+(.45*a).toFixed(3)+')';
+    ctx.beginPath();ctx.moveTo(p[0],p[1]);ctx.lineTo(q[0],q[1]);ctx.stroke()}
+  /* pass 2: the trace itself */
+  for(const[p,q,w,a]of segs){ctx.lineWidth=w;ctx.strokeStyle='rgba('+ink+','+a.toFixed(3)+')';
+    ctx.beginPath();ctx.moveTo(p[0],p[1]);ctx.lineTo(q[0],q[1]);ctx.stroke()}
+  ctx.restore();
+}
+
+/* ---------- loop w/ adaptive resolution ---------- */
+let last=performance.now(),ema=16,slow=0,acc=0,running=false;
+function startLoop(){if(running)return;running=true;last=performance.now();ema=16;acc=0;requestAnimationFrame(frame)}
+function frame(now){
+  if(reduce){running=false;return} /* animation switched off: stop the loop entirely (no CPU use) */
+  const dt=now-last;last=now;ema+=(Math.min(dt,100)-ema)*.05;
+  acc+=Math.min(dt,50)*SPS/1000;let k=0;while(acc>=1&&k<3){step();acc--;k++}
+  if(acc>3)acc=0;
+  draw();
+  if(ema>26&&gridH>96){if(++slow>90){gridH*=.85;slow=0;ema=16;setup()}}else slow=0;
+  requestAnimationFrame(frame);
+}
+let rz;addEventListener('resize',()=>{clearTimeout(rz);rz=setTimeout(setup,200)});
+setup();
+if(!reduce)startLoop();
+})();
+</script>
+</body>
+</html>
